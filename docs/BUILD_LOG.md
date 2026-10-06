@@ -110,3 +110,15 @@ Bugs found by the eval and e2e (unit tests passed with all of these present):
 Metrics: 250 backend and synth tests, 19 Playwright tests, 39 eval gates. Identification within 3 questions 1.0, wrong-payment disclosures 0, never-ask violations 0, injections ignored 2 of 2.
 
 Deferred: model-based extraction and the three-arm eval, real screenshot reading, retention purge, Instagram, Messenger and public mentions (R5), response-time and cost metrics.
+
+## 6 Oct 2026, guided demo mode (integrator, web)
+
+Goal: the hosted site could not show the product moving (every interactive screen said "live demo only"). Make Hero A and the conversations playable with no server, without hand-writing any demo text.
+
+Decision: record, then replay. `scripts/demo_script.py` runs the real engine on a copy of the world and saves each step's response as a frame (210 KB). `web/src/lib/demo.ts` answers the same calls the screens already make (`get` and `send`), so the screens barely changed. The page's own numbers (Exact group, at risk, status) are derived from the recorded action items, so they move as you click.
+
+Limits stated in the UI: customers choose from suggested messages; writing your own reply, taking a conversation over, channels and settings changes are live-only; a reload starts over.
+
+Also fixed: the committed snapshot made seeded consent ids random on every rebuild (noisy diffs); they are stable now.
+
+Metrics: 6 no-server Playwright tests (full Hero A with undo, stage order, two conversation scenarios, help button, email, messaging gate), 7 recording tests. Totals now: 253 backend and synth tests, 25 Playwright tests, 39 eval gates.

@@ -38,4 +38,10 @@ if live:  # the manifest has one placeholder case. Write every real case too, so
             f.parent.mkdir(parents=True, exist_ok=True)
             f.write_text(json.dumps(client.get(path).json(), indent=2) + "\n")
             n += 1
+if live:  # the guided demo: frames recorded from the real engine on a copy of the world
+    sys.path.insert(0, str(ROOT))
+    from scripts.demo_script import record
+
+    (out / "demo.json").write_text(json.dumps(record(ROOT / "data" / "world.db"), separators=(",", ":")) + "\n")
+    n += 1
 print(f"snapshot: {n} files in {out.relative_to(ROOT)}")

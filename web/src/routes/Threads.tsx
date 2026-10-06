@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { Alert, Badge, Box, Card, CardBody, Heading, Text } from '@razorpay/blade/components'
 import { ThreadView } from '../components/ThreadView'
 import { isLive, useGet, type Schemas } from '../lib/api'
+import { demoNote } from '../lib/demo'
 import { when } from '../lib/format'
 
 const DEMOS = [['/chat-demo', 'Talk to it on WhatsApp'], ['/help-demo/receipt', 'Tap help on a receipt'], ['/email-demo', 'Write to it by email']] as const
@@ -19,8 +20,8 @@ export function Threads() {
         <Heading size="xlarge">Conversations</Heading>
         <Text color="surface.text.gray.muted">Customers who wrote to your payment help. The agent finds their payment, says what your records show, and hands over when a person is needed.</Text>
       </Box>
-      {!isLive && <Alert color="information" isDismissible={false} title="Snapshot" description="Conversations are created by customers, so they only exist in the live demo. The complaints below were already in the data." />}
-      {isLive && (
+      {!isLive && <Alert color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Conversations appear here once you start one from the links below.`} />}
+      {(
         <Box display="flex" gap="spacing.5" flexWrap="wrap">
           {DEMOS.map(([to, label]) => <Link key={to} to={to}><Text color="interactive.text.primary.normal">{label}</Text></Link>)}
         </Box>

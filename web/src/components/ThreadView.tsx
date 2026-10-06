@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Alert, Badge, Box, Button, Card, CardBody, Heading, RayIcon, Text, TextArea } from '@razorpay/blade/components'
-import { send, type Schemas } from '../lib/api'
+import { isLive, send, type Schemas } from '../lib/api'
 import { when } from '../lib/format'
 
 type Thread = Schemas['ThreadDetail']
@@ -71,12 +71,12 @@ export function ThreadView({ thread, onChanged }: { thread: Thread; onChanged: (
 
       <Box display="flex" gap="spacing.4" flexWrap="wrap">
         {hasDraft && <Button isDisabled={busy} onClick={() => act(() => send('POST', `/api/threads/${thread.id}/reply`, { approved_by: 'founder' }))}>Approve and send</Button>}
-        {thread.state !== 'handoff' && thread.state !== 'human' && thread.state !== 'resolved' && thread.state !== 'pass_back' && (
+        {isLive && thread.state !== 'handoff' && thread.state !== 'human' && thread.state !== 'resolved' && thread.state !== 'pass_back' && (
           <Button variant="secondary" isDisabled={busy} onClick={() => act(() => send('POST', `/api/threads/${thread.id}/handoff`, { reason: 'You took over this conversation.' }))}>I will take this one</Button>
         )}
       </Box>
 
-      {thread.state !== 'pass_back' && (
+      {isLive && thread.state !== 'pass_back' && (
         <Card>
           <CardBody>
             <Box display="flex" flexDirection="column" gap="spacing.3">
