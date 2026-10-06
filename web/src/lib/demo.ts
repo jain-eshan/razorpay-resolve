@@ -205,4 +205,4 @@ export async function demoSuggestions(channel: string, tid?: string): Promise<st
 
 export const demoHelpPayment = async () => (await demo()).chat.help.payment_id as string
 
-export const demoNote = 'Guided demo: replayed from a real run of the engine on the synthetic world. Nothing here is live.'
+export const demoNote = 'Replayed from a real run of the engine on the synthetic world. Nothing here is live.'

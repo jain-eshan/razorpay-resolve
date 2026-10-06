@@ -136,3 +136,13 @@ Built: Blade `TopNav` and `SideNav` shell with a synthetic-data banner and all e
 Process note: this work was first built on a branch cut from `main`, which only had R1. It included its own R2 (`claude/docs-review-build-d91b5a`, kept on GitHub for comparison) that duplicated PR #2. After finding that, only the redesign was ported onto `blindspot`. The two R2 versions found the same cohort bug independently (customers we fixed must stay in the incident).
 
 Bugs found by looking: Blade `Card` rejects non-`CardBody` children (blank page); `InfoItemValue` rendered plain strings in the browser's default serif; the side nav overlays content and needed offsets; `SideNavLink as` receives `to`, so a plain anchor had no `href` and the nav links were not links; Blade `TableRow onClick` did not navigate.
+
+## 7 Oct 2026, UX review and one branch (integrator)
+
+Goal: review the web app as a UI/UX designer would, fix what was wrong, and stop keeping a separate `blindspot` branch.
+
+Found by measuring the live pages (Playwright at 1440 and 390 wide, plus computed styles): the top bar was 16px wider than the window because the app had no `box-sizing: border-box`, which clipped the avatar and made the page scroll sideways; the side nav had a 72px dead gutter (links wrapped in `SideNavLevel`) and ran 56px past the bottom of the window, hiding Settings; card header bands painted over Blade's inner card ring so panels had no top edge; alerts were 584px wide next to 1072px cards; the affected-customers table and the phone layout of Evidence were cramped; badges were 10px; some raw snake_case labels and two "make run-api" instructions showed in the UI.
+
+Changed: top bar says Razorpay (Blindspot is the "BLINDSPOT" section of the side nav); the fixes above; unique nav icons; empty incident zones collapse to a header; demo links are buttons; the read-only Settings shows values as text. Left alone because they come from Blade: 11px timeline timestamps, heading levels, the Table console warning.
+
+Branches: `blindspot` merged into `main`, which is now the only long-lived branch. Checks: typecheck, lint, 13 snapshot browser tests pass.

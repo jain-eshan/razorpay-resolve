@@ -7,7 +7,8 @@ export function Panel({ title, subtitle, trailing, children, pad = true }: { tit
     <Card padding="spacing.0">
       <CardBody>
       <Box display="flex" alignItems="center" justifyContent="space-between" gap="spacing.4" paddingX="spacing.6" paddingY="spacing.5" backgroundColor="surface.background.gray.subtle"
-        borderTopLeftRadius="medium" borderTopRightRadius="medium" borderBottomWidth="thin" borderBottomColor="surface.border.gray.subtle">
+        borderRadius="medium" borderBottomLeftRadius={children === undefined ? 'medium' : 'none'} borderBottomRightRadius={children === undefined ? 'medium' : 'none'}
+        borderWidth="thin" borderColor="surface.border.gray.subtle">
         <Box display="flex" flexDirection="column">
           <Heading size="small">{title}</Heading>
           {subtitle && <Text size="small" color="surface.text.gray.muted">{subtitle}</Text>}

@@ -23,7 +23,7 @@ export default function Case() {
         </Box>
         <Text>{c.state_line}</Text>
       </Box>
-      {c.injection_suspected && <Alert color="negative" isDismissible={false} title="This message tried to give the system instructions" description="It was treated as data and not followed. A person has the thread." />}
+      {c.injection_suspected && <Alert isFullWidth color="negative" isDismissible={false} title="This message tried to give the system instructions" description="It was treated as data and not followed. A person has the thread." />}
 
       <Card><CardBody>
         <Box display="flex" gap="spacing.5" flexWrap="wrap">

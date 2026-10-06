@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Alert, Badge, Box, Button, Heading, SegmentedControl, SegmentedControlItem, Switch, Text, TextInput } from '@razorpay/blade/components'
 import { Panel } from '../components/Panel'
 import { isLive, rupees, send, useGet, type Schemas } from '../lib/api'
@@ -29,7 +29,15 @@ export default function SettingsPage() {
   const [error, setError] = useState<string>()
   if (!s) return <Text color="surface.text.gray.muted">Loading</Text>
 
-  const num = (k: 'max_bulk_customers' | 'holdout_percent') => (
+  // A disabled input reads as an empty placeholder, so the read-only demo shows the value as text.
+  const ro = (label: string, value: string, hint?: string): ReactNode => (
+    <Box display="flex" flexDirection="column">
+      <Text size="small" color="surface.text.gray.muted">{label}</Text>
+      <Text>{value}</Text>
+      {hint && <Text size="small" color="surface.text.gray.muted">{hint}</Text>}
+    </Box>
+  )
+  const num = (k: 'max_bulk_customers' | 'holdout_percent') => !isLive ? ro(k === 'max_bulk_customers' ? 'Most customers in one action' : 'Holdout for recovery links, percent', String(s[k])) : (
     <TextInput label={k === 'max_bulk_customers' ? 'Most customers in one action' : 'Holdout for recovery links, percent'} value={String(s[k])} isDisabled={!isLive}
       onChange={({ value }) => setS({ ...s, [k]: Number((value ?? '').replace(/\D/g, '')) })} />
   )
@@ -50,11 +58,11 @@ export default function SettingsPage() {
         <Heading size="xlarge">Settings</Heading>
         <Text color="surface.text.gray.muted">How much Blindspot does without asking, and the limits it stays inside.</Text>
       </Box>
-      {!isLive && <Alert color="information" isDismissible={false} title="Read-only snapshot" description="Start the live demo with make run-api to change these." />}
-      {error && <Alert color="negative" isDismissible={false} title="Not saved" description={error} />}
+      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Read-only snapshot" description="Settings cannot be changed in this demo." />}
+      {error && <Alert isFullWidth color="negative" isDismissible={false} title="Not saved" description={error} />}
 
       <Panel title="Autonomy">
-        <SegmentedControl label="Autonomy" name="autonomy" value={s.autonomy ?? 'suggest'} onChange={({ value }) => isLive && setS({ ...s, autonomy: value as Settings['autonomy'] })}>
+        <SegmentedControl label="Level" name="autonomy" value={s.autonomy ?? 'suggest'} onChange={({ value }) => isLive && setS({ ...s, autonomy: value as Settings['autonomy'] })}>
           {LEVELS.map(([v, label]) => <SegmentedControlItem key={v} value={v}>{label}</SegmentedControlItem>)}
         </SegmentedControl>
         <Text>{LEVELS.find(([v]) => v === s.autonomy)?.[2]}</Text>
@@ -65,13 +73,15 @@ export default function SettingsPage() {
         <Box display="grid" gridTemplateColumns={{ base: '1fr', m: '1fr 1fr' }} gap="spacing.5">
           {num('max_bulk_customers')}
           {num('holdout_percent')}
-          <TextInput label="Daily refund limit" value={rupees(s.daily_refund_cap_paise)} isDisabled helpText="Refunds arrive in a later release." />
-          <TextInput label="Your developer's contact" value={s.technical_contact} isDisabled={!isLive} onChange={({ value }) => setS({ ...s, technical_contact: value ?? '' })} />
+          {!isLive ? ro('Daily refund limit', rupees(s.daily_refund_cap_paise), 'Refunds arrive in a later release.') : <TextInput label="Daily refund limit" value={rupees(s.daily_refund_cap_paise)} isDisabled helpText="Refunds arrive in a later release." />}
+          {!isLive ? ro("Your developer's contact", s.technical_contact) : <TextInput label="Your developer's contact" value={s.technical_contact} onChange={({ value }) => setS({ ...s, technical_contact: value ?? '' })} />}
         </Box>
-        <Box display="flex" gap="spacing.4" alignItems="center">
-          <Switch accessibilityLabel="Allow messages to customers" isChecked={s.messaging_enabled} isDisabled={!isLive} onChange={({ isChecked }) => setS({ ...s, messaging_enabled: isChecked })} />
-          <Text>Allow messages to customers</Text>
-        </Box>
+        {!isLive ? ro('Messages to customers', s.messaging_enabled ? 'Allowed' : 'Not allowed') : (
+          <Box display="flex" gap="spacing.4" alignItems="center">
+            <Switch accessibilityLabel="Allow messages to customers" isChecked={s.messaging_enabled} onChange={({ isChecked }) => setS({ ...s, messaging_enabled: isChecked })} />
+            <Text>Allow messages to customers</Text>
+          </Box>
+        )}
       </Panel>
 
       <Panel title="What Blindspot is allowed to do">

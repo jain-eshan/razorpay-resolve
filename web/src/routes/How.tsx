@@ -1,6 +1,7 @@
 import { Badge, Box, Heading, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
 import { Panel } from '../components/Panel'
 import { useGet, type Schemas } from '../lib/api'
+import { sentence } from '../lib/format'
 
 const TONE = { pass: 'positive', fail: 'negative', report: 'neutral', 'n/a': 'neutral' } as const
 
@@ -28,10 +29,10 @@ export default function How() {
               <TableBody>
                 {rows.map((m) => (
                   <TableRow key={m.name} item={m}>
-                    <TableCell><Text weight="semibold" color="surface.text.gray.subtle">{m.name.replaceAll('_', ' ')}</Text></TableCell>
+                    <TableCell><Text weight="semibold" color="surface.text.gray.subtle">{sentence(m.name).replace('Day0', 'Day-0')}</Text></TableCell>
                     <TableCell><Text>{m.value ?? 'n/a'}</Text></TableCell>
                     <TableCell><Text size="small" color="surface.text.gray.muted">{m.target}</Text></TableCell>
-                    <TableCell><Badge size="small" color={TONE[m.status]}>{m.status}</Badge></TableCell>
+                    <TableCell><Badge size="medium" color={TONE[m.status]}>{m.status}</Badge></TableCell>
                   </TableRow>
                 ))}
               </TableBody>

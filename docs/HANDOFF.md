@@ -1,6 +1,6 @@
 # Handoff: where Blindspot stands (6 Oct 2026, R0 to R3 merged, guided demo on PR)
 
-Read this first in a new chat, then `docs/PRD.md`. Everything below is true as of the last commit on branch `blindspot` plus the guided-demo PR.
+Read this first in a new chat, then `docs/PRD.md`. Everything below is true as of the last commit on `main`.
 
 ## 0. Start a new chat here (5 minutes)
 
@@ -95,7 +95,7 @@ scripts/     gen_contracts.py  snapshot.py  demo_script.py  run_pipeline.py  sec
 
 Commands: `make setup | synth | pipeline | snapshot | eval | test | e2e | lint | contracts | run-web | run-api`. `make snapshot` rebuilds `web/public/snapshot/` (including `demo.json`); commit the result when the data or the engine changes, because Vercel has no Python.
 
-Branches: PR #1 merged R0 and R1 into `main`. `blindspot` is ahead of `main` with R2 (PR #2) and R3 (PR #3). Eshan plans to merge `blindspot` into `main` and use one branch from then on, with each release a branch merged by PR. Vercel deploys the production branch (set in the Vercel dashboard), so after that merge `razorsense-starter.vercel.app` shows everything. The starter's files moved into `web/` with `git mv`, so history is kept.
+Branches: `main` is the one branch and holds the product (R0 to R3, the guided demo, the dashboard-aligned frontend, the UX review fixes). Each change is a short-lived branch merged by PR once CI passes. Vercel deploys `main`, so `razorsense-starter.vercel.app` always shows the latest merge. The starter's files moved into `web/` with `git mv`, so history is kept.
 
 ## 4. Decisions made (full log: PRD section 2)
 
@@ -143,11 +143,10 @@ Needs Eshan:
 - **Razorpay questions (V3, nine of them) and the two for Prane:** does RAY already list every payment affected by one webhook failure (kill criterion K2), and could Razorpay expose a bulk replay or delivery-log API for a prototype. No answers yet.
 - **Test account cleanup (V5):** the disabled `httpbin` webhook and the ₹10 payment link are still there. Nothing is deleted until Eshan says so.
 - **A model, if wanted:** R3 was built without one (rules and scripted threads). Eshan's Claude plan has no API, so use an open model (Ollama locally, or Groq's free tier) behind `extract()` if the agent arm of the three-way eval is built. Not needed for the demo.
-- **Vercel:** live at razorsense-starter.vercel.app (Root Directory `web`, no env vars). It deploys the production branch, which was `main` (R1) and should become the branch Eshan merges into.
+- **Vercel:** live at razorsense-starter.vercel.app (Root Directory `web`, no env vars). It deploys `main`.
 
 Needs the next session:
 - **Contract tags:** only `contracts-v0.1` is tagged. v0.2, v0.3 and v0.4 are not. Tag after Eshan agrees.
-- **Merge `blindspot` into `main`** (PR from `blindspot`), then point Vercel's production branch at it.
 - **Verify list (PRD 16.3, V4):** items still without a status.
 - **No executor yet for** refunds, recovery links and event re-sending, although the autonomy matrix lists them (refunds and recovery links belong to R4).
 - **Deferred from R1:** the 24 synthetic screenshots (R3 simulated screenshot text instead; real images need a vision model).
@@ -157,7 +156,7 @@ Needs the next session:
 ## 7. Next steps
 
 Eshan chose to continue in a new chat. Suggested order:
-1. **Get the guided-demo PR merged, then merge `blindspot` into `main`** and check `razorsense-starter.vercel.app` end to end (RAY, incident, fix, undo, messages, verify, close, audit, chat, help button, email).
+1. **Check `razorsense-starter.vercel.app` end to end after the merge** (RAY, incident, fix, undo, messages, verify, close, audit, chat, help button, email).
 2. **Polish the user journey** before more backend depth: a guided path through the demo (what to click first), the RAY alert leading into the incident, mobile layout, and the copy. The journey, not the engine, is what a judge will see.
 3. **R4 Zone 1 and depth** (`docs/BUILD_PLAN.md` section 5): cannot-reach-the-pay-page inference (Hero B, with the "Inferred" label), the pay-URL probe, the investigation agent, the three-way eval. Hero B is placeholder data today.
 4. **R5** learning loop and handovers, **R7** submission kit (note, video script, evidence section). Cut order if short on time is in `docs/BUILD_PLAN.md` section 10.

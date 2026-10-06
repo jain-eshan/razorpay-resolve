@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  Alert, AlertTriangleIcon, Badge, BellOffIcon, Box, Button, Card, CardBody, CheckCircleIcon, Heading, InfoGroup, InfoItem, InfoItemKey, InfoItemValue, MessageCircleIcon,
+  Alert, AlertTriangleIcon, Badge, BellOffIcon, Box, Button, Card, CardBody, CheckCircleIcon, Heading, MessageCircleIcon,
   SegmentedControl, SegmentedControlItem, StepGroup, StepItem, StepItemIndicator, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TablePagination,
   TableRow, Text,
 } from '@razorpay/blade/components'
@@ -12,8 +12,7 @@ import { Panel } from '../components/Panel'
 import { Stat } from '../components/Stat'
 import { TimelineChart } from '../components/TimelineChart'
 import { rupees, useGet, type Schemas } from '../lib/api'
-import { useIsMobile } from '../lib/useIsMobile'
-import { OWNER, when } from '../lib/format'
+import { OWNER, sentence, when } from '../lib/format'
 
 const TIERS = ['exact', 'likely', 'check', 'excluded'] as const
 const TIER_LABEL = { exact: 'Exact', likely: 'Likely', check: 'Check manually', excluded: 'Excluded' }
@@ -60,7 +59,6 @@ function Milestones({ inc, pack, atAlert }: { inc: Schemas['IncidentDetail']; pa
 export default function Incident() {
   const { id = '' } = useParams()
   const nav = useNavigate()
-  const mobile = useIsMobile()
   const [version, setVersion] = useState(0)
   const { data: inc, error } = useGet<Schemas['IncidentDetail']>(`/api/incidents/${id}`, version)
   const { data: members } = useGet<Schemas['Member'][]>(`/api/incidents/${id}/members`, version)
@@ -96,19 +94,21 @@ export default function Incident() {
         </CardBody>
       </Card>
 
-      <Box display="grid" gridTemplateColumns={{ base: '1fr', m: 'repeat(3, 1fr)' }} gap="spacing.5">
-        <Box gridColumn={{ base: 'auto', m: '1 / -1' }}>
+      <Box display="grid" gridTemplateColumns={{ base: 'repeat(2, 1fr)', m: 'repeat(3, 1fr)' }} gap="spacing.5">
+        <Box gridColumn="1 / -1">
           <Stat label="Affected" value={String(inc.affected)} hint={`customers paid and have no access · ${rupees(inc.at_risk_paise)} at risk`} icon={AlertTriangleIcon} tone="notice" />
         </Box>
         <Stat label="Complained" value={String(inc.complained)} icon={MessageCircleIcon} />
         <Stat label="Silent" value={String(inc.silent)} hint="never complained" icon={BellOffIcon} />
-        <Stat label="Already fixed" value={String(inc.fixed)} hint="by hand, before this" icon={CheckCircleIcon} tone="positive" />
+        <Box gridColumn={{ base: '1 / -1', m: 'auto' }}>
+          <Stat label="Already fixed" value={String(inc.fixed)} hint="by hand, before this" icon={CheckCircleIcon} tone="positive" />
+        </Box>
       </Box>
 
       <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(0, 1fr) 320px' }} gap="spacing.6" alignItems="start">
         <Box display="flex" flexDirection="column" gap="spacing.6" minWidth="0px">
           {inc.would_have_alerted_at && atAlert !== null && (
-            <Alert color="information" isDismissible={false} title="With this on" description={`You would have known ${when(inc.would_have_alerted_at)}, when ${atAlert} customer was affected. The first complaint came days later.`} />
+            <Alert isFullWidth color="information" isDismissible={false} title="With this on" description={`You would have known ${when(inc.would_have_alerted_at)}, when ${atAlert} customer was affected. The first complaint came days later.`} />
           )}
 
           <Panel title="What your server did" subtitle="Webhook outcomes, hour by hour">
@@ -116,14 +116,14 @@ export default function Incident() {
           </Panel>
 
           <Panel title="Evidence" subtitle="What the failed payments have in common">
-            <InfoGroup itemOrientation={mobile ? 'vertical' : 'horizontal'} size="medium">
+            <Box display="flex" flexDirection="column">
               {inc.lift.map((l) => (
-                <InfoItem key={l.dimension + l.value}>
-                  <InfoItemKey>{l.dimension.replace('_', ' ')}: {l.value}</InfoItemKey>
-                  <InfoItemValue><Text>{Math.round(l.share_affected * 100)}% of affected vs {(l.share_baseline * 100).toFixed(1)}% normally</Text></InfoItemValue>
-                </InfoItem>
+                <Box key={l.dimension + l.value} display="flex" flexDirection={{ base: 'column', m: 'row' }} justifyContent="space-between" gap={{ base: 'spacing.1', m: 'spacing.5' }} paddingY="spacing.3" borderBottomWidth="thin" borderBottomColor="surface.border.gray.subtle">
+                  <Text>{sentence(l.dimension)}: {l.value.replace(/\bupi\b/g, 'UPI')}</Text>
+                  <Text color="surface.text.gray.muted">{Math.round(l.share_affected * 100)}% of affected vs {(l.share_baseline * 100).toFixed(1)}% normally</Text>
+                </Box>
               ))}
-            </InfoGroup>
+            </Box>
             {v.what_we_cannot_see.map((s) => <Text key={s} size="small" color="surface.text.gray.muted">We cannot see: {s}</Text>)}
           </Panel>
 
@@ -144,7 +144,7 @@ export default function Incident() {
             {rows.length === 0 ? (
               <Box padding="spacing.6"><Text color="surface.text.gray.muted">None in this group.</Text></Box>
             ) : (
-              <Table data={{ nodes: rows }} pagination={<TablePagination defaultPageSize={10} showPageSizePicker={false} />} gridTemplateColumns="1.1fr 0.8fr 2fr 1.2fr 1.2fr" isHeaderSticky={false}>
+              <Table data={{ nodes: rows }} pagination={<TablePagination defaultPageSize={10} showPageSizePicker={false} />} gridTemplateColumns="1.2fr 1.1fr 2.5fr 1.2fr" isHeaderSticky={false}>
                 {(items) => (
                   <>
                     <TableHeader>
@@ -153,7 +153,6 @@ export default function Incident() {
                         <TableHeaderCell>Amount</TableHeaderCell>
                         <TableHeaderCell>What happened</TableHeaderCell>
                         <TableHeaderCell>Your records</TableHeaderCell>
-                        <TableHeaderCell>Note</TableHeaderCell>
                       </TableHeaderRow>
                     </TableHeader>
                     <TableBody>
@@ -161,14 +160,13 @@ export default function Incident() {
                         <TableRow key={m.payment_id} item={m}>
                           <TableCell>{two(m.customer_masked, m.payment_id)}</TableCell>
                           <TableCell>{two(rupees(m.amount_paise), m.plan)}</TableCell>
-                          <TableCell>{two(m.delivery_outcome, when(m.captured_at))}</TableCell>
+                          <TableCell>{two(m.delivery_outcome, `${when(m.captured_at)} · ${m.exclusion_reason ?? m.replay_eligibility.replaceAll('_', ' ')}`)}</TableCell>
                           <TableCell>
                             <Box display="flex" gap="spacing.2" flexWrap="wrap">
-                              <Badge size="small" color={m.merchant_state === 'active' ? 'positive' : 'negative'}>{m.merchant_state}</Badge>
-                              <Badge size="small" color={m.complained ? 'notice' : 'neutral'}>{m.complained ? 'Complained' : 'Silent'}</Badge>
+                              <Badge size="medium" color={m.merchant_state === 'active' ? 'positive' : 'negative'}>{sentence(m.merchant_state)}</Badge>
+                              <Badge size="medium" color={m.complained ? 'notice' : 'neutral'}>{m.complained ? 'Complained' : 'Silent'}</Badge>
                             </Box>
                           </TableCell>
-                          <TableCell><Text size="small" color="surface.text.gray.muted">{m.exclusion_reason ?? m.replay_eligibility.replaceAll('_', ' ')}</Text></TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

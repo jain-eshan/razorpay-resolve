@@ -103,8 +103,8 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
         </Text>
       </Box>
 
-      {!isLive && <Alert color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Click through the steps. Each one is the engine's real answer.`} />}
-      {error && <Alert color="negative" isDismissible={false} title="That did not go through" description={error} />}
+      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Click through the steps. Each one is the engine's real answer.`} />}
+      {error && <Alert isFullWidth color="negative" isDismissible={false} title="That did not go through" description={error} />}
 
       <Step n={1} title="Test your access hook" badge={tested ? ['Reachable', 'positive'] : grant ? ['Skipped, plan already exists', 'neutral'] : undefined}>
         <Text size="small">Before anything changes, check that your side answers. Blindspot only switches access on through this hook. It cannot switch it off.</Text>

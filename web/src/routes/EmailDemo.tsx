@@ -30,8 +30,8 @@ export default function EmailDemo() {
         <Heading size="xlarge">Email</Heading>
         <Text color="surface.text.gray.muted">The merchant sets one forwarding rule: mail with payment words goes to the agent. Replies go back in the same thread, from the merchant's own domain once it is set up.</Text>
       </Box>
-      {!isLive && <Alert color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Sending any text plays the recorded reply.`} />}
-      {error && <Alert color="negative" isDismissible={false} title="Not delivered" description={error} />}
+      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Sending any text plays the recorded reply.`} />}
+      {error && <Alert isFullWidth color="negative" isDismissible={false} title="Not delivered" description={error} />}
       <Card><CardBody>
         <Box display="flex" flexDirection="column" gap="spacing.4">
           <Text size="small" weight="semibold">Forwarding rule (example)</Text>

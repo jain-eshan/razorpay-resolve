@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { Alert, Badge, Box, Button, Card, CardBody, Heading, SegmentedControl, SegmentedControlItem, Text } from '@razorpay/blade/components'
+import { Alert, Badge, Box, Button, Card, CardBody, Heading, List, ListItem, SegmentedControl, SegmentedControlItem, Text } from '@razorpay/blade/components'
 import { isLive, send, useGet, type Schemas } from '../lib/api'
+import { CHANNEL, sentence } from '../lib/format'
 
 type Channel = Schemas['Channel']
-const NAME: Record<string, string> = { help_button: 'Help button on Razorpay pages', whatsapp_payments: 'WhatsApp payments number', email: 'Email', ig_dm: 'Instagram DMs', fb_dm: 'Messenger',
-  public_mention: 'Public mentions', ray_forward: 'Forward from RAY', paste: 'Paste a complaint', csv: 'Upload a CSV' }
 const LATER = new Set(['ig_dm', 'fb_dm', 'public_mention'])
 
 // S-12. What the agent may read, who it speaks as, and the switch that stops it at once.
@@ -29,8 +28,8 @@ export default function Channels() {
         <Heading size="xlarge">Channels</Heading>
         <Text color="surface.text.gray.muted">Where customers can reach the agent, what it may read, and who it speaks as. It always says it is an AI, and it can be switched off here at any moment.</Text>
       </Box>
-      {!isLive && <Alert color="information" isDismissible={false} title="Read-only snapshot" description="Start the live demo with make run-api to connect, disconnect or change autonomy." />}
-      {error && <Alert color="negative" isDismissible={false} title="Not changed" description={error} />}
+      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Read-only snapshot" description="Connecting, disconnecting and changing autonomy are turned off in this demo." />}
+      {error && <Alert isFullWidth color="negative" isDismissible={false} title="Not changed" description={error} />}
       {chs.map((c) => {
         const mine = (consents ?? []).filter((k) => k.channel_id === c.id)
         const active = mine.find((k) => !k.revoked_at)
@@ -39,8 +38,8 @@ export default function Channels() {
           <Card key={c.id}><CardBody>
             <Box display="flex" flexDirection="column" gap="spacing.4">
               <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
-                <Heading size="small">{NAME[c.type] ?? c.type}</Heading>
-                <Badge color={c.status === 'connected' ? 'positive' : 'neutral'}>{c.status}</Badge>
+                <Heading size="small">{CHANNEL[c.type] ?? sentence(c.type)}</Heading>
+                <Badge color={c.status === 'connected' ? 'positive' : 'neutral'}>{sentence(c.status)}</Badge>
                 {c.mocked && <Badge color="neutral">Simulated</Badge>}
                 {LATER.has(c.type) && <Badge color="neutral">Later release</Badge>}
               </Box>
@@ -48,7 +47,7 @@ export default function Channels() {
               {talks && (
                 <Box display="flex" flexDirection="column" gap="spacing.2">
                   <Text size="small" weight="semibold">{active ? 'You allowed it to:' : 'No active consent'}</Text>
-                  {active?.scopes.map((s) => <Text key={s} size="small">{s}</Text>)}
+                  {active && <List size="small">{active.scopes.map((s) => <ListItem key={s}>{s}</ListItem>)}</List>}
                   {active && <Text size="small" color="surface.text.gray.muted">Kept for {active.retention_days} days. Granted by {active.granted_by}.</Text>}
                   {!active && mine.length > 0 && <Text size="small" color="surface.text.gray.muted">Consent withdrawn, so nothing from this channel is being processed.</Text>}
                 </Box>

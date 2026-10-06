@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Badge, Box, Heading, SegmentedControl, SegmentedControlItem, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
 import { Panel } from '../components/Panel'
 import { useGet, type Schemas } from '../lib/api'
-import { when } from '../lib/format'
+import { sentence, when } from '../lib/format'
 
 const KINDS = ['all', 'approval', 'action', 'verify', 'policy', 'tool_call'] as const
 const COLOR = { approval: 'primary', action: 'neutral', verify: 'positive', policy: 'notice', llm_call: 'information', tool_call: 'information' } as const
@@ -22,7 +22,7 @@ export default function Audit() {
       <Panel title="Log" pad={false} trailing={<Text size="small" color="surface.text.gray.muted">{rows.length} entries</Text>}>
         <Box padding="spacing.5">
           <SegmentedControl label="Kind" name="kind" value={kind} onChange={({ value }) => setKind(value as (typeof KINDS)[number])}>
-            {KINDS.map((k) => <SegmentedControlItem key={k} value={k}>{k === 'all' ? 'All' : k.replace('_', ' ')}</SegmentedControlItem>)}
+            {KINDS.map((k) => <SegmentedControlItem key={k} value={k}>{sentence(k)}</SegmentedControlItem>)}
           </SegmentedControl>
         </Box>
         {data && rows.length === 0 ? (
@@ -43,7 +43,7 @@ export default function Audit() {
                   {items.map((e) => (
                     <TableRow key={e.id} item={e}>
                       <TableCell><Text size="small">{when(e.at)}</Text></TableCell>
-                      <TableCell><Badge color={COLOR[e.kind]} size="small">{e.kind.replace('_', ' ')}</Badge></TableCell>
+                      <TableCell><Badge color={COLOR[e.kind]} size="medium">{sentence(e.kind)}</Badge></TableCell>
                       <TableCell><Text>{e.summary}</Text></TableCell>
                       <TableCell><Box display="flex" flexDirection="column"><Text size="small">{e.actor}</Text>{e.ref_id && <Text size="small" color="surface.text.gray.muted">{e.ref_id}</Text>}</Box></TableCell>
                     </TableRow>

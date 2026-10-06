@@ -28,7 +28,7 @@ export default function HelpDemo() {
       <Box display="flex" gap="spacing.5" flexWrap="wrap">
         {Object.keys(SURFACES).map((k) => <Link key={k} to={`/help-demo/${k}`} style={{ textDecoration: 'none', fontWeight: k === surface ? 600 : 400 }}><Text color="interactive.text.primary.normal">{k.replace('-', ' ')}</Text></Link>)}
       </Box>
-      {!isLive && <Alert color="information" isDismissible={false} title="Guided demo" description={demoNote} />}
+      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={demoNote} />}
       <Card><CardBody>
         <Box display="flex" flexDirection="column" gap="spacing.4" maxWidth="420px">
           <Text size="small" color="surface.text.gray.muted">razorpay · simulated page</Text>

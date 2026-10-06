@@ -17,7 +17,7 @@ export default function ChatDemo() {
         <Heading size="xlarge">WhatsApp, both sides</Heading>
         <Text color="surface.text.gray.muted">Write as a customer. Try a message with no reference first, then give one. Try an unrelated message, or one that tries to give the agent instructions.</Text>
       </Box>
-      {!isLive && <Alert color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Pick a message below. The founder's view on the right is the same screen the live version uses.`} />}
+      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Pick a message below. The founder's view on the right is the same screen the live version uses.`} />}
       {(
         <Box display="flex" gap="spacing.7" flexWrap="wrap" alignItems="flex-start">
           <CustomerChat channel="whatsapp_payments" who="+919800012345" title="Kaksha payment help" onThread={setTid} />

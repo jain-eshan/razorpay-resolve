@@ -33,7 +33,7 @@ export default function Dev() {
         <Text color="surface.text.gray.muted">Reference {pack.ref}. Read-only. Opening this page changes nothing.</Text>
       </Box>
 
-      <Alert color="notice" isDismissible={false} title={OWNER[inc.owner]} description={inc.title} />
+      <Alert isFullWidth color="notice" isDismissible={false} title={OWNER[inc.owner]} description={inc.title} />
 
       <Panel title="What happened">
         {pack.endpoint && <Text>Endpoint: {pack.endpoint}</Text>}

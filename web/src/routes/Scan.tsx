@@ -13,7 +13,7 @@ export default function Scan() {
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
       <Heading size="xlarge">Here is what I found</Heading>
-      <Alert color={data.leaked_customers ? 'notice' : 'positive'} isDismissible={false} title={data.headline} description="Checked against Razorpay's records and your access records. Nothing has been changed." />
+      <Alert isFullWidth color={data.leaked_customers ? 'notice' : 'positive'} isDismissible={false} title={data.headline} description="Checked against Razorpay's records and your access records. Nothing has been changed." />
       <Box display="grid" gridTemplateColumns={{ base: '1fr', m: 'repeat(3, 1fr)' }} gap="spacing.5">
         <Stat label="Customers without access" value={String(data.leaked_customers)} icon={AlertTriangleIcon} tone="notice" />
         <Stat label="Paid and not restored" value={rupees(data.leaked_paise)} icon={RupeeIcon} />
@@ -29,7 +29,7 @@ export default function Scan() {
               <TableBody>
                 {rows.map((i) => (
                   <TableRow key={i.id} item={i}>
-                    <TableCell><Box display="flex" flexDirection="column"><Link href={`/incidents/${i.id}`} onClick={(e) => { e.preventDefault(); nav(`/incidents/${i.id}`) }}>{i.title}</Link><Badge size="small" color="notice">{i.id}</Badge></Box></TableCell>
+                    <TableCell><Box display="flex" flexDirection="column"><Link href={`/incidents/${i.id}`} onClick={(e) => { e.preventDefault(); nav(`/incidents/${i.id}`) }}>{i.title}</Link><Badge size="medium" color="notice">{i.id}</Badge></Box></TableCell>
                     <TableCell><Text>{i.affected}</Text></TableCell>
                     <TableCell><Text>{rupees(i.at_risk_paise)}</Text></TableCell>
                   </TableRow>

@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { Link, Route, Routes, useLocation } from 'react-router-dom'
 import {
-  ActivityIcon, Alert, Avatar, BarChartIcon, Box, FileTextIcon, IconButton, MenuIcon, MessageCircleIcon, RazorpayIcon, SearchIcon, SettingsIcon, SIDE_NAV_EXPANDED_L1_WIDTH_BASE,
-  SIDE_NAV_EXPANDED_L1_WIDTH_XL, SideNav, SideNavBody, SideNavFooter, SideNavLevel, SideNavLink, SideNavSection, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent,
+  ActivityIcon, Alert, Avatar, BarChartIcon, Box, FileTextIcon, IconButton, MenuIcon, MessageCircleIcon, RadioIcon, RazorpayIcon, SearchIcon, SettingsIcon, SideNav, SideNavBody, SideNavFooter, SideNavLink, SideNavSection, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent,
   UsersIcon, type IconComponent,
 } from '@razorpay/blade/components'
 import Audit from './routes/Audit'
@@ -26,7 +25,7 @@ const WORK: Item[] = [
   { title: 'RAY', to: '/', icon: MessageCircleIcon },
   { title: 'Incidents', to: '/incidents', icon: ActivityIcon },
   { title: 'Conversations', to: '/threads', icon: UsersIcon },
-  { title: 'Channels', to: '/channels', icon: MessageCircleIcon },
+  { title: 'Channels', to: '/channels', icon: RadioIcon },
   { title: 'Day-0 scan', to: '/scan', icon: SearchIcon },
 ]
 const PROOF: Item[] = [
@@ -34,7 +33,7 @@ const PROOF: Item[] = [
   { title: 'How we know', to: '/how', icon: BarChartIcon },
 ]
 
-// The shell follows the Razorpay dashboard: a black top bar, a side nav with icons, and the page on a light panel (web/DESIGN.md section 13).
+// The shell follows the Razorpay dashboard: Razorpay's own black top bar (Blindspot is one section in the side nav, like any other Razorpay product), a side nav with icons, and the page on a light panel (web/DESIGN.md section 13).
 export default function App() {
   const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
@@ -48,25 +47,25 @@ export default function App() {
         <TopNavBrand>
           <Box display="flex" alignItems="center" gap="spacing.4">
             <Box display={{ base: 'block', m: 'none' }}><IconButton icon={MenuIcon} accessibilityLabel="Open menu" onClick={() => setOpen(true)} /></Box>
-            <RazorpayIcon size="large" />
-            <Text weight="semibold">Blindspot</Text>
+            <Link to="/" aria-label="Razorpay home" style={{ display: 'flex', alignItems: 'center', gap: 'inherit', textDecoration: 'none', color: 'inherit' }}>
+              <RazorpayIcon size="xlarge" />
+              <Text size="large" weight="semibold">Razorpay</Text>
+            </Link>
           </Box>
         </TopNavBrand>
         <TopNavContent><Box /></TopNavContent>
         <TopNavActions><Avatar name="Kaksha" size="small" /></TopNavActions>
       </TopNav>
       <Box display="flex" flex="1" minHeight="0px">
-        <SideNav isOpen={open} onDismiss={() => setOpen(false)} position="fixed" top="56px" bottom="0px">
+        <SideNav isOpen={open} onDismiss={() => setOpen(false)} position="relative">
           <SideNavBody>
-            <SideNavLevel>
-              <SideNavSection>{WORK.map(link)}</SideNavSection>
-              <SideNavSection title="PROOF AND CONTROL">{PROOF.map(link)}</SideNavSection>
-            </SideNavLevel>
+            <SideNavSection title="BLINDSPOT">{WORK.map(link)}</SideNavSection>
+            <SideNavSection title="PROOF AND CONTROL">{PROOF.map(link)}</SideNavSection>
           </SideNavBody>
           <SideNavFooter>{link({ title: 'Settings', to: '/settings', icon: SettingsIcon })}</SideNavFooter>
         </SideNav>
-        <Box flex="1" overflow="auto" backgroundColor="surface.background.gray.moderate" marginLeft={{ base: '0px', m: `${SIDE_NAV_EXPANDED_L1_WIDTH_BASE}px`, xl: `${SIDE_NAV_EXPANDED_L1_WIDTH_XL}px` }}>
-          <Alert color="notice" isFullWidth isDismissible={false} title="Synthetic data" description="The merchant (Kaksha), its customers and every payment here are fictional." />
+        <Box flex="1" overflow="auto" minWidth="0px" backgroundColor="surface.background.gray.moderate">
+          <Alert color="neutral" isFullWidth isDismissible={false} description="Synthetic data. The merchant (Kaksha), its customers and every payment here are fictional." />
           <Box maxWidth="1120px" marginX="auto" padding={{ base: 'spacing.5', m: 'spacing.7' }} paddingBottom="spacing.11">
             <Routes>
               <Route path="/" element={<Ray />} />
