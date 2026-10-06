@@ -4642,6 +4642,22 @@
       }
     },
     "/api/scan/day0": {
+      "get": {
+        "operationId": "get_scan_day0_api_scan_day0_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Scan Day0"
+      },
       "post": {
         "operationId": "scan_day0_api_scan_day0_post",
         "responses": {

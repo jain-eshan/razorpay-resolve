@@ -9,37 +9,30 @@ from pathlib import Path
 
 import yaml
 
+from .world import build
+
 ROOT = Path(__file__).resolve().parent.parent
 CFG = yaml.safe_load((Path(__file__).parent / "config.yaml").read_text())
 
 
-def generate(out: Path, seed: int = CFG["seed"]) -> dict[str, int]:
+def generate(out: Path, seed: int | None = None) -> dict:
+    cfg = {**CFG, "seed": CFG["seed"] if seed is None else seed}
     out.mkdir(parents=True, exist_ok=True)
-    counts = {}
+    dbs = {}
     for name, schema in (("world.db", "schema.sql"), ("truth.db", "truth_schema.sql")):
         path = out / name
         path.unlink(missing_ok=True)
-        db = sqlite3.connect(path)
-        db.executescript((ROOT / "contracts" / schema).read_text())
-        if name == "world.db":
-            m = CFG["merchant"]
-            db.execute(
-                "INSERT INTO merchants (id, name, segment, mid, grace_hours_after_failed_renewal) VALUES (?,?,?,?,?)",
-                (m["id"], m["name"], m["segment"], m["mid"], m["grace_hours_after_failed_renewal"]),
-            )
-            db.executemany(
-                "INSERT INTO plans (id, merchant_id, name, amount_paise, interval) VALUES (?,?,?,?,?)",
-                [(p["id"], m["id"], p["name"], p["amount_paise"], p["interval"]) for p in CFG["plans"]],
-            )
-            counts = {"merchants": 1, "plans": len(CFG["plans"]), "seed": seed}
-        db.commit()
-        db.close()
+        dbs[name] = sqlite3.connect(path)
+        dbs[name].executescript((ROOT / "contracts" / schema).read_text())
+    counts = build(cfg, dbs["world.db"], dbs["truth.db"], out)
+    for d in dbs.values():
+        d.close()
     return counts
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--seed", type=int, default=CFG["seed"])
+    ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--out", type=Path, default=ROOT / "data")
     a = ap.parse_args()
     print("synth:", generate(a.out, a.seed))

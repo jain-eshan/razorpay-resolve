@@ -140,6 +140,11 @@
     "operation": "message_preview_api_messages_preview_get"
   },
   {
+    "path": "/api/scan/day0",
+    "file": "scan/day0.json",
+    "operation": "get_scan_day0_api_scan_day0_get"
+  },
+  {
     "path": "/api/settings",
     "file": "settings.json",
     "operation": "get_settings_api_settings_get"

@@ -4,6 +4,13 @@ A change to anything under `contracts/`, to `backend/app/schemas.py`, `backend/a
 `backend/app/conversation/templates.py`, the capability flags in `backend/app/config.py` or `synth/config.yaml` needs a pull request that
 updates `contracts/` (run `make contracts`), bumps the version below and adds an entry here. Streams do not edit these files directly.
 
+## contracts-v0.2 (6 Oct 2026, during R1)
+
+Additive only.
+- Added `GET /api/scan/day0` (latest day-0 scan result). The static snapshot build cannot call `POST /api/scan/day0`, so the web reads this route. The POST stays.
+- Snapshot manifest gains `scan/day0.json`.
+- `BS_SOURCE=pipeline` environment switch: the API serves real pipeline output where it exists (R1: incidents, members, sample, trace, RAY card, evidence pack, replay, day-0 scan, eval report). The default remains placeholder data so tests and fresh clones work. No model or path changed.
+
 ## contracts-v0.1 (6 Oct 2026)
 
 Initial freeze at the end of R0.

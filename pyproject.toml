@@ -22,3 +22,7 @@ pythonpath = ["backend", "."]
 
 [tool.ruff]
 line-length = 110
+
+[tool.ruff.lint]
+# dict(a=1) reads better than a literal when building database rows; "%s" joins are used to build SQL placeholders
+ignore = ["C408", "UP031"]

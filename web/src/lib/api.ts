@@ -14,9 +14,10 @@ export async function get<T>(path: string): Promise<T> {
   return res.json() as Promise<T>
 }
 
-export function useGet<T>(path: string) {
+export function useGet<T>(path: string | null) {
   const [res, setRes] = useState<{ path: string; data?: T; error?: string }>()
   useEffect(() => {
+    if (!path) return
     let live = true
     get<T>(path).then(
       (data) => live && setRes({ path, data }),
@@ -26,7 +27,7 @@ export function useGet<T>(path: string) {
       live = false
     }
   }, [path])
-  const cur = res?.path === path ? res : undefined // ignore a stale result from the previous path
+  const cur = path && res?.path === path ? res : undefined // ignore a stale result from the previous path
   return { data: cur?.data, error: cur?.error }
 }
 

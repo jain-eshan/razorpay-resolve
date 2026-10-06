@@ -33,3 +33,8 @@ PROPOSED = {"RZP_DELIVERY_LOG_API", "RZP_WEBHOOK_HEALTH_EVENT", "RZP_REPLAY_BULK
 def flag(name: str) -> bool:
     v = os.environ.get(name)
     return FLAG_DEFAULTS[name] if v is None else v.lower() in ("1", "true", "yes")
+
+# The merchant's access records were exported 10 minutes before "now" (v1 section 16.5).
+from datetime import timedelta
+
+ENTITLEMENT_EXPORT_AT = BS_NOW - timedelta(minutes=10)

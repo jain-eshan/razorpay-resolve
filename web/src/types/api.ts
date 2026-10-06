@@ -658,7 +658,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Get Scan Day0 */
+        get: operations["get_scan_day0_api_scan_day0_get"];
         put?: never;
         /** Scan Day0 */
         post: operations["scan_day0_api_scan_day0_post"];
@@ -3079,6 +3080,26 @@ export interface operations {
         };
     };
     scan_backfill_api_scan_backfill_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScanResult"];
+                };
+            };
+        };
+    };
+    get_scan_day0_api_scan_day0_get: {
         parameters: {
             query?: never;
             header?: never;

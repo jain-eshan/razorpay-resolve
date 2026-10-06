@@ -11,5 +11,6 @@ jobs:
       - run: make setup
       - run: make snapshot
       - run: make test
+      - run: make e2e
       - run: make eval
       - run: make lint

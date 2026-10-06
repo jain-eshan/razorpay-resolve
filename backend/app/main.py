@@ -1,10 +1,15 @@
 """Stub API for contracts-v0.1. Every route returns typed placeholder data from fixtures.py.
 The real pipeline replaces these handlers release by release without changing paths or models."""
+import os
+from contextlib import closing
+
 from fastapi import APIRouter, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import fixtures as fx
+from . import service
 from .config import BS_NOW
+from .db import ROOT, connect
 from .schemas import (
     Ack,
     Action,
@@ -52,6 +57,20 @@ from .schemas import (
     VerifyResult,
 )
 
+
+def _live() -> bool:
+    """BS_SOURCE=pipeline serves real pipeline output where it exists (R1: incidents, scan, eval). Default is placeholder data."""
+    return os.environ.get("BS_SOURCE") == "pipeline"
+
+
+def _real(fn, *args):
+    with closing(connect()) as db:
+        out = fn(db, *args)
+    if out is None:
+        raise HTTPException(404, "not found")
+    return out
+
+
 app = FastAPI(title="Blindspot API", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173"], allow_methods=["*"], allow_headers=["*"])
 api = APIRouter(prefix="/api")
@@ -77,31 +96,49 @@ def get_case_timeline(case_id: str): return _get({"cs_001": fx.LANES1}, case_id)
 
 # ---------- scans, incidents ----------
 @api.post("/scan/backfill", response_model=ScanResult)
-def scan_backfill(): return fx.SCAN
+def scan_backfill(): return _real(service.scan_day0) if _live() else fx.SCAN
 @api.post("/scan/day0", response_model=ScanResult)
-def scan_day0(): return fx.SCAN
+def scan_day0(): return _real(service.scan_day0) if _live() else fx.SCAN
+@api.get("/scan/day0", response_model=ScanResult)
+def get_scan_day0(): return _real(service.scan_day0) if _live() else fx.SCAN
 @api.get("/incidents", response_model=list[IncidentSummary])
-def list_incidents(): return list(fx.INCIDENTS.values())
+def list_incidents(): return _real(service.summaries) if _live() else list(fx.INCIDENTS.values())
 @api.get("/incidents/{incident_id}", response_model=IncidentDetail)
-def get_incident(incident_id: str): return _get(fx.DETAILS, incident_id)
+def get_incident(incident_id: str): return _real(service.detail, incident_id) if _live() else _get(fx.DETAILS, incident_id)
 @api.get("/incidents/{incident_id}/members", response_model=list[Member])
 def get_members(incident_id: str, tier: Tier | None = None):
+    if _live():
+        return _real(service.members, incident_id, tier)
     _get(fx.DETAILS, incident_id)
     return fx.MEMBERS1 if incident_id == "INC-1" else []
 @api.get("/incidents/{incident_id}/sample", response_model=list[SampleTimeline])
 def get_sample(incident_id: str):
+    if _live():
+        return _real(service.sample, incident_id)
     _get(fx.DETAILS, incident_id)
     return fx.SAMPLE1 if incident_id == "INC-1" else []
 @api.post("/incidents/{incident_id}/investigate", response_model=AgentTrace)
 def investigate(incident_id: str): return fx.TRACE1
 @api.get("/incidents/{incident_id}/trace", response_model=AgentTrace)
-def get_trace(incident_id: str): return _get({"INC-1": fx.TRACE1, "INC-4": fx.TRACE4}, incident_id)
+def get_trace(incident_id: str):
+    if _live():
+        return _real(service.trace, incident_id)
+    return _get({"INC-1": fx.TRACE1, "INC-4": fx.TRACE4}, incident_id)
 @api.get("/incidents/{incident_id}/ray_card", response_model=RayCard)
-def get_ray_card(incident_id: str): return _get({"INC-1": fx.RAY1, "INC-4": fx.RAY4}, incident_id)
+def get_ray_card(incident_id: str):
+    if _live():
+        return _real(service.ray_card, incident_id)
+    return _get({"INC-1": fx.RAY1, "INC-4": fx.RAY4}, incident_id)
 @api.get("/incidents/{incident_id}/evidence_pack", response_model=EvidencePack)
-def get_evidence_pack(incident_id: str, fmt: str = Query("json", alias="format")): return _get({"INC-1": fx.PACK1, "INC-4": fx.PACK4}, incident_id)
+def get_evidence_pack(incident_id: str, fmt: str = Query("json", alias="format")):
+    if _live():
+        return _real(service.evidence_pack, incident_id)
+    return _get({"INC-1": fx.PACK1, "INC-4": fx.PACK4}, incident_id)
 @api.get("/incidents/{incident_id}/replay", response_model=ReplaySummary)
-def get_replay(incident_id: str): return _get({"INC-1": fx.REPLAY1, "INC-4": fx.DETAIL4.replay}, incident_id)
+def get_replay(incident_id: str):
+    if _live():
+        return _real(service.replay, incident_id)
+    return _get({"INC-1": fx.REPLAY1, "INC-4": fx.DETAIL4.replay}, incident_id)
 @api.post("/incidents/{incident_id}/verify", response_model=VerifyResult)
 def verify(incident_id: str): return fx.VERIFY1
 @api.post("/incidents/{incident_id}/actions", response_model=Action)
@@ -131,7 +168,9 @@ def put_settings(body: Settings): return body
 @api.post("/entitlements/csv", response_model=Ack)
 def upload_entitlements(): return Ack()
 @api.get("/eval/report", response_model=EvalReport)
-def eval_report(): return fx.EVAL
+def eval_report():
+    report = ROOT / "eval" / "report.json"
+    return EvalReport.model_validate_json(report.read_text()) if _live() and report.exists() else fx.EVAL
 
 # ---------- channels, threads, conversation ----------
 @api.post("/inbound/{channel}", response_model=ThreadStep)
