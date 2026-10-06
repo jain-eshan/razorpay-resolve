@@ -31,4 +31,11 @@ for e in json.loads((ROOT / "contracts" / "snapshot_manifest.json").read_text())
     f.parent.mkdir(parents=True, exist_ok=True)
     f.write_text(json.dumps(r.json(), indent=2) + "\n")
     n += 1
+if live:  # the manifest has one placeholder case. Write every real case too, so the case screen works without a server.
+    for c in client.get("/api/cases").json():
+        for path, name in ((f"/api/cases/{c['id']}", f"cases/{c['id']}.json"), (f"/api/cases/{c['id']}/timeline", f"cases/{c['id']}/timeline.json")):
+            f = out / name
+            f.parent.mkdir(parents=True, exist_ok=True)
+            f.write_text(json.dumps(client.get(path).json(), indent=2) + "\n")
+            n += 1
 print(f"snapshot: {n} files in {out.relative_to(ROOT)}")

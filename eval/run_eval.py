@@ -15,7 +15,13 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
 from app import clock, merchant_mock
 from app.act import autonomy, executor, messages
+from app.ingest.extract import extract
+from app.ingest.redact import redact
+from app.match import lookup as mt
 from app.schemas import ActionType, EvalMetric, EvalReport
+
+from eval.calibrate import fit
+from eval.conversation import run as run_conversation
 
 world = sqlite3.connect(ROOT / "data" / "world.db")
 world.row_factory = sqlite3.Row
@@ -165,10 +171,49 @@ if incidents and t_inc:
 else:
     add("pipeline_produced_incident", 0.0, "1", False)
 
+# ---- R3: the conversation, 40 scripted threads against hidden truth ----
+for name, value, target, ok in run_conversation(world, truth):
+    add(name, value, target, ok)
+
+# ---- R3: understanding. Extraction and matching on the world's complaints, scored against hidden ground truth. ----
+tc = {r["complaint_id"]: dict(r) for r in truth.execute("SELECT * FROM truth_complaints")}
+n = amt = rrn_n = rrn_ok = lang = hi = hi_ok = topic = exact_n = exact_ok = 0
+for c in world.execute("SELECT * FROM complaints").fetchall():
+    t = tc[c["id"]]
+    when = datetime.fromisoformat(c["received_at"])
+    red = redact(c["raw_text"])
+    x = extract(red, when)
+    n += 1
+    amt += x.amount_paise == t["amount_paise"]
+    topic += x.is_payment_related == (t["topic"] == "payment")
+    lang += x.language == t["language"]
+    if t["language"] == "hi_latn":
+        hi += 1
+        hi_ok += x.language == "hi_latn"
+    if x.ids.rrn:
+        rrn_n += 1
+        rrn_ok += red.value(x.ids.rrn) == t["rrn"]
+    res = mt.lookup(world, red, x, when)
+    if res.status == "matched":
+        exact_n += 1
+        exact_ok += [e.payment_id for e in res.exact] == json.loads(t["payment_ids"])
+if n:
+    add("complaint_triage_accuracy", topic / n, ">= 0.95", topic / n >= 0.95)
+    add("extraction_amount_exact", amt / n, ">= 0.95", amt / n >= 0.95)
+    add("extraction_rrn_exact", rrn_ok / rrn_n if rrn_n else 1.0, ">= 0.95", (rrn_ok / rrn_n if rrn_n else 1.0) >= 0.95)
+    add("language_accuracy", lang / n, "reported (hi_latn subset below)", None)
+    add("language_accuracy_hinglish", hi_ok / hi if hi else 1.0, ">= 0.90", (hi_ok / hi if hi else 1.0) >= 0.90)
+    add("exact_key_match_share", exact_n / n, ">= 0.70 (kill criterion if lower)", exact_n / n >= 0.70)
+    add("exact_key_match_precision", exact_ok / exact_n if exact_n else 1.0, ">= 0.99", (exact_ok / exact_n if exact_n else 1.0) >= 0.99)
+fz = fit(world)
+add("fuzzy_top1_recall_suggestions_only", fz["test"]["top1"], "reported", None)
+add("fuzzy_top3_recall_suggestions_only", fz["test"]["top3"], ">= 0.60 (regression guard)", fz["test"]["top3"] >= 0.60)
+add("fuzzy_operating_threshold", fz["t_auto"], "reported (>= 1 means fuzzy never auto-matches)", None)
+
 report = EvalReport(seed=cfg["seed"], generated_at=datetime.fromisoformat(cfg["snapshot_at"] + "+05:30"), metrics=metrics, arms=[])
 (Path(__file__).parent / "report.json").write_text(report.model_dump_json(indent=2) + "\n")
 lines = ["# Eval report", "", f"Synthetic world, seed {cfg['seed']}. Ground truth is never visible to the pipeline.", "",
-         "Caveat: this world is clean and the generator and detector share assumptions, so near-perfect scores are expected here. Harder negatives arrive in R3 and R4.", "", "| Metric | Value | Target | Result |", "|---|---|---|---|"]
+         "Caveat: this world is clean and the generator and detector share assumptions, so near-perfect scores are expected here. Harder negatives arrive in R3 and R4. The fuzzy matcher is scored on complaints generated from real payments and never decides anything: exact keys do.", "", "| Metric | Value | Target | Result |", "|---|---|---|---|"]
 lines += [f"| {m.name} | {m.value if m.value is not None else 'n/a'} | {m.target} | {m.status} |" for m in metrics]
 (Path(__file__).parent / "report.md").write_text("\n".join(lines) + "\n")
 print("\n".join(f"{m.status.upper():6} {m.name} = {m.value}  (target {m.target})" for m in metrics))

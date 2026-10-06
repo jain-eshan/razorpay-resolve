@@ -81,3 +81,32 @@ Bugs found by tests, e2e or the live page:
 Metrics: 71 backend tests, 10 Playwright tests, 23 eval gates, all passing. Hero A in about 4 seconds of automated clicking (limit 90).
 
 Deferred: refunds, recovery links, event re-sending (no executor); the full policy engine (R3); real WhatsApp or email sending (R6).
+
+## 6 Oct 2026, R3 channels and conversation (integrator, all streams)
+
+Goal: a customer can write on a help button, WhatsApp or email and the agent finds the payment, says what the record shows, and hands over safely. No model yet.
+
+What was built: see `docs/HANDOFF.md` section 2 (R3). Contract v0.4 is additive (two templates, three message classes in the autonomy matrix).
+
+Decisions:
+- Exact identifiers decide. Fuzzy suggestions go only to the founder's brief. The fuzzy scorer is weak (top 3 recall 0.72), which supports that rule.
+- Identifiers become tokens before anything reads the text. The vault stores them per complaint (`complaint_id:[RRN_1]`).
+- Replies go out only through `channels/policy.py`, in the order the spec gives. A reply that fails any check is stored as a held draft with every reason shown. The AI disclosure is added to the first agent message by wrapping it in T-DISC.
+- Not-a-payment messages are not stored. A counter is kept. Injections, threats, requests for a person and money decisions (refunds, duplicate charges) go to the founder at once, with a brief.
+- The conversation dial is per channel. A reply on Suggest is held for approval, so the customer sees nothing until the founder approves it.
+- A message that came from a help button for a known payment is read as a payment claim even if it only says "access nahi mila".
+- The Blade docs tool was skipped again for the same reason as in R2.
+
+Bugs found by the eval and e2e (unit tests passed with all of these present):
+- Token vault: the `token` column is a global key, so a second complaint's `[RRN_1]` was ignored and its identifier was lost. Identification within 3 questions was 31 percent. Now 100 percent on the scripts.
+- Extraction took the first identifier in the whole vault, so a corrected reference was ignored.
+- A time phrase after other words ("bhai 299 deduct hua kal raat 10 baje") was never extracted: the pattern also matched the empty string at position 0.
+- An amount pattern matched a bare comma and crashed.
+- "login nahi ho raha" was read as a failed payment.
+- The nudge never fired because the customer's last message and our question had the same simulated timestamp.
+- The phone simulation mapped typed text onto old messages when the server continued an earlier thread.
+- The per-channel autonomy dial was stored but never read.
+
+Metrics: 250 backend and synth tests, 19 Playwright tests, 39 eval gates. Identification within 3 questions 1.0, wrong-payment disclosures 0, never-ask violations 0, injections ignored 2 of 2.
+
+Deferred: model-based extraction and the three-arm eval, real screenshot reading, retention purge, Instagram, Messenger and public mentions (R5), response-time and cost metrics.

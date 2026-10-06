@@ -10,6 +10,7 @@ from . import clock, merchant_mock, service
 from . import fixtures as fx
 from .act import autonomy, executor
 from .config import BS_NOW
+from .conversation import machine
 from .db import ROOT, connect
 from .schemas import (
     Ack,
@@ -95,11 +96,11 @@ def create_complaint(): return fx.CASE1
 @api.post("/complaints/csv", response_model=Ack)
 def create_complaints_csv(): return Ack()
 @api.get("/cases", response_model=list[CaseSummary])
-def list_cases(status: str | None = None): return [fx.CASE1]
+def list_cases(status: str | None = None): return _real(service.cases, status) if _live() else [fx.CASE1]
 @api.get("/cases/{case_id}", response_model=CaseDetail)
-def get_case(case_id: str): return _get({"cs_001": fx.CASE1D}, case_id)
+def get_case(case_id: str): return _real(service.case_detail, case_id) if _live() else _get({"cs_001": fx.CASE1D}, case_id)
 @api.get("/cases/{case_id}/timeline", response_model=ThreeLane)
-def get_case_timeline(case_id: str): return _get({"cs_001": fx.LANES1}, case_id)
+def get_case_timeline(case_id: str): return _real(service.case_lanes, case_id) if _live() else _get({"cs_001": fx.LANES1}, case_id)
 
 # ---------- scans, incidents ----------
 @api.post("/scan/backfill", response_model=ScanResult)
@@ -173,6 +174,7 @@ def advance_clock(body: ClockAdvance):
     with closing(connect()) as db:
         now = clock.advance(body.hours)
         service.log_clock(db, body.hours, now)
+        machine.nudge_silent(db, now)
     return ClockState(now=now)
 @api.get("/messages/preview", response_model=list[MessagePreview])
 def message_preview(action_id: str | None = None): return _real(executor.message_previews, action_id) if _live() else fx.PREVIEWS
@@ -191,23 +193,29 @@ def eval_report():
 
 # ---------- channels, threads, conversation ----------
 @api.post("/inbound/{channel}", response_model=ThreadStep)
-def inbound(channel: str, body: InboundRequest): return fx.STEP
+def inbound(channel: str, body: InboundRequest):
+    if not _live():
+        return fx.STEP
+    return _real(lambda db: machine.step(db, machine.handle_inbound(db, channel, body.customer_ref, body.text, body.context, body.received_at, body.is_public)))
 @api.get("/threads", response_model=list[ThreadSummary])
-def list_threads(state: str | None = None, incident: str | None = None): return list(fx.THREADS.values())
+def list_threads(state: str | None = None, incident: str | None = None): return _real(machine.list_threads, state, incident) if _live() else list(fx.THREADS.values())
 @api.get("/threads/{thread_id}", response_model=ThreadDetail)
-def get_thread(thread_id: str): return _get(fx.THREADS, thread_id)
+def get_thread(thread_id: str): return _real(machine.get_thread, thread_id) if _live() else _get(fx.THREADS, thread_id)
 @api.post("/threads/{thread_id}/reply", response_model=ThreadDetail)
-def reply(thread_id: str, body: ReplyRequest): return _get(fx.THREADS, thread_id)
+def reply(thread_id: str, body: ReplyRequest):
+    return _real(lambda db: machine.reply(db, thread_id, body.body, body.template_id, body.approved_by).thread) if _live() else _get(fx.THREADS, thread_id)
 @api.post("/threads/{thread_id}/handoff", response_model=ThreadDetail)
-def handoff(thread_id: str, body: HandoffRequest): return _get(fx.THREADS, thread_id)
+def handoff(thread_id: str, body: HandoffRequest):
+    return _real(lambda db: machine.handoff(db, thread_id, body.reason).thread) if _live() else _get(fx.THREADS, thread_id)
 @api.get("/channels", response_model=list[Channel])
-def list_channels(): return fx.CHANNELS
+def list_channels(): return _real(machine.channels) if _live() else fx.CHANNELS
 @api.put("/channels/{channel_id}", response_model=Channel)
-def update_channel(channel_id: str, body: ChannelUpdate): return _get({c.id: c for c in fx.CHANNELS}, channel_id)
+def update_channel(channel_id: str, body: ChannelUpdate):
+    return _real(machine.update_channel, channel_id, body.status, body.autonomy_level) if _live() else _get({c.id: c for c in fx.CHANNELS}, channel_id)
 @api.get("/consents", response_model=list[Consent])
-def list_consents(): return fx.CONSENTS
+def list_consents(): return _real(machine.consents) if _live() else fx.CONSENTS
 @api.post("/consents", response_model=Consent)
-def grant_consent(body: ConsentRequest): return fx.CONSENTS[0]
+def grant_consent(body: ConsentRequest): return _real(machine.grant_consent, body) if _live() else fx.CONSENTS[0]
 @api.post("/handovers", response_model=Handover)
 def handover(body: HandoverRequest): return fx.HANDOVER
 
