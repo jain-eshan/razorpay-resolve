@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Alert, Badge, Box, Button, Card, CardBody, Heading, SegmentedControl, SegmentedControlItem, Switch, Text, TextInput } from '@razorpay/blade/components'
+import { Alert, Badge, Box, Button, Heading, SegmentedControl, SegmentedControlItem, Switch, Text, TextInput } from '@razorpay/blade/components'
+import { Panel } from '../components/Panel'
 import { isLive, rupees, send, useGet, type Schemas } from '../lib/api'
 
 type Settings = Schemas['Settings']
@@ -52,17 +53,15 @@ export default function SettingsPage() {
       {!isLive && <Alert color="information" isDismissible={false} title="Read-only snapshot" description="Start the live demo with make run-api to change these." />}
       {error && <Alert color="negative" isDismissible={false} title="Not saved" description={error} />}
 
-      <Box display="flex" flexDirection="column" gap="spacing.4">
-        <Heading size="medium">Autonomy</Heading>
+      <Panel title="Autonomy">
         <SegmentedControl label="Autonomy" name="autonomy" value={s.autonomy ?? 'suggest'} onChange={({ value }) => isLive && setS({ ...s, autonomy: value as Settings['autonomy'] })}>
           {LEVELS.map(([v, label]) => <SegmentedControlItem key={v} value={v}>{label}</SegmentedControlItem>)}
         </SegmentedControl>
         <Text>{LEVELS.find(([v]) => v === s.autonomy)?.[2]}</Text>
         <Text size="small" color="surface.text.gray.muted">Refunds always need you, one row at a time, on the web. Recovery links always need you. Neither is built yet.</Text>
-      </Box>
+      </Panel>
 
-      <Box display="flex" flexDirection="column" gap="spacing.4">
-        <Heading size="medium">Limits</Heading>
+      <Panel title="Limits">
         <Box display="grid" gridTemplateColumns={{ base: '1fr', m: '1fr 1fr' }} gap="spacing.5">
           {num('max_bulk_customers')}
           {num('holdout_percent')}
@@ -73,28 +72,24 @@ export default function SettingsPage() {
           <Switch accessibilityLabel="Allow messages to customers" isChecked={s.messaging_enabled} isDisabled={!isLive} onChange={({ isChecked }) => setS({ ...s, messaging_enabled: isChecked })} />
           <Text>Allow messages to customers</Text>
         </Box>
-      </Box>
+      </Panel>
 
-      <Box display="flex" flexDirection="column" gap="spacing.4">
-        <Heading size="medium">What Blindspot is allowed to do</Heading>
+      <Panel title="What Blindspot is allowed to do">
         {LADDER.map(([lv, name, what, state]) => (
-          <Card key={lv}>
-            <CardBody>
+          <Box key={lv} paddingBottom="spacing.4" borderBottomWidth="thin" borderBottomColor="surface.border.gray.subtle">
               <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
                 <Badge color="neutral">{lv}</Badge>
                 <Box flex="1" minWidth="220px"><Text weight="semibold">{name}</Text><Text size="small" color="surface.text.gray.muted">{what}</Text></Box>
                 <Badge color={state === 'On' || (state === 'messaging' && s.messaging_enabled) ? 'positive' : 'neutral'}>{state === 'messaging' ? (s.messaging_enabled ? 'On' : 'Off until you allow messages') : state}</Badge>
               </Box>
-            </CardBody>
-          </Card>
+          </Box>
         ))}
         <Text size="small" color="surface.text.gray.muted">Never available at any level: switching access off, changing Razorpay settings, writing to your database directly, applying code, refunding to a new destination.</Text>
-      </Box>
+      </Panel>
 
-      <Box display="flex" flexDirection="column" gap="spacing.3">
-        <Heading size="medium">Access records</Heading>
+      <Panel title="Access records">
         <Text>{s.entitlement_connector.status} (from your export).</Text>
-      </Box>
+      </Panel>
 
       {isLive && (
         <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">

@@ -1,34 +1,59 @@
-import { Badge, Box, Card, CardBody, Heading, Text } from '@razorpay/blade/components'
+import { useState } from 'react'
+import { Badge, Box, Heading, SegmentedControl, SegmentedControlItem, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
+import { Panel } from '../components/Panel'
 import { useGet, type Schemas } from '../lib/api'
 import { when } from '../lib/format'
 
+const KINDS = ['all', 'approval', 'action', 'verify', 'policy', 'tool_call'] as const
 const COLOR = { approval: 'primary', action: 'neutral', verify: 'positive', policy: 'notice', llm_call: 'information', tool_call: 'information' } as const
 
-// S-09. Every approval, action, verification and blocked send, newest first.
+// S-09. Every approval, action, check and blocked message, newest first.
 export default function Audit() {
   const { data, error } = useGet<Schemas['AuditEntry'][]>('/api/audit')
+  const [kind, setKind] = useState<(typeof KINDS)[number]>('all')
+  const rows = (data ?? []).filter((e) => kind === 'all' || e.kind === kind)
   return (
-    <Box display="flex" flexDirection="column" gap="spacing.5">
+    <Box display="flex" flexDirection="column" gap="spacing.6">
       <Box display="flex" flexDirection="column" gap="spacing.2">
         <Heading size="xlarge">Audit log</Heading>
         <Text color="surface.text.gray.muted">Every approval, change and check, with who did it. Nothing here can be edited.</Text>
       </Box>
       {error && <Text color="feedback.text.negative.intense">Could not load: {error}</Text>}
-      {data?.length === 0 && <Text color="surface.text.gray.muted">Nothing yet. Entries appear when you plan, approve or verify a fix.</Text>}
-      {data?.map((e) => (
-        <Card key={e.id}>
-          <CardBody>
-            <Box display="flex" gap="spacing.4" alignItems="flex-start" flexWrap="wrap">
-              <Text size="small" color="surface.text.gray.muted">{when(e.at)}</Text>
-              <Badge color={COLOR[e.kind]}>{e.kind.replace('_', ' ')}</Badge>
-              <Box flex="1" minWidth="240px">
-                <Text>{e.summary}</Text>
-                <Text size="small" color="surface.text.gray.muted">{e.actor}{e.ref_id ? ` · ${e.ref_id}` : ''}</Text>
-              </Box>
-            </Box>
-          </CardBody>
-        </Card>
-      ))}
+      <Panel title="Log" pad={false} trailing={<Text size="small" color="surface.text.gray.muted">{rows.length} entries</Text>}>
+        <Box padding="spacing.5">
+          <SegmentedControl label="Kind" name="kind" value={kind} onChange={({ value }) => setKind(value as (typeof KINDS)[number])}>
+            {KINDS.map((k) => <SegmentedControlItem key={k} value={k}>{k === 'all' ? 'All' : k.replace('_', ' ')}</SegmentedControlItem>)}
+          </SegmentedControl>
+        </Box>
+        {data && rows.length === 0 ? (
+          <Box padding="spacing.6"><Text color="surface.text.gray.muted">Nothing yet. Entries appear when you plan, approve or verify a fix.</Text></Box>
+        ) : (
+          <Table data={{ nodes: rows }} gridTemplateColumns="1.2fr 1fr 4fr 1.8fr" isHeaderSticky={false}>
+            {(items) => (
+              <>
+                <TableHeader>
+                  <TableHeaderRow>
+                    <TableHeaderCell>Time</TableHeaderCell>
+                    <TableHeaderCell>Kind</TableHeaderCell>
+                    <TableHeaderCell>What happened</TableHeaderCell>
+                    <TableHeaderCell>Who and what</TableHeaderCell>
+                  </TableHeaderRow>
+                </TableHeader>
+                <TableBody>
+                  {items.map((e) => (
+                    <TableRow key={e.id} item={e}>
+                      <TableCell><Text size="small">{when(e.at)}</Text></TableCell>
+                      <TableCell><Badge color={COLOR[e.kind]} size="small">{e.kind.replace('_', ' ')}</Badge></TableCell>
+                      <TableCell><Text>{e.summary}</Text></TableCell>
+                      <TableCell><Box display="flex" flexDirection="column"><Text size="small">{e.actor}</Text>{e.ref_id && <Text size="small" color="surface.text.gray.muted">{e.ref_id}</Text>}</Box></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </>
+            )}
+          </Table>
+        )}
+      </Panel>
     </Box>
   )
 }
