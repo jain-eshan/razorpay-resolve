@@ -523,6 +523,8 @@ Flags live in `backend/app/config.py` and default to the honest value (mock unle
 
 Kaksha (fictional test-series app) as in v1 section 16.1, 14 days from Sat 19 Sep to Fri 2 Oct 2026, seed `20261006`. Evening peak orders about 10 to 12 per hour on weekdays, quiet overnight under 1 per hour. Baseline order abandonment (created, zero attempts) 15 to 25 percent. The generator is deterministic and writes exact counts to `truth.db`.
 
+**Delivery calibration (real, 6 Oct 2026).** Retry offsets in seconds after the first attempt, observed on Razorpay test mode against a failing endpoint: 0, 9, 24, 45, 88, 169. The generator continues the schedule with roughly doubling gaps to 24 hours (`synth/config.yaml`, `webhooks.retry_offsets_seconds`). Each captured order payment emits two events (`payment.captured`, `order.paid`) and each renewal emits `subscription.charged` plus `payment.captured`. The merchant handler acts on one event per payment, so monitors count only handler events.
+
 ### 13.2 Incidents
 
 | ID | Zone | What | Window | Ground truth |

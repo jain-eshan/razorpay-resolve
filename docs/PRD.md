@@ -88,7 +88,8 @@ Export captured payments, export the users table, compare in a spreadsheet at 1 
 | Payment Links promote "retry failed payments" and "email abandoned cart customers", and have Reminders and Receipts features. | [dash] |
 | Webhooks retry with exponential backoff for 24 hours, then the webhook is disabled. | [docs] |
 | Replay is a support request (Help, Technical Support). It is allowed only if the webhook was enabled when the event happened, the event is under 15 days old, and it is a single event. Bulk replay is not possible. | [docs] |
-| A webhook log history exists in the dashboard (Developers, Webhooks, select a webhook). Its contents (response code, body) have not been observed yet. | [docs] [verify] |
+| The docs say a webhook log history exists in the dashboard. After 6 failed deliveries per event (all answered 401), the webhook list and the webhook details panel showed only settings: URL, "Enabled", events, alert email. No failure count, no delivery log, no warning. If a log exists, it is not on those two screens. | [docs] vs [dash 6 Oct, one real test payment] |
+| Real delivery behaviour (test mode, Supabase receiver answering 401): each payment sent two events (`payment.captured` and `order.paid`). A failing event was retried at about 0, 9, 24, 45, 88 and 169 seconds and kept going. Retries carry the same `x-razorpay-event-id`. User agent `Razorpay-Webhook/v1`. No `x-razorpay-signature` header unless a webhook secret is set. The payload carries the payment, its order, the method and `acquirer_data` (a card payment shows only `auth_code`). | [dash + sink, 6 Oct] |
 | RAY and Agent Studio do not appear in this test account. They are early access. | [dash] |
 | Vulcan covers routing, network-level fraud, cash-on-delivery risk and checkout personalisation. It decides how a payment goes, not what happens afterwards. | [dossier, Razorpay and AWS posts] |
 | RAY on the dashboard can take a complaint screenshot, find the failed transaction, say why the bank declined it and suggest a payment link. | [dossier, Razorpay blog 12 Mar 2026] |
@@ -477,7 +478,7 @@ Sizing is the formula in v1 section 21.2 with every input a placeholder for Razo
 
 ### 16.3 Verify before it appears in the note or video
 
-1. What the dashboard webhook log shows after a failed delivery (needs one completed test payment).
+1. Whether a delivery log exists anywhere in the dashboard. Not found on the webhook list or details panel after failures (6 Oct). Still to check: the 24-hour disable (expected about 18:41 IST on 7 Oct) and whether any email or banner appears.
 2. Meta's current WhatsApp rate table, the free allowance, and coexistence eligibility for Indian numbers.
 3. Whether RAY on WhatsApp accepts a forwarded screenshot.
 4. Whether Razorpay is already a Meta Tech Provider, and how RAY's number is set up.
