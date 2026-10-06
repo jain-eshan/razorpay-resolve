@@ -47,7 +47,7 @@ scripts/     gen_contracts.py  snapshot.py  run_pipeline.py  secret_scan.sh
 
 Commands: `make setup | synth | pipeline | snapshot | eval | test | e2e | lint | contracts | run-web | run-api`.
 
-Branches: `main` is the untouched starter (commit 614bacf). `blindspot` holds the product. The starter's files moved into `web/` with `git mv`, so history is kept.
+Branches: `main` is the untouched starter (commit 614bacf). `blindspot` holds the product and is open as PR #1 (https://github.com/jain-eshan/razorsense-starter/pull/1). The starter's files moved into `web/` with `git mv`, so history is kept.
 
 ## 4. Decisions made (full log: PRD section 2)
 
@@ -105,6 +105,6 @@ The full verify list is PRD section 16.3.
 
 - Web bundle is 1.2 MB (Blade). Code-split later.
 - Starlette prints a deprecation warning about `httpx` in tests.
-- `make e2e` needs Google Chrome installed (CI's ubuntu runner has it). The first CI run on GitHub has not happened yet.
+- `make e2e` needs Google Chrome installed (CI's ubuntu runner has it). The first GitHub CI run (PR #1) passed.
 - Spec numbers such as "40 affected, 9 complained" in the PRD and RAY mockups are illustrative. The generator computes the real ones.
 - Fixture incident INC-4 (cannot-reach-the-page) exists only as placeholder data and is not served in pipeline mode.
