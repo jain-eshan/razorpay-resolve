@@ -1,34 +1,18 @@
-# RazorSense starter
+# Blindspot
 
-A starter for building Razorpay products in Razorpay's own design language, RazorSense, on top of Blade (`@razorpay/blade`, Razorpay's open-source design system).
+Product monorepo (working name) for the Razorpay x ISB AI PM Build Challenge, Track 2. Branch `blindspot` holds the product. `main` is the untouched RazorSense starter.
 
-**Read [DESIGN.md](DESIGN.md) before designing or building any screen.** It holds the principles, the four emotional states, tokens, motion, components, voice, and product context.
-
-## Stack
-- Vite + React 18 + TypeScript
-- `@razorpay/blade` 12.127.0 with styled-components 5, framer-motion 11 and i18nify. React 18 is required because `@razorpay/i18nify-react` doesn't support 19 yet.
-- `.npmrc` sets `legacy-peer-deps=true` so npm doesn't pull in Blade's React Native peers. Keep it.
-- Blade MCP server is configured in `.mcp.json`. Use `get_blade_component_docs` / `get_blade_pattern_docs` before using a Blade component you haven't used in this repo.
-
-## Commands
-- `npm run dev` starts the app at http://localhost:5173
-- `npm run build` typechecks and builds
-- `npm run lint` runs oxlint
-
-## Files
-- `src/main.tsx`: BladeProvider, fonts, LazyMotion setup
-- `src/razorsense.ts`: the four emotional states (Blade gradient maps + static fallbacks), Ray glyph path, reduced-motion flag
-- `src/App.tsx`: reference screens (state switcher, voice examples, Ask Ray chat, success moment)
+**Read first:** `docs/PRD.md`, then `docs/SPEC.md` and `docs/BUILD_PLAN.md`. `docs/V1_SPEC.md` applies where the v2 docs are silent.
 
 ## Rules
-1. Use Blade components and tokens. No hardcoded colours, spacing, radii or durations when a token exists. Layout with `Box`.
-2. **Blue acts, green thinks.** Primary blue only on things the user does. AI green (`surface.icon.onSea.onSubtle`, `RayIcon`) only for Ray and AI output.
-3. Map every product state to Calm / Joyful / Caution / Regret (DESIGN.md section 3).
-4. `RazorSense` (the WebGL surface) is for success, AI loading, login and hero moments only. At most one per screen. Always `preloadRazorSenseAssets(preset)` first, and put a static fallback behind it, because Blade hides the canvas on slow devices.
-5. Respect `prefersReducedMotion` from `src/razorsense.ts`.
-6. Copy: lead with the number, amounts as ₹ with Indian grouping (₹2,40,000), one action per message, errors name the cause and the next step. Sentence case in UI.
-7. Blade's MCP docs sometimes list a stale value (e.g. the border-radius scale) or accept a looser type than the installed version (e.g. `reasoningTraces` needs `{ label }` objects). The installed types win.
+- The hard rules are SPEC section 0. Numbers come from SQL or Python, never from a model. Nothing moves money or sends bulk messages without the approval the autonomy setting requires. The assistant never asks customers for credentials.
+- Contracts are frozen (`contracts/`, `backend/app/schemas.py`, `backend/app/channels/base.py`, template IDs and slots, capability flags, `synth/config.yaml`). Change them only through `make contracts` and an entry in `docs/CONTRACT_CHANGES.md`.
+- Each build stream owns its directories (BUILD_PLAN section 3). Do not edit another stream's files.
+- No secrets in the repo. Razorpay keys are `rzp_test_` only, in `.env`.
+- No em dashes in code, copy or docs.
 
-## Known quirks
-- Blade's `ChatMessage` with an array `loadingText` logs a `validateDOMNesting` warning in dev. It comes from Blade, not our code.
-- In a hidden or background browser tab, Blade's frame-rate guard switches the RazorSense canvas off, and you'll see the static fallback. That's expected.
+## Web
+Work in `web/`. Read `web/CLAUDE.md` and `web/DESIGN.md` first. Use Blade components and tokens only, and read a component's docs through the Blade MCP server (`.mcp.json`) before using one this repo has not used.
+
+## Commands
+`make setup`, `make synth`, `make snapshot`, `make run-web`, `make run-api`, `make test`, `make lint`, `make eval`, `make contracts`.

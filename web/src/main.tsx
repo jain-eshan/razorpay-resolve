@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import { LazyMotion, domAnimation } from 'framer-motion'
 import { BladeProvider } from '@razorpay/blade/components'
 import { bladeTheme } from '@razorpay/blade/tokens'
@@ -10,7 +11,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BladeProvider themeTokens={bladeTheme} colorScheme="light">
       <LazyMotion strict features={domAnimation}>
-        <App />
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
       </LazyMotion>
     </BladeProvider>
   </StrictMode>,

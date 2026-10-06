@@ -1,0 +1,62 @@
+# Seeds, ids and the demo merchant. Frozen in R0 (contracts-v0.1).
+seed: 20261006
+world:
+  start: 2026-09-19
+  end: 2026-10-02
+  tz: "+05:30"
+merchant:
+  id: acc_KAKSHA001
+  name: Kaksha (fictional)
+  segment: digital_access_subscription
+  mid: KAKSHA001
+  grace_hours_after_failed_renewal: 48
+plans:
+  - {id: plan_mock_199, name: Mock Test Pack, amount_paise: 19900, interval: one_time}
+  - {id: plan_series_599, name: Test Series, amount_paise: 59900, interval: one_time}
+  - {id: plan_monthly_299, name: Premium Monthly, amount_paise: 29900, interval: monthly}
+  - {id: plan_annual_2499, name: Premium Annual, amount_paise: 249900, interval: annual}
+id_formats:
+  payment: "pay_ + 14 alphanumeric"
+  order: "order_ + 14 alphanumeric"
+  refund: "rfnd_ + 14 alphanumeric"
+  event: "evt_ + 14 alphanumeric"
+  subscription: "sub_ + 14 alphanumeric"
+# ---- R1 world parameters (tunable; every incident count is computed from these, never typed) ----
+traffic:
+  orders_per_hour: {night: 0.2, morning: 1.0, day: 1.5, evening: 4.5, late: 0.8}   # hours 0-5, 6-9, 10-16, 17-22, 23
+  weekend_multiplier: 1.2
+  abandonment: 0.20            # orders created with zero payment attempts
+  first_attempt_success: 0.90
+  retry_success: 0.5
+  max_attempts: 3
+  plan_weights: {plan_mock_199: 0.30, plan_series_599: 0.35, plan_monthly_299: 0.25, plan_annual_2499: 0.10}
+  method_weights: {upi: 0.70, card: 0.25, netbanking: 0.05}
+  customers: 900
+  subscribers: 150
+  renewal_success: 0.93
+snapshot_at: "2026-10-02T10:40:00"
+entitlement_export_at: "2026-10-02T10:30:00"
+webhooks:
+  endpoint: "https://api.kaksha.example/razorpay/webhook"
+  baseline_first_attempt_failure: 0.004
+  # First six offsets (seconds) were measured on Razorpay test mode against a failing endpoint on 6 Oct 2026.
+  # The rest continue with roughly doubling gaps to 24 hours.
+  retry_offsets_seconds: [0, 9, 24, 45, 88, 169, 330, 650, 1300, 2600, 5200, 10400, 20800, 41600, 83200]
+  disable_after_hours: 24
+inc1:
+  deploy_at: "2026-09-29T14:20:00"
+  resolved_at: "2026-10-01T11:05:00"
+  failing_status: 401
+  failing_body: '{"error":"Unauthorized: missing session"}'
+  complain_probability: 0.22
+  forced_early_complaints: 2     # complainers fixed by hand before the fix
+  refunded_complainers: 2
+  hidden_ack_then_fail: {count: 4, start: "2026-10-01T11:10:00", end: "2026-10-01T12:50:00", plan: plan_annual_2499}
+merchant_events:
+  - {id: me_app_340, kind: app_release, label: "android-3.4.0", at: "2026-09-22T10:00:00"}
+  - {id: me_deploy_271, kind: deploy, label: "web v2.7.1: course page copy", at: "2026-09-21T16:00:00"}
+  - {id: me_deploy_279, kind: deploy, label: "web v2.7.9: search fix", at: "2026-09-26T12:30:00"}
+  - {id: me_deploy_280, kind: deploy, label: "web v2.8.0: auth middleware on /api/*", at: "2026-09-29T14:20:00"}
+  - {id: me_fix_281, kind: config_change, label: "web v2.8.1: webhook route excluded from session auth, webhook re-enabled", at: "2026-10-01T11:05:00"}
+downtime:
+  - {id: dt_1, method: upi, issuer: Sahyadri Bank, started_at: "2026-09-27T19:00:00", ended_at: "2026-09-27T19:20:00", severity: high}

@@ -1,0 +1,167 @@
+[
+  {
+    "path": "/api/actions/act_001",
+    "file": "actions/act_001.json",
+    "operation": "get_action_api_actions__action_id__get"
+  },
+  {
+    "path": "/api/audit",
+    "file": "audit.json",
+    "operation": "audit_api_audit_get"
+  },
+  {
+    "path": "/api/cases",
+    "file": "cases.json",
+    "operation": "list_cases_api_cases_get"
+  },
+  {
+    "path": "/api/cases/cs_001",
+    "file": "cases/cs_001.json",
+    "operation": "get_case_api_cases__case_id__get"
+  },
+  {
+    "path": "/api/cases/cs_001/timeline",
+    "file": "cases/cs_001/timeline.json",
+    "operation": "get_case_timeline_api_cases__case_id__timeline_get"
+  },
+  {
+    "path": "/api/channels",
+    "file": "channels.json",
+    "operation": "list_channels_api_channels_get"
+  },
+  {
+    "path": "/api/clusters",
+    "file": "clusters.json",
+    "operation": "clusters_api_clusters_get"
+  },
+  {
+    "path": "/api/consents",
+    "file": "consents.json",
+    "operation": "list_consents_api_consents_get"
+  },
+  {
+    "path": "/api/escalations/esc_001",
+    "file": "escalations/esc_001.json",
+    "operation": "get_escalation_api_escalations__escalation_id__get"
+  },
+  {
+    "path": "/api/eval/report",
+    "file": "eval/report.json",
+    "operation": "eval_report_api_eval_report_get"
+  },
+  {
+    "path": "/api/incidents",
+    "file": "incidents.json",
+    "operation": "list_incidents_api_incidents_get"
+  },
+  {
+    "path": "/api/incidents/INC-1",
+    "file": "incidents/INC-1.json",
+    "operation": "get_incident_api_incidents__incident_id__get"
+  },
+  {
+    "path": "/api/incidents/INC-4",
+    "file": "incidents/INC-4.json",
+    "operation": "get_incident_api_incidents__incident_id__get"
+  },
+  {
+    "path": "/api/incidents/INC-1/evidence_pack",
+    "file": "incidents/INC-1/evidence_pack.json",
+    "operation": "get_evidence_pack_api_incidents__incident_id__evidence_pack_get"
+  },
+  {
+    "path": "/api/incidents/INC-4/evidence_pack",
+    "file": "incidents/INC-4/evidence_pack.json",
+    "operation": "get_evidence_pack_api_incidents__incident_id__evidence_pack_get"
+  },
+  {
+    "path": "/api/incidents/INC-1/members",
+    "file": "incidents/INC-1/members.json",
+    "operation": "get_members_api_incidents__incident_id__members_get"
+  },
+  {
+    "path": "/api/incidents/INC-4/members",
+    "file": "incidents/INC-4/members.json",
+    "operation": "get_members_api_incidents__incident_id__members_get"
+  },
+  {
+    "path": "/api/incidents/INC-1/ray_card",
+    "file": "incidents/INC-1/ray_card.json",
+    "operation": "get_ray_card_api_incidents__incident_id__ray_card_get"
+  },
+  {
+    "path": "/api/incidents/INC-4/ray_card",
+    "file": "incidents/INC-4/ray_card.json",
+    "operation": "get_ray_card_api_incidents__incident_id__ray_card_get"
+  },
+  {
+    "path": "/api/incidents/INC-1/replay",
+    "file": "incidents/INC-1/replay.json",
+    "operation": "get_replay_api_incidents__incident_id__replay_get"
+  },
+  {
+    "path": "/api/incidents/INC-4/replay",
+    "file": "incidents/INC-4/replay.json",
+    "operation": "get_replay_api_incidents__incident_id__replay_get"
+  },
+  {
+    "path": "/api/incidents/INC-1/sample",
+    "file": "incidents/INC-1/sample.json",
+    "operation": "get_sample_api_incidents__incident_id__sample_get"
+  },
+  {
+    "path": "/api/incidents/INC-4/sample",
+    "file": "incidents/INC-4/sample.json",
+    "operation": "get_sample_api_incidents__incident_id__sample_get"
+  },
+  {
+    "path": "/api/incidents/INC-1/trace",
+    "file": "incidents/INC-1/trace.json",
+    "operation": "get_trace_api_incidents__incident_id__trace_get"
+  },
+  {
+    "path": "/api/incidents/INC-4/trace",
+    "file": "incidents/INC-4/trace.json",
+    "operation": "get_trace_api_incidents__incident_id__trace_get"
+  },
+  {
+    "path": "/api/learning/params",
+    "file": "learning/params.json",
+    "operation": "learning_params_api_learning_params_get"
+  },
+  {
+    "path": "/api/learning/weekly",
+    "file": "learning/weekly.json",
+    "operation": "learning_weekly_api_learning_weekly_get"
+  },
+  {
+    "path": "/api/messages/preview",
+    "file": "messages/preview.json",
+    "operation": "message_preview_api_messages_preview_get"
+  },
+  {
+    "path": "/api/scan/day0",
+    "file": "scan/day0.json",
+    "operation": "get_scan_day0_api_scan_day0_get"
+  },
+  {
+    "path": "/api/settings",
+    "file": "settings.json",
+    "operation": "get_settings_api_settings_get"
+  },
+  {
+    "path": "/api/threads",
+    "file": "threads.json",
+    "operation": "list_threads_api_threads_get"
+  },
+  {
+    "path": "/api/threads/thr_001",
+    "file": "threads/thr_001.json",
+    "operation": "get_thread_api_threads__thread_id__get"
+  },
+  {
+    "path": "/api/threads/thr_002",
+    "file": "threads/thr_002.json",
+    "operation": "get_thread_api_threads__thread_id__get"
+  }
+]

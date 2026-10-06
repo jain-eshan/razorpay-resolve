@@ -1,35 +1,26 @@
-# RazorSense starter
+# Blindspot (working name)
 
-A starting point for building Razorpay products in **RazorSense**, Razorpay's design language "for the humans in the AI era", using the real [Blade](https://github.com/razorpay/blade) components.
+Razorpay x ISB AI PM Build Challenge, Track 2. An agent that owns what happens before and after a payment: it finds every customer a payment problem touched, talks to them to find the payment, says whose side the fault is on, and fixes it with the founder approving.
 
-It includes:
-- **[DESIGN.md](DESIGN.md)**: the design language in depth
-  - principles
-  - the four emotional states (Calm, Joyful, Caution, Regret)
-  - colour, type, spacing and motion tokens with exact values
-  - component specs and voice and tone
-  - Razorpay product context
-- **A reference app** built from Blade:
-  - the live RazorSense surface switching between emotional states
-  - how each state sounds in copy
-  - an "Ask Ray" chat with the thinking state
-  - a success moment
-- **Blade MCP** wired in (`.mcp.json`), so AI coding tools can read Blade's component docs.
+Read `docs/PRD.md` first, then `docs/SPEC.md` and `docs/BUILD_PLAN.md`. `docs/V1_SPEC.md` is inherited where the v2 docs are silent.
 
-## Run it
+## Run
 
-```bash
-npm install
+```
+make setup        # python deps, web deps, git hooks
+make synth        # create data/world.db and data/truth.db (synthetic world, seed 20261006)
+make pipeline     # run detection on the world and save incidents
+make snapshot     # eval, then write web/public/snapshot/*.json from the real pipeline output
+make run-web      # http://localhost:5173  (snapshot mode, no backend needed)
+make run-api      # http://localhost:8000  (set VITE_MODE=live to use it)
+make test         # backend tests, web typecheck and build, secret scan
+make e2e          # Playwright smoke tests (uses your installed Chrome)
+make eval         # compare the pipeline with hidden ground truth; fails on a missed gate
+make contracts    # regenerate openapi.json, snapshot manifest and web types after a contract change
 ```
 
-```bash
-npm run dev
-```
+## Status
 
-Then open http://localhost:5173.
+R0 and R1 done. Contracts are at v0.2 (`docs/CONTRACT_CHANGES.md`). The incident screens, day-0 scan and evaluation show real pipeline output on a synthetic world. Everything else (cases, threads, channels, actions) is still placeholder data from `backend/app/fixtures.py`.
 
-## Sources
-- RazorSense: https://razorpay.com/razorsense/
-- Blade: https://github.com/razorpay/blade · Storybook: https://blade.razorpay.com/?path=/story/components-razorsense--default
-
-Not affiliated with Razorpay. Blade is MIT-licensed; RazorSense assets load from Blade's public CDN.
+Mocked or simulated: all Razorpay data, all channels, all customer conversations. Proposed Razorpay capabilities are listed in `backend/app/config.py` (`PROPOSED`) and in PRD section 15.

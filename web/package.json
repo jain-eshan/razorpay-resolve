@@ -1,5 +1,5 @@
 {
-  "name": "razorsense-starter",
+  "name": "blindspot-web",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -17,14 +17,17 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.4.1",
+    "react-router-dom": "^7.18.4",
     "styled-components": "^5.3.11"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/node": "^24.13.3",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
     "@types/styled-components": "^5.1.36",
     "@vitejs/plugin-react": "^6.1.1",
+    "openapi-typescript": "^7.13.0",
     "oxlint": "^1.81.0",
     "typescript": "~6.0.2",
     "vite": "^8.3.0"
