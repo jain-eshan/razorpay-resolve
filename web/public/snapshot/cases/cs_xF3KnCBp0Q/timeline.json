@@ -1,0 +1,23 @@
+{
+  "customer": [
+    {
+      "at": "2026-10-02T01:34:11+05:30",
+      "text": "bhai 299 deduct hua par Premium Monthly activate nahi hua. ref no 301969480422",
+      "source_ref": "cmp_xF3KnCBp0Q"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-09-30T15:22:15+05:30",
+      "text": "Payment of \u20b9299 captured",
+      "source_ref": "pay_XvC6b9WbGFAtGG"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-10-02T10:40:00+05:30",
+      "text": "Access record: expired",
+      "source_ref": "pay_XvC6b9WbGFAtGG"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "customer": [
+    {
+      "at": "2026-09-30T06:06:13+05:30",
+      "text": "Hi, I paid Rs 299 for Premium Monthly but my account still shows the free plan. Reference 397489300732",
+      "source_ref": "cmp_bjtM1pw0TZ"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-09-29T18:53:55+05:30",
+      "text": "Payment of \u20b9299 captured",
+      "source_ref": "pay_aSn9LvDblVRAjv"
+    },
+    {
+      "at": "2026-09-29T18:53:55+05:30",
+      "text": "28 webhook attempts, first answered 401",
+      "source_ref": "pay_aSn9LvDblVRAjv"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-10-02T10:40:00+05:30",
+      "text": "Access record: unpaid",
+      "source_ref": "pay_aSn9LvDblVRAjv"
+    }
+  ]
+}

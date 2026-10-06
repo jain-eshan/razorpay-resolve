@@ -1,0 +1,24 @@
+{
+  "id": "esc_001",
+  "incident_id": "INC-1",
+  "target": "razorpay",
+  "ref": "MG-INC-1-7F3A",
+  "status": "drafted",
+  "pack": {
+    "incident_id": "INC-1",
+    "ref": "MG-INC-1-7F3A",
+    "endpoint": "https://api.kaksha.example/razorpay/webhook",
+    "first_failure_at": "2026-09-29T14:22:07+05:30",
+    "last_failure_at": "2026-09-30T14:21:55+05:30",
+    "linked_change": "deploy web v2.8.0: auth middleware on /api/*",
+    "response_excerpt": "{\"error\":\"Unauthorized: missing session\"}",
+    "affected_events": 40,
+    "affected_payment_ids": [
+      "pay_fx0001",
+      "pay_fx0002"
+    ],
+    "suggested_fix": "Exclude the webhook route from session auth, keep signature verification, and skip events already processed.",
+    "for_razorpay": false
+  },
+  "created_at": "2026-10-02T10:40:00+05:30"
+}

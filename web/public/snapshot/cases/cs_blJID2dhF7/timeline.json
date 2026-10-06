@@ -1,0 +1,23 @@
+{
+  "customer": [
+    {
+      "at": "2026-10-01T16:35:16+05:30",
+      "text": "bhai 2499 deduct hua par Premium Annual activate nahi hua. ref no 586145190148",
+      "source_ref": "cmp_blJID2dhF7"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-09-30T21:58:12+05:30",
+      "text": "Payment of \u20b92,499 captured",
+      "source_ref": "pay_l0zjW1qHLvfsOZ"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-10-02T10:40:00+05:30",
+      "text": "Access record: unpaid",
+      "source_ref": "pay_l0zjW1qHLvfsOZ"
+    }
+  ]
+}

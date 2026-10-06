@@ -1,0 +1,16 @@
+{
+  "incident_id": "INC-1",
+  "owner_chip": "YOUR SIDE \u00b7 Code",
+  "inferred": false,
+  "cause_line": "Your server returned 401 to Razorpay from Tue 29 Sep 15:15. Razorpay turned the webhook off on Wed 30 Sep 15:15.",
+  "affected": 85,
+  "complained": 17,
+  "silent": 68,
+  "fixed": 2,
+  "at_risk_paise": 5631900,
+  "language": "en",
+  "buttons": [
+    "View list",
+    "Send to dev"
+  ]
+}

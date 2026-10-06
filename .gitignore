@@ -5,7 +5,6 @@ __pycache__/
 .env
 node_modules/
 web/dist/
-web/public/snapshot/
 data/*
 !data/.gitkeep
 eval/report.json

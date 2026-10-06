@@ -1,0 +1,23 @@
+{
+  "customer": [
+    {
+      "at": "2026-10-01T23:47:26+05:30",
+      "text": "paisa kat gaya 299 ka, Premium Monthly nahi mila. UPI ref pay_bGVMsrkt9WBwdL",
+      "source_ref": "cmp_hx9tnun88z"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-09-30T22:47:03+05:30",
+      "text": "Payment of \u20b9299 captured",
+      "source_ref": "pay_bGVMsrkt9WBwdL"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-10-02T10:40:00+05:30",
+      "text": "Access record: unpaid",
+      "source_ref": "pay_bGVMsrkt9WBwdL"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "week_start": "2026-09-28T00:00:00+05:30",
+  "lines": [
+    "No parameter changes yet."
+  ],
+  "changes": [
+    {
+      "at": "2026-10-02T10:40:00+05:30",
+      "key": "order_dip_p_threshold",
+      "before": 0.01,
+      "after": 0.005,
+      "reason": "2 of 2 alerts were false",
+      "version": 2
+    }
+  ]
+}
