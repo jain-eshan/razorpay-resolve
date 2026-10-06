@@ -1,0 +1,13 @@
+{
+  "daily_refund_cap_paise": 500000,
+  "max_bulk_customers": 100,
+  "messaging_enabled": false,
+  "holdout_percent": 10,
+  "technical_contact": "dev@kaksha.example",
+  "entitlement_connector": {
+    "mode": "csv",
+    "status": "744 access records loaded",
+    "updated_at": "2026-10-02T10:30:00+05:30"
+  },
+  "autonomy": "suggest"
+}

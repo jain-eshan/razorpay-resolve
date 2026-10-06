@@ -1,4 +1,4 @@
-# Handoff: where Blindspot stands (6 Oct 2026, after R2)
+# Handoff: where Blindspot stands (6 Oct 2026, R3 built on a branch)
 
 Read this first in a new chat, then `docs/PRD.md`. Everything below is true as of the last commit on branch `blindspot`.
 
@@ -12,8 +12,8 @@ Blindspot (working name) is Eshan Jain's entry for the Razorpay x ISB AI PM Buil
 |---|---|
 | R0 foundations (repo, frozen contracts, stub API, Blade shell) | Done, tag `contracts-v0.1` |
 | R1 detect, widen, attribute (Hero A on a synthetic world) | Done, contracts v0.2 |
-| R2 fix and verify (grant in stages, messages, undo, verify and close, audit, settings, autonomy dial) | Done, contracts v0.3. On branch `claude/r2-fix-and-verify`, not yet merged. |
-| R3 channels and conversation | Not started. Next. |
+| R2 fix and verify (grant in stages, messages, undo, verify and close, audit, settings, autonomy dial) | Done, contracts v0.3. Merged to `blindspot` as PR #2, CI green. |
+| R3 channels and conversation (no model yet: rules and scripted threads) | Built on branch `claude/r3-channels-conversation`, contracts v0.4, not yet merged |
 | R4 Zone 1 (cannot reach the pay page), investigation agent, three-way eval | Not started |
 | R5 learning loop, handovers | Not started |
 | R6 real rails (stretch) | Not started |
@@ -38,6 +38,27 @@ Plan, sizing and kickoff prompts for every stream: `docs/BUILD_PLAN.md`.
 - Tests: 71 backend (47 new, including two clicks at once), 10 Playwright (5 are the live fix flow, Hero A in about 4 seconds of automated clicking), 23 eval gates (11 new: no grant outside ground truth, repeat approvals change nothing, undo restores records, cap, verification accuracy, 24 h rule, messages).
 - Bugs the tests caught: the number check broke when an amount sat inside a 12-digit UPI ref; customers disappeared from the incident after being restored; after Undo there was no button to plan again.
 
+### What R3 delivers (all verified, with the limits below)
+- `backend/app/ingest/`: redaction and token vault (`redact.py`), a deterministic time resolver ("kal raat 10 baje", 31 phrases tested) (`timeparse.py`), rule-based triage and extraction in English and Hinglish with injection and threat detection (`extract.py`).
+- `backend/app/match/lookup.py`: exact keys decide (payment id, order id, UPI ref, receipt, contact plus amount within 48 h). A fuzzy scorer with an isotonic calibrator only suggests, for the founder's brief.
+- `backend/app/conversation/`: `machine.py` (state machine, three questions at most, handoff brief, silent-customer nudge once, thread resolved when its incident closes), `lint.py` (never-ask lint, 60-case set), two new templates.
+- `backend/app/channels/`: `policy.py` is now the full engine (suppression, consent, 24 h window, AI disclosure, never-ask lint, number-from-slot, public filter, rate limit, autonomy per channel). `sim.py` has the help-button, WhatsApp and email simulators.
+- Web: Conversations (`/threads`), Case (`/cases/:id`, S-04), Channels (S-12), help-button demo (S-13), WhatsApp both sides (S-14), email (S-15).
+- Eval: 40 scripted threads (`synth/threads.py`, truth in `truth_threads`) and 16 new gates. Identification within 3 questions on cooperative threads 1.0 (K4 needs 0.60), zero wrong-payment disclosures, zero never-ask violations, 2 of 2 injections ignored, every handover correct.
+- Tests: 250 (backend, synth), 19 Playwright (7 snapshot, 7 conversation, 5 fix flow), 39 eval gates.
+- Bugs the eval and e2e caught that unit tests did not: token vault key collided across complaints (identification fell to 31 percent); the extractor re-used an old identifier after a correction; a time phrase in the middle of a sentence was never read; the nudge treated a same-instant reply as an answer; the per-channel dial did nothing until the policy engine read it.
+
+### R3 limits (read before quoting any R3 number)
+- **No model is used yet.** Triage and extraction are rules. They read English and Hinglish in Latin script. Devanagari is only recognised as a language, so the rules call it "other" and a person sees it. A model-based extractor goes behind `extract()` with the same output shape. Needs an Anthropic key with a spend cap, and then the three-arm comparison (rules, agent, no signal) that the eval report does not have yet.
+- **The scripted threads are friendly to the rules.** They are generated from templates close to the patterns the extractor knows, so 1.0 is optimistic. K4 is not settled until real founders show real messages.
+- **Screenshots are simulated:** a script supplies the text a screenshot reader would return (`context.screenshot_text`). No image is read.
+- **Fuzzy matching is weak by design:** on generated complaints the true payment is in the top 3 suggestions 72 percent of the time, top 1 only 45 percent, and no threshold reaches 95 percent precision, so it never decides anything.
+- **Retention is stored, not enforced:** consents record 30 days, but nothing purges threads or attachments yet.
+- **Public mentions, Instagram and Messenger** (R5) have no adapter. A public thread gets a held draft that the public filter blocks.
+- **Not measured:** time to first useful reply under 60 seconds, cost per resolved case.
+- **The conversation dial is per channel** (Channels screen). The Settings dial is global and governs grants and incident messages.
+- The first read of `/api/channels` seeds the channel and consent rows (a read that writes). Fine for the prototype.
+
 ### Results on the synthetic world
 1 incident found, 0 false. 85 affected: 17 complained, 68 silent (ratio 4.0; kill criterion K1 needs 2). 81 actionable, 2 fixed by hand, 2 refunded, 4 in the "server said OK but granted nothing" group (all found). Alert fires 55 minutes after the deploy with 1 customer affected. Replay: 38 events replayable by a support ticket one at a time, 43 not replayable at all. The scores are near perfect because the world is clean and generator and detector share assumptions. Harder negatives arrive in R3 and R4.
 
@@ -57,7 +78,7 @@ scripts/     gen_contracts.py  snapshot.py  run_pipeline.py  secret_scan.sh
 
 Commands: `make setup | synth | pipeline | snapshot | eval | test | e2e | lint | contracts | run-web | run-api`.
 
-Branches: `main` is the untouched starter (commit 614bacf). `blindspot` holds the product and is open as PR #1 (https://github.com/jain-eshan/razorsense-starter/pull/1). The starter's files moved into `web/` with `git mv`, so history is kept.
+Branches: `main` is the untouched starter (commit 614bacf). `blindspot` holds the product and is open as PR #1 (https://github.com/jain-eshan/razorsense-starter/pull/1). Each release is a branch off `blindspot` merged by PR (R2 was PR #2). The starter's files moved into `web/` with `git mv`, so history is kept.
 
 ## 4. Decisions made (full log: PRD section 2)
 
@@ -97,9 +118,27 @@ The full verify list is PRD section 16.3.
 
 **No accounts needed yet.** First Anthropic API key needed at R3. Vercel at the snapshot deploy. Fly or Render, Meta developer and an inbound email provider only at R6.
 
+## 6b. Pending (as of 6 Oct 2026, after the R2 merge)
+
+Needs Eshan:
+- **Webhook experiment, around 18:41 IST on 7 Oct:** Razorpay should disable webhook A about 24 hours after its first failure. Look at the dashboard and tell the next session what it shows (banner, warning, email). Record it in PRD 4.1 and 16.3.
+- **Five founder calls (V2, kill criterion K3):** none done. Script is in `docs/BUILD_PLAN.md` section 8. If fewer than 3 of 5 confirm a paid-but-not-fulfilled incident, the plan is to pivot to international-failure diagnosis.
+- **Razorpay questions (V3, nine of them) and the two for Prane:** does RAY already list every payment affected by one webhook failure (kill criterion K2), and could Razorpay expose a bulk replay or delivery-log API for a prototype. No answers yet.
+- **Test account cleanup (V5):** the disabled `httpbin` webhook and the ₹10 payment link are still there. Nothing is deleted until Eshan says so.
+- **Anthropic API key with a spend cap:** R3 was built without one (rules and scripted threads). It is needed from R4 for the agent arm and to try live triage.
+- **Vercel project for the snapshot deploy:** needs Eshan's account. The static snapshot is ready to deploy.
+
+Needs the next session:
+- **Contract tags:** only `contracts-v0.1` is tagged. v0.2 and v0.3 are not. Tag after Eshan agrees.
+- **Verify list (PRD 16.3, V4):** items still without a status.
+- **No executor yet for** refunds, recovery links and event re-sending, although the autonomy matrix lists them (refunds and recovery links belong to R4).
+- **Deferred from R1:** the 24 synthetic screenshots (R3 simulated screenshot text instead; real images need a vision model).
+- **Demo state is in memory** (clock offset, webhook fix). A restart gives a fresh world.
+- **Bundle is 1.3 MB** (Blade). Code-split later.
+
 ## 7. Next steps
 
-1. **R3 channels and conversation** (`docs/BUILD_PLAN.md` section 5): adapters and simulators, the full policy engine (replaces the R2 stub in `channels/policy.py`), triage and extraction, conversation state machine, founder brief. Review and merge the R2 branch first.
+1. **Review and merge R3**, then **R4 Zone 1 and depth** (`docs/BUILD_PLAN.md` section 5): cannot-reach-the-page inference, the investigation agent, the three-way eval. The Anthropic key is needed here, for the agent arm.
 2. Before R3, Eshan should run the five founder calls (build plan V2) and answer the Razorpay questions (V3).
 3. Items still to verify are listed in PRD 16.3.
 

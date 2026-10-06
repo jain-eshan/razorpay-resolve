@@ -1,0 +1,41 @@
+{
+  "id": "tr_INC-1",
+  "incident_id": "INC-1",
+  "steps": [
+    {
+      "tool": "find_change_points",
+      "input": {
+        "metric": "webhook_non2xx_rate",
+        "endpoint": "ep_kaksha001"
+      },
+      "output_summary": "Run opened after 1 events. First failing event Tue 29 Sep 15:15. Baseline failure rate 0.0%."
+    },
+    {
+      "tool": "list_events",
+      "input": {
+        "window": "between the last good event and the first failing one"
+      },
+      "output_summary": "web v2.8.0: auth middleware on /api/*"
+    },
+    {
+      "tool": "query_payments",
+      "input": {
+        "signature": {
+          "endpoint_id": "ep_kaksha001",
+          "response_class": "4xx",
+          "status": 401
+        }
+      },
+      "output_summary": "85 captured payments, \u20b956,319 not yet restored"
+    },
+    {
+      "tool": "attribute",
+      "input": {},
+      "output_summary": "Rule 1: merchant_code. Webhook deliveries returned an error from your server, right after a change you made"
+    }
+  ],
+  "budget_used": 4,
+  "budget_total": 8,
+  "model_id": null,
+  "rule_based": true
+}

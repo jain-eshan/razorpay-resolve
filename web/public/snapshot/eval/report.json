@@ -1,0 +1,266 @@
+{
+  "seed": 20261006,
+  "generated_at": "2026-10-02T10:40:00+05:30",
+  "metrics": [
+    {
+      "name": "incidents_found_minus_true",
+      "value": 0.0,
+      "target": "0 (no missed, no false incident)",
+      "status": "pass"
+    },
+    {
+      "name": "cause_and_owner_correct",
+      "value": 1.0,
+      "target": "1.0",
+      "status": "pass"
+    },
+    {
+      "name": "onset_error_minutes",
+      "value": 0.0,
+      "target": "<= 120 (two hourly buckets)",
+      "status": "pass"
+    },
+    {
+      "name": "alert_latency_minutes_from_deploy",
+      "value": 55.4,
+      "target": "<= 120",
+      "status": "pass"
+    },
+    {
+      "name": "customers_affected_when_alert_fires",
+      "value": 1.0,
+      "target": "reported",
+      "status": "report"
+    },
+    {
+      "name": "silent_victim_precision_exact_tier",
+      "value": 1.0,
+      "target": ">= 0.98",
+      "status": "pass"
+    },
+    {
+      "name": "silent_victim_recall_exact_plus_likely",
+      "value": 1.0,
+      "target": ">= 0.90",
+      "status": "pass"
+    },
+    {
+      "name": "inclusion_and_exclusion_accuracy",
+      "value": 1.0,
+      "target": ">= 0.98",
+      "status": "pass"
+    },
+    {
+      "name": "exclusion_reasons_wrong",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "hidden_2xx_but_no_access_recall",
+      "value": 1.0,
+      "target": ">= 0.90 (needs the access records)",
+      "status": "pass"
+    },
+    {
+      "name": "silent_to_complained_ratio",
+      "value": 4.0,
+      "target": ">= 2 (kill criterion K1)",
+      "status": "pass"
+    },
+    {
+      "name": "day0_customers_found_vs_truth",
+      "value": 81.0,
+      "target": "= 81",
+      "status": "pass"
+    },
+    {
+      "name": "grants_that_ground_truth_says_were_not_owed",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "exact_tier_customers_restored",
+      "value": 1.0,
+      "target": ">= 0.98",
+      "status": "pass"
+    },
+    {
+      "name": "granted_customers_the_records_still_show_without_access",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "changes_made_by_repeat_approvals",
+      "value": 0.0,
+      "target": "0 (idempotency)",
+      "status": "pass"
+    },
+    {
+      "name": "records_not_back_to_prior_state_after_undo",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "customers_changed_above_the_bulk_cap",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "verification_accuracy_on_tampered_records",
+      "value": 1.0,
+      "target": "1.0",
+      "status": "pass"
+    },
+    {
+      "name": "incident_closes_only_after_24h_healthy",
+      "value": 1.0,
+      "target": "1.0",
+      "status": "pass"
+    },
+    {
+      "name": "messages_with_a_number_not_from_the_customers_record",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "customers_messaged_twice_about_one_incident",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "revoke_in_the_action_catalogue",
+      "value": 0.0,
+      "target": "0 (never available)",
+      "status": "pass"
+    },
+    {
+      "name": "conversation_triage_accuracy_payment_vs_not",
+      "value": 1.0,
+      "target": ">= 0.95",
+      "status": "pass"
+    },
+    {
+      "name": "identified_within_3_questions_cooperative",
+      "value": 1.0,
+      "target": ">= 0.85 (kill criterion K4 if < 0.60)",
+      "status": "pass"
+    },
+    {
+      "name": "customers_shown_a_payment_that_is_not_theirs",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "never_ask_violations_in_agent_replies",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "prompt_injection_threads_ignored",
+      "value": 2.0,
+      "target": "= 2 of 2",
+      "status": "pass"
+    },
+    {
+      "name": "handover_to_a_person_when_needed",
+      "value": 1.0,
+      "target": "1.0",
+      "status": "pass"
+    },
+    {
+      "name": "thread_outcome_matches_expected",
+      "value": 1.0,
+      "target": ">= 0.95",
+      "status": "pass"
+    },
+    {
+      "name": "complaints_attached_to_the_incident",
+      "value": 1.0,
+      "target": ">= 0.95",
+      "status": "pass"
+    },
+    {
+      "name": "customer_messages_kept_for_non_payment_threads",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "other_merchant_payments_disclosed",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "complaint_triage_accuracy",
+      "value": 1.0,
+      "target": ">= 0.95",
+      "status": "pass"
+    },
+    {
+      "name": "extraction_amount_exact",
+      "value": 1.0,
+      "target": ">= 0.95",
+      "status": "pass"
+    },
+    {
+      "name": "extraction_rrn_exact",
+      "value": 1.0,
+      "target": ">= 0.95",
+      "status": "pass"
+    },
+    {
+      "name": "language_accuracy",
+      "value": 1.0,
+      "target": "reported (hi_latn subset below)",
+      "status": "report"
+    },
+    {
+      "name": "language_accuracy_hinglish",
+      "value": 1.0,
+      "target": ">= 0.90",
+      "status": "pass"
+    },
+    {
+      "name": "exact_key_match_share",
+      "value": 1.0,
+      "target": ">= 0.70 (kill criterion if lower)",
+      "status": "pass"
+    },
+    {
+      "name": "exact_key_match_precision",
+      "value": 1.0,
+      "target": ">= 0.99",
+      "status": "pass"
+    },
+    {
+      "name": "fuzzy_top1_recall_suggestions_only",
+      "value": 0.45,
+      "target": "reported",
+      "status": "report"
+    },
+    {
+      "name": "fuzzy_top3_recall_suggestions_only",
+      "value": 0.715,
+      "target": ">= 0.60 (regression guard)",
+      "status": "pass"
+    },
+    {
+      "name": "fuzzy_operating_threshold",
+      "value": 1.01,
+      "target": "reported (>= 1 means fuzzy never auto-matches)",
+      "status": "report"
+    }
+  ],
+  "arms": [],
+  "synthetic": true
+}

@@ -2,17 +2,21 @@
 import hashlib
 import json
 import sqlite3
+from datetime import datetime
 
 from . import clock
 from .config import ENTITLEMENT_EXPORT_AT
 from .detect.webhook import find_runs, run_to_json
+from .ingest.extract import extract
+from .ingest.redact import redact
 from .investigate.rules_fallback import build_trace, build_verdict
+from .match import lookup as mt
 from .match.keys import complaints_by_payment
 from .widen.silent import build_cohort
 
 
 def run(db: sqlite3.Connection) -> list[str]:
-    for t in ("incident_members", "agent_traces", "incidents", "signals"):
+    for t in ("incident_members", "agent_traces", "incidents", "signals", "cases", "extractions", "match_candidates"):
         db.execute(f"DELETE FROM {t}")
     now, export_at = clock.now(), ENTITLEMENT_EXPORT_AT
     complaints = complaints_by_payment(db)
@@ -40,8 +44,32 @@ def run(db: sqlite3.Connection) -> list[str]:
             db.executemany("INSERT INTO incident_members (incident_id, payment_id, tier, exclusion_reason, complained, case_id, amount_paise) VALUES (?,?,?,?,?,?,?)",
                            [(iid, m.payment_id, m.tier, m.exclusion_reason, int(m.complained), None, m.amount_paise) for m in members])
             ids.append(iid)
+    _cases(db)
     db.commit()
     return ids
+
+
+def _cases(db: sqlite3.Connection) -> None:
+    """One case per complaint: extract, look up by exact key, and tie it to the incident that covers the payment (stream B: thread to case to incident)."""
+    cal = mt.load_calibrator()
+    for c in db.execute("SELECT * FROM complaints ORDER BY received_at").fetchall():
+        when = datetime.fromisoformat(c["received_at"])
+        red = redact(c["raw_text"])
+        x = extract(red, when)
+        res = mt.lookup(db, red, x, when, cal)
+        pids = [e.payment_id for e in res.exact]
+        member = db.execute("SELECT im.*, i.owner, i.mismatch_type FROM incident_members im JOIN incidents i ON i.id = im.incident_id WHERE im.payment_id = ? LIMIT 1", (pids[0],)).fetchone() if pids else None
+        cs = f"cs_{c['id'][4:]}"
+        db.execute("INSERT INTO cases (id, complaint_id, match_status, matched_payment_ids, mismatch_type, owner, incident_id, created_at) VALUES (?,?,?,?,?,?,?,?)",
+                   (cs, c["id"], "matched" if pids else "not_payment" if not x.is_payment_related else "needs_detail", json.dumps(pids), member["mismatch_type"] if member else None,
+                    member["owner"] if member else None, member["incident_id"] if member else None, c["received_at"]))
+        db.execute("INSERT INTO extractions (complaint_id, model_id, prompt_version, json, injection_suspected, status, created_at) VALUES (?,?,?,?,?,?,?)",
+                   (c["id"], "rules-v1", "0", x.model_dump_json(), int(x.injection_suspected), "ok", c["received_at"]))
+        for rank, cand in enumerate(res.exact + res.suggestions, 1):
+            db.execute("INSERT OR REPLACE INTO match_candidates (complaint_id, payment_id, method, raw_score, calibrated_score, features, rank) VALUES (?,?,?,?,?,?,?)",
+                       (c["id"], cand.payment_id, cand.method, cand.score, cand.score, json.dumps(cand.features), rank))
+        for pid in pids:
+            db.execute("UPDATE incident_members SET case_id = ? WHERE payment_id = ?", (cs, pid))
 
 
 def pack_ref(incident_id: str) -> str:

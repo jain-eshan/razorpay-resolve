@@ -9,6 +9,7 @@ from pathlib import Path
 
 import yaml
 
+from .threads import build_threads
 from .world import build
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -25,6 +26,7 @@ def generate(out: Path, seed: int | None = None) -> dict:
         dbs[name] = sqlite3.connect(path)
         dbs[name].executescript((ROOT / "contracts" / schema).read_text())
     counts = build(cfg, dbs["world.db"], dbs["truth.db"], out)
+    counts["threads"] = build_threads(dbs["world.db"], dbs["truth.db"], out, cfg["seed"])
     for d in dbs.values():
         d.close()
     return counts

@@ -1,0 +1,3 @@
+{
+  "rewrites": [{ "source": "/((?!snapshot/|assets/).*)", "destination": "/index.html" }]
+}

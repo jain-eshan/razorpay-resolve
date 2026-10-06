@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Alert, Box, Button, Card, CardBody, Heading, SegmentedControl, SegmentedControlItem, Text } from '@razorpay/blade/components'
 import { FixPanel } from '../components/FixPanel'
+import { Lane } from '../components/Lane'
 import { Stat } from '../components/Stat'
 import { TimelineChart } from '../components/TimelineChart'
 import { rupees, useGet, type Schemas } from '../lib/api'
@@ -10,18 +11,6 @@ import { OWNER, when } from '../lib/format'
 const TIERS = ['exact', 'likely', 'check', 'excluded'] as const
 const TIER_LABEL = { exact: 'Exact', likely: 'Likely', check: 'Check manually', excluded: 'Excluded' }
 const SHOW = 12
-
-function Lane({ title, items }: { title: string; items: Schemas['LaneEvent'][] }) {
-  return (
-    <Box display="flex" flexDirection="column" gap="spacing.2" flex="1" minWidth="200px">
-      <Text size="small" weight="semibold">{title}</Text>
-      {items.length === 0 && <Text size="small" color="surface.text.gray.muted">Nothing</Text>}
-      {[...items].sort((a, b) => a.at.localeCompare(b.at)).map((e) => (
-        <Text key={e.source_ref + e.text} size="small">{when(e.at)} · {e.text}</Text>
-      ))}
-    </Box>
-  )
-}
 
 export default function Incident() {
   const { id = '' } = useParams()

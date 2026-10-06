@@ -1,0 +1,83 @@
+[
+  {
+    "id": "ch_help",
+    "type": "help_button",
+    "status": "connected",
+    "reply_identity": "Kaksha payment help, powered by Razorpay",
+    "autonomy_level": "suggest",
+    "connected_at": "2026-10-02T10:40:00+05:30",
+    "mocked": true
+  },
+  {
+    "id": "ch_wa",
+    "type": "whatsapp_payments",
+    "status": "connected",
+    "reply_identity": "Kaksha payment help, powered by Razorpay",
+    "autonomy_level": "suggest",
+    "connected_at": "2026-10-02T10:40:00+05:30",
+    "mocked": true
+  },
+  {
+    "id": "ch_email",
+    "type": "email",
+    "status": "connected",
+    "reply_identity": "Kaksha payment help, powered by Razorpay",
+    "autonomy_level": "suggest",
+    "connected_at": "2026-10-02T10:40:00+05:30",
+    "mocked": true
+  },
+  {
+    "id": "ch_ig",
+    "type": "ig_dm",
+    "status": "disconnected",
+    "reply_identity": null,
+    "autonomy_level": "suggest",
+    "connected_at": null,
+    "mocked": true
+  },
+  {
+    "id": "ch_fb",
+    "type": "fb_dm",
+    "status": "disconnected",
+    "reply_identity": null,
+    "autonomy_level": "suggest",
+    "connected_at": null,
+    "mocked": true
+  },
+  {
+    "id": "ch_public",
+    "type": "public_mention",
+    "status": "disconnected",
+    "reply_identity": null,
+    "autonomy_level": "suggest",
+    "connected_at": null,
+    "mocked": true
+  },
+  {
+    "id": "ch_ray",
+    "type": "ray_forward",
+    "status": "connected",
+    "reply_identity": null,
+    "autonomy_level": "suggest",
+    "connected_at": "2026-10-02T10:40:00+05:30",
+    "mocked": true
+  },
+  {
+    "id": "ch_paste",
+    "type": "paste",
+    "status": "connected",
+    "reply_identity": null,
+    "autonomy_level": "suggest",
+    "connected_at": "2026-10-02T10:40:00+05:30",
+    "mocked": true
+  },
+  {
+    "id": "ch_csv",
+    "type": "csv",
+    "status": "connected",
+    "reply_identity": null,
+    "autonomy_level": "suggest",
+    "connected_at": "2026-10-02T10:40:00+05:30",
+    "mocked": true
+  }
+]

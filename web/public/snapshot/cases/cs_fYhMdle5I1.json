@@ -1,0 +1,69 @@
+{
+  "id": "cs_fYhMdle5I1",
+  "complaint_id": "cmp_fYhMdle5I1",
+  "channel": "whatsapp_payments",
+  "match_status": "matched",
+  "mismatch_type": "A",
+  "owner": "merchant_code",
+  "incident_id": "INC-1",
+  "received_at": "2026-10-02T07:44:50+05:30",
+  "extraction": {
+    "topic": "access",
+    "is_payment_related": true,
+    "language": "hi_latn",
+    "claim": "debited_no_access",
+    "amount_paise": 59900,
+    "amount_count": null,
+    "stated_time_text": null,
+    "method": "upi",
+    "app_or_bank_name": null,
+    "ids": {
+      "payment_id": "[PAYMENT_ID_1]",
+      "order_id": null,
+      "rrn": null,
+      "email": null,
+      "phone": null,
+      "vpa": null,
+      "card4": null
+    },
+    "product_or_plan": "Test Series",
+    "customer_wants": "access",
+    "sentiment": "calm",
+    "injection_suspected": false,
+    "window": null
+  },
+  "candidates": [
+    {
+      "payment_id": "pay_QBznZMyIKTVnDk",
+      "method": "exact_payment_id",
+      "calibrated_score": 0.99,
+      "features": {}
+    }
+  ],
+  "lanes": {
+    "customer": [
+      {
+        "at": "2026-10-02T07:44:50+05:30",
+        "text": "paisa kat gaya 599 ka, Test Series nahi mila. UPI ref pay_QBznZMyIKTVnDk",
+        "source_ref": "cmp_fYhMdle5I1"
+      }
+    ],
+    "razorpay": [
+      {
+        "at": "2026-09-30T17:32:09+05:30",
+        "text": "Payment of \u20b9599 captured",
+        "source_ref": "pay_QBznZMyIKTVnDk"
+      }
+    ],
+    "merchant": [
+      {
+        "at": "2026-10-02T10:40:00+05:30",
+        "text": "Access record: unpaid",
+        "source_ref": "pay_QBznZMyIKTVnDk"
+      }
+    ]
+  },
+  "state_line": "Matched to pay_QBznZMyIKTVnDk by an exact identifier. Part of INC-1: YOUR SIDE \u00b7 Code.",
+  "reply_draft": null,
+  "injection_suspected": false
+}

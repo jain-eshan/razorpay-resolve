@@ -14,6 +14,9 @@ STAGES = ("dry_run", "first_5", "rest")
 
 # founder: approves every stage. once_per_incident: approves the dry run, the rest follows. auto: no tap, still staged, still capped.
 MATRIX = {
+    "disclosure_or_question": {"suggest": "auto", "assist": "auto", "autopilot_reversible": "auto"},
+    "status_reply": {"suggest": "founder", "assist": "auto", "autopilot_reversible": "auto"},
+    "public_reply": {"suggest": "founder", "assist": "founder", "autopilot_reversible": "founder"},
     "grant_exact": {"suggest": "founder", "assist": "once_per_incident", "autopilot_reversible": "auto"},
     "incident_message": {"suggest": "founder", "assist": "founder", "autopilot_reversible": "auto"},
     "recovery_link": {"suggest": "founder", "assist": "founder", "autopilot_reversible": "founder"},

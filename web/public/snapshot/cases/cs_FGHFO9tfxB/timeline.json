@@ -1,0 +1,23 @@
+{
+  "customer": [
+    {
+      "at": "2026-10-01T08:59:39+05:30",
+      "text": "Hi, I paid Rs 2499 for Premium Annual but my account still shows the free plan. Reference 506411550185",
+      "source_ref": "cmp_FGHFO9tfxB"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-10-01T05:04:32+05:30",
+      "text": "Payment of \u20b92,499 captured",
+      "source_ref": "pay_Is5hpFTNwbEEHT"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-10-02T10:40:00+05:30",
+      "text": "Access record: unpaid",
+      "source_ref": "pay_Is5hpFTNwbEEHT"
+    }
+  ]
+}

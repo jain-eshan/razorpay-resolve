@@ -1,0 +1,74 @@
+{
+  "id": "cs_Bm9GVPCkiY",
+  "complaint_id": "cmp_Bm9GVPCkiY",
+  "channel": "ray_forward",
+  "match_status": "matched",
+  "mismatch_type": "A",
+  "owner": "merchant_code",
+  "incident_id": "INC-1",
+  "received_at": "2026-09-29T20:49:03+05:30",
+  "extraction": {
+    "topic": "access",
+    "is_payment_related": true,
+    "language": "hi_latn",
+    "claim": "debited_no_access",
+    "amount_paise": 29900,
+    "amount_count": null,
+    "stated_time_text": null,
+    "method": "upi",
+    "app_or_bank_name": null,
+    "ids": {
+      "payment_id": null,
+      "order_id": null,
+      "rrn": "[RRN_1]",
+      "email": null,
+      "phone": null,
+      "vpa": null,
+      "card4": null
+    },
+    "product_or_plan": "Premium Monthly",
+    "customer_wants": "access",
+    "sentiment": "calm",
+    "injection_suspected": false,
+    "window": null
+  },
+  "candidates": [
+    {
+      "payment_id": "pay_DRowHbOIxPKL5a",
+      "method": "exact_rrn",
+      "calibrated_score": 0.97,
+      "features": {}
+    }
+  ],
+  "lanes": {
+    "customer": [
+      {
+        "at": "2026-09-29T20:49:03+05:30",
+        "text": "bhai 299 deduct hua par Premium Monthly activate nahi hua. ref no 189437918047",
+        "source_ref": "cmp_Bm9GVPCkiY"
+      }
+    ],
+    "razorpay": [
+      {
+        "at": "2026-09-29T19:32:13+05:30",
+        "text": "Payment of \u20b9299 captured",
+        "source_ref": "pay_DRowHbOIxPKL5a"
+      },
+      {
+        "at": "2026-09-29T19:32:13+05:30",
+        "text": "28 webhook attempts, first answered 401",
+        "source_ref": "pay_DRowHbOIxPKL5a"
+      }
+    ],
+    "merchant": [
+      {
+        "at": "2026-10-02T10:40:00+05:30",
+        "text": "Access record: active",
+        "source_ref": "pay_DRowHbOIxPKL5a"
+      }
+    ]
+  },
+  "state_line": "Matched to pay_DRowHbOIxPKL5a by an exact identifier. Part of INC-1: YOUR SIDE \u00b7 Code.",
+  "reply_draft": null,
+  "injection_suspected": false
+}

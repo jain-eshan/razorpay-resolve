@@ -1,0 +1,23 @@
+{
+  "customer": [
+    {
+      "at": "2026-10-02T07:44:50+05:30",
+      "text": "paisa kat gaya 599 ka, Test Series nahi mila. UPI ref pay_QBznZMyIKTVnDk",
+      "source_ref": "cmp_fYhMdle5I1"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-09-30T17:32:09+05:30",
+      "text": "Payment of \u20b9599 captured",
+      "source_ref": "pay_QBznZMyIKTVnDk"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-10-02T10:40:00+05:30",
+      "text": "Access record: unpaid",
+      "source_ref": "pay_QBznZMyIKTVnDk"
+    }
+  ]
+}

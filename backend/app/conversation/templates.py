@@ -130,4 +130,20 @@ TEMPLATES: dict[str, Template] = {'T-A1': {'use': 'Silent victim, access fixed',
           'slots': ['merchant'],
           'en': "I've passed this to {merchant}'s team with the details. You don't need to repeat anything.",
           'hi_latn': 'Maine yeh {merchant} ki team ko details ke saath bhej diya hai. Aapko dobara kuch '
-                     'batane ki zaroorat nahi.'}}
+                     'batane ki zaroorat nahi.'},
+ 'T-ACK': {'use': 'Payment found, merchant side is being fixed',
+           'category': 'service',
+           'slots': ['amount', 'date', 'first_name', 'merchant', 'plan'],
+           'en': 'Hi {first_name}, we found your payment of Rs {amount} on {date} for {plan}. It reached '
+                 '{merchant}, but your {plan} has not been switched on yet. {merchant} is fixing it. You do '
+                 'not need to pay again. We will message you when it is done.',
+           'hi_latn': 'Hi {first_name}, {date} ka aapka Rs {amount} ka {plan} ka payment hume mil gaya. Yeh '
+                      '{merchant} tak pahunch gaya, par {plan} abhi chalu nahi hua. {merchant} ise theek kar '
+                      'raha hai. Aapko dobara pay nahi karna. Theek hote hi hum message karenge.'},
+ 'T-OK': {'use': 'Payment found, access is active',
+          'category': 'service',
+          'slots': ['amount', 'date', 'first_name', 'plan'],
+          'en': 'Hi {first_name}, we found your payment of Rs {amount} on {date} and your {plan} is active. '
+                'If you still cannot see it, log out and log in again, and tell us if it persists.',
+          'hi_latn': 'Hi {first_name}, {date} ka aapka Rs {amount} ka payment mil gaya aur {plan} chalu hai. '
+                     'Agar phir bhi na dikhe to logout karke dobara login karein, aur humein batayein.'}}

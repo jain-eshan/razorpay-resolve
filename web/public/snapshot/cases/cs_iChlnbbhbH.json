@@ -1,0 +1,74 @@
+{
+  "id": "cs_iChlnbbhbH",
+  "complaint_id": "cmp_iChlnbbhbH",
+  "channel": "whatsapp_payments",
+  "match_status": "matched",
+  "mismatch_type": "A",
+  "owner": "merchant_code",
+  "incident_id": "INC-1",
+  "received_at": "2026-09-29T22:15:33+05:30",
+  "extraction": {
+    "topic": "access",
+    "is_payment_related": true,
+    "language": "en",
+    "claim": "debited_no_access",
+    "amount_paise": 249900,
+    "amount_count": null,
+    "stated_time_text": null,
+    "method": "upi",
+    "app_or_bank_name": null,
+    "ids": {
+      "payment_id": null,
+      "order_id": null,
+      "rrn": "[RRN_1]",
+      "email": null,
+      "phone": null,
+      "vpa": null,
+      "card4": null
+    },
+    "product_or_plan": "Premium Annual",
+    "customer_wants": "access",
+    "sentiment": "calm",
+    "injection_suspected": false,
+    "window": null
+  },
+  "candidates": [
+    {
+      "payment_id": "pay_Z3c0gJ4j2peYwM",
+      "method": "exact_rrn",
+      "calibrated_score": 0.97,
+      "features": {}
+    }
+  ],
+  "lanes": {
+    "customer": [
+      {
+        "at": "2026-09-29T22:15:33+05:30",
+        "text": "Money debited (Rs 2499) but Premium Annual is not active. Ref 839966257732. Please check.",
+        "source_ref": "cmp_iChlnbbhbH"
+      }
+    ],
+    "razorpay": [
+      {
+        "at": "2026-09-29T18:02:35+05:30",
+        "text": "Payment of \u20b92,499 captured",
+        "source_ref": "pay_Z3c0gJ4j2peYwM"
+      },
+      {
+        "at": "2026-09-29T18:02:35+05:30",
+        "text": "28 webhook attempts, first answered 401",
+        "source_ref": "pay_Z3c0gJ4j2peYwM"
+      }
+    ],
+    "merchant": [
+      {
+        "at": "2026-10-02T10:40:00+05:30",
+        "text": "Access record: active",
+        "source_ref": "pay_Z3c0gJ4j2peYwM"
+      }
+    ]
+  },
+  "state_line": "Matched to pay_Z3c0gJ4j2peYwM by an exact identifier. Part of INC-1: YOUR SIDE \u00b7 Code.",
+  "reply_draft": null,
+  "injection_suspected": false
+}

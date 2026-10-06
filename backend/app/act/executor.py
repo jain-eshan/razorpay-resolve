@@ -10,10 +10,10 @@ import hashlib
 import json
 import sqlite3
 from collections import Counter
-from contextlib import contextmanager
 
 from .. import audit, clock, merchant_mock
 from ..channels import policy
+from ..db import write_tx as _write
 from ..schemas import Action, ActionItem, ActionSummary, MessagePreview, VerifyResult
 from . import autonomy, messages
 
@@ -28,20 +28,6 @@ class ActError(Exception):
     def __init__(self, status: int, message: str):
         super().__init__(message)
         self.status = status
-
-
-@contextmanager
-def _write(db: sqlite3.Connection):
-    """Take the write lock first so a second click waits, then sees the first click's result instead of racing it."""
-    if db.in_transaction:
-        db.commit()
-    db.execute("BEGIN IMMEDIATE")
-    try:
-        yield
-        db.commit()
-    except BaseException:
-        db.rollback()
-        raise
 
 
 def _key(incident_id: str, action_type: str, payment_id: str) -> str:
@@ -299,6 +285,10 @@ def verify(db: sqlite3.Connection, incident_id: str, actor: str = "system") -> V
         else:
             line += f" {len(items) - verified} still show no access. Run the plan again to retry them."
         _set_incident(db, incident_id, "closed" if closeable else "verifying" if verified == len(items) else "fixing")
+        if closeable:
+            from ..conversation import machine  # threads waiting on this incident are resolved with it
+
+            machine.resolve_threads(db, incident_id)
         last = db.execute("SELECT payload_json FROM audit_log WHERE kind = 'verify' AND ref_id = ? ORDER BY id DESC LIMIT 1", (incident_id,)).fetchone()
         if not last or json.loads(last["payload_json"])["summary"] != line:  # re-checking an unchanged result is not news
             audit.log(db, actor, "verify", incident_id, line, closeable=closeable)

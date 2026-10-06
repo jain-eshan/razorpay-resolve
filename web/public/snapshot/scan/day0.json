@@ -1,0 +1,25 @@
+{
+  "days": 30,
+  "headline": "I found 81 customers in the last 30 days who paid and have no access.",
+  "leaked_customers": 81,
+  "leaked_paise": 5631900,
+  "incidents": [
+    {
+      "id": "INC-1",
+      "title": "Webhook returned 401 after web v2.8.0: auth middleware on /api/*",
+      "zone": "after",
+      "mismatch_type": "A",
+      "owner": "merchant_code",
+      "inferred": false,
+      "status": "open",
+      "opened_by": "signal",
+      "affected": 85,
+      "complained": 17,
+      "silent": 68,
+      "fixed": 2,
+      "at_risk_paise": 5631900,
+      "onset_at": "2026-09-29T14:20:00+05:30",
+      "would_have_alerted_at": "2026-09-29T15:15:24+05:30"
+    }
+  ]
+}
