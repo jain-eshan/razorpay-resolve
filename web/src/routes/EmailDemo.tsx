@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Alert, Box, Button, Card, CardBody, Heading, Text, TextArea, TextInput } from '@razorpay/blade/components'
 import { isLive, send, type Schemas } from '../lib/api'
+import { demoNote } from '../lib/demo'
 import { useLiveThread } from '../lib/live'
 import { when } from '../lib/format'
 
@@ -29,7 +30,7 @@ export default function EmailDemo() {
         <Heading size="xlarge">Email</Heading>
         <Text color="surface.text.gray.muted">The merchant sets one forwarding rule: mail with payment words goes to the agent. Replies go back in the same thread, from the merchant's own domain once it is set up.</Text>
       </Box>
-      {!isLive && <Alert color="information" isDismissible={false} title="Live demo only" description="Start the live demo with make run-api." />}
+      {!isLive && <Alert color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Sending any text plays the recorded reply.`} />}
       {error && <Alert color="negative" isDismissible={false} title="Not delivered" description={error} />}
       <Card><CardBody>
         <Box display="flex" flexDirection="column" gap="spacing.4">
@@ -41,7 +42,7 @@ export default function EmailDemo() {
         <TextInput label="From" value={from} onChange={({ value }) => setFrom(value ?? '')} />
         <TextInput label="Subject" value={subject} onChange={({ value }) => setSubject(value ?? '')} />
         <TextArea label="Message" value={body} onChange={({ value }) => setBody(value ?? '')} numberOfLines={4} />
-        <Box><Button isDisabled={!isLive} onClick={submit}>Send email</Button></Box>
+        <Box><Button onClick={submit}>Send email</Button></Box>
       </Box>
       {mails.map((m) => (
         <Card key={m.id}><CardBody>

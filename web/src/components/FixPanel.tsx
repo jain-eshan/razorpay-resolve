@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Alert, Badge, Box, Button, Card, CardBody, Heading, ProgressBar, SegmentedControl, SegmentedControlItem, Text } from '@razorpay/blade/components'
 import { SuccessMoment } from './SuccessMoment'
+import { demoNote } from '../lib/demo'
 import { get, isLive, rupees, send, type Schemas } from '../lib/api'
 
 type Action = Schemas['Action']
@@ -59,7 +60,6 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
   const refreshHook = useCallback(() => get<Hook>('/merchant-mock/health').then(setHook), [])
 
   useEffect(() => {
-    if (!isLive) return
     refreshHook().catch(() => undefined)
     get<Schemas['Settings']>('/api/settings').then((s) => setLevel(s.autonomy ?? 'suggest')).catch(() => undefined)
     for (const a of inc.actions) {
@@ -73,14 +73,6 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
     }
     if (inc.status === 'closed') send<Schemas['VerifyResult']>('POST', `/api/incidents/${inc.id}/verify`).then(setResult).catch(() => undefined)
   }, [inc.id, inc.actions, inc.status, loadPreview, refreshHook])
-
-  if (!isLive) {
-    const exact = members.filter((m) => m.tier === 'exact')
-    return (
-      <Alert color="information" isDismissible={false} title="The fix steps run on the live demo"
-        description={`${exact.length} customers in the Exact group (${rupees(exact.reduce((a, m) => a + m.amount_paise, 0))}) would be switched on in stages: dry run, first 5, the rest, then verified against your records. This page is a static snapshot, so nothing here can change. Start the live demo with make run-api.`} />
-    )
-  }
 
   const done = (grant?.item_counts.verified ?? 0)
   const total = grant?.items.length ?? 0
@@ -118,6 +110,7 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
         </Text>
       </Box>
 
+      {!isLive && <Alert color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Click through the steps. Each one is the engine's real answer.`} />}
       {error && <Alert color="negative" isDismissible={false} title="That did not go through" description={error} />}
 
       <Step n={1} title="Test your access hook" badge={tested ? ['Reachable', 'positive'] : grant ? ['Skipped, plan already exists', 'neutral'] : undefined}>

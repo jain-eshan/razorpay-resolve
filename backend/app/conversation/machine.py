@@ -67,12 +67,12 @@ def ensure_channels(db: sqlite3.Connection) -> None:
         db.execute("INSERT INTO channels (id, merchant_id, type, status, reply_identity, autonomy_level, connected_at) VALUES (?,?,?,?,?,?,?)",
                    (cid, m["id"], kind, "connected" if on else "disconnected", ident if kind in CONVERSATIONAL else None, "suggest", now if on else None))
         if kind in CONVERSATIONAL:
-            _grant(db, cid, m["id"], ["Read payment-related messages", f"Reply as {ident}", "Look up payments by an identifier the customer shares"], m["owner_contact"] or "founder")
+            _grant(db, cid, m["id"], ["Read payment-related messages", f"Reply as {ident}", "Look up payments by an identifier the customer shares"], m["owner_contact"] or "founder", f"cn_{cid}")
     db.commit()
 
 
-def _grant(db: sqlite3.Connection, channel_id: str, merchant_id: str, scopes: list[str], by: str) -> str:
-    cid = f"cn_{uuid.uuid4().hex[:8]}"
+def _grant(db: sqlite3.Connection, channel_id: str, merchant_id: str, scopes: list[str], by: str, cid: str | None = None) -> str:
+    cid = cid or f"cn_{uuid.uuid4().hex[:8]}"
     db.execute("INSERT INTO consents (id, merchant_id, channel_id, scopes_json, granted_by, granted_at, retention_days) VALUES (?,?,?,?,?,?,?)",
                (cid, merchant_id, channel_id, json.dumps(scopes), by, clock.now().isoformat(), 30))
     return cid

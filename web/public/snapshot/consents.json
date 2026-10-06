@@ -1,6 +1,6 @@
 [
   {
-    "id": "cn_2464d2f0",
+    "id": "cn_ch_help",
     "channel_id": "ch_help",
     "scopes": [
       "Read payment-related messages",
@@ -13,7 +13,7 @@
     "retention_days": 30
   },
   {
-    "id": "cn_483b8616",
+    "id": "cn_ch_wa",
     "channel_id": "ch_wa",
     "scopes": [
       "Read payment-related messages",
@@ -26,7 +26,7 @@
     "retention_days": 30
   },
   {
-    "id": "cn_c25d5ad1",
+    "id": "cn_ch_email",
     "channel_id": "ch_email",
     "scopes": [
       "Read payment-related messages",
