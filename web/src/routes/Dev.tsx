@@ -1,5 +1,7 @@
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { Alert, Box, Button, Card, CardBody, Heading, Text } from '@razorpay/blade/components'
+import { Crumbs } from '../components/Crumbs'
+import { Panel } from '../components/Panel'
 import { useGet, type Schemas } from '../lib/api'
 import { OWNER, when } from '../lib/format'
 
@@ -25,7 +27,7 @@ export default function Dev() {
 
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7" testID="dev-handoff">
-      <Link to={`/incidents/${id}`} style={{ textDecoration: 'none' }}><Text size="small" color="interactive.text.primary.normal">Back to the incident</Text></Link>
+      <Crumbs items={[{ label: 'Incidents', to: '/incidents' }, { label: id, to: `/incidents/${id}` }, { label: 'For your developer', to: `/incidents/${id}/dev` }]} />
       <Box display="flex" flexDirection="column" gap="spacing.2">
         <Heading size="xlarge">For your developer</Heading>
         <Text color="surface.text.gray.muted">Reference {pack.ref}. Read-only. Opening this page changes nothing.</Text>
@@ -33,8 +35,7 @@ export default function Dev() {
 
       <Alert color="notice" isDismissible={false} title={OWNER[inc.owner]} description={inc.title} />
 
-      <Box display="flex" flexDirection="column" gap="spacing.3">
-        <Heading size="medium">What happened</Heading>
+      <Panel title="What happened">
         {pack.endpoint && <Text>Endpoint: {pack.endpoint}</Text>}
         {pack.first_failure_at && <Text>First failure: {when(pack.first_failure_at)}{pack.last_failure_at ? `. Last failure: ${when(pack.last_failure_at)}` : ''}</Text>}
         {pack.linked_change && <Text>Change at that time: {pack.linked_change}</Text>}
@@ -45,16 +46,14 @@ export default function Dev() {
           </Box>
         )}
         <Text>{pack.affected_events} webhook events and {pack.affected_payment_ids.length} paid customers are affected.</Text>
-      </Box>
+      </Panel>
 
-      <Box display="flex" flexDirection="column" gap="spacing.3">
-        <Heading size="medium">What to change</Heading>
+      <Panel title="What to change">
         <Text>{pack.suggested_fix}</Text>
         <Text size="small" color="surface.text.gray.muted">This is a suggestion. Blindspot never changes your code and never turns off signature checking.</Text>
-      </Box>
+      </Panel>
 
-      <Box display="flex" flexDirection="column" gap="spacing.3">
-        <Heading size="medium">Affected payments</Heading>
+      <Panel title="Affected payments">
         <Box display="flex" gap="spacing.4" flexWrap="wrap">
           <Button variant="secondary" size="small" onClick={() => download(`${pack.ref}.json`, 'application/json', JSON.stringify(pack, null, 2))}>Download JSON</Button>
           <Button variant="secondary" size="small" onClick={() => download(`${pack.ref}.csv`, 'text/csv', csv)}>Download CSV</Button>
@@ -67,7 +66,7 @@ export default function Dev() {
             </Box>
           </CardBody>
         </Card>
-      </Box>
+      </Panel>
     </Box>
   )
 }

@@ -122,3 +122,17 @@ Limits stated in the UI: customers choose from suggested messages; writing your 
 Also fixed: the committed snapshot made seeded consent ids random on every rebuild (noisy diffs); they are stable now.
 
 Metrics: 6 no-server Playwright tests (full Hero A with undo, stage order, two conversation scenarios, help button, email, messaging gate), 7 recording tests. Totals now: 253 backend and synth tests, 25 Playwright tests, 39 eval gates.
+
+## 6 Oct 2026, dashboard-aligned frontend (integrator)
+
+Goal: make the web app follow how the Razorpay dashboard itself is built, using the logged-in test dashboard as the reference.
+
+How: Eshan signed in to the Claude browser pane (Aside is not installed, and the gstack headless browser starts with no logins). Read-only: home, Transactions, one payment detail, Webhooks. I measured computed styles and kept screenshots out of the repo because they show account details.
+
+Finding: the dashboard's modern pages are Blade, so our tokens already matched (`web/DESIGN.md` sections 5 to 7). The gap was composition: a flat light page with text links, against a black top bar, a side nav, header-band cards, a summary card, a Details plus Timeline layout and tables. Measured values are in `web/DESIGN.md` section 13.
+
+Built: Blade `TopNav` and `SideNav` shell with a synthetic-data banner and all existing routes; `Panel`, `Crumbs`, `Stat` (with icons); the incident page as summary card, stat cards, main column and a sticky `StepGroup` timeline; the fix steps, settings and developer page as `Panel` cards; Blade `Table` for affected customers, incidents, audit log, scan and eval checks. Phone width: the side nav becomes a drawer and info rows stack. No behaviour, API or copy changed, and every Playwright test passes unchanged.
+
+Process note: this work was first built on a branch cut from `main`, which only had R1. It included its own R2 (`claude/docs-review-build-d91b5a`, kept on GitHub for comparison) that duplicated PR #2. After finding that, only the redesign was ported onto `blindspot`. The two R2 versions found the same cohort bug independently (customers we fixed must stay in the incident).
+
+Bugs found by looking: Blade `Card` rejects non-`CardBody` children (blank page); `InfoItemValue` rendered plain strings in the browser's default serif; the side nav overlays content and needed offsets; `SideNavLink as` receives `to`, so a plain anchor had no `href` and the nav links were not links; Blade `TableRow onClick` did not navigate.

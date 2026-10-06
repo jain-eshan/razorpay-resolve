@@ -35,7 +35,7 @@ Plan, sizing and kickoff prompts for every stream: `docs/BUILD_PLAN.md`.
 - `backend/app`: webhook-health monitor, access reconciler, silent-victim search with tiers and exclusion reasons, replay eligibility, attribution (10 rows), rule-based verdict, evidence pack, pipeline, read layer.
 - API serves real output with `BS_SOURCE=pipeline`, placeholder data otherwise.
 - `eval/run_eval.py`: 11 gates against hidden ground truth. All pass.
-- Web: RAY phone, incident inbox, incident page, day-0 scan, "How we know". Blade and RazorSense.
+- Web: RAY phone, incident inbox, incident page, day-0 scan, "How we know". Blade and RazorSense. The whole app now follows the dashboard's own composition (Blade `TopNav` and `SideNav`, header-band `Panel` cards, a sticky timeline, `Table`); the measured values and Blade gotchas are in `web/DESIGN.md` section 13.
 - Tests: 24 backend, 5 Playwright (uses installed Chrome), lint, secret scan.
 
 ### What R2 delivers (all verified)
@@ -182,3 +182,4 @@ Eshan chose to continue in a new chat. Suggested order:
 - `make e2e` now starts the API on port 8000 (fresh world) and a live web on 5174, so both ports must be free.
 - Refunds, recovery links and event re-sending are in the autonomy matrix but have no executor yet.
 - Fixture incident INC-4 (cannot-reach-the-page) exists only as placeholder data and is not served in pipeline mode.
+- A parallel R2 built from `main` before the R2 to R4 merges is kept for comparison on branch `claude/docs-review-build-d91b5a` (not merged, do not merge: it duplicates PR #2).

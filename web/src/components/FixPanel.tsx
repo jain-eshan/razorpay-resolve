@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Alert, Badge, Box, Button, Card, CardBody, Heading, ProgressBar, SegmentedControl, SegmentedControlItem, Text } from '@razorpay/blade/components'
+import { Panel } from './Panel'
 import { SuccessMoment } from './SuccessMoment'
 import { demoNote } from '../lib/demo'
 import { get, isLive, rupees, send, type Schemas } from '../lib/api'
@@ -18,17 +19,9 @@ const BUTTON: Record<string, string> = { dry_run: 'Looks right, continue', first
 
 function Step({ n, title, badge, children }: { n: number; title: string; badge?: [string, 'positive' | 'notice' | 'neutral' | 'negative']; children: React.ReactNode }) {
   return (
-    <Card>
-      <CardBody>
-        <Box display="flex" flexDirection="column" gap="spacing.4">
-          <Box display="flex" alignItems="center" gap="spacing.3" flexWrap="wrap">
-            <Heading size="small">{n} · {title}</Heading>
-            {badge && <Badge color={badge[1]}>{badge[0]}</Badge>}
-          </Box>
-          {children}
-        </Box>
-      </CardBody>
-    </Card>
+    <Panel title={`${n} · ${title}`} trailing={badge && <Badge color={badge[1]} size="medium">{badge[0]}</Badge>}>
+      {children}
+    </Panel>
   )
 }
 

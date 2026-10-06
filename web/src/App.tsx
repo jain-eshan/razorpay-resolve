@@ -1,5 +1,10 @@
-import { NavLink, Route, Routes } from 'react-router-dom'
-import { Box, RazorpayIcon, Text } from '@razorpay/blade/components'
+import { useState } from 'react'
+import { Link, Route, Routes, useLocation } from 'react-router-dom'
+import {
+  ActivityIcon, Alert, Avatar, BarChartIcon, Box, FileTextIcon, IconButton, MenuIcon, MessageCircleIcon, RazorpayIcon, SearchIcon, SettingsIcon, SIDE_NAV_EXPANDED_L1_WIDTH_BASE,
+  SIDE_NAV_EXPANDED_L1_WIDTH_XL, SideNav, SideNavBody, SideNavFooter, SideNavLevel, SideNavLink, SideNavSection, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent,
+  UsersIcon, type IconComponent,
+} from '@razorpay/blade/components'
 import Audit from './routes/Audit'
 import Case from './routes/Case'
 import ChatDemo from './routes/ChatDemo'
@@ -16,43 +21,73 @@ import Scan from './routes/Scan'
 import Settings from './routes/Settings'
 import { ThreadPage, Threads } from './routes/Threads'
 
-const NAV = [['/', 'RAY'], ['/incidents', 'Incidents'], ['/threads', 'Conversations'], ['/channels', 'Channels'], ['/scan', 'Day-0 scan'], ['/how', 'How we know'], ['/audit', 'Audit'], ['/settings', 'Settings']] as const
+type Item = { title: string; to: string; icon: IconComponent }
+const WORK: Item[] = [
+  { title: 'RAY', to: '/', icon: MessageCircleIcon },
+  { title: 'Incidents', to: '/incidents', icon: ActivityIcon },
+  { title: 'Conversations', to: '/threads', icon: UsersIcon },
+  { title: 'Channels', to: '/channels', icon: MessageCircleIcon },
+  { title: 'Day-0 scan', to: '/scan', icon: SearchIcon },
+]
+const PROOF: Item[] = [
+  { title: 'Audit log', to: '/audit', icon: FileTextIcon },
+  { title: 'How we know', to: '/how', icon: BarChartIcon },
+]
 
+// The shell follows the Razorpay dashboard: a black top bar, a side nav with icons, and the page on a light panel (web/DESIGN.md section 13).
 export default function App() {
+  const { pathname } = useLocation()
+  const [open, setOpen] = useState(false)
+  const on = (to: string) => (to === '/' ? pathname === '/' : pathname.startsWith(to))
+  const link = (i: Item) => (
+    <SideNavLink key={i.to} title={i.title} icon={i.icon} href={i.to} isActive={on(i.to)} as={Link} onClick={() => setOpen(false)} />
+  )
   return (
-    <Box backgroundColor="surface.background.gray.moderate" minHeight="100vh">
-      <Box display="flex" alignItems="center" gap="spacing.5" flexWrap="wrap" paddingX={{ base: 'spacing.5', m: 'spacing.9' }} paddingY="spacing.5">
-        <Box display="flex" alignItems="center" gap="spacing.3">
-          <RazorpayIcon size="large" color="interactive.icon.primary.normal" />
-          <Text weight="semibold">Blindspot</Text>
+    <Box display="flex" flexDirection="column" height="100vh">
+      <TopNav>
+        <TopNavBrand>
+          <Box display="flex" alignItems="center" gap="spacing.4">
+            <Box display={{ base: 'block', m: 'none' }}><IconButton icon={MenuIcon} accessibilityLabel="Open menu" onClick={() => setOpen(true)} /></Box>
+            <RazorpayIcon size="large" />
+            <Text weight="semibold">Blindspot</Text>
+          </Box>
+        </TopNavBrand>
+        <TopNavContent><Box /></TopNavContent>
+        <TopNavActions><Avatar name="Kaksha" size="small" /></TopNavActions>
+      </TopNav>
+      <Box display="flex" flex="1" minHeight="0px">
+        <SideNav isOpen={open} onDismiss={() => setOpen(false)} position="fixed" top="56px" bottom="0px">
+          <SideNavBody>
+            <SideNavLevel>
+              <SideNavSection>{WORK.map(link)}</SideNavSection>
+              <SideNavSection title="PROOF AND CONTROL">{PROOF.map(link)}</SideNavSection>
+            </SideNavLevel>
+          </SideNavBody>
+          <SideNavFooter>{link({ title: 'Settings', to: '/settings', icon: SettingsIcon })}</SideNavFooter>
+        </SideNav>
+        <Box flex="1" overflow="auto" backgroundColor="surface.background.gray.moderate" marginLeft={{ base: '0px', m: `${SIDE_NAV_EXPANDED_L1_WIDTH_BASE}px`, xl: `${SIDE_NAV_EXPANDED_L1_WIDTH_XL}px` }}>
+          <Alert color="notice" isFullWidth isDismissible={false} title="Synthetic data" description="The merchant (Kaksha), its customers and every payment here are fictional." />
+          <Box maxWidth="1120px" marginX="auto" padding={{ base: 'spacing.5', m: 'spacing.7' }} paddingBottom="spacing.11">
+            <Routes>
+              <Route path="/" element={<Ray />} />
+              <Route path="/incidents" element={<Incidents />} />
+              <Route path="/incidents/:id" element={<Incident />} />
+              <Route path="/incidents/:id/dev" element={<Dev />} />
+              <Route path="/scan" element={<Scan />} />
+              <Route path="/threads" element={<Threads />} />
+              <Route path="/threads/:id" element={<ThreadPage />} />
+              <Route path="/cases/:id" element={<Case />} />
+              <Route path="/channels" element={<Channels />} />
+              <Route path="/chat-demo" element={<ChatDemo />} />
+              <Route path="/help-demo/:surface" element={<HelpDemo />} />
+              <Route path="/email-demo" element={<EmailDemo />} />
+              <Route path="/audit" element={<Audit />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/how" element={<How />} />
+              <Route path="/reference" element={<Reference />} />
+            </Routes>
+          </Box>
         </Box>
-        <Box display="flex" gap="spacing.5" flexWrap="wrap" as="nav">
-          {NAV.map(([to, label]) => (
-            <NavLink key={to} to={to} end={to === '/'} style={({ isActive }) => ({ textDecoration: 'none', fontWeight: isActive ? 600 : 400 })}>
-              <Text color="interactive.text.primary.normal">{label}</Text>
-            </NavLink>
-          ))}
-        </Box>
-      </Box>
-      <Box maxWidth="1080px" marginX="auto" paddingX={{ base: 'spacing.5', m: 'spacing.9' }} paddingBottom="spacing.11">
-        <Routes>
-          <Route path="/" element={<Ray />} />
-          <Route path="/incidents" element={<Incidents />} />
-          <Route path="/incidents/:id" element={<Incident />} />
-          <Route path="/incidents/:id/dev" element={<Dev />} />
-          <Route path="/scan" element={<Scan />} />
-          <Route path="/threads" element={<Threads />} />
-          <Route path="/threads/:id" element={<ThreadPage />} />
-          <Route path="/cases/:id" element={<Case />} />
-          <Route path="/channels" element={<Channels />} />
-          <Route path="/chat-demo" element={<ChatDemo />} />
-          <Route path="/help-demo/:surface" element={<HelpDemo />} />
-          <Route path="/email-demo" element={<EmailDemo />} />
-          <Route path="/audit" element={<Audit />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/how" element={<How />} />
-          <Route path="/reference" element={<Reference />} />
-        </Routes>
       </Box>
     </Box>
   )
