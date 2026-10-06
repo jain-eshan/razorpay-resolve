@@ -1,0 +1,4920 @@
+{
+  "components": {
+    "schemas": {
+      "Ack": {
+        "properties": {
+          "detail": {
+            "default": "stub",
+            "title": "Detail",
+            "type": "string"
+          },
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          }
+        },
+        "title": "Ack",
+        "type": "object"
+      },
+      "Action": {
+        "properties": {
+          "action_type": {
+            "enum": [
+              "grant",
+              "resend_events",
+              "refund",
+              "message",
+              "recovery_link",
+              "evidence_pack",
+              "escalation_pack",
+              "alert_rule"
+            ],
+            "title": "Action Type",
+            "type": "string"
+          },
+          "approved_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved By"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "incident_id": {
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "item_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "default": {},
+            "title": "Item Counts",
+            "type": "object"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ActionItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "params": {
+            "additionalProperties": true,
+            "title": "Params",
+            "type": "object"
+          },
+          "stage": {
+            "enum": [
+              "dry_run",
+              "first_5",
+              "rest"
+            ],
+            "title": "Stage",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "drafted",
+              "approved",
+              "executing",
+              "done",
+              "failed",
+              "reverted"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "incident_id",
+          "action_type",
+          "status",
+          "stage",
+          "params",
+          "items"
+        ],
+        "title": "Action",
+        "type": "object"
+      },
+      "ActionCreate": {
+        "properties": {
+          "action_type": {
+            "enum": [
+              "grant",
+              "resend_events",
+              "refund",
+              "message",
+              "recovery_link",
+              "evidence_pack",
+              "escalation_pack",
+              "alert_rule"
+            ],
+            "title": "Action Type",
+            "type": "string"
+          },
+          "params": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Params",
+            "type": "object"
+          }
+        },
+        "required": [
+          "action_type"
+        ],
+        "title": "ActionCreate",
+        "type": "object"
+      },
+      "ActionItem": {
+        "properties": {
+          "idempotency_key": {
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "payment_id": {
+            "title": "Payment Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "done",
+              "failed",
+              "verified",
+              "verify_failed",
+              "reverted"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "payment_id",
+          "status",
+          "idempotency_key"
+        ],
+        "title": "ActionItem",
+        "type": "object"
+      },
+      "ActionSummary": {
+        "properties": {
+          "action_type": {
+            "enum": [
+              "grant",
+              "resend_events",
+              "refund",
+              "message",
+              "recovery_link",
+              "evidence_pack",
+              "escalation_pack",
+              "alert_rule"
+            ],
+            "title": "Action Type",
+            "type": "string"
+          },
+          "approved_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved By"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "incident_id": {
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "item_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "default": {},
+            "title": "Item Counts",
+            "type": "object"
+          },
+          "stage": {
+            "enum": [
+              "dry_run",
+              "first_5",
+              "rest"
+            ],
+            "title": "Stage",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "drafted",
+              "approved",
+              "executing",
+              "done",
+              "failed",
+              "reverted"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "incident_id",
+          "action_type",
+          "status",
+          "stage"
+        ],
+        "title": "ActionSummary",
+        "type": "object"
+      },
+      "AgentStep": {
+        "properties": {
+          "input": {
+            "additionalProperties": true,
+            "title": "Input",
+            "type": "object"
+          },
+          "output_summary": {
+            "title": "Output Summary",
+            "type": "string"
+          },
+          "tool": {
+            "title": "Tool",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tool",
+          "input",
+          "output_summary"
+        ],
+        "title": "AgentStep",
+        "type": "object"
+      },
+      "AgentTrace": {
+        "properties": {
+          "budget_total": {
+            "title": "Budget Total",
+            "type": "integer"
+          },
+          "budget_used": {
+            "title": "Budget Used",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "incident_id": {
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "model_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Id"
+          },
+          "rule_based": {
+            "title": "Rule Based",
+            "type": "boolean"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/AgentStep"
+            },
+            "title": "Steps",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "incident_id",
+          "steps",
+          "budget_used",
+          "budget_total",
+          "rule_based"
+        ],
+        "title": "AgentTrace",
+        "type": "object"
+      },
+      "ApproveRequest": {
+        "properties": {
+          "approver": {
+            "title": "Approver",
+            "type": "string"
+          },
+          "stage": {
+            "enum": [
+              "dry_run",
+              "first_5",
+              "rest"
+            ],
+            "title": "Stage",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stage",
+          "approver"
+        ],
+        "title": "ApproveRequest",
+        "type": "object"
+      },
+      "ArmRow": {
+        "properties": {
+          "agent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent"
+          },
+          "metric": {
+            "title": "Metric",
+            "type": "string"
+          },
+          "no_signal": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "No Signal"
+          },
+          "rules": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rules"
+          }
+        },
+        "required": [
+          "metric",
+          "rules",
+          "agent",
+          "no_signal"
+        ],
+        "title": "ArmRow",
+        "type": "object"
+      },
+      "AuditEntry": {
+        "properties": {
+          "actor": {
+            "title": "Actor",
+            "type": "string"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Usd"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "llm_call",
+              "tool_call",
+              "approval",
+              "action",
+              "verify",
+              "policy"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency Ms"
+          },
+          "model_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Id"
+          },
+          "ref_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ref Id"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "at",
+          "actor",
+          "kind",
+          "summary"
+        ],
+        "title": "AuditEntry",
+        "type": "object"
+      },
+      "CaseDetail": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/MatchCandidate"
+            },
+            "title": "Candidates",
+            "type": "array"
+          },
+          "channel": {
+            "enum": [
+              "help_button",
+              "whatsapp_payments",
+              "email",
+              "ig_dm",
+              "fb_dm",
+              "public_mention",
+              "ray_forward",
+              "paste",
+              "csv"
+            ],
+            "title": "Channel",
+            "type": "string"
+          },
+          "complaint_id": {
+            "title": "Complaint Id",
+            "type": "string"
+          },
+          "extraction": {
+            "additionalProperties": true,
+            "title": "Extraction",
+            "type": "object"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "incident_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Incident Id"
+          },
+          "injection_suspected": {
+            "default": false,
+            "title": "Injection Suspected",
+            "type": "boolean"
+          },
+          "lanes": {
+            "$ref": "#/components/schemas/ThreeLane"
+          },
+          "match_status": {
+            "enum": [
+              "matched",
+              "needs_detail",
+              "no_payment_found",
+              "not_payment"
+            ],
+            "title": "Match Status",
+            "type": "string"
+          },
+          "mismatch_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "A",
+                  "B",
+                  "E",
+                  "F",
+                  "G",
+                  "Z1"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mismatch Type"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "enum": [
+                  "merchant_code",
+                  "merchant_config",
+                  "razorpay",
+                  "bank",
+                  "customer",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner"
+          },
+          "received_at": {
+            "format": "date-time",
+            "title": "Received At",
+            "type": "string"
+          },
+          "reply_draft": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reply Draft"
+          },
+          "state_line": {
+            "title": "State Line",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "complaint_id",
+          "channel",
+          "match_status",
+          "received_at",
+          "extraction",
+          "candidates",
+          "lanes",
+          "state_line"
+        ],
+        "title": "CaseDetail",
+        "type": "object"
+      },
+      "CaseSummary": {
+        "properties": {
+          "channel": {
+            "enum": [
+              "help_button",
+              "whatsapp_payments",
+              "email",
+              "ig_dm",
+              "fb_dm",
+              "public_mention",
+              "ray_forward",
+              "paste",
+              "csv"
+            ],
+            "title": "Channel",
+            "type": "string"
+          },
+          "complaint_id": {
+            "title": "Complaint Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "incident_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Incident Id"
+          },
+          "match_status": {
+            "enum": [
+              "matched",
+              "needs_detail",
+              "no_payment_found",
+              "not_payment"
+            ],
+            "title": "Match Status",
+            "type": "string"
+          },
+          "mismatch_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "A",
+                  "B",
+                  "E",
+                  "F",
+                  "G",
+                  "Z1"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mismatch Type"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "enum": [
+                  "merchant_code",
+                  "merchant_config",
+                  "razorpay",
+                  "bank",
+                  "customer",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner"
+          },
+          "received_at": {
+            "format": "date-time",
+            "title": "Received At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "complaint_id",
+          "channel",
+          "match_status",
+          "received_at"
+        ],
+        "title": "CaseSummary",
+        "type": "object"
+      },
+      "Channel": {
+        "properties": {
+          "autonomy_level": {
+            "enum": [
+              "suggest",
+              "assist",
+              "autopilot_reversible"
+            ],
+            "title": "Autonomy Level",
+            "type": "string"
+          },
+          "connected_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connected At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "mocked": {
+            "default": true,
+            "title": "Mocked",
+            "type": "boolean"
+          },
+          "reply_identity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reply Identity"
+          },
+          "status": {
+            "enum": [
+              "disconnected",
+              "connected",
+              "paused"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "help_button",
+              "whatsapp_payments",
+              "email",
+              "ig_dm",
+              "fb_dm",
+              "public_mention",
+              "ray_forward",
+              "paste",
+              "csv"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "status",
+          "autonomy_level"
+        ],
+        "title": "Channel",
+        "type": "object"
+      },
+      "ChannelUpdate": {
+        "properties": {
+          "autonomy_level": {
+            "anyOf": [
+              {
+                "enum": [
+                  "suggest",
+                  "assist",
+                  "autopilot_reversible"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Autonomy Level"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "disconnected",
+                  "connected",
+                  "paused"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "ChannelUpdate",
+        "type": "object"
+      },
+      "ClockAdvance": {
+        "properties": {
+          "hours": {
+            "title": "Hours",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "hours"
+        ],
+        "title": "ClockAdvance",
+        "type": "object"
+      },
+      "ClockState": {
+        "properties": {
+          "now": {
+            "format": "date-time",
+            "title": "Now",
+            "type": "string"
+          }
+        },
+        "required": [
+          "now"
+        ],
+        "title": "ClockState",
+        "type": "object"
+      },
+      "Cluster": {
+        "properties": {
+          "baseline_rate": {
+            "title": "Baseline Rate",
+            "type": "number"
+          },
+          "claim": {
+            "title": "Claim",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lift": {
+            "title": "Lift",
+            "type": "number"
+          },
+          "unmatched_count": {
+            "title": "Unmatched Count",
+            "type": "integer"
+          },
+          "unmatched_share": {
+            "title": "Unmatched Share",
+            "type": "number"
+          },
+          "window_end": {
+            "format": "date-time",
+            "title": "Window End",
+            "type": "string"
+          },
+          "window_start": {
+            "format": "date-time",
+            "title": "Window Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "window_start",
+          "window_end",
+          "claim",
+          "count",
+          "unmatched_count",
+          "unmatched_share",
+          "baseline_rate",
+          "lift"
+        ],
+        "title": "Cluster",
+        "type": "object"
+      },
+      "ConnectorStatus": {
+        "properties": {
+          "mode": {
+            "enum": [
+              "csv",
+              "endpoint",
+              "none"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "mode",
+          "status"
+        ],
+        "title": "ConnectorStatus",
+        "type": "object"
+      },
+      "Consent": {
+        "properties": {
+          "channel_id": {
+            "title": "Channel Id",
+            "type": "string"
+          },
+          "granted_at": {
+            "format": "date-time",
+            "title": "Granted At",
+            "type": "string"
+          },
+          "granted_by": {
+            "title": "Granted By",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "retention_days": {
+            "title": "Retention Days",
+            "type": "integer"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scopes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "channel_id",
+          "scopes",
+          "granted_by",
+          "granted_at",
+          "retention_days"
+        ],
+        "title": "Consent",
+        "type": "object"
+      },
+      "ConsentRequest": {
+        "properties": {
+          "channel_id": {
+            "title": "Channel Id",
+            "type": "string"
+          },
+          "granted_by": {
+            "title": "Granted By",
+            "type": "string"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scopes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "channel_id",
+          "scopes",
+          "granted_by"
+        ],
+        "title": "ConsentRequest",
+        "type": "object"
+      },
+      "Escalation": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "incident_id": {
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "pack": {
+            "additionalProperties": true,
+            "title": "Pack",
+            "type": "object"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "drafted",
+              "sent",
+              "acknowledged",
+              "resolved"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "target": {
+            "enum": [
+              "founder",
+              "developer",
+              "razorpay"
+            ],
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "incident_id",
+          "target",
+          "ref",
+          "status",
+          "pack",
+          "created_at"
+        ],
+        "title": "Escalation",
+        "type": "object"
+      },
+      "EscalationRequest": {
+        "properties": {
+          "incident_id": {
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "target": {
+            "enum": [
+              "founder",
+              "developer",
+              "razorpay"
+            ],
+            "title": "Target",
+            "type": "string"
+          },
+          "thread_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thread Id"
+          }
+        },
+        "required": [
+          "incident_id",
+          "target"
+        ],
+        "title": "EscalationRequest",
+        "type": "object"
+      },
+      "EvalMetric": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pass",
+              "fail",
+              "report",
+              "n/a"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "name",
+          "value",
+          "target",
+          "status"
+        ],
+        "title": "EvalMetric",
+        "type": "object"
+      },
+      "EvalReport": {
+        "properties": {
+          "arms": {
+            "items": {
+              "$ref": "#/components/schemas/ArmRow"
+            },
+            "title": "Arms",
+            "type": "array"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/EvalMetric"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "seed": {
+            "title": "Seed",
+            "type": "integer"
+          },
+          "synthetic": {
+            "default": true,
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "seed",
+          "generated_at",
+          "metrics",
+          "arms"
+        ],
+        "title": "EvalReport",
+        "type": "object"
+      },
+      "EvidenceItem": {
+        "properties": {
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "weight": {
+            "title": "Weight",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "weight",
+          "ref"
+        ],
+        "title": "EvidenceItem",
+        "type": "object"
+      },
+      "EvidencePack": {
+        "properties": {
+          "affected_events": {
+            "title": "Affected Events",
+            "type": "integer"
+          },
+          "affected_payment_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Affected Payment Ids",
+            "type": "array"
+          },
+          "endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint"
+          },
+          "first_failure_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Failure At"
+          },
+          "for_razorpay": {
+            "default": false,
+            "title": "For Razorpay",
+            "type": "boolean"
+          },
+          "incident_id": {
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "last_failure_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Failure At"
+          },
+          "linked_change": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked Change"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "response_excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response Excerpt"
+          },
+          "suggested_fix": {
+            "title": "Suggested Fix",
+            "type": "string"
+          }
+        },
+        "required": [
+          "incident_id",
+          "ref",
+          "affected_events",
+          "affected_payment_ids",
+          "suggested_fix"
+        ],
+        "title": "EvidencePack",
+        "type": "object"
+      },
+      "FeedbackRequest": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "verdict_wrong",
+              "false_alarm",
+              "missed_incident",
+              "reply_edited",
+              "reply_sent",
+              "customer_replied",
+              "customer_silent",
+              "link_paid",
+              "match_confirmed",
+              "match_rejected"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Payload",
+            "type": "object"
+          },
+          "subject_id": {
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "subject_type": {
+            "title": "Subject Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject_type",
+          "subject_id",
+          "kind"
+        ],
+        "title": "FeedbackRequest",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HandoffRequest": {
+        "properties": {
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "HandoffRequest",
+        "type": "object"
+      },
+      "Handover": {
+        "properties": {
+          "from_app": {
+            "title": "From App",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "passed_at": {
+            "format": "date-time",
+            "title": "Passed At",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "released_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Released At"
+          },
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "to_app": {
+            "title": "To App",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "thread_id",
+          "from_app",
+          "to_app",
+          "reason",
+          "passed_at"
+        ],
+        "title": "Handover",
+        "type": "object"
+      },
+      "HandoverRequest": {
+        "properties": {
+          "action": {
+            "enum": [
+              "pass",
+              "release"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "thread_id": {
+            "title": "Thread Id",
+            "type": "string"
+          },
+          "to_app": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To App"
+          }
+        },
+        "required": [
+          "thread_id",
+          "action"
+        ],
+        "title": "HandoverRequest",
+        "type": "object"
+      },
+      "InboundRequest": {
+        "properties": {
+          "context": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Context",
+            "type": "object"
+          },
+          "customer_ref": {
+            "title": "Customer Ref",
+            "type": "string"
+          },
+          "is_public": {
+            "default": false,
+            "title": "Is Public",
+            "type": "boolean"
+          },
+          "received_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Received At"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          }
+        },
+        "required": [
+          "customer_ref"
+        ],
+        "title": "InboundRequest",
+        "type": "object"
+      },
+      "IncidentDetail": {
+        "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/ActionSummary"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "affected": {
+            "title": "Affected",
+            "type": "integer"
+          },
+          "at_risk_paise": {
+            "title": "At Risk Paise",
+            "type": "integer"
+          },
+          "complained": {
+            "title": "Complained",
+            "type": "integer"
+          },
+          "fixed": {
+            "title": "Fixed",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "inferred": {
+            "title": "Inferred",
+            "type": "boolean"
+          },
+          "lift": {
+            "items": {
+              "$ref": "#/components/schemas/LiftRow"
+            },
+            "title": "Lift",
+            "type": "array"
+          },
+          "mismatch_type": {
+            "enum": [
+              "A",
+              "B",
+              "E",
+              "F",
+              "G",
+              "Z1"
+            ],
+            "title": "Mismatch Type",
+            "type": "string"
+          },
+          "onset_at": {
+            "format": "date-time",
+            "title": "Onset At",
+            "type": "string"
+          },
+          "opened_by": {
+            "enum": [
+              "signal",
+              "complaint",
+              "backfill"
+            ],
+            "title": "Opened By",
+            "type": "string"
+          },
+          "owner": {
+            "enum": [
+              "merchant_code",
+              "merchant_config",
+              "razorpay",
+              "bank",
+              "customer",
+              "unknown"
+            ],
+            "title": "Owner",
+            "type": "string"
+          },
+          "replay": {
+            "$ref": "#/components/schemas/ReplaySummary"
+          },
+          "silent": {
+            "title": "Silent",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "fixing",
+              "verifying",
+              "closed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tier_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "propertyNames": {
+              "enum": [
+                "exact",
+                "likely",
+                "check",
+                "excluded"
+              ]
+            },
+            "title": "Tier Counts",
+            "type": "object"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineBucket"
+            },
+            "title": "Timeline",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "verdict": {
+            "$ref": "#/components/schemas/Verdict"
+          },
+          "would_have_alerted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Would Have Alerted At"
+          },
+          "zone": {
+            "enum": [
+              "before",
+              "during",
+              "after"
+            ],
+            "title": "Zone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "zone",
+          "mismatch_type",
+          "owner",
+          "inferred",
+          "status",
+          "opened_by",
+          "affected",
+          "complained",
+          "silent",
+          "fixed",
+          "at_risk_paise",
+          "onset_at",
+          "verdict",
+          "timeline",
+          "lift",
+          "tier_counts",
+          "replay",
+          "actions"
+        ],
+        "title": "IncidentDetail",
+        "type": "object"
+      },
+      "IncidentSummary": {
+        "properties": {
+          "affected": {
+            "title": "Affected",
+            "type": "integer"
+          },
+          "at_risk_paise": {
+            "title": "At Risk Paise",
+            "type": "integer"
+          },
+          "complained": {
+            "title": "Complained",
+            "type": "integer"
+          },
+          "fixed": {
+            "title": "Fixed",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "inferred": {
+            "title": "Inferred",
+            "type": "boolean"
+          },
+          "mismatch_type": {
+            "enum": [
+              "A",
+              "B",
+              "E",
+              "F",
+              "G",
+              "Z1"
+            ],
+            "title": "Mismatch Type",
+            "type": "string"
+          },
+          "onset_at": {
+            "format": "date-time",
+            "title": "Onset At",
+            "type": "string"
+          },
+          "opened_by": {
+            "enum": [
+              "signal",
+              "complaint",
+              "backfill"
+            ],
+            "title": "Opened By",
+            "type": "string"
+          },
+          "owner": {
+            "enum": [
+              "merchant_code",
+              "merchant_config",
+              "razorpay",
+              "bank",
+              "customer",
+              "unknown"
+            ],
+            "title": "Owner",
+            "type": "string"
+          },
+          "silent": {
+            "title": "Silent",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "fixing",
+              "verifying",
+              "closed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "would_have_alerted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Would Have Alerted At"
+          },
+          "zone": {
+            "enum": [
+              "before",
+              "during",
+              "after"
+            ],
+            "title": "Zone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "zone",
+          "mismatch_type",
+          "owner",
+          "inferred",
+          "status",
+          "opened_by",
+          "affected",
+          "complained",
+          "silent",
+          "fixed",
+          "at_risk_paise",
+          "onset_at"
+        ],
+        "title": "IncidentSummary",
+        "type": "object"
+      },
+      "LaneEvent": {
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "source_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ref"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "text"
+        ],
+        "title": "LaneEvent",
+        "type": "object"
+      },
+      "LearningChange": {
+        "properties": {
+          "after": {
+            "title": "After"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "before": {
+            "title": "Before"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "at",
+          "key",
+          "before",
+          "after",
+          "reason",
+          "version"
+        ],
+        "title": "LearningChange",
+        "type": "object"
+      },
+      "LearningParam": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "version",
+          "value",
+          "reason",
+          "updated_at"
+        ],
+        "title": "LearningParam",
+        "type": "object"
+      },
+      "LearningWeekly": {
+        "properties": {
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/LearningChange"
+            },
+            "title": "Changes",
+            "type": "array"
+          },
+          "lines": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "week_start": {
+            "format": "date-time",
+            "title": "Week Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "week_start",
+          "lines",
+          "changes"
+        ],
+        "title": "LearningWeekly",
+        "type": "object"
+      },
+      "LiftRow": {
+        "properties": {
+          "dimension": {
+            "title": "Dimension",
+            "type": "string"
+          },
+          "lift": {
+            "title": "Lift",
+            "type": "number"
+          },
+          "share_affected": {
+            "title": "Share Affected",
+            "type": "number"
+          },
+          "share_baseline": {
+            "title": "Share Baseline",
+            "type": "number"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dimension",
+          "value",
+          "share_affected",
+          "share_baseline",
+          "lift"
+        ],
+        "title": "LiftRow",
+        "type": "object"
+      },
+      "MatchCandidate": {
+        "properties": {
+          "calibrated_score": {
+            "title": "Calibrated Score",
+            "type": "number"
+          },
+          "features": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "title": "Features",
+            "type": "object"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "payment_id": {
+            "title": "Payment Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "payment_id",
+          "method",
+          "calibrated_score",
+          "features"
+        ],
+        "title": "MatchCandidate",
+        "type": "object"
+      },
+      "Member": {
+        "properties": {
+          "amount_paise": {
+            "title": "Amount Paise",
+            "type": "integer"
+          },
+          "captured_at": {
+            "format": "date-time",
+            "title": "Captured At",
+            "type": "string"
+          },
+          "complained": {
+            "title": "Complained",
+            "type": "boolean"
+          },
+          "customer_masked": {
+            "title": "Customer Masked",
+            "type": "string"
+          },
+          "delivery_outcome": {
+            "title": "Delivery Outcome",
+            "type": "string"
+          },
+          "exclusion_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exclusion Reason"
+          },
+          "merchant_state": {
+            "title": "Merchant State",
+            "type": "string"
+          },
+          "payment_id": {
+            "title": "Payment Id",
+            "type": "string"
+          },
+          "plan": {
+            "title": "Plan",
+            "type": "string"
+          },
+          "replay_eligibility": {
+            "enum": [
+              "replayable_by_support",
+              "not_replayable_disabled_window",
+              "too_old",
+              "n/a"
+            ],
+            "title": "Replay Eligibility",
+            "type": "string"
+          },
+          "tier": {
+            "enum": [
+              "exact",
+              "likely",
+              "check",
+              "excluded"
+            ],
+            "title": "Tier",
+            "type": "string"
+          }
+        },
+        "required": [
+          "payment_id",
+          "customer_masked",
+          "amount_paise",
+          "captured_at",
+          "plan",
+          "complained",
+          "delivery_outcome",
+          "merchant_state",
+          "tier",
+          "replay_eligibility"
+        ],
+        "title": "Member",
+        "type": "object"
+      },
+      "MessagePreview": {
+        "properties": {
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "category": {
+            "enum": [
+              "utility",
+              "service",
+              "service_promotional"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "holdout_allowed": {
+            "title": "Holdout Allowed",
+            "type": "boolean"
+          },
+          "language": {
+            "enum": [
+              "en",
+              "hi_latn",
+              "hi_deva",
+              "mixed",
+              "other"
+            ],
+            "title": "Language",
+            "type": "string"
+          },
+          "recipients": {
+            "title": "Recipients",
+            "type": "integer"
+          },
+          "sender": {
+            "title": "Sender",
+            "type": "string"
+          },
+          "template_id": {
+            "title": "Template Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "template_id",
+          "language",
+          "category",
+          "sender",
+          "body",
+          "recipients",
+          "holdout_allowed"
+        ],
+        "title": "MessagePreview",
+        "type": "object"
+      },
+      "ProbeResult": {
+        "properties": {
+          "checked_at": {
+            "format": "date-time",
+            "title": "Checked At",
+            "type": "string"
+          },
+          "checkout_script_present": {
+            "title": "Checkout Script Present",
+            "type": "boolean"
+          },
+          "http_status": {
+            "title": "Http Status",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "load_ms": {
+            "title": "Load Ms",
+            "type": "integer"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "checked_at",
+          "http_status",
+          "load_ms",
+          "checkout_script_present",
+          "ok"
+        ],
+        "title": "ProbeResult",
+        "type": "object"
+      },
+      "RayCard": {
+        "properties": {
+          "affected": {
+            "title": "Affected",
+            "type": "integer"
+          },
+          "at_risk_paise": {
+            "title": "At Risk Paise",
+            "type": "integer"
+          },
+          "buttons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Buttons",
+            "type": "array"
+          },
+          "cause_line": {
+            "title": "Cause Line",
+            "type": "string"
+          },
+          "complained": {
+            "title": "Complained",
+            "type": "integer"
+          },
+          "fixed": {
+            "title": "Fixed",
+            "type": "integer"
+          },
+          "incident_id": {
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "inferred": {
+            "title": "Inferred",
+            "type": "boolean"
+          },
+          "language": {
+            "enum": [
+              "en",
+              "hi_latn",
+              "hi_deva",
+              "mixed",
+              "other"
+            ],
+            "title": "Language",
+            "type": "string"
+          },
+          "owner_chip": {
+            "title": "Owner Chip",
+            "type": "string"
+          },
+          "silent": {
+            "title": "Silent",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "incident_id",
+          "owner_chip",
+          "inferred",
+          "cause_line",
+          "affected",
+          "complained",
+          "silent",
+          "fixed",
+          "at_risk_paise",
+          "language",
+          "buttons"
+        ],
+        "title": "RayCard",
+        "type": "object"
+      },
+      "RecoveryRequest": {
+        "properties": {
+          "holdout_percent": {
+            "default": 10,
+            "title": "Holdout Percent",
+            "type": "integer"
+          },
+          "thread_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Thread Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "thread_ids"
+        ],
+        "title": "RecoveryRequest",
+        "type": "object"
+      },
+      "ReplaySummary": {
+        "properties": {
+          "incident_id": {
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "not_replayable_disabled_window": {
+            "title": "Not Replayable Disabled Window",
+            "type": "integer"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "replayable_by_support": {
+            "title": "Replayable By Support",
+            "type": "integer"
+          },
+          "too_old": {
+            "title": "Too Old",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "incident_id",
+          "replayable_by_support",
+          "not_replayable_disabled_window",
+          "too_old",
+          "note"
+        ],
+        "title": "ReplaySummary",
+        "type": "object"
+      },
+      "ReplyRequest": {
+        "properties": {
+          "approved_by": {
+            "title": "Approved By",
+            "type": "string"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id"
+          }
+        },
+        "required": [
+          "approved_by"
+        ],
+        "title": "ReplyRequest",
+        "type": "object"
+      },
+      "SampleTimeline": {
+        "properties": {
+          "lanes": {
+            "$ref": "#/components/schemas/ThreeLane"
+          },
+          "payment_id": {
+            "title": "Payment Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "payment_id",
+          "lanes"
+        ],
+        "title": "SampleTimeline",
+        "type": "object"
+      },
+      "ScanResult": {
+        "properties": {
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "headline": {
+            "title": "Headline",
+            "type": "string"
+          },
+          "incidents": {
+            "items": {
+              "$ref": "#/components/schemas/IncidentSummary"
+            },
+            "title": "Incidents",
+            "type": "array"
+          },
+          "leaked_customers": {
+            "title": "Leaked Customers",
+            "type": "integer"
+          },
+          "leaked_paise": {
+            "title": "Leaked Paise",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "days",
+          "headline",
+          "leaked_customers",
+          "leaked_paise",
+          "incidents"
+        ],
+        "title": "ScanResult",
+        "type": "object"
+      },
+      "Settings": {
+        "properties": {
+          "daily_refund_cap_paise": {
+            "title": "Daily Refund Cap Paise",
+            "type": "integer"
+          },
+          "entitlement_connector": {
+            "$ref": "#/components/schemas/ConnectorStatus"
+          },
+          "holdout_percent": {
+            "title": "Holdout Percent",
+            "type": "integer"
+          },
+          "max_bulk_customers": {
+            "title": "Max Bulk Customers",
+            "type": "integer"
+          },
+          "messaging_enabled": {
+            "title": "Messaging Enabled",
+            "type": "boolean"
+          },
+          "technical_contact": {
+            "title": "Technical Contact",
+            "type": "string"
+          }
+        },
+        "required": [
+          "daily_refund_cap_paise",
+          "max_bulk_customers",
+          "messaging_enabled",
+          "holdout_percent",
+          "technical_contact",
+          "entitlement_connector"
+        ],
+        "title": "Settings",
+        "type": "object"
+      },
+      "ThreadDetail": {
+        "properties": {
+          "case": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CaseSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "channel": {
+            "enum": [
+              "help_button",
+              "whatsapp_payments",
+              "email",
+              "ig_dm",
+              "fb_dm",
+              "public_mention",
+              "ray_forward",
+              "paste",
+              "csv"
+            ],
+            "title": "Channel",
+            "type": "string"
+          },
+          "claim": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claim"
+          },
+          "customer_ref": {
+            "title": "Customer Ref",
+            "type": "string"
+          },
+          "disclosed": {
+            "title": "Disclosed",
+            "type": "boolean"
+          },
+          "founder_brief": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Founder Brief"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "incident_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Incident Id"
+          },
+          "is_public": {
+            "default": false,
+            "title": "Is Public",
+            "type": "boolean"
+          },
+          "language": {
+            "enum": [
+              "en",
+              "hi_latn",
+              "hi_deva",
+              "mixed",
+              "other"
+            ],
+            "title": "Language",
+            "type": "string"
+          },
+          "last_inbound_at": {
+            "format": "date-time",
+            "title": "Last Inbound At",
+            "type": "string"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ThreadMessage"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "question_count": {
+            "default": 0,
+            "title": "Question Count",
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "opened",
+              "triage",
+              "identify",
+              "lookup",
+              "matched",
+              "explain",
+              "wait_for_fix",
+              "resolved",
+              "not_found",
+              "human",
+              "pass_back",
+              "handoff",
+              "closed"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "window_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Expires At"
+          },
+          "zone": {
+            "anyOf": [
+              {
+                "enum": [
+                  "before",
+                  "during",
+                  "after"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone"
+          }
+        },
+        "required": [
+          "id",
+          "channel",
+          "state",
+          "language",
+          "customer_ref",
+          "last_inbound_at",
+          "messages",
+          "disclosed"
+        ],
+        "title": "ThreadDetail",
+        "type": "object"
+      },
+      "ThreadMessage": {
+        "properties": {
+          "approved_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved By"
+          },
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "direction": {
+            "enum": [
+              "inbound",
+              "outbound"
+            ],
+            "title": "Direction",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "policy": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Policy",
+            "type": "object"
+          },
+          "sender_role": {
+            "enum": [
+              "customer",
+              "agent",
+              "founder",
+              "system"
+            ],
+            "title": "Sender Role",
+            "type": "string"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id"
+          }
+        },
+        "required": [
+          "id",
+          "direction",
+          "sender_role",
+          "body",
+          "created_at"
+        ],
+        "title": "ThreadMessage",
+        "type": "object"
+      },
+      "ThreadStep": {
+        "properties": {
+          "auto_sent": {
+            "default": false,
+            "title": "Auto Sent",
+            "type": "boolean"
+          },
+          "drafted_reply": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Drafted Reply"
+          },
+          "thread": {
+            "$ref": "#/components/schemas/ThreadDetail"
+          }
+        },
+        "required": [
+          "thread"
+        ],
+        "title": "ThreadStep",
+        "type": "object"
+      },
+      "ThreadSummary": {
+        "properties": {
+          "channel": {
+            "enum": [
+              "help_button",
+              "whatsapp_payments",
+              "email",
+              "ig_dm",
+              "fb_dm",
+              "public_mention",
+              "ray_forward",
+              "paste",
+              "csv"
+            ],
+            "title": "Channel",
+            "type": "string"
+          },
+          "claim": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claim"
+          },
+          "customer_ref": {
+            "title": "Customer Ref",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "incident_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Incident Id"
+          },
+          "is_public": {
+            "default": false,
+            "title": "Is Public",
+            "type": "boolean"
+          },
+          "language": {
+            "enum": [
+              "en",
+              "hi_latn",
+              "hi_deva",
+              "mixed",
+              "other"
+            ],
+            "title": "Language",
+            "type": "string"
+          },
+          "last_inbound_at": {
+            "format": "date-time",
+            "title": "Last Inbound At",
+            "type": "string"
+          },
+          "question_count": {
+            "default": 0,
+            "title": "Question Count",
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "opened",
+              "triage",
+              "identify",
+              "lookup",
+              "matched",
+              "explain",
+              "wait_for_fix",
+              "resolved",
+              "not_found",
+              "human",
+              "pass_back",
+              "handoff",
+              "closed"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "window_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Expires At"
+          },
+          "zone": {
+            "anyOf": [
+              {
+                "enum": [
+                  "before",
+                  "during",
+                  "after"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone"
+          }
+        },
+        "required": [
+          "id",
+          "channel",
+          "state",
+          "language",
+          "customer_ref",
+          "last_inbound_at"
+        ],
+        "title": "ThreadSummary",
+        "type": "object"
+      },
+      "ThreeLane": {
+        "properties": {
+          "customer": {
+            "items": {
+              "$ref": "#/components/schemas/LaneEvent"
+            },
+            "title": "Customer",
+            "type": "array"
+          },
+          "merchant": {
+            "items": {
+              "$ref": "#/components/schemas/LaneEvent"
+            },
+            "title": "Merchant",
+            "type": "array"
+          },
+          "razorpay": {
+            "items": {
+              "$ref": "#/components/schemas/LaneEvent"
+            },
+            "title": "Razorpay",
+            "type": "array"
+          }
+        },
+        "required": [
+          "customer",
+          "razorpay",
+          "merchant"
+        ],
+        "title": "ThreeLane",
+        "type": "object"
+      },
+      "TimelineBucket": {
+        "properties": {
+          "bucket_start": {
+            "format": "date-time",
+            "title": "Bucket Start",
+            "type": "string"
+          },
+          "client_error": {
+            "title": "Client Error",
+            "type": "integer"
+          },
+          "markers": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Markers",
+            "type": "array"
+          },
+          "not_attempted": {
+            "title": "Not Attempted",
+            "type": "integer"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "integer"
+          },
+          "server_error": {
+            "title": "Server Error",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bucket_start",
+          "ok",
+          "client_error",
+          "server_error",
+          "not_attempted"
+        ],
+        "title": "TimelineBucket",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "Verdict": {
+        "properties": {
+          "affected_count": {
+            "title": "Affected Count",
+            "type": "integer"
+          },
+          "cause_code": {
+            "title": "Cause Code",
+            "type": "string"
+          },
+          "cause_summary_slots": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Cause Summary Slots",
+            "type": "object"
+          },
+          "confidence": {
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "evidence": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/EvidenceItem"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "incident_id": {
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "inferred": {
+            "title": "Inferred",
+            "type": "boolean"
+          },
+          "linked_event_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linked Event Id"
+          },
+          "mismatch_type": {
+            "enum": [
+              "A",
+              "B",
+              "E",
+              "F",
+              "G",
+              "Z1"
+            ],
+            "title": "Mismatch Type",
+            "type": "string"
+          },
+          "onset_at": {
+            "format": "date-time",
+            "title": "Onset At",
+            "type": "string"
+          },
+          "owner": {
+            "enum": [
+              "merchant_code",
+              "merchant_config",
+              "razorpay",
+              "bank",
+              "customer",
+              "unknown"
+            ],
+            "title": "Owner",
+            "type": "string"
+          },
+          "owner_evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Owner Evidence Ids",
+            "type": "array"
+          },
+          "owner_rule_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Rule Id"
+          },
+          "resolved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved At"
+          },
+          "runner_up": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runner Up"
+          },
+          "signature": {
+            "additionalProperties": true,
+            "title": "Signature",
+            "type": "object"
+          },
+          "unexplained_case_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Unexplained Case Ids",
+            "type": "array"
+          },
+          "what_we_cannot_see": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "What We Cannot See",
+            "type": "array"
+          },
+          "zone": {
+            "enum": [
+              "before",
+              "during",
+              "after"
+            ],
+            "title": "Zone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "incident_id",
+          "mismatch_type",
+          "zone",
+          "inferred",
+          "cause_code",
+          "cause_summary_slots",
+          "owner",
+          "owner_evidence_ids",
+          "signature",
+          "onset_at",
+          "affected_count",
+          "confidence"
+        ],
+        "title": "Verdict",
+        "type": "object"
+      },
+      "VerifyResult": {
+        "properties": {
+          "closeable": {
+            "title": "Closeable",
+            "type": "boolean"
+          },
+          "incident_id": {
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "line": {
+            "title": "Line",
+            "type": "string"
+          },
+          "restored_paise": {
+            "title": "Restored Paise",
+            "type": "integer"
+          },
+          "signal_healthy": {
+            "title": "Signal Healthy",
+            "type": "boolean"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "verified": {
+            "title": "Verified",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "incident_id",
+          "verified",
+          "total",
+          "signal_healthy",
+          "restored_paise",
+          "closeable",
+          "line"
+        ],
+        "title": "VerifyResult",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Blindspot API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/actions/{action_id}": {
+      "get": {
+        "operationId": "get_action_api_actions__action_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "action_id",
+            "required": true,
+            "schema": {
+              "title": "Action Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Action"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Action"
+      }
+    },
+    "/api/actions/{action_id}/approve": {
+      "post": {
+        "operationId": "approve_action_api_actions__action_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "action_id",
+            "required": true,
+            "schema": {
+              "title": "Action Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Action"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve Action"
+      }
+    },
+    "/api/actions/{action_id}/recovery": {
+      "post": {
+        "operationId": "recovery_api_actions__action_id__recovery_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "action_id",
+            "required": true,
+            "schema": {
+              "title": "Action Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoveryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Action"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Recovery"
+      }
+    },
+    "/api/actions/{action_id}/revert": {
+      "post": {
+        "operationId": "revert_action_api_actions__action_id__revert_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "action_id",
+            "required": true,
+            "schema": {
+              "title": "Action Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Action"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revert Action"
+      }
+    },
+    "/api/audit": {
+      "get": {
+        "operationId": "audit_api_audit_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "ref_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ref Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AuditEntry"
+                  },
+                  "title": "Response Audit Api Audit Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Audit"
+      }
+    },
+    "/api/cases": {
+      "get": {
+        "operationId": "list_cases_api_cases_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CaseSummary"
+                  },
+                  "title": "Response List Cases Api Cases Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Cases"
+      }
+    },
+    "/api/cases/{case_id}": {
+      "get": {
+        "operationId": "get_case_api_cases__case_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Case"
+      }
+    },
+    "/api/cases/{case_id}/timeline": {
+      "get": {
+        "operationId": "get_case_timeline_api_cases__case_id__timeline_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreeLane"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Case Timeline"
+      }
+    },
+    "/api/channels": {
+      "get": {
+        "operationId": "list_channels_api_channels_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Channel"
+                  },
+                  "title": "Response List Channels Api Channels Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Channels"
+      }
+    },
+    "/api/channels/{channel_id}": {
+      "put": {
+        "operationId": "update_channel_api_channels__channel_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "channel_id",
+            "required": true,
+            "schema": {
+              "title": "Channel Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChannelUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Channel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Channel"
+      }
+    },
+    "/api/clock/advance": {
+      "post": {
+        "operationId": "advance_clock_api_clock_advance_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClockAdvance"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Advance Clock"
+      }
+    },
+    "/api/clusters": {
+      "get": {
+        "operationId": "clusters_api_clusters_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "window",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Window"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Cluster"
+                  },
+                  "title": "Response Clusters Api Clusters Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Clusters"
+      }
+    },
+    "/api/complaints": {
+      "post": {
+        "operationId": "create_complaint_api_complaints_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Create Complaint"
+      }
+    },
+    "/api/complaints/csv": {
+      "post": {
+        "operationId": "create_complaints_csv_api_complaints_csv_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ack"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Create Complaints Csv"
+      }
+    },
+    "/api/consents": {
+      "get": {
+        "operationId": "list_consents_api_consents_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Consent"
+                  },
+                  "title": "Response List Consents Api Consents Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Consents"
+      },
+      "post": {
+        "operationId": "grant_consent_api_consents_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Consent"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Grant Consent"
+      }
+    },
+    "/api/entitlements/csv": {
+      "post": {
+        "operationId": "upload_entitlements_api_entitlements_csv_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ack"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Upload Entitlements"
+      }
+    },
+    "/api/escalations": {
+      "post": {
+        "operationId": "create_escalation_api_escalations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EscalationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Escalation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Escalation"
+      }
+    },
+    "/api/escalations/{escalation_id}": {
+      "get": {
+        "operationId": "get_escalation_api_escalations__escalation_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "escalation_id",
+            "required": true,
+            "schema": {
+              "title": "Escalation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Escalation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Escalation"
+      }
+    },
+    "/api/eval/report": {
+      "get": {
+        "operationId": "eval_report_api_eval_report_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Eval Report"
+      }
+    },
+    "/api/feedback": {
+      "post": {
+        "operationId": "feedback_api_feedback_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ack"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Feedback"
+      }
+    },
+    "/api/handovers": {
+      "post": {
+        "operationId": "handover_api_handovers_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HandoverRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Handover"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Handover"
+      }
+    },
+    "/api/inbound/{channel}": {
+      "post": {
+        "operationId": "inbound_api_inbound__channel__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "channel",
+            "required": true,
+            "schema": {
+              "title": "Channel",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InboundRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadStep"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Inbound"
+      }
+    },
+    "/api/incidents": {
+      "get": {
+        "operationId": "list_incidents_api_incidents_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IncidentSummary"
+                  },
+                  "title": "Response List Incidents Api Incidents Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Incidents"
+      }
+    },
+    "/api/incidents/{incident_id}": {
+      "get": {
+        "operationId": "get_incident_api_incidents__incident_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "title": "Incident Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncidentDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Incident"
+      }
+    },
+    "/api/incidents/{incident_id}/actions": {
+      "post": {
+        "operationId": "create_action_api_incidents__incident_id__actions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "title": "Incident Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Action"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Action"
+      }
+    },
+    "/api/incidents/{incident_id}/evidence_pack": {
+      "get": {
+        "operationId": "get_evidence_pack_api_incidents__incident_id__evidence_pack_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "required": false,
+            "schema": {
+              "default": "json",
+              "title": "Format",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidencePack"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Evidence Pack"
+      }
+    },
+    "/api/incidents/{incident_id}/investigate": {
+      "post": {
+        "operationId": "investigate_api_incidents__incident_id__investigate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "title": "Incident Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentTrace"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Investigate"
+      }
+    },
+    "/api/incidents/{incident_id}/members": {
+      "get": {
+        "operationId": "get_members_api_incidents__incident_id__members_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "title": "Incident Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tier",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "exact",
+                    "likely",
+                    "check",
+                    "excluded"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Member"
+                  },
+                  "title": "Response Get Members Api Incidents  Incident Id  Members Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Members"
+      }
+    },
+    "/api/incidents/{incident_id}/ray_card": {
+      "get": {
+        "operationId": "get_ray_card_api_incidents__incident_id__ray_card_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "title": "Incident Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RayCard"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Ray Card"
+      }
+    },
+    "/api/incidents/{incident_id}/replay": {
+      "get": {
+        "operationId": "get_replay_api_incidents__incident_id__replay_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "title": "Incident Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplaySummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Replay"
+      }
+    },
+    "/api/incidents/{incident_id}/sample": {
+      "get": {
+        "operationId": "get_sample_api_incidents__incident_id__sample_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "title": "Incident Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SampleTimeline"
+                  },
+                  "title": "Response Get Sample Api Incidents  Incident Id  Sample Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Sample"
+      }
+    },
+    "/api/incidents/{incident_id}/trace": {
+      "get": {
+        "operationId": "get_trace_api_incidents__incident_id__trace_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "title": "Incident Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentTrace"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Trace"
+      }
+    },
+    "/api/incidents/{incident_id}/verify": {
+      "post": {
+        "operationId": "verify_api_incidents__incident_id__verify_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "title": "Incident Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Verify"
+      }
+    },
+    "/api/learning/params": {
+      "get": {
+        "operationId": "learning_params_api_learning_params_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LearningParam"
+                  },
+                  "title": "Response Learning Params Api Learning Params Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Learning Params"
+      }
+    },
+    "/api/learning/weekly": {
+      "get": {
+        "operationId": "learning_weekly_api_learning_weekly_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningWeekly"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Learning Weekly"
+      }
+    },
+    "/api/messages/preview": {
+      "get": {
+        "operationId": "message_preview_api_messages_preview_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "action_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Action Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MessagePreview"
+                  },
+                  "title": "Response Message Preview Api Messages Preview Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Message Preview"
+      }
+    },
+    "/api/probes/run": {
+      "post": {
+        "operationId": "run_probe_api_probes_run_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProbeResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Run Probe"
+      }
+    },
+    "/api/scan/backfill": {
+      "post": {
+        "operationId": "scan_backfill_api_scan_backfill_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Scan Backfill"
+      }
+    },
+    "/api/scan/day0": {
+      "post": {
+        "operationId": "scan_day0_api_scan_day0_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Scan Day0"
+      }
+    },
+    "/api/settings": {
+      "get": {
+        "operationId": "get_settings_api_settings_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get Settings"
+      },
+      "put": {
+        "operationId": "put_settings_api_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Settings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Settings"
+      }
+    },
+    "/api/threads": {
+      "get": {
+        "operationId": "list_threads_api_threads_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "incident",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Incident"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ThreadSummary"
+                  },
+                  "title": "Response List Threads Api Threads Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Threads"
+      }
+    },
+    "/api/threads/{thread_id}": {
+      "get": {
+        "operationId": "get_thread_api_threads__thread_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "title": "Thread Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Thread"
+      }
+    },
+    "/api/threads/{thread_id}/handoff": {
+      "post": {
+        "operationId": "handoff_api_threads__thread_id__handoff_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "title": "Thread Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HandoffRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Handoff"
+      }
+    },
+    "/api/threads/{thread_id}/reply": {
+      "post": {
+        "operationId": "reply_api_threads__thread_id__reply_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "title": "Thread Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reply"
+      }
+    }
+  }
+}

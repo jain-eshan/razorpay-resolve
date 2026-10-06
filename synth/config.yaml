@@ -1,0 +1,23 @@
+# Seeds, ids and the demo merchant. Frozen in R0 (contracts-v0.1).
+seed: 20261006
+world:
+  start: 2026-09-19
+  end: 2026-10-02
+  tz: "+05:30"
+merchant:
+  id: acc_KAKSHA001
+  name: Kaksha (fictional)
+  segment: digital_access_subscription
+  mid: KAKSHA001
+  grace_hours_after_failed_renewal: 48
+plans:
+  - {id: plan_mock_199, name: Mock Test Pack, amount_paise: 19900, interval: one_time}
+  - {id: plan_series_599, name: Test Series, amount_paise: 59900, interval: one_time}
+  - {id: plan_monthly_299, name: Premium Monthly, amount_paise: 29900, interval: monthly}
+  - {id: plan_annual_2499, name: Premium Annual, amount_paise: 249900, interval: annual}
+id_formats:
+  payment: "pay_ + 14 alphanumeric"
+  order: "order_ + 14 alphanumeric"
+  refund: "rfnd_ + 14 alphanumeric"
+  event: "evt_ + 14 alphanumeric"
+  subscription: "sub_ + 14 alphanumeric"

@@ -23,9 +23,9 @@ import {
   ThumbsUpIcon,
   preloadRazorSenseAssets,
 } from '@razorpay/blade/components'
-import { RAY_GLYPH, emotions, gradientCanvas, prefersReducedMotion, type Emotion } from './razorsense'
+import { RAY_GLYPH, emotions, gradientCanvas, prefersReducedMotion, type Emotion } from '../razorsense'
 
-export default function App() {
+export default function Reference() {
   return (
     <Box backgroundColor="surface.background.gray.moderate" minHeight="100vh">
       <Box
