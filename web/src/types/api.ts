@@ -781,6 +781,8 @@ export interface components {
             action_type: "grant" | "resend_events" | "refund" | "message" | "recovery_link" | "evidence_pack" | "escalation_pack" | "alert_rule";
             /** Approved By */
             approved_by?: string | null;
+            /** Blocked Reason */
+            blocked_reason?: string | null;
             /** Id */
             id: string;
             /** Incident Id */
@@ -794,6 +796,8 @@ export interface components {
             };
             /** Items */
             items: components["schemas"]["ActionItem"][];
+            /** Next Stage */
+            next_stage?: ("dry_run" | "first_5" | "rest") | null;
             /** Params */
             params: {
                 [key: string]: unknown;
@@ -1684,6 +1688,12 @@ export interface components {
         };
         /** Settings */
         Settings: {
+            /**
+             * Autonomy
+             * @default suggest
+             * @enum {string}
+             */
+            autonomy: "suggest" | "assist" | "autopilot_reversible";
             /** Daily Refund Cap Paise */
             daily_refund_cap_paise: number;
             entitlement_connector: components["schemas"]["ConnectorStatus"];

@@ -24,6 +24,8 @@ for e in json.loads((ROOT / "contracts" / "snapshot_manifest.json").read_text())
     if live and m and m.group(1) not in real_incidents:
         continue  # placeholder incident ids from the frozen manifest do not exist in real data
     r = client.get(e["path"])
+    if live and r.status_code == 404:
+        continue  # a placeholder id (an action, a case) that real data does not have
     r.raise_for_status()
     f = out / e["file"]
     f.parent.mkdir(parents=True, exist_ok=True)

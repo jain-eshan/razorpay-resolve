@@ -59,11 +59,14 @@ def _member(db, p, ev, run_class: str, complained: bool, disabled_at, now, expor
     kind = mismatch(p, ent)
     refunded = db.execute("SELECT 1 FROM refunds WHERE payment_id = ? AND status IN ('processed','pending')", (p["id"],)).fetchone() is not None
     manual = ent is not None and ent["source"] == "manual" and ent["entitlement_state"] == "active"
+    restored = ent is not None and ent["source"] == "make_good_grant" and ent["entitlement_state"] == "active"
     reason = None
     if refunded:
         tier, reason = "excluded", "refunded"
     elif manual:
         tier, reason = "excluded", "already active (manual grant)"
+    elif restored:
+        tier, reason = "excluded", "restored by Blindspot"
     elif kind in ("unpaid", "access_cut"):
         tier = "exact"
     elif kind == "no_row":
@@ -95,7 +98,9 @@ def build_cohort(db: sqlite3.Connection, run: Run, disabled_at: str | None, now:
     q = f"SELECT p.*, e.id AS eid, e.created_at AS ecreated FROM payments p JOIN webhook_events e ON e.payment_id = p.id AND {HANDLER} WHERE p.status IN ('captured','refunded') AND e.final_delivery_class = '2xx' AND p.captured_at >= ? AND p.captured_at <= ?"
     for r in db.execute(q, (run.first_bad_at.isoformat(), (export_at - RECONCILE_DELAY).isoformat())).fetchall():
         p = dict(r)
-        if p["id"] in seen or mismatch(p, _ent(db, p)) not in ("unpaid", "no_row"):
+        ent = _ent(db, p)
+        restored = ent is not None and ent["source"] == "make_good_grant"  # still part of the incident once Blindspot has restored them
+        if p["id"] in seen or (mismatch(p, ent) not in ("unpaid", "no_row") and not restored):
             continue
         ev = {"id": p["eid"], "created_at": p["ecreated"]}
         members.append(_member(db, p, ev, "2xx, access not granted", p["id"] in complaints, disabled_at, now, export_at))

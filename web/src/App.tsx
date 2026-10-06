@@ -1,13 +1,16 @@
 import { NavLink, Route, Routes } from 'react-router-dom'
 import { Box, RazorpayIcon, Text } from '@razorpay/blade/components'
+import Audit from './routes/Audit'
+import Dev from './routes/Dev'
 import How from './routes/How'
 import Incident from './routes/Incident'
 import Incidents from './routes/Incidents'
 import Ray from './routes/Ray'
 import Reference from './routes/Reference'
 import Scan from './routes/Scan'
+import Settings from './routes/Settings'
 
-const NAV = [['/', 'RAY'], ['/incidents', 'Incidents'], ['/scan', 'Day-0 scan'], ['/how', 'How we know']] as const
+const NAV = [['/', 'RAY'], ['/incidents', 'Incidents'], ['/scan', 'Day-0 scan'], ['/how', 'How we know'], ['/audit', 'Audit'], ['/settings', 'Settings']] as const
 
 export default function App() {
   return (
@@ -30,7 +33,10 @@ export default function App() {
           <Route path="/" element={<Ray />} />
           <Route path="/incidents" element={<Incidents />} />
           <Route path="/incidents/:id" element={<Incident />} />
+          <Route path="/incidents/:id/dev" element={<Dev />} />
           <Route path="/scan" element={<Scan />} />
+          <Route path="/audit" element={<Audit />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/how" element={<How />} />
           <Route path="/reference" element={<Reference />} />
         </Routes>
