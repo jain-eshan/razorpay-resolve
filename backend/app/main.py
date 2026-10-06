@@ -6,8 +6,9 @@ from contextlib import closing
 from fastapi import APIRouter, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
+from . import clock, merchant_mock, service
 from . import fixtures as fx
-from . import service
+from .act import autonomy, executor
 from .config import BS_NOW
 from .db import ROOT, connect
 from .schemas import (
@@ -65,14 +66,20 @@ def _live() -> bool:
 
 def _real(fn, *args):
     with closing(connect()) as db:
-        out = fn(db, *args)
+        try:
+            out = fn(db, *args)
+        except executor.ActError as e:
+            raise HTTPException(e.status, str(e)) from e
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
     if out is None:
         raise HTTPException(404, "not found")
     return out
 
 
 app = FastAPI(title="Blindspot API", version="0.1.0")
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173"], allow_methods=["*"], allow_headers=["*"])
+app.mount("/merchant-mock", merchant_mock.app)  # the merchant's side, simulated; not part of the frozen /api contract
+app.add_middleware(CORSMiddleware, allow_origin_regex=r"http://localhost:\d+", allow_methods=["*"], allow_headers=["*"])
 api = APIRouter(prefix="/api")
 
 
@@ -140,31 +147,41 @@ def get_replay(incident_id: str):
         return _real(service.replay, incident_id)
     return _get({"INC-1": fx.REPLAY1, "INC-4": fx.DETAIL4.replay}, incident_id)
 @api.post("/incidents/{incident_id}/verify", response_model=VerifyResult)
-def verify(incident_id: str): return fx.VERIFY1
+def verify(incident_id: str): return _real(executor.verify, incident_id) if _live() else fx.VERIFY1
 @api.post("/incidents/{incident_id}/actions", response_model=Action)
-def create_action(incident_id: str, body: ActionCreate): return fx.ACTION1D
+def create_action(incident_id: str, body: ActionCreate):
+    return _real(lambda db: executor.get(db, executor.create(db, incident_id, body.action_type, body.params))) if _live() else fx.ACTION1D
 
 # ---------- actions ----------
 @api.get("/actions/{action_id}", response_model=Action)
-def get_action(action_id: str): return _get({"act_001": fx.ACTION1D}, action_id)
+def get_action(action_id: str): return _real(executor.get, action_id) if _live() else _get({"act_001": fx.ACTION1D}, action_id)
 @api.post("/actions/{action_id}/approve", response_model=Action)
-def approve_action(action_id: str, body: ApproveRequest): return fx.ACTION1D
+def approve_action(action_id: str, body: ApproveRequest):
+    return _real(executor.approve, action_id, body.stage, f"merchant:{body.approver}") if _live() else fx.ACTION1D
 @api.post("/actions/{action_id}/revert", response_model=Action)
-def revert_action(action_id: str): return fx.ACTION1D
+def revert_action(action_id: str): return _real(executor.revert, action_id) if _live() else fx.ACTION1D
 @api.post("/actions/{action_id}/recovery", response_model=Action)
 def recovery(action_id: str, body: RecoveryRequest): return fx.ACTION1D
 
 # ---------- misc ----------
 @api.post("/clock/advance", response_model=ClockState)
-def advance_clock(body: ClockAdvance): return ClockState(now=BS_NOW)
+def advance_clock(body: ClockAdvance):
+    if not _live():
+        return ClockState(now=BS_NOW)
+    if body.hours < 0:
+        raise HTTPException(422, "The clock only moves forward.")
+    with closing(connect()) as db:
+        now = clock.advance(body.hours)
+        service.log_clock(db, body.hours, now)
+    return ClockState(now=now)
 @api.get("/messages/preview", response_model=list[MessagePreview])
-def message_preview(action_id: str | None = None): return fx.PREVIEWS
+def message_preview(action_id: str | None = None): return _real(executor.message_previews, action_id) if _live() else fx.PREVIEWS
 @api.get("/audit", response_model=list[AuditEntry])
-def audit(ref_id: str | None = None): return fx.AUDIT
+def audit(ref_id: str | None = None): return _real(service.audit_entries, ref_id) if _live() else fx.AUDIT
 @api.get("/settings", response_model=Settings)
-def get_settings(): return fx.SETTINGS
+def get_settings(): return _real(autonomy.read) if _live() else fx.SETTINGS
 @api.put("/settings", response_model=Settings)
-def put_settings(body: Settings): return body
+def put_settings(body: Settings): return _real(lambda db: _commit(db, autonomy.write(db, body, "merchant:founder"))) if _live() else body
 @api.post("/entitlements/csv", response_model=Ack)
 def upload_entitlements(): return Ack()
 @api.get("/eval/report", response_model=EvalReport)
@@ -209,6 +226,11 @@ def feedback(body: FeedbackRequest): return Ack()
 def learning_weekly(): return fx.LEARN_WEEK
 @api.get("/learning/params", response_model=list[LearningParam])
 def learning_params(): return fx.LEARN_PARAMS
+
+
+def _commit(db, value):
+    db.commit()
+    return value
 
 
 app.include_router(api)

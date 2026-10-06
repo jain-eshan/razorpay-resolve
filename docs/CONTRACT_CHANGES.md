@@ -4,6 +4,15 @@ A change to anything under `contracts/`, to `backend/app/schemas.py`, `backend/a
 `backend/app/conversation/templates.py`, the capability flags in `backend/app/config.py` or `synth/config.yaml` needs a pull request that
 updates `contracts/` (run `make contracts`), bumps the version below and adds an entry here. Streams do not edit these files directly.
 
+## contracts-v0.3 (6 Oct 2026, during R2)
+
+Additive only. No path, required field or type changed.
+- `Settings.autonomy` (`suggest` | `assist` | `autopilot_reversible`, default `suggest`): the autonomy dial. It is stored in `settings`; the per-channel dial in `channels.autonomy_level` arrives with channels in R3.
+- `Action.next_stage` (the stage waiting for approval, or null) and `Action.blocked_reason` (why approving is refused right now: bulk cap, messaging off).
+- `/merchant-mock/*` (health, entitlement check and grant, webhook mode, test webhook) is mounted on the same server but is not part of `/api` and not in `openapi.json`. It stands in for the merchant's own system until R6.
+- No change to `contracts/schema.sql`: actions, action items, messages, audit log and settings were already in v0.1. The mock keeps its webhook state in two `settings` keys (`mock.webhook_mode`, `mock.webhook_ok_since`).
+- `BS_SOURCE=pipeline` now also serves real actions, verify, audit, settings, message preview and clock. The default is still placeholder data.
+
 ## contracts-v0.2 (6 Oct 2026, during R1)
 
 Additive only.

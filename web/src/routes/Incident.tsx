@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Alert, Box, Button, Card, CardBody, Heading, SegmentedControl, SegmentedControlItem, Text } from '@razorpay/blade/components'
+import { FixPanel } from '../components/FixPanel'
 import { Stat } from '../components/Stat'
 import { TimelineChart } from '../components/TimelineChart'
 import { rupees, useGet, type Schemas } from '../lib/api'
@@ -24,9 +25,10 @@ function Lane({ title, items }: { title: string; items: Schemas['LaneEvent'][] }
 
 export default function Incident() {
   const { id = '' } = useParams()
-  const { data: inc, error } = useGet<Schemas['IncidentDetail']>(`/api/incidents/${id}`)
-  const { data: members } = useGet<Schemas['Member'][]>(`/api/incidents/${id}/members`)
-  const { data: sample } = useGet<Schemas['SampleTimeline'][]>(`/api/incidents/${id}/sample`)
+  const [version, setVersion] = useState(0)
+  const { data: inc, error } = useGet<Schemas['IncidentDetail']>(`/api/incidents/${id}`, version)
+  const { data: members } = useGet<Schemas['Member'][]>(`/api/incidents/${id}/members`, version)
+  const { data: sample } = useGet<Schemas['SampleTimeline'][]>(`/api/incidents/${id}/sample`, version)
   const [tier, setTier] = useState<(typeof TIERS)[number]>('exact')
   const [all, setAll] = useState(false)
   if (error) return <Text color="feedback.text.negative.intense">Could not load {id}: {error}</Text>
@@ -119,7 +121,12 @@ export default function Incident() {
         </Box>
       )}
 
-      <Text size="small" color="surface.text.gray.muted">Fix, message and verify steps arrive in the next release. Synthetic data: the merchant and customers are fictional.</Text>
+      <FixPanel inc={inc} members={members ?? []} onChanged={() => setVersion((v) => v + 1)} />
+
+      <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
+        <Link to={`/incidents/${inc.id}/dev`}><Button variant="secondary" size="small">Send to your developer</Button></Link>
+        <Text size="small" color="surface.text.gray.muted">Synthetic data: the merchant and customers are fictional.</Text>
+      </Box>
     </Box>
   )
 }

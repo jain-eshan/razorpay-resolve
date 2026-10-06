@@ -4,7 +4,8 @@ import sqlite3
 from collections import Counter
 from datetime import datetime, timedelta
 
-from . import clock
+from . import audit, clock
+from .act import executor
 from .config import ENTITLEMENT_EXPORT_AT
 from .detect.webhook import HANDLER, Run, run_from_json
 from .investigate.rules_fallback import build_pack
@@ -12,6 +13,7 @@ from .match.keys import complaints_by_payment
 from .pipeline import pack_ref
 from .schemas import (
     AgentTrace,
+    AuditEntry,
     EvidencePack,
     IncidentDetail,
     IncidentSummary,
@@ -126,7 +128,7 @@ def detail(db: sqlite3.Connection, incident_id: str) -> IncidentDetail | None:
     verdict.affected_count = len(members)
     tiers = Counter(m.tier for m in members)
     return IncidentDetail(**_summary(row, run, members, verdict).model_dump(), verdict=verdict, timeline=_timeline(db, run, disabled), lift=_lift(db, run, members),
-                          tier_counts={t: tiers[t] for t in ("exact", "likely", "check", "excluded")}, replay=_replay(incident_id, members), actions=[])
+                          tier_counts={t: tiers[t] for t in ("exact", "likely", "check", "excluded")}, replay=_replay(incident_id, members), actions=executor.summaries(db, incident_id))
 
 
 def members(db: sqlite3.Connection, incident_id: str, tier: str | None = None) -> list[Member] | None:
@@ -212,3 +214,14 @@ def scan_day0(db: sqlite3.Connection, days: int = 30) -> ScanResult:
         paise += sum(m.amount_paise for m in live)
     head = f"I found {customers} customers in the last {days} days who paid and have no access." if customers else f"No mismatches found in the last {days} days."
     return ScanResult(days=days, headline=head, leaked_customers=customers, leaked_paise=paise, incidents=incs)
+
+
+def audit_entries(db: sqlite3.Connection, ref_id: str | None = None) -> list[AuditEntry]:
+    rows = db.execute("SELECT * FROM audit_log WHERE (? IS NULL OR ref_id = ?) ORDER BY id DESC LIMIT 500", (ref_id, ref_id)).fetchall()
+    return [AuditEntry(id=r["id"], at=datetime.fromisoformat(r["at"]), actor=r["actor"], kind=r["kind"], ref_id=r["ref_id"], model_id=r["model_id"], latency_ms=r["latency_ms"],
+                       cost_usd=r["cost_usd"], summary=json.loads(r["payload_json"])["summary"]) for r in rows]
+
+
+def log_clock(db: sqlite3.Connection, hours: int, now: datetime) -> None:
+    audit.log(db, "system", "action", None, f"Demo clock moved forward {hours} hours to {_fmt(now)}.")
+    db.commit()

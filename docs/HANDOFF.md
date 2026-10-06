@@ -1,4 +1,4 @@
-# Handoff: where Blindspot stands (6 Oct 2026)
+# Handoff: where Blindspot stands (6 Oct 2026, after R2)
 
 Read this first in a new chat, then `docs/PRD.md`. Everything below is true as of the last commit on branch `blindspot`.
 
@@ -12,8 +12,8 @@ Blindspot (working name) is Eshan Jain's entry for the Razorpay x ISB AI PM Buil
 |---|---|
 | R0 foundations (repo, frozen contracts, stub API, Blade shell) | Done, tag `contracts-v0.1` |
 | R1 detect, widen, attribute (Hero A on a synthetic world) | Done, contracts v0.2 |
-| R2 fix and verify | Not started. Next. |
-| R3 channels and conversation | Not started |
+| R2 fix and verify (grant in stages, messages, undo, verify and close, audit, settings, autonomy dial) | Done, contracts v0.3. On branch `claude/r2-fix-and-verify`, not yet merged. |
+| R3 channels and conversation | Not started. Next. |
 | R4 Zone 1 (cannot reach the pay page), investigation agent, three-way eval | Not started |
 | R5 learning loop, handovers | Not started |
 | R6 real rails (stretch) | Not started |
@@ -29,6 +29,15 @@ Plan, sizing and kickoff prompts for every stream: `docs/BUILD_PLAN.md`.
 - Web: RAY phone, incident inbox, incident page, day-0 scan, "How we know". Blade and RazorSense.
 - Tests: 24 backend, 5 Playwright (uses installed Chrome), lint, secret scan.
 
+### What R2 delivers (all verified)
+- `backend/app/merchant_mock.py`: the merchant's side (access check, grant, undo, webhook mode, health). No revoke exists.
+- `backend/app/act/`: `executor.py` (plan, dry run, first 5, rest, idempotency key per customer, undo, verify and close), `autonomy.py` (the matrix and settings), `messages.py` (templates only, numbers from slots, Indian grouping).
+- `backend/app/channels/policy.py`: the only place a message can be written. A test enforces that.
+- `backend/app/audit.py`: every approval, action, verification and blocked send.
+- Web: fix stepper and message preview on the incident page, one RazorSense moment on close, developer handoff (`/incidents/:id/dev`, JSON and CSV), `/audit`, `/settings` with the autonomy dial and permission ladder.
+- Tests: 71 backend (47 new, including two clicks at once), 10 Playwright (5 are the live fix flow, Hero A in about 4 seconds of automated clicking), 23 eval gates (11 new: no grant outside ground truth, repeat approvals change nothing, undo restores records, cap, verification accuracy, 24 h rule, messages).
+- Bugs the tests caught: the number check broke when an amount sat inside a 12-digit UPI ref; customers disappeared from the incident after being restored; after Undo there was no button to plan again.
+
 ### Results on the synthetic world
 1 incident found, 0 false. 85 affected: 17 complained, 68 silent (ratio 4.0; kill criterion K1 needs 2). 81 actionable, 2 fixed by hand, 2 refunded, 4 in the "server said OK but granted nothing" group (all found). Alert fires 55 minutes after the deploy with 1 customer affected. Replay: 38 events replayable by a support ticket one at a time, 43 not replayable at all. The scores are near perfect because the world is clean and generator and detector share assumptions. Harder negatives arrive in R3 and R4.
 
@@ -38,7 +47,8 @@ Plan, sizing and kickoff prompts for every stream: `docs/BUILD_PLAN.md`.
 docs/        PRD.md  SPEC.md  BUILD_PLAN.md  V1_SPEC.md  BUILD_LOG.md  CONTRACT_CHANGES.md  HANDOFF.md
 contracts/   schema.sql  truth_schema.sql  openapi.json  snapshot_manifest.json   (frozen, generated)
 backend/app/ schemas.py (models)  fixtures.py (placeholders)  main.py (API)  service.py (read layer)  pipeline.py
-             detect/ widen/ investigate/ match/ channels/base.py  conversation/templates.py  attribution.py  config.py
+             detect/ widen/ investigate/ match/ act/ (executor, autonomy, messages)  merchant_mock.py  audit.py
+             channels/ (base.py, policy.py)  conversation/templates.py  attribution.py  config.py
 synth/       config.yaml  world.py  generate.py        eval/ run_eval.py
 web/         the RazorSense starter, moved here with history. Read web/CLAUDE.md and web/DESIGN.md.
 merchant_mock/supabase/rzp-sink.ts   source of the deployed webhook receiver
@@ -53,7 +63,7 @@ Branches: `main` is the untouched starter (commit 614bacf). `blindspot` holds th
 
 Scope is post-payment and pre-payment failures only. RAY, Vulcan, Payment Links, Subscription Recovery and the Ecosystem Health board are integrated with, not rebuilt. Two demo heroes: paid-no-access (Hero A, proven, built) and cannot-reach-the-pay-page (Hero B, inferred, R4). A conversation agent talks to the merchant's customers, co-branded "[Merchant] payment help, powered by Razorpay", always says it is an AI. Intake order: Razorpay-owned help entry points, a dedicated payments WhatsApp number, email (reply-to, alias, keyword forwarding rule), Instagram and Messenger handover, public posts private-first. Autonomy dial defaults to "Suggest". The 13 Oct deadline is ignored. UI follows Razorpay's Blade and RazorSense. Name "Blindspot" is a placeholder in one constant.
 
-Two decisions were assumed and never explicitly confirmed by Eshan: the co-branded customer voice, and the "Suggest" autonomy default.
+Eshan confirmed on 6 Oct 2026 the two earlier assumptions: the co-branded customer voice ("[Merchant] payment help, powered by Razorpay") and the "Suggest" autonomy default.
 
 ## 5. Verified facts about Razorpay (6 Oct 2026)
 
@@ -83,13 +93,13 @@ The full verify list is PRD section 16.3.
 
 **Open experiment:** Razorpay should disable webhook A about 24 hours after the first failure (around 18:41 IST on 7 Oct 2026). Ask Eshan what the dashboard shows then (banner, warning, email) and record it in PRD 4.1 and 16.3. No alert email is set, so nobody was told of the failure.
 
-**Old duplicate folder:** `/Users/eshan/Desktop/claude/blindspot` is a leftover scaffold, fully replaced by this repo. Delete it when Eshan agrees.
+**Old duplicate folder:** `/Users/eshan/Desktop/claude/blindspot` was deleted on 6 Oct 2026 at Eshan's request. It held an R0-stage copy with no commits and nothing this repo lacked.
 
 **No accounts needed yet.** First Anthropic API key needed at R3. Vercel at the snapshot deploy. Fly or Render, Meta developer and an inbound email provider only at R6.
 
 ## 7. Next steps
 
-1. **R2 fix and verify** (`docs/BUILD_PLAN.md` section 5): merchant mock (webhook modes, access endpoints, grant, health), action plans and staged execution (dry run, first 5, rest) with idempotency and undo, autonomy matrix, message templates and preview in the merchant's voice, replay-eligibility column already built, developer handoff page, verify and close with the single RazorSense moment, audit log, settings and autonomy dial. Exit: Hero A runs end to end in under 90 seconds of clicking; double approval does not double grant; undo restores prior state.
+1. **R3 channels and conversation** (`docs/BUILD_PLAN.md` section 5): adapters and simulators, the full policy engine (replaces the R2 stub in `channels/policy.py`), triage and extraction, conversation state machine, founder brief. Review and merge the R2 branch first.
 2. Before R3, Eshan should run the five founder calls (build plan V2) and answer the Razorpay questions (V3).
 3. Items still to verify are listed in PRD 16.3.
 
@@ -107,4 +117,7 @@ The full verify list is PRD section 16.3.
 - Starlette prints a deprecation warning about `httpx` in tests.
 - `make e2e` needs Google Chrome installed (CI's ubuntu runner has it). The first GitHub CI run (PR #1) passed.
 - Spec numbers such as "40 affected, 9 complained" in the PRD and RAY mockups are illustrative. The generator computes the real ones.
+- The demo clock and the merchant's webhook fix are simulated and live in process memory and two `settings` keys. Restarting the API (`make run-api`) gives a fresh world; running only `make pipeline` on a world that already has grants does not reset them.
+- `make e2e` now starts the API on port 8000 (fresh world) and a live web on 5174, so both ports must be free.
+- Refunds, recovery links and event re-sending are in the autonomy matrix but have no executor yet.
 - Fixture incident INC-4 (cannot-reach-the-page) exists only as placeholder data and is not served in pipeline mode.

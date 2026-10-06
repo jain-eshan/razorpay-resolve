@@ -1,0 +1,133 @@
+"""The merchant's side, simulated (SPEC section 15, "Merchant mock"). Blindspot reaches the merchant only through these
+functions or the /merchant-mock routes. In R6 a real access hook replaces them.
+
+State lives in the `entitlements` table (the merchant's access records) and two `settings` keys for the webhook.
+There is deliberately no revoke: `restore` only puts back what a Blindspot grant changed.
+"""
+import sqlite3
+from datetime import datetime, timedelta
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+
+from . import clock
+from .db import connect
+from .detect.access import mismatch
+from .widen.silent import _ent
+
+WEBHOOK_MODES = ("ok", "401", "500", "ack_then_fail")  # same names as merchant_mock/supabase/rzp-sink.ts
+HEALTHY_HOURS = 24  # FR-VE-2: the webhook must answer 2xx for this long before an incident can close
+GRANT_SOURCE = "make_good_grant"
+PLAN_DAYS = {"monthly": 30, "annual": 365}
+
+
+class MockError(Exception):
+    pass
+
+
+def _payment(db: sqlite3.Connection, payment_id: str) -> dict:
+    r = db.execute("SELECT * FROM payments WHERE id = ?", (payment_id,)).fetchone()
+    if not r:
+        raise MockError(f"{payment_id} is not a payment of this merchant")
+    return dict(r)
+
+
+def check(db: sqlite3.Connection, payment_id: str) -> dict:
+    """What the merchant's own record says now: the answer to 'does this customer have access?'"""
+    p = _payment(db, payment_id)
+    ent = _ent(db, p)
+    return {"payment_id": payment_id, "entitlement_state": ent["entitlement_state"] if ent else "no record",
+            "access_until": ent["access_until"] if ent else None, "has_access": ent is not None and mismatch(p, ent) is None}
+
+
+def grant(db: sqlite3.Connection, payment_id: str) -> dict:
+    """Switch access on for one paid customer. Returns the prior state, which is what undo needs."""
+    p = _payment(db, payment_id)
+    ent = _ent(db, p)
+    if ent is None:
+        raise MockError(f"No access record exists for {payment_id}, so there is nothing to switch on. Add one, then try again.")
+    prior = {k: ent[k] for k in ("id", "entitlement_state", "access_until", "updated_at", "source")}
+    until = ent["access_until"]
+    if p["subscription_id"]:
+        interval = db.execute("SELECT pl.interval FROM subscriptions s JOIN plans pl ON pl.id = s.plan_id WHERE s.id = ?", (p["subscription_id"],)).fetchone()
+        days = PLAN_DAYS.get(interval["interval"] if interval else "monthly", 30)
+        until = max(filter(None, [until, (datetime.fromisoformat(p["captured_at"]) + timedelta(days=days)).isoformat()]))
+    db.execute("UPDATE entitlements SET entitlement_state = 'active', access_until = ?, updated_at = ?, source = ? WHERE id = ?",
+               (until, clock.now().isoformat(), GRANT_SOURCE, ent["id"]))
+    return prior
+
+
+def restore(db: sqlite3.Connection, payment_id: str, prior: dict) -> None:
+    """Undo a grant. Refuses if the merchant changed the record after our grant, so it never overwrites their edit."""
+    ent = _ent(db, _payment(db, payment_id))
+    if ent is None or ent["id"] != prior["id"] or ent["source"] != GRANT_SOURCE:
+        raise MockError(f"Your records for {payment_id} changed after the grant, so it was not undone.")
+    db.execute("UPDATE entitlements SET entitlement_state = ?, access_until = ?, updated_at = ?, source = ? WHERE id = ?",
+               (prior["entitlement_state"], prior["access_until"], prior["updated_at"], prior["source"], prior["id"]))
+
+
+def _setting(db: sqlite3.Connection, key: str) -> str | None:
+    r = db.execute("SELECT value FROM settings WHERE key = ?", (key,)).fetchone()
+    return r["value"] if r else None
+
+
+def set_webhook_mode(db: sqlite3.Connection, mode: str) -> dict:
+    """Demo control: the merchant's developer ships (or breaks) the fix. Records when the webhook started answering 2xx."""
+    if mode not in WEBHOOK_MODES:
+        raise MockError(f"Unknown mode {mode}. Use one of {', '.join(WEBHOOK_MODES)}.")
+    ok_since = clock.now().isoformat() if mode == "ok" and _setting(db, "mock.webhook_mode") != "ok" else _setting(db, "mock.webhook_ok_since")
+    db.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('mock.webhook_mode', ?)", (mode,))
+    db.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('mock.webhook_ok_since', ?)", (ok_since if mode == "ok" else "",))
+    return health(db)
+
+
+def health(db: sqlite3.Connection) -> dict:
+    mode = _setting(db, "mock.webhook_mode") or "401"  # the INC-1 world starts broken
+    since = _setting(db, "mock.webhook_ok_since") or None
+    hours = (clock.now() - datetime.fromisoformat(since)).total_seconds() / 3600 if mode == "ok" and since else 0.0
+    return {"hook": "ok", "webhook_mode": mode, "webhook_ok_since": since if mode == "ok" else None, "healthy_hours": round(max(hours, 0.0), 1),
+            "signal_healthy": mode == "ok" and hours >= HEALTHY_HOURS}
+
+
+# ---------- HTTP face of the mock, mounted at /merchant-mock (not part of the frozen /api contract) ----------
+app = FastAPI(title="Merchant mock")
+
+
+class GrantBody(BaseModel):
+    razorpay_payment_id: str
+    order_id: str | None = None
+
+
+class ModeBody(BaseModel):
+    mode: str
+
+
+def _run(fn, *args):
+    db = connect()
+    try:
+        out = fn(db, *args)
+        db.commit()
+        return out
+    except MockError as e:
+        raise HTTPException(409, str(e)) from e
+    finally:
+        db.close()
+
+
+@app.get("/health")
+def get_health(): return _run(health)
+@app.get("/entitlements/check")
+def get_check(payment_id: str): return _run(check, payment_id)
+@app.post("/entitlements/grant")
+def post_grant(body: GrantBody): return {"prior": _run(grant, body.razorpay_payment_id)}
+@app.post("/webhook-mode")
+def post_mode(body: ModeBody): return _run(set_webhook_mode, body.mode)
+
+
+@app.post("/webhook")
+def post_webhook():
+    """A test event, answered the way the current mode says. The access hook's own health, in one status code."""
+    status = {"ok": 200, "401": 401, "500": 500, "ack_then_fail": 200}[_run(health)["webhook_mode"]]
+    if status != 200:
+        raise HTTPException(status, "Merchant webhook rejected the test event")
+    return {"received": True}

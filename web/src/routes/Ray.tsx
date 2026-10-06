@@ -53,7 +53,7 @@ export default function Ray() {
                   </Text>
                   <Box display="flex" gap="spacing.3">
                     <Button size="small" onClick={() => nav(`/incidents/${card.incident_id}`)}>{card.buttons[0]}</Button>
-                    <Button size="small" variant="secondary" isDisabled>{card.buttons[1]}</Button>
+                    <Button size="small" variant="secondary" onClick={() => nav(`/incidents/${card.incident_id}/dev`)}>{card.buttons[1]}</Button>
                   </Box>
                 </Box>
               </CardBody>

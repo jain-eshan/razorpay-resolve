@@ -260,6 +260,8 @@ class ActionItem(BaseModel):
 class Action(ActionSummary):
     params: dict[str, Any]
     items: list[ActionItem]
+    next_stage: Stage | None = None        # the stage waiting for approval, or None when nothing is left to approve
+    blocked_reason: str | None = None      # why approving is refused right now (cap, messaging off)
 
 
 class ActionCreate(BaseModel):
@@ -301,6 +303,7 @@ class Settings(BaseModel):
     holdout_percent: int
     technical_contact: str
     entitlement_connector: ConnectorStatus
+    autonomy: Autonomy = "suggest"
 
 
 class ClockState(BaseModel):

@@ -44,6 +44,17 @@
             ],
             "title": "Approved By"
           },
+          "blocked_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocked Reason"
+          },
           "id": {
             "title": "Id",
             "type": "string"
@@ -66,6 +77,22 @@
             },
             "title": "Items",
             "type": "array"
+          },
+          "next_stage": {
+            "anyOf": [
+              {
+                "enum": [
+                  "dry_run",
+                  "first_5",
+                  "rest"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Stage"
           },
           "params": {
             "additionalProperties": true,
@@ -2431,6 +2458,16 @@
       },
       "Settings": {
         "properties": {
+          "autonomy": {
+            "default": "suggest",
+            "enum": [
+              "suggest",
+              "assist",
+              "autopilot_reversible"
+            ],
+            "title": "Autonomy",
+            "type": "string"
+          },
           "daily_refund_cap_paise": {
             "title": "Daily Refund Cap Paise",
             "type": "integer"

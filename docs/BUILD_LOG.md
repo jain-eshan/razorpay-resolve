@@ -54,3 +54,30 @@ Findings and decisions:
 Deferred from the R1 plan: the 24 synthetic screenshots (first used by extraction in R3), the Vercel deploy (needs your account), complaint matching beyond exact keys (R3).
 
 Bugs found by tests or eval: the first alert latency above; a test fixture that tried to set an attribute on a plain SQLite connection.
+
+## 6 Oct 2026, R2 fix and verify (integrator, all streams)
+
+Goal: Hero A runs end to end: plan, dry run, first 5, rest, message, verify, close, with approval, autonomy, undo and an audit trail.
+
+What was built: see `docs/HANDOFF.md` section 2. Contract v0.3 is additive (`Settings.autonomy`, `Action.next_stage`, `Action.blocked_reason`). The merchant mock is mounted at `/merchant-mock` and is not in the frozen API contract.
+
+Decisions:
+- One plan per incident and type, with the idempotency key `sha256(incident, type, payment)` on a UNIQUE column. Asking again returns the same plan; a second click on a finished stage is ignored and logged. The write lock is taken before the stage runs, so two clicks at once grant once (tested with four threads).
+- Autonomy: Suggest needs a tap for every stage. Assist needs the dry run approved once, then the first 5 and the rest run by themselves and stop on any failure. Autopilot runs by itself within the cap. Messages need the founder on Suggest and Assist.
+- A message says "access is active", so it can only be planned for customers whose grant was confirmed against their records. One message per customer per incident.
+- Undo is refused once customers have been told, and refuses to overwrite a record the merchant changed after the grant.
+- Closing needs every Exact-tier customer confirmed and the webhook healthy for 24 simulated hours (the clock is a demo control).
+
+Rejected: the Blade docs tool, because it wants to write Cursor rule files into the repo first. Props were read from the installed types instead, as the starter's rules say.
+
+Bugs found by tests, e2e or the live page:
+- Number check: replacing the amount first cut a short number out of a 12-digit UPI ref and flagged a valid message. Now longest value first.
+- Restored customers dropped out of the incident (85 became 81), because the 4 "server said OK" customers were only found while they lacked access. They now stay, as "restored by Blindspot".
+- The API's CORS only allowed port 5173, so a second web on 5174 could not read it.
+- After Undo the panel said "plan again" with no button.
+- Reloading a closed incident re-logged the same verification every time. Now logged only when the result changes.
+- Stale "Look at 5" timelines after the fix.
+
+Metrics: 71 backend tests, 10 Playwright tests, 23 eval gates, all passing. Hero A in about 4 seconds of automated clicking (limit 90).
+
+Deferred: refunds, recovery links, event re-sending (no executor); the full policy engine (R3); real WhatsApp or email sending (R6).
