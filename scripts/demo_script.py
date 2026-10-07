@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
 from app import clock, merchant_mock, service
-from app.act import autonomy, executor
+from app.act import autonomy, escalate, executor
 from app.conversation import machine
 from app.learning import loop as learning
 from app.main import _feedback, _review
@@ -119,6 +119,68 @@ def record_zone1(src: sqlite3.Connection) -> dict:
     return out
 
 
+def record_renewal(src: sqlite3.Connection) -> dict:
+    """INC-3 (Razorpay's side): keep access on in stages, undo, tell the customers, send the evidence pack, verify and close.
+    Frames are keyed by how far each step got. The hosted demo tells the customers only once access is on for all of them."""
+    iid = "INC-3"
+    out: dict = {"grant": {}, "detail": {}, "members": {}, "verify": {}, "escalation": {}, "messages": {"blocked": {}, "ready": {}, "previews": {}}, "revert": {}}
+
+    def phase(d, key: str, r: Rec) -> None:
+        out["detail"][key] = r.pack(service.detail(d, iid))
+        out["members"][key] = r.pack(service.members(d, iid))
+
+    d = _fresh(src)
+    r = Rec(d)
+    out["verify"]["none"] = r.pack(executor.verify(d, iid))
+    phase(d, "base", r)
+    out["escalation"]["drafted"] = r.pack(escalate.create(d, iid, "razorpay"))
+    out["escalation"]["sent_plain"] = r.pack(escalate.send(d, "esc_3_razorpay", FOUNDER))
+    d = _fresh(src)
+    r = Rec(d)
+    gid = executor.create(d, iid, "grant", {})
+    out["grant"]["drafted"] = r.pack(executor.get(d, gid))
+    out["verify"]["dry_run"] = Rec(_clone(d)).pack(executor.verify(_clone(d), iid))
+    for st in STAGES:
+        out["grant"][st] = r.pack(executor.approve(d, gid, st, FOUNDER))
+        if st == "dry_run":
+            continue
+        key = "first5" if st == "first_5" else "rest"
+        phase(d, key, r)
+        out["verify"][key] = Rec(_clone(d)).pack(executor.verify(_clone(d), iid))
+    closed = _clone(d)
+    out["verify"]["closed"] = Rec(closed).pack(executor.verify(closed, iid))
+    phase(closed, "closed", Rec(closed))
+    eid = escalate.create(d, iid, "razorpay").id
+    rr = Rec(d)
+    rr.last = max([e.id for e in service.audit_entries(d)] or [0])
+    out["escalation"]["sent_graced"] = rr.pack(escalate.send(d, eid, FOUNDER))  # only the send is new: the draft was shown before
+
+    for name, upto in (("first_5", 2), ("rest", 3)):  # undo is allowed until the customers have been told
+        dd = _fresh(src)
+        rr = Rec(dd)
+        g = executor.create(dd, iid, "grant", {})
+        for st in STAGES[:upto]:
+            executor.approve(dd, g, st, FOUNDER)
+        rr.last = max([e.id for e in service.audit_entries(dd)] or [0])
+        out["revert"][name] = rr.pack(executor.revert(dd, g))
+
+    d = _fresh(src)
+    r = Rec(d)
+    g = executor.create(d, iid, "grant", {})
+    for st in STAGES:
+        executor.approve(d, g, st, FOUNDER)
+    r.last = max([e.id for e in service.audit_entries(d)] or [0])
+    for lang in ("auto", "en", "hi_latn"):
+        mid = executor.create(d, iid, "message", {"language": lang})
+        out["messages"]["blocked"][lang] = r.pack(executor.get(d, mid))
+        out["messages"]["previews"][lang] = [p.model_dump(mode="json") for p in executor.message_previews(d, mid)]
+    _levels(d, messaging_enabled=True)
+    for lang in ("auto", "en", "hi_latn"):
+        out["messages"]["ready"][lang] = r.pack(executor.get(d, executor.create(d, iid, "message", {"language": lang})))
+    out["messages"]["stages"] = {st: r.pack(executor.approve(d, mid, st, FOUNDER)) for st in STAGES}
+    return out
+
+
 def record_learning(src: sqlite3.Connection) -> dict:
     """The learning screen: the founder calls an incident a false alarm, then runs the weekly review. One recording per incident, because what changes depends on
     which monitors raised it. Frames: the card before anything, after the feedback, and after the review, plus the settings in force."""
@@ -142,6 +204,7 @@ def record(world_path: Path) -> dict:
     src.row_factory = sqlite3.Row
     out: dict = {"note": "Replayed from a real run of the engine on the synthetic world. Nothing here is live.", "fix": {}, "chat": {}}
     out["zone1"] = record_zone1(src)
+    out["renewal"] = record_renewal(src)
     out["learning"] = record_learning(src)
 
     # ---- the fix: dry run, first 5, the rest, then messages, then verify and close ----

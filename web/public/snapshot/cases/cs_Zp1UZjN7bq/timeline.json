@@ -1,0 +1,23 @@
+{
+  "customer": [
+    {
+      "at": "2026-09-29T19:26:15+05:30",
+      "text": "Premium Monthly ka 299 ka auto renewal fail ho gaya aur ab course nahi khul raha. pay_AdvBqsoOUPDr1E",
+      "source_ref": "cmp_Zp1UZjN7bq"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-09-29T03:45:31+05:30",
+      "text": "Renewal of \u20b9299 failed: GATEWAY_ERROR",
+      "source_ref": "pay_AdvBqsoOUPDr1E"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-10-02T10:40:00+05:30",
+      "text": "Access record: expired",
+      "source_ref": "pay_AdvBqsoOUPDr1E"
+    }
+  ]
+}

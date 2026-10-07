@@ -14,6 +14,7 @@ import { Stat } from '../components/Stat'
 import { TimelineChart } from '../components/TimelineChart'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { OWNER, sentence, when } from '../lib/format'
+import RenewalView from './RenewalView'
 import Zone1View from './Zone1View'
 
 const TIERS = ['exact', 'likely', 'check', 'excluded'] as const
@@ -70,6 +71,7 @@ export default function Incident() {
   if (error) return <Text color="feedback.text.negative.intense">Could not load {id}: {error}</Text>
   if (!inc) return <Text color="surface.text.gray.muted">Loading</Text>
   if (inc.zone === 'before') return <Zone1View id={id} />
+  if (inc.mismatch_type === 'G') return <RenewalView id={id} />   // renewals that failed on Razorpay's side: no webhook to show
   const v = inc.verdict
   const rows = (members ?? []).filter((m) => m.tier === tier).map((m) => ({ ...m, id: m.payment_id }))
   const atAlert = inc.would_have_alerted_at && members ? members.filter((m) => m.captured_at <= inc.would_have_alerted_at!).length : null

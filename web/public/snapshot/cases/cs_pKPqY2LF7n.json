@@ -36,7 +36,7 @@
     {
       "payment_id": "pay_CMt9nNCeXyWTEL",
       "method": "fuzzy",
-      "calibrated_score": 0.17189819043851795,
+      "calibrated_score": 0.17125492321845442,
       "features": {
         "amount": 1.0,
         "time": 0.3,
@@ -51,7 +51,7 @@
     {
       "payment_id": "pay_fnWfuzA65YUl8r",
       "method": "fuzzy",
-      "calibrated_score": 0.17189819043851795,
+      "calibrated_score": 0.17125492321845442,
       "features": {
         "amount": 1.0,
         "time": 0.3,
@@ -66,7 +66,7 @@
     {
       "payment_id": "pay_h30Gq2tMYL5alp",
       "method": "fuzzy",
-      "calibrated_score": 0.17189819043851795,
+      "calibrated_score": 0.17125492321845442,
       "features": {
         "amount": 1.0,
         "time": 0.3,

@@ -6,7 +6,7 @@
   "technical_contact": "dev@kaksha.example",
   "entitlement_connector": {
     "mode": "csv",
-    "status": "792 access records loaded",
+    "status": "834 access records loaded",
     "updated_at": "2026-10-02T10:30:00+05:30"
   },
   "autonomy": "suggest"

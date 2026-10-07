@@ -22,18 +22,23 @@ def inr(paise: int) -> str:
 
 
 def slots_for(db: sqlite3.Connection, payment_id: str) -> dict:
-    r = db.execute("""SELECT p.amount_paise, p.captured_at, p.rrn, c.name, c.language_pref, m.name AS merchant,
+    r = db.execute("""SELECT p.amount_paise, p.captured_at, p.created_at, p.rrn, c.name, c.language_pref, m.name AS merchant,
                       COALESCE((SELECT pl.name FROM orders o JOIN plans pl ON pl.id = o.plan_id WHERE o.id = p.order_id),
                                (SELECT pl.name FROM subscriptions s JOIN plans pl ON pl.id = s.plan_id WHERE s.id = p.subscription_id), 'Premium Monthly') AS plan
                       FROM payments p JOIN customers c ON c.id = p.customer_id JOIN merchants m ON m.id = p.merchant_id WHERE p.id = ?""", (payment_id,)).fetchone()
-    d = datetime.fromisoformat(r["captured_at"])
-    return {"first_name": r["name"].split()[0], "merchant": r["merchant"].split(" (")[0], "amount": inr(r["amount_paise"]), "date": f"{d.day} {d:%b}",
-            "plan": r["plan"], "rrn": r["rrn"] or "", "_lang": r["language_pref"] if r["language_pref"] in LANGS else params.get(db, "message_variant")}
+    failed = r["captured_at"] is None  # a renewal that failed on Razorpay's side: the date is the failed attempt, and the message says how long access is kept
+    d = datetime.fromisoformat(r["captured_at"] or r["created_at"])
+    slots = {"first_name": r["name"].split()[0], "merchant": r["merchant"].split(" (")[0], "amount": inr(r["amount_paise"]), "date": f"{d.day} {d:%b}",
+             "plan": r["plan"], "rrn": r["rrn"] or "", "_lang": r["language_pref"] if r["language_pref"] in LANGS else params.get(db, "message_variant")}
+    if failed:
+        until = datetime.fromisoformat(db.execute("SELECT e.access_until FROM entitlements e JOIN payments p ON p.subscription_id = e.subscription_id WHERE p.id = ?", (payment_id,)).fetchone()[0])
+        slots["grace_until"] = f"{until.day} {until:%b}"
+    return slots
 
 
 def pick(complained: bool, slots: dict, language: str) -> tuple[str, str]:
     """Template id and language for one customer. 'auto' follows the customer's own language."""
-    return ("T-A2" if complained else "T-A1"), (slots["_lang"] if language == "auto" else language)
+    return ("T-G1" if "grace_until" in slots else "T-A2" if complained else "T-A1"), (slots["_lang"] if language == "auto" else language)
 
 
 def render(template_id: str, language: str, slots: dict) -> str:

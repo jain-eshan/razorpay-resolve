@@ -266,3 +266,63 @@ test('Learning: reporting a missed incident is a live-demo feature, and says so'
   await page.getByRole('button', { name: 'Orders dropped and nothing alerted' }).click()
   await expect(page.getByText(/works in the live demo/)).toBeVisible()
 })
+
+// ---------- INC-3: card renewals that failed on Razorpay's side. Not inferred, not the merchant's: keep access on, tell the customers, send the evidence ----------
+test('INC-3 plays end to end with no server: why it is Razorpay\'s, access kept in stages, customers told, evidence sent, closed', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByText(/Card renewals are failing with the same gateway error/)).toBeVisible()
+  await page.getByRole('button', { name: 'See what failed' }).click()
+  await expect(page).toHaveURL(/\/incidents\/INC-3$/)
+  await expect(page.getByText("This one is on Razorpay's side")).toBeVisible()
+  await expect(page.getByText(/Pointing at Razorpay: 6 pieces of evidence, 10 points/)).toBeVisible()
+  await expect(page.getByText(/We cannot see: Why the gateway returned the error/)).toBeVisible()
+  await expect(page.getByTestId('renewal-chart')).toBeVisible()
+  await expect(page.getByText(/Paid since/).first()).toBeVisible() // the customers who paid again are listed, with the reason, and left out
+
+  await btn(page, 'Plan the extension').click()
+  await expect(panel(page).getByText(/^24 customers, ₹7,176 of renewals/)).toBeVisible()
+  await btn(page, 'Looks right, continue').click()
+  await btn(page, 'Keep access on for the first 5').click()
+  await expect(panel(page).getByText('5 of 24', { exact: true })).toBeVisible()
+  await btn(page, 'Verify and close').click()
+  await expect(panel(page).getByText(/19 are still waiting for the next step/)).toBeVisible() // half done stays open
+  await expect(page.getByText('Still open')).toBeVisible()
+  await btn(page, /^Keep access on for the rest/).click()
+  await expect(panel(page).getByText('Done', { exact: true })).toBeVisible()
+
+  await btn(page, 'Preview the message').click()
+  await expect(panel(page).getByText(/not your card/).first()).toBeVisible()
+  await btn(page, 'Switch messaging on').click()
+  await btn(page, 'Looks right, continue').click()
+  await btn(page, 'Send the first 5').click()
+  await btn(page, 'Send the rest').click()
+  await expect(panel(page).getByText('Sent', { exact: true })).toBeVisible()
+  await expect(btn(page, 'Undo these changes')).toHaveCount(0) // once customers are told, the extension cannot be undone
+
+  await btn(page, 'Draft the evidence pack').click()
+  await expect(panel(page).getByText(/Reference MG-INC-3-/)).toBeVisible()
+  await expect(panel(page).getByText(/27 payments failed with GATEWAY_ERROR/)).toBeVisible()
+  await btn(page, 'Send to Razorpay').click()
+  await expect(panel(page).getByText(/Sent to Razorpay \(simulated\) as MG-INC-3-/)).toBeVisible()
+  await expect(panel(page).getByText(/Already tried: Kept access on for 24 customers/)).toBeVisible()
+
+  await btn(page, 'Verify and close').click()
+  await expect(page.getByTestId('success-moment')).toBeVisible()
+  await expect(panel(page).getByText(/24 of 24 confirmed to have access by your records/).first()).toBeVisible()
+
+  await page.getByRole('link', { name: 'Audit' }).click()
+  await expect(page.getByText(/Sent the evidence pack MG-INC-3-.* to Razorpay \(mock\) for 27 payments/).first()).toBeVisible()
+  await expect(page.getByText(/Approved first 5: 5 of 24 done and confirmed/).first()).toBeVisible()
+})
+
+test('INC-3: the extension can be undone before the customers are told, and planned again', async ({ page }) => {
+  await page.goto('/incidents/INC-3')
+  await btn(page, 'Plan the extension').click()
+  await btn(page, 'Looks right, continue').click()
+  await btn(page, 'Keep access on for the first 5').click()
+  await btn(page, 'Undo these changes').click()
+  await expect(panel(page).getByText(/Undone. Every record is back to how it was/)).toBeVisible()
+  await btn(page, 'Plan the extension').click()
+  await expect(panel(page).getByText('Waiting for you')).toBeVisible()
+})
+

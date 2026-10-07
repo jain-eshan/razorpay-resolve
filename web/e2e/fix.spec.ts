@@ -89,6 +89,29 @@ test('S-09 audit log shows who approved what', async ({ page }) => {
   await expect(page.getByText(/merchant:founder/).first()).toBeVisible()
 })
 
+// INC-3 against the real engine: access kept in stages (repeat approvals are covered in the engine tests and the eval), the pack drafted then sent only on approval, then closed.
+test('INC-3 live: grace in stages, the pack waits for the founder, and it closes', async ({ page }) => {
+  await page.goto('/incidents/INC-3')
+  await expect(page.getByText("This one is on Razorpay's side")).toBeVisible()
+  await btn(page, 'Plan the extension').click()
+  await expect(panel(page).getByText(/^24 customers, ₹7,176 of renewals/)).toBeVisible()
+  await btn(page, 'Looks right, continue').click()
+  await btn(page, 'Keep access on for the first 5').click()
+  await expect(panel(page).getByText('5 of 24', { exact: true })).toBeVisible()
+  await btn(page, /^Keep access on for the rest/).click()
+  await expect(panel(page).getByText('Done', { exact: true })).toBeVisible()
+
+  await btn(page, 'Draft the evidence pack').click()
+  await expect(panel(page).getByText(/Reference MG-INC-3-/)).toBeVisible()
+  await expect(panel(page).getByText(/Sent to Razorpay \(simulated\)/)).toHaveCount(0) // drafted, not sent
+  await btn(page, 'Send to Razorpay').click()
+  await expect(panel(page).getByText(/Sent to Razorpay \(simulated\) as MG-INC-3-/)).toBeVisible()
+
+  await btn(page, 'Verify and close').click()
+  await expect(page.getByTestId('success-moment')).toBeVisible()
+  await expect(panel(page).getByText(/24 of 24 confirmed to have access by your records/).first()).toBeVisible()
+})
+
 test('S-11 autonomy dial and limits are saved', async ({ page }) => {
   await page.goto('/settings')
   await expect(page.getByText('You approve every step: the dry run, the first 5, the rest, and every message.')).toBeVisible()

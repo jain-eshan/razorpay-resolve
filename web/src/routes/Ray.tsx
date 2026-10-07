@@ -7,11 +7,13 @@ import { when } from '../lib/format'
 export default function Ray() {
   const nav = useNavigate()
   const { data: incs, error } = useGet<Schemas['IncidentSummary'][]>('/api/incidents')
-  const inc = incs?.find((i) => i.zone === 'after')    // Hero A: paid, and no access
+  const inc = incs?.find((i) => i.id === 'INC-1') ?? incs?.find((i) => i.zone === 'after' && i.mismatch_type !== 'G')    // Hero A: paid, and no access
   const incB = incs?.find((i) => i.zone === 'before' && i.id === 'INC-4') ?? incs?.find((i) => i.zone === 'before')   // Hero B: could not pay at all
+  const incC = incs?.find((i) => i.mismatch_type === 'G')    // Razorpay's side: card renewals failed in its gateway
   const id = inc?.id
   const { data: card } = useGet<Schemas['RayCard']>(id ? `/api/incidents/${id}/ray_card` : null)
   const { data: cardB } = useGet<Schemas['RayCard']>(incB ? `/api/incidents/${incB.id}/ray_card` : null)
+  const { data: cardC } = useGet<Schemas['RayCard']>(incC ? `/api/incidents/${incC.id}/ray_card` : null)
   const { data: members } = useGet<Schemas['Member'][]>(id ? `/api/incidents/${id}/members` : null)
   const atAlert = inc?.would_have_alerted_at && members ? members.filter((m) => m.captured_at <= inc.would_have_alerted_at!).length : null
 
@@ -88,6 +90,39 @@ export default function Ray() {
                         <Box display="flex" gap="spacing.3">
                           <Button size="small" onClick={() => nav(`/incidents/${cardB.incident_id}`)}>{cardB.buttons[0]}</Button>
                           <Button size="small" variant="secondary" onClick={() => nav(`/incidents/${cardB.incident_id}/dev`)}>{cardB.buttons[1]}</Button>
+                        </Box>
+                      </Box>
+                    </CardBody>
+                  </Card>
+                </Box>
+              </>
+            )}
+
+            {incC && cardC && (
+              <>
+                <Box display="flex" flexDirection="column" gap="spacing.3">
+                  <Text size="small" color="surface.text.gray.muted">{when(incC.would_have_alerted_at ?? incC.onset_at)}, before anyone wrote</Text>
+                  <Card>
+                    <CardBody>
+                      <Box display="flex" flexDirection="column" gap="spacing.3">
+                        <Text size="small" weight="semibold" color="feedback.text.notice.intense">Heads up · {cardC.owner_chip}</Text>
+                        <Text>Card renewals are failing with the same gateway error, while UPI AutoPay renewals go through. Nothing changed on your side, so this looks like Razorpay's.</Text>
+                        <Text>I'll keep watching.</Text>
+                      </Box>
+                    </CardBody>
+                  </Card>
+                </Box>
+                <Box display="flex" flexDirection="column" gap="spacing.3">
+                  <Text size="small" color="surface.text.gray.muted">The picture so far</Text>
+                  <Card>
+                    <CardBody>
+                      <Box display="flex" flexDirection="column" gap="spacing.3">
+                        <Text size="small" weight="semibold" color="feedback.text.notice.intense">{cardC.owner_chip}</Text>
+                        <Text>{cardC.cause_line}</Text>
+                        <Text>{cardC.affected} renewals failed. {cardC.complained} customers wrote in, {cardC.silent} did not. {rupees(cardC.at_risk_paise)} still to collect.</Text>
+                        <Box display="flex" gap="spacing.3">
+                          <Button size="small" onClick={() => nav(`/incidents/${cardC.incident_id}`)}>{cardC.buttons[0]}</Button>
+                          <Button size="small" variant="secondary" onClick={() => nav(`/incidents/${cardC.incident_id}`)}>{cardC.buttons[1]}</Button>
                         </Box>
                       </Box>
                     </CardBody>

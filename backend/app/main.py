@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from . import audit as audit_log
 from . import clock, merchant_mock, service
 from . import fixtures as fx
-from .act import autonomy, executor
+from .act import autonomy, escalate, executor
 from .config import BS_NOW
 from .conversation import handover, machine
 from .db import ROOT, connect
@@ -53,6 +53,7 @@ from .schemas import (
     ReplyRequest,
     SampleTimeline,
     ScanResult,
+    SendEscalationRequest,
     Settings,
     ThreadDetail,
     ThreadStep,
@@ -232,9 +233,13 @@ def run_probe(): return _real(lambda db: _commit(db, z1.run_probe(db))) if _live
 @api.get("/clusters", response_model=list[Cluster])
 def clusters(window: str | None = None): return _real(z1.clusters) if _live() else [fx.CLUSTER]
 @api.post("/escalations", response_model=Escalation)
-def create_escalation(body: EscalationRequest): return fx.ESC1
+def create_escalation(body: EscalationRequest): return _real(lambda db: _commit(db, escalate.create(db, body.incident_id, body.target))) if _live() else fx.ESC1
+@api.get("/escalations", response_model=list[Escalation])
+def list_escalations(incident_id: str | None = None): return _real(escalate.for_incident, incident_id) if _live() else [fx.ESC1]
 @api.get("/escalations/{escalation_id}", response_model=Escalation)
-def get_escalation(escalation_id: str): return _get({"esc_001": fx.ESC1}, escalation_id)
+def get_escalation(escalation_id: str): return _real(escalate.get, escalation_id) if _live() else _get({"esc_001": fx.ESC1}, escalation_id)
+@api.post("/escalations/{escalation_id}/send", response_model=Escalation)
+def send_escalation(escalation_id: str, body: SendEscalationRequest): return _real(lambda db: _commit(db, escalate.send(db, escalation_id, f"merchant:{body.approver}"))) if _live() else fx.ESC1
 @api.post("/feedback", response_model=Ack)
 def feedback(body: FeedbackRequest): return _real(_feedback, body) if _live() else Ack()
 @api.get("/learning/weekly", response_model=LearningWeekly)

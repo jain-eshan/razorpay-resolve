@@ -4,6 +4,18 @@ A change to anything under `contracts/`, to `backend/app/schemas.py`, `backend/a
 `backend/app/conversation/templates.py`, the capability flags in `backend/app/config.py` or `synth/config.yaml` needs a pull request that
 updates `contracts/` (run `make contracts`), bumps the version below and adds an entry here. Streams do not edit these files directly.
 
+## contracts-v0.8 (7 Oct 2026, during R4 and R5, INC-3 and the escalation to Razorpay)
+
+Additive only. Existing paths and models are unchanged; every Hero A, Hero B and conversation number is unchanged (checked against the eval before and after).
+- New routes: `GET /api/escalations` (list, optional `incident_id`) and `POST /api/escalations/{id}/send` (the founder's approval, body `SendEscalationRequest { approver }`). `POST /api/escalations` and `GET /api/escalations/{id}` now do real work with `BS_SOURCE=pipeline` (they were placeholders). The snapshot manifest gains `escalations.json`.
+- `Escalation.updated_at` (optional). New model `SendEscalationRequest`. No SQL change: `escalations` was in v0.1.
+- A drafted pack is `status: drafted` and nothing leaves until the send call. Only an incident Blindspot has put on Razorpay's side (`owner: razorpay`, mismatch type `G`) can be escalated to Razorpay; any other is refused with 409. The pack holds payment ids, counts, error codes, hours and what was ruled out, never a customer's name, email, phone or message.
+- INC-3, the first Razorpay-owned incident. It is an `after` incident with `mismatch_type: G`, `inferred: false`, owner `razorpay` by attribution rule 8, confidence medium. `GET /api/incidents/INC-3` and its members, sample, trace, RAY card, evidence pack and replay read through `backend/app/renewal/read.py` because there is no webhook run to read. A "member" is a failed renewal (`payment_id` is the failed payment). `RayCard.buttons` for it are `See what failed` and `Send to Razorpay`.
+- The action type `grant` also covers INC-3: for a failed renewal it is a grace extension (access on for 3 days from now, never shortens access, undoable until the customers are told). The message template `T-G1` (already in v0.1) is now sent, one per customer whose access is confirmed. No new action type.
+- The day-0 scan counts customers who paid and have no access; renewals that never succeeded are added to the headline as a separate sentence and not to the customer count.
+- `synth/config.yaml` gains an `inc3` block (its own random stream, applied last, so no earlier number moves). Dates differ from SPEC 13.2 (Thu 1 Oct): the window is Tue 29 Sep 02:10 to 09:30, before the INC-1 deploy, because Thu 1 Oct falls inside the INC-1 outage and would turn ordinary renewals into INC-1 victims. Any ordinary card renewal inside the window is turned into a failure too (an outage does not skip customers).
+- Eval: 23 INC-3 and escalation gates and one reported figure. The eval now picks Hero A by name (`INC-1`) instead of "the earliest incident after the payment", and scores INC-3's complaints separately (they name a failed payment, which the exact-key matcher does not look up by design).
+
 ## contracts-v0.7 (7 Oct 2026, during R5, learning loop)
 
 Additive only. Existing paths and models are unchanged; every Hero A and Hero B number is unchanged (the hour-of-week baseline needs 3 weeks of history and the world has 2).

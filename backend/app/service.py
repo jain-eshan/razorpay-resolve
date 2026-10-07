@@ -11,6 +11,7 @@ from .detect.webhook import HANDLER, Run, run_from_json
 from .investigate.rules_fallback import build_pack
 from .match.keys import complaints_by_payment
 from .pipeline import pack_ref
+from .renewal import read as rn
 from .schemas import (
     AgentTrace,
     AuditEntry,
@@ -43,6 +44,11 @@ def _fmt(d: datetime) -> str:
     return f"{d:%a %d %b %H:%M}"
 
 
+def _renewal(row: sqlite3.Row) -> bool:
+    """INC-3 and any like it: renewals that failed on Razorpay's side. They have no webhook run, so they read through their own module."""
+    return row["mismatch_type"] == "G"
+
+
 def _row(db: sqlite3.Connection, incident_id: str) -> sqlite3.Row | None:
     return db.execute("SELECT * FROM incidents WHERE id = ?", (incident_id,)).fetchone()
 
@@ -70,6 +76,9 @@ def summaries(db: sqlite3.Connection) -> list[IncidentSummary]:
     for row in db.execute("SELECT * FROM incidents ORDER BY onset_at").fetchall():
         if row["zone"] == "before":
             out.append(z1.summary(db, row))
+            continue
+        if _renewal(row):
+            out.append(rn.summary(db, row))
             continue
         run, members, _ = _cohort(db, row)
         out.append(_summary(row, run, members, Verdict.model_validate_json(row["verdict_json"])))
@@ -132,6 +141,8 @@ def detail(db: sqlite3.Connection, incident_id: str) -> IncidentDetail | None:
         return None
     if row["zone"] == "before":
         return z1.detail(db, row)
+    if _renewal(row):
+        return rn.detail(db, row)
     run, members, disabled = _cohort(db, row)
     verdict = Verdict.model_validate_json(row["verdict_json"])
     verdict.affected_count = len(members)
@@ -146,6 +157,8 @@ def members(db: sqlite3.Connection, incident_id: str, tier: str | None = None) -
         return None
     if row["zone"] == "before":
         return z1.members(db, row, tier)
+    if _renewal(row):
+        return rn.members(db, row, tier)
     _, cohort, _ = _cohort(db, row)
     return [Member(payment_id=m.payment_id, customer_masked=m.customer_masked, amount_paise=m.amount_paise, captured_at=m.captured_at, plan=m.plan, complained=m.complained,
                    delivery_outcome=m.delivery_outcome, merchant_state=m.merchant_state, tier=m.tier, exclusion_reason=m.exclusion_reason, replay_eligibility=m.replay_eligibility)
@@ -158,6 +171,8 @@ def sample(db: sqlite3.Connection, incident_id: str) -> list[SampleTimeline] | N
         return None
     if row["zone"] == "before":
         return z1.sample(db, row)
+    if _renewal(row):
+        return rn.sample(db, row)
     _, cohort, disabled = _cohort(db, row)
     complaints = complaints_by_payment(db)
     picks, seen = [], set()
@@ -195,6 +210,8 @@ def ray_card(db: sqlite3.Connection, incident_id: str) -> RayCard | None:
     row = _row(db, incident_id)
     if row["zone"] == "before":
         return z1.ray_card(db, row)
+    if _renewal(row):
+        return rn.ray_card(db, row)
     run, _, disabled = _cohort(db, row)
     status = d.verdict.signature.get("status")
     line = f"Your server returned {status} to Razorpay from {_fmt(run.first_bad_at)}."
@@ -210,6 +227,8 @@ def evidence_pack(db: sqlite3.Connection, incident_id: str) -> EvidencePack | No
         return None
     if row["zone"] == "before":
         return z1.evidence_pack(db, row, pack_ref(incident_id))
+    if _renewal(row):
+        return rn.evidence_pack(db, row, pack_ref(incident_id))
     run, cohort, _ = _cohort(db, row)
     return build_pack(db, incident_id, run, Verdict.model_validate_json(row["verdict_json"]), cohort, pack_ref(incident_id))
 
@@ -220,6 +239,8 @@ def replay(db: sqlite3.Connection, incident_id: str) -> ReplaySummary | None:
         return None
     if row["zone"] == "before":
         return z1.detail(db, row).replay
+    if _renewal(row):
+        return rn.replay(incident_id)
     return _replay(incident_id, _cohort(db, row)[1])
 
 
@@ -227,7 +248,7 @@ def scan_day0(db: sqlite3.Connection, days: int = 30) -> ScanResult:
     incs = summaries(db)
     customers, paise = 0, 0
     for i in incs:
-        if i.zone == "before":
+        if i.zone == "before" or i.mismatch_type == "G":  # customers who paid and have no access: renewals that never succeeded are a different count
             continue
         cohort = _cohort(db, _row(db, i.id))[1]
         live = [m for m in cohort if m.tier != "excluded"]
@@ -237,6 +258,9 @@ def scan_day0(db: sqlite3.Connection, days: int = 30) -> ScanResult:
     before = [i for i in incs if i.zone == "before"]
     if before:
         head += f" Before the payment, {len(before)} more times customers could not pay, about {sum(i.affected for i in before)} lost orders."
+    renewals = [i for i in incs if i.mismatch_type == "G"]
+    if renewals:
+        head += f" On Razorpay's side, {sum(i.affected for i in renewals)} card renewals failed with a gateway error."
     return ScanResult(days=days, headline=head, leaked_customers=customers, leaked_paise=paise, incidents=incs)
 
 
@@ -281,7 +305,8 @@ def case_lanes(db: sqlite3.Connection, case_id: str) -> ThreeLane | None:
     rz, mer = [], []
     for pid in json.loads(r["matched_payment_ids"] or "[]")[:1]:
         p = db.execute("SELECT * FROM payments WHERE id = ?", (pid,)).fetchone()
-        rz.append(LaneEvent(at=datetime.fromisoformat(p["captured_at"]), text=f"Payment of {rupees_text(p['amount_paise'])} captured", source_ref=pid))
+        rz.append(LaneEvent(at=datetime.fromisoformat(p["captured_at"] or p["created_at"]), source_ref=pid,
+                            text=f"Payment of {rupees_text(p['amount_paise'])} captured" if p["captured_at"] else f"Renewal of {rupees_text(p['amount_paise'])} failed: {p['error_code']}"))
         att = db.execute("SELECT d.attempted_at, d.http_status FROM webhook_deliveries d JOIN webhook_events e ON e.id = d.event_id WHERE e.payment_id = ? ORDER BY d.attempted_at", (pid,)).fetchall()
         if att:
             rz.append(LaneEvent(at=datetime.fromisoformat(att[0]["attempted_at"]), text=f"{len(att)} webhook attempts, first answered {att[0]['http_status']}", source_ref=pid))

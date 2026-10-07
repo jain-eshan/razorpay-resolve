@@ -19,6 +19,7 @@ WEBHOOK_MODES = ("ok", "401", "500", "ack_then_fail")  # same names as merchant_
 HEALTHY_HOURS = 24  # FR-VE-2: the webhook must answer 2xx for this long before an incident can close
 GRANT_SOURCE = "make_good_grant"
 PLAN_DAYS = {"monthly": 30, "annual": 365}
+GRACE_DAYS = 3  # a grace extension for a renewal that failed on Razorpay's side: access on for this long from now (proposed to the merchant, never a revoke)
 PAGE_MODES = ("ok", "404", "key_mismatch")  # the pay page: fine, route not found, or the page loads and checkout will not open
 PAGE_HEALTHY_HOURS = 2  # the pay page must answer normally this long before recovery links go out and the incident can close
 
@@ -38,6 +39,9 @@ def check(db: sqlite3.Connection, payment_id: str) -> dict:
     """What the merchant's own record says now: the answer to 'does this customer have access?'"""
     p = _payment(db, payment_id)
     ent = _ent(db, p)
+    if p["status"] == "failed":  # a failed renewal: access is on when the record is active and runs past now (a grace extension, or a later renewal)
+        live = ent is not None and ent["entitlement_state"] == "active" and bool(ent["access_until"]) and ent["access_until"] > clock.now().isoformat()
+        return {"payment_id": payment_id, "entitlement_state": ent["entitlement_state"] if ent else "no record", "access_until": ent["access_until"] if ent else None, "has_access": live}
     return {"payment_id": payment_id, "entitlement_state": ent["entitlement_state"] if ent else "no record",
             "access_until": ent["access_until"] if ent else None, "has_access": ent is not None and mismatch(p, ent) is None}
 
@@ -56,6 +60,23 @@ def grant(db: sqlite3.Connection, payment_id: str) -> dict:
         until = max(filter(None, [until, (datetime.fromisoformat(p["captured_at"]) + timedelta(days=days)).isoformat()]))
     db.execute("UPDATE entitlements SET entitlement_state = 'active', access_until = ?, updated_at = ?, source = ? WHERE id = ?",
                (until, clock.now().isoformat(), GRANT_SOURCE, ent["id"]))
+    return prior
+
+
+def extend_grace(db: sqlite3.Connection, payment_id: str) -> dict:
+    """Keep access on for GRACE_DAYS for a customer whose renewal failed on Razorpay's side. Never shortens access: a customer who is already
+    covered past that date is refused. Returns the prior state, which is what undo needs."""
+    p = _payment(db, payment_id)
+    if p["status"] != "failed" or not p["is_renewal"]:
+        raise MockError(f"{payment_id} is not a failed renewal, so a grace extension does not apply.")
+    ent = _ent(db, p)
+    if ent is None:
+        raise MockError(f"No access record exists for {payment_id}, so there is nothing to extend. Add one, then try again.")
+    until = (clock.now() + timedelta(days=GRACE_DAYS)).isoformat()
+    if ent["entitlement_state"] == "active" and ent["access_until"] and ent["access_until"] >= until:
+        raise MockError(f"Your records already show access past the grace date for {payment_id}.")
+    prior = {k: ent[k] for k in ("id", "entitlement_state", "access_until", "updated_at", "source")}
+    db.execute("UPDATE entitlements SET entitlement_state = 'active', access_until = ?, updated_at = ?, source = ? WHERE id = ?", (until, clock.now().isoformat(), GRANT_SOURCE, ent["id"]))
     return prior
 
 

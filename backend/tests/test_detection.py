@@ -68,7 +68,7 @@ def test_extract_keys():
 
 # ---- the pipeline on a freshly generated world ----
 def test_pipeline_finds_exactly_the_injected_incident(world):
-    rows = world.execute("SELECT * FROM incidents WHERE zone = 'after'").fetchall()
+    rows = world.execute("SELECT * FROM incidents WHERE zone = 'after' AND mismatch_type != 'G'").fetchall()  # webhook incidents; INC-3 (renewals) has its own tests
     assert len(rows) == 1 and rows[0]["owner"] == "merchant_code" and rows[0]["owner_rule_id"] == 1
     assert rows[0]["cause_code"] == "WEBHOOK_ENDPOINT_401_AFTER_DEPLOY"
 
@@ -93,7 +93,7 @@ def test_pipeline_is_idempotent(world):
 
     before = world.execute("SELECT count(*) FROM incident_members").fetchone()[0]
     pipeline.run(world)
-    assert world.execute("SELECT count(*) FROM incidents").fetchone()[0] == 3
+    assert world.execute("SELECT count(*) FROM incidents").fetchone()[0] == 4
     assert world.execute("SELECT count(*) FROM incident_members").fetchone()[0] == before
 
 

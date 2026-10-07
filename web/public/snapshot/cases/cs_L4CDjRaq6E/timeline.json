@@ -1,0 +1,23 @@
+{
+  "customer": [
+    {
+      "at": "2026-09-30T07:38:34+05:30",
+      "text": "bhai parso ko Premium Monthly ka 299 ka renewal nahi hua par maine kuch galat nahi kiya, access band ho gaya. ref pay_JQpbHTHBUYdoBh",
+      "source_ref": "cmp_L4CDjRaq6E"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-09-29T04:20:46+05:30",
+      "text": "Renewal of \u20b9299 failed: GATEWAY_ERROR",
+      "source_ref": "pay_JQpbHTHBUYdoBh"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-10-02T10:40:00+05:30",
+      "text": "Access record: expired",
+      "source_ref": "pay_JQpbHTHBUYdoBh"
+    }
+  ]
+}

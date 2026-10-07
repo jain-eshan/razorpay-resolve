@@ -10,6 +10,7 @@ from pathlib import Path
 import yaml
 
 from .handovers import build_handovers
+from .renewals import apply as add_renewals
 from .threads import build_threads
 from .world import build
 from .zone1 import apply as add_zone1
@@ -31,6 +32,7 @@ def generate(out: Path, seed: int | None = None) -> dict:
     counts.update(add_zone1(cfg, dbs["world.db"], dbs["truth.db"], out))
     counts["threads"] = build_threads(dbs["world.db"], dbs["truth.db"], out, cfg["seed"])
     counts["handover_scripts"] = build_handovers(dbs["world.db"], dbs["truth.db"], out, cfg["seed"])
+    counts.update(add_renewals(cfg, dbs["world.db"], dbs["truth.db"], out))  # last, so nothing earlier moves
     for d in dbs.values():
         d.close()
     return counts

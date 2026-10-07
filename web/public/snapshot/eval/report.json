@@ -394,7 +394,7 @@
     },
     {
       "name": "fuzzy_top1_recall_suggestions_only",
-      "value": 0.4,
+      "value": 0.395,
       "target": "reported",
       "status": "report"
     },
@@ -534,6 +534,150 @@
       "name": "zone1_incident_closes_only_after_two_healthy_hours",
       "value": 1.0,
       "target": "1.0",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_incident_found",
+      "value": 1.0,
+      "target": "1.0 (INC-3 within two buckets)",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_onset_error_minutes",
+      "value": 0.0,
+      "target": "<= 60",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_cause_and_owner_correct",
+      "value": 1.0,
+      "target": "1.0",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_minutes_from_start_to_alert",
+      "value": 85.3833,
+      "target": "reported (needs 5 failures in a row to raise anything)",
+      "status": "report"
+    },
+    {
+      "name": "renewal_incidents_not_in_ground_truth",
+      "value": 0.0,
+      "target": "0 (no false renewal alarm over the fortnight)",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_fix_precision",
+      "value": 1.0,
+      "target": ">= 0.98",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_fix_recall",
+      "value": 1.0,
+      "target": ">= 0.98",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_members_not_in_ground_truth",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_paid_again_left_out",
+      "value": 0.0,
+      "target": "0 (customers who paid again are not in the fix)",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_complaints_joined_to_the_incident",
+      "value": 1.0,
+      "target": "1.0",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_grace_for_customers_not_owed",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_customers_covered",
+      "value": 1.0,
+      "target": ">= 0.98",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_changes_made_by_repeat_approvals",
+      "value": 0.0,
+      "target": "0 (idempotency)",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_paid_again_customers_touched",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_records_not_back_after_undo",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_messages_planned_before_access_is_kept",
+      "value": 0.0,
+      "target": "0 (nobody is told before it is true)",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_messages_with_a_number_not_from_the_record",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_customers_messaged_twice",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_closes_only_when_cards_work_again",
+      "value": 1.0,
+      "target": "1.0",
+      "status": "pass"
+    },
+    {
+      "name": "escalation_sent_without_the_founders_approval",
+      "value": 0.0,
+      "target": "0 (drafted until the founder sends)",
+      "status": "pass"
+    },
+    {
+      "name": "escalation_pack_payments_match_ground_truth",
+      "value": 1.0,
+      "target": "1.0",
+      "status": "pass"
+    },
+    {
+      "name": "escalation_pack_customer_details",
+      "value": 0.0,
+      "target": "0 (payment ids and counts only)",
+      "status": "pass"
+    },
+    {
+      "name": "escalation_of_a_merchant_side_incident_refused",
+      "value": 1.0,
+      "target": "1.0 (only what is Razorpay's goes to Razorpay)",
+      "status": "pass"
+    },
+    {
+      "name": "escalation_messages_sent_to_customers",
+      "value": 0.0,
+      "target": "0",
       "status": "pass"
     }
   ],

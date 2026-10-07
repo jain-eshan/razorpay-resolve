@@ -83,7 +83,7 @@
     },
     {
       "bucket_start": "2026-09-29T02:00:00+05:30",
-      "ok": 1,
+      "ok": 3,
       "client_error": 0,
       "server_error": 0,
       "not_attempted": 0,
@@ -91,7 +91,7 @@
     },
     {
       "bucket_start": "2026-09-29T03:00:00+05:30",
-      "ok": 1,
+      "ok": 0,
       "client_error": 0,
       "server_error": 0,
       "not_attempted": 0,
@@ -99,7 +99,7 @@
     },
     {
       "bucket_start": "2026-09-29T04:00:00+05:30",
-      "ok": 0,
+      "ok": 3,
       "client_error": 0,
       "server_error": 0,
       "not_attempted": 0,
@@ -107,7 +107,7 @@
     },
     {
       "bucket_start": "2026-09-29T05:00:00+05:30",
-      "ok": 1,
+      "ok": 2,
       "client_error": 0,
       "server_error": 0,
       "not_attempted": 0,
@@ -115,7 +115,7 @@
     },
     {
       "bucket_start": "2026-09-29T06:00:00+05:30",
-      "ok": 0,
+      "ok": 2,
       "client_error": 0,
       "server_error": 0,
       "not_attempted": 0,
@@ -131,7 +131,7 @@
     },
     {
       "bucket_start": "2026-09-29T08:00:00+05:30",
-      "ok": 2,
+      "ok": 3,
       "client_error": 0,
       "server_error": 0,
       "not_attempted": 0,
@@ -139,7 +139,7 @@
     },
     {
       "bucket_start": "2026-09-29T09:00:00+05:30",
-      "ok": 0,
+      "ok": 1,
       "client_error": 0,
       "server_error": 0,
       "not_attempted": 0,
@@ -147,7 +147,7 @@
     },
     {
       "bucket_start": "2026-09-29T10:00:00+05:30",
-      "ok": 1,
+      "ok": 4,
       "client_error": 0,
       "server_error": 0,
       "not_attempted": 0,
@@ -155,7 +155,7 @@
     },
     {
       "bucket_start": "2026-09-29T11:00:00+05:30",
-      "ok": 1,
+      "ok": 7,
       "client_error": 0,
       "server_error": 0,
       "not_attempted": 0,
@@ -607,21 +607,21 @@
       "dimension": "method",
       "value": "upi",
       "share_affected": 0.7647,
-      "share_baseline": 0.7127,
+      "share_baseline": 0.7031,
       "lift": 1.1
     },
     {
       "dimension": "method",
       "value": "card",
       "share_affected": 0.2118,
-      "share_baseline": 0.24,
-      "lift": 0.9
+      "share_baseline": 0.2526,
+      "lift": 0.8
     },
     {
       "dimension": "method",
       "value": "netbanking",
       "share_affected": 0.0235,
-      "share_baseline": 0.0473,
+      "share_baseline": 0.0444,
       "lift": 0.5
     },
     {
@@ -635,29 +635,29 @@
       "dimension": "app_version",
       "value": "android-3.4.0",
       "share_affected": 0.2824,
-      "share_baseline": 0.3236,
+      "share_baseline": 0.3038,
       "lift": 0.9
     },
     {
       "dimension": "app_version",
       "value": "none",
       "share_affected": 0.0706,
-      "share_baseline": 0.1018,
-      "lift": 0.7
+      "share_baseline": 0.157,
+      "lift": 0.4
     },
     {
       "dimension": "kind",
       "value": "one-time",
       "share_affected": 0.9294,
-      "share_baseline": 0.8982,
-      "lift": 1.0
+      "share_baseline": 0.843,
+      "lift": 1.1
     },
     {
       "dimension": "kind",
       "value": "renewal",
       "share_affected": 0.0706,
-      "share_baseline": 0.1018,
-      "lift": 0.7
+      "share_baseline": 0.157,
+      "lift": 0.4
     }
   ],
   "tier_counts": {
