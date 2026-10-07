@@ -1,12 +1,10 @@
-import { forwardRef, useState, type ComponentProps, type ReactNode } from 'react'
+import { forwardRef, useEffect, useState, type ComponentProps, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 import {
-  ActivityIcon, AtSignIcon, Avatar, Badge, BellIcon, Box, ChevronDownIcon, ClipboardIcon, CreditCardIcon, FileIcon, FileTextIcon, FlaskIcon, HomeIcon, IconButton, LinkIcon, MenuIcon, RadioIcon, RayIcon, RazorpayIcon, RepeatIcon, SearchIcon, SearchInput, SettingsIcon, SideNav, SideNavBody, SideNavFooter, SideNavLink, SideNavSection, Switch, TabNav, TabNavItem, TabNavItems, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent, TrendingUpIcon, UsersIcon, WalletIcon,
-  useTheme,
+  ActivityIcon, AtSignIcon, Avatar, Badge, BellIcon, Box, ChevronDownIcon, ClipboardIcon, CreditCardIcon, Drawer, DrawerBody, DrawerHeader, FileIcon, FileTextIcon, FlaskIcon, HomeIcon, IconButton, LinkIcon, MenuIcon, RadioIcon, RayIcon, RazorpayIcon, RepeatIcon, SearchIcon, SearchInput, SettingsIcon, SideNav, SideNavBody, SideNavFooter, SideNavLink, SideNavSection, Switch, TabNav, TabNavItem, TabNavItems, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent, TrendingUpIcon, UsersIcon, useTheme, WalletIcon,
   type IconComponent,
 } from '@razorpay/blade/components'
-import { useBreakpoint } from '@razorpay/blade/utils'
 
 // The shell copies the live Razorpay dashboard (web/DESIGN.md section 14). Everything Razorpay already ships is shown but inert: greyed, not clickable.
 // Blindspot is one more product tab and two more nav sections. To add a screen, add an item to BLINDSPOT or PROOF below.
@@ -37,6 +35,13 @@ const InertItem = styled(forwardRef<HTMLSpanElement, { children?: ReactNode; cla
   cursor: not-allowed;
 `
 
+// SideNav hides its collapsed-nav extras (the line after a section title, the short "+11" button) with a rule on its own container. The phone menu is not inside SideNav, so it needs the same rule.
+// Blade's Box drops className, hence a plain wrapper. `display: contents` keeps it out of the layout.
+const HideCollapsedExtras = styled.div`
+  display: contents;
+  .show-when-collapsed { display: none; }
+`
+
 // Production's product tabs. Blindspot is the only live one.
 const TABS: ComponentProps<typeof TabNav>['items'] = [
   { title: 'Payments', icon: CreditCardIcon, as: InertItem },
@@ -51,11 +56,36 @@ const noop = () => {}
 export function Shell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
+  // The phone menu must not outlive the phone layout: widening the window past `m` closes it, as SideNav's own phone mode did.
   const { theme } = useTheme()
-  const isPhone = useBreakpoint({ breakpoints: theme.breakpoints }).matchedDeviceType === 'mobile'
-  const on = (to: string) => (to === '/' ? pathname === '/' : pathname.startsWith(to))
+  useEffect(() => {
+    const wide = window.matchMedia(`(min-width: ${theme.breakpoints.m}px)`)
+    const close = (e: MediaQueryListEvent) => { if (e.matches) setOpen(false) }
+    wide.addEventListener('change', close)
+    return () => wide.removeEventListener('change', close)
+  }, [theme.breakpoints.m])
+  const on =(to: string) => (to === '/' ? pathname === '/' : pathname.startsWith(to))
   const link = (i: Item) => <SideNavLink key={i.to} title={i.title} icon={i.icon} href={i.to} isActive={on(i.to)} as={Link} onClick={() => setOpen(false)} />
   const inert = (title: string, icon: IconComponent) => <SideNavLink key={title} title={title} icon={icon} as={InertItem} />
+  // One set of items, shown by the desktop SideNav (hidden below `m`) and by the phone menu below.
+  // The phone menu is a plain Blade Drawer, not SideNav's own phone mode: that mode (SideNav given `onDismiss`) keeps two modal drawers mounted even while closed. Their focus managers hide the whole page from assistive technology, and fight over Tab when the menu is open. A Drawer mounts only while open.
+  const nav = (
+    <>
+      <SideNavBody>
+        <SideNavSection>{CORE.map(([t, i]) => inert(t, i))}</SideNavSection>
+        <SideNavSection title="BLINDSPOT">{BLINDSPOT.map(link)}</SideNavSection>
+        <SideNavSection title="PROOF AND CONTROL">{PROOF.map(link)}</SideNavSection>
+        <SideNavSection title="PAYMENT PRODUCTS" maxVisibleItems={3}>{PAYMENT_PRODUCTS.map((t) => inert(t, PRODUCT_ICONS[t] ?? LinkIcon))}</SideNavSection>
+      </SideNavBody>
+      <SideNavFooter>
+        <Box display="flex" alignItems="center" justifyContent="space-between" paddingX="spacing.4" paddingY="spacing.3" opacity={0.5}>
+          <Box display="flex" alignItems="center" gap="spacing.4"><FlaskIcon size="medium" /><Text>Test Mode</Text></Box>
+          <Switch accessibilityLabel="Test mode" isChecked isDisabled />
+        </Box>
+        {inert('Account & Settings', SettingsIcon)}
+      </SideNavFooter>
+    </>
+  )
   return (
     <Box display="flex" flexDirection="column" height="100vh">
       <TopNav>
@@ -92,24 +122,17 @@ export function Shell({ children }: { children: ReactNode }) {
         </TopNavActions>
       </TopNav>
       <Box display="flex" flex="1" minHeight="0px">
-        {/* At phone width Blade's SideNav keeps a second Drawer mounted even when closed (isLazy: false). Its focus manager sets aria-hidden on everything outside it, so the whole page vanishes from assistive technology and role queries. On a phone the nav is mounted only while the menu is open. */}
-        {(!isPhone || open) && <SideNav isOpen={open} onDismiss={() => setOpen(false)} position="relative">
-          <SideNavBody>
-            <SideNavSection>{CORE.map(([t, i]) => inert(t, i))}</SideNavSection>
-            <SideNavSection title="BLINDSPOT">{BLINDSPOT.map(link)}</SideNavSection>
-            <SideNavSection title="PROOF AND CONTROL">{PROOF.map(link)}</SideNavSection>
-            <SideNavSection title="PAYMENT PRODUCTS" maxVisibleItems={3}>{PAYMENT_PRODUCTS.map((t) => inert(t, PRODUCT_ICONS[t] ?? LinkIcon))}</SideNavSection>
-          </SideNavBody>
-          <SideNavFooter>
-            <Box display="flex" alignItems="center" justifyContent="space-between" paddingX="spacing.4" paddingY="spacing.3" opacity={0.5}>
-              <Box display="flex" alignItems="center" gap="spacing.4"><FlaskIcon size="medium" /><Text>Test Mode</Text></Box>
-              <Switch accessibilityLabel="Test mode" isChecked isDisabled />
-            </Box>
-            {inert('Account & Settings', SettingsIcon)}
-          </SideNavFooter>
-        </SideNav>}
+        <SideNav position="relative">{nav}</SideNav>
         {children}
       </Box>
+      <Drawer isOpen={open} onDismiss={() => setOpen(false)} accessibilityLabel="Main menu">
+        <DrawerHeader title="Main Menu" />
+        <DrawerBody>
+          <HideCollapsedExtras>
+            <Box display="flex" flexDirection="column" justifyContent="space-between" height="100%">{nav}</Box>
+          </HideCollapsedExtras>
+        </DrawerBody>
+      </Drawer>
     </Box>
   )
 }
