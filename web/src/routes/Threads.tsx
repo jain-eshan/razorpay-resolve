@@ -5,6 +5,7 @@ import { ThreadView } from '../components/ThreadView'
 import { isLive, useGet, type Schemas } from '../lib/api'
 import { demoNote } from '../lib/demo'
 import { CHANNEL, sentence, when } from '../lib/format'
+import { PageHeader } from '../components/PageHeader'
 
 const DEMOS = [['/chat-demo', 'Talk to it on WhatsApp'], ['/help-demo/receipt', 'Tap help on a receipt'], ['/email-demo', 'Write to it by email']] as const
 
@@ -17,10 +18,7 @@ export function Threads() {
   void setV
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7">
-      <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="xlarge">Conversations</Heading>
-        <Text color="surface.text.gray.muted">Customers who wrote to your payment help. The agent finds their payment, says what your records show, and hands over when a person is needed.</Text>
-      </Box>
+      <PageHeader title="Conversations" description="Customers who wrote to your payment help. The agent finds their payment, says what your records show, and hands over when a person is needed." guide="conversations" />
       {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Conversations appear here once you start one from the buttons below.`} />}
       <Box display="flex" gap="spacing.4" flexWrap="wrap">
         {DEMOS.map(([to, label]) => <Button key={to} variant="secondary" onClick={() => nav(to)}>{label}</Button>)}

@@ -361,3 +361,161 @@ Read from the logged-in test-mode dashboard (home, Transactions, a payment detai
 **What we did with it.** `web/src/App.tsx` uses Blade `TopNav` and `SideNav`. `components/Panel.tsx` is the header-band card (the fix steps, evidence, replay, customers and settings all use it), `Stat.tsx` the small stat card, `Crumbs.tsx` the breadcrumb. The incident page follows the payment detail page: summary card, stat cards, a Details-style main column and a sticky Timeline (`StepGroup`) on the right. The incident list, scan, audit log and eval checks use Blade `Table`.
 
 Blade gotchas found while building it: `Card` accepts only `CardHeader`, `CardBody` and `CardFooter` as direct children; `InfoItemValue` does not style plain strings, so wrap values in `Text`; `SideNav` is `position: fixed` with `height: 100%`, so a `top` offset pushes its bottom (and the Settings link) off screen; pass `position="relative"` and put it beside the content in a flex row instead. Put the links straight inside `SideNavBody`: `SideNavLevel` adds a 56px left margin meant for the second-level menu. Blade also assumes `box-sizing: border-box` everywhere (`index.html` sets it), otherwise `TopNav` is wider than the window and clips the avatar; `SideNavLink as={Link}` receives React Router's `to`, not `href`; `TableRow onClick` is not a dependable way to navigate, so put a real link in the row.
+
+---
+
+## 14. The product is an addition to the Razorpay dashboard
+
+Blindspot is not a separate app with its own look. A merchant should feel it was always part of the dashboard they already use. Everything Razorpay already ships stays exactly as it is in production. Blindspot is added next to it.
+
+Source of truth for the shell: `src/components/Shell.tsx`. Read it before touching navigation.
+
+**Top bar** (Blade `TopNav`, black, 56px)
+- Left: the Razorpay logo and the word Razorpay. Never the product name.
+- Product tabs, in production's order: Payments, then **Blindspot** (our tab, active, with a green `BETA` badge in `titleSuffix`), then Banking+, Payroll, More. Production tabs are shown and inert.
+- Right: search field (xl screens and up), activity icon, announcements icon, avatar. All inert except the avatar.
+- Below the `m` breakpoint the tabs and search are hidden and a menu button opens the side nav drawer.
+
+**Side nav** (Blade `SideNav`, in this order)
+1. Home, Transactions, Settlements, Reports: production, inert.
+2. `BLINDSPOT` section: Ray, Incidents, Conversations, Channels, Day-0 scan. Ours, live.
+3. `PROOF AND CONTROL` section: Audit log, How we know, Settings. Ours, live.
+4. `PAYMENT PRODUCTS` section: Payment Links, Payment Pages, Razorpay.me Link, then "+11 More" (`maxVisibleItems={3}`). Production, inert.
+5. Footer: Test Mode switch (on, inert) and Account & Settings (inert).
+
+**Inert means greyed, not hidden.** Anything that exists in production but not in this prototype is drawn at half opacity with a not-allowed cursor and cannot be clicked. It tells the viewer "this is the real dashboard" without sending them to a dead page. Do not remove these items and do not make them navigate. Use `InertItem` in `Shell.tsx`.
+
+**Adding a screen.** Add one entry to `BLINDSPOT` or `PROOF` in `Shell.tsx` and one `<Route>` in `App.tsx`. Do not add a new top-bar tab and do not edit the production items.
+
+**How a new Razorpay product sits in the dashboard** (observed 7 Oct 2026 on Agent Studio, which is the closest precedent): a side nav item with a green `Beta` pill, and a product home with page-level tabs on the left (Home, My Agents, Connectors) and a `Beta` pill on the right. The home has a hero carousel, an "Explore" heading with filter chips, then a grid of cards: a small icon and name at the top, one bold sentence, a divider, then a footer row with a chevron. Our Ray home follows the same order (section 16).
+
+**Blade gotcha.** `TabNav` unmounts tabs that overflow and then crashes when their size updates are still queued ("Cannot read properties of undefined (reading 'width')"). `Shell.tsx` therefore renders all five tabs on every render and ignores the `items` argument. Keep it that way.
+
+---
+
+## 15. Page templates
+
+Every screen is one of these. Pick one before you write any layout code.
+
+**All pages**
+- Content sits on `surface.background.gray.moderate` (#F7F7F7), inside a column at most 1120px wide, padding `spacing.5` on mobile and `spacing.7` from `m`. This lives in `App.tsx`. Do not set your own.
+- Start with `<PageHeader title description guide actions />` (`components/PageHeader.tsx`). It gives the 24-32px heading, one muted line, an optional "How it works" button that opens the product guide, and room for actions on the right. Do not write your own heading block.
+- Vertical rhythm: `spacing.6` between blocks on data pages, `spacing.7` on pages with explainers, `spacing.9` between major sections of a home page.
+- Cards are white, radius 12, padding 24, with Blade's own border and shadow. Never draw a card from a `Box` with a border. Use `Card`, or `Panel` (`components/Panel.tsx`) for a card with a grey header band.
+
+**List page** (Incidents, Conversations, Audit log): PageHeader, optional stat cards, then a `Panel` containing a Blade `Table`. Rows are 48px, cells have 12px side padding, a second line under a value is 12px muted. The row's identifying text is a real link. Status goes in a `Badge`.
+
+**Detail page** (Incident): breadcrumb or a "Go back" link, one summary card (status tile, headline, status pill), then two columns: Details cards on the left, a sticky Timeline on the right, one call to action at the bottom of the timeline.
+
+**Settings page**: one `Panel` per topic, label above value, the control on the right, one Save button at the end. Read-only snapshots say so in an `Alert`.
+
+**Home page** (Ray): Ray hero, setup card, Explore cards, then supporting content (section 16).
+
+**Agent answer**: section 17.
+
+**Buttons.** One primary (blue) per view, or per card when each card is its own decision. Everything else is secondary. "Back", "Skip", "Cancel" are tertiary. Primary buttons that move forward carry a right arrow. Sizes: `medium` in cards and tables, `large` for the single main action on a page or a guide.
+
+**Status colours.** Green positive, orange notice, red negative, grey neutral, always through `Badge` or `feedback.*` tokens. Overdue and failed text is red, never bold red on a red background.
+
+**Numbers.** Rupees with Indian grouping through `rupees()` in `lib/api.ts`. Counts are plain integers. A figure that the agent states must come from the data, not from a model.
+
+**Loading, empty and error.** Loading is a muted one-line text or a Blade skeleton that matches the final size, never a spinner next to a skeleton. Empty says what is missing and what to do. Error names the cause and the next step.
+
+---
+
+## 16. Guides, onboarding and the Ray home
+
+**Product guide** (`routes/GuidePage.tsx`, content in `lib/guides.ts`). Copied from Razorpay's Smart Collect and Checkout Rewards guides.
+- Slide 1: a tinted panel on the left with the product icon, on the right the small word "Razorpay", the product name, one paragraph, a primary "Read more" button.
+- Slide 2: "What makes X great?" and three cards (icon, bold title, one muted sentence), then a tertiary "Back" and a primary "Get started".
+- Below the card: a link "Skip and get started". Dots under the carousel.
+- Open one from a page with `<PageHeader guide="incidents" />` or from an Explore card on the home.
+- To add a guide, add an entry to `GUIDES`. Every sentence must be true of the product today. No invented percentages.
+
+**First-run setup** (`routes/Setup.tsx`). Copied from Razorpay's merchant onboarding.
+- Left card: "Setup:" and the product name, then a vertical `StepGroup` (done is green, current is blue, later is grey).
+- Right card: a Back link, a large heading, one muted line, the one question for this step, a full-width blue Continue at the bottom, a small muted note under it.
+- One question per screen. Three steps at most.
+- It never asks for a password, PAN, OTP, card number or any other credential. The recording of Razorpay's onboarding asks for those; ours does not. This is a hard rule from SPEC section 0.
+- Progress is remembered in the browser only (`lib/setup.ts`), because settings are read-only in the demo.
+
+**Ray home** (`routes/Home.tsx`). From Razorpay's Ray home.
+- Hero on a soft tinted panel: "Hello, {name}" in muted text, then the Ray glyph in AI green beside "What can I do for you today?", then the Blade `ChatInput`, then four topic buttons.
+- Under it: the setup card ("Set up Blindspot in 3 easy steps", a `0/3 COMPLETED` badge, a blue button), then "Explore Blindspot" cards, then the WhatsApp preview.
+- Asking a question turns the page into a conversation (section 17).
+
+**Help bubble.** Razorpay's upload screens show a small blue question pill ("What is a Power of Attorney document?") that opens a short answer card. Use the same for any field a merchant may not understand. Not built yet.
+
+---
+
+## 17. The agentic journey: how an agent answers
+
+Observed 7 Oct 2026 in Razorpay's own agents (Payout, Receivables, Bookkeeping, Insights, Reporting). Our agent answers the same way. Component: `components/AgentAnswer.tsx`; Blindspot's answers: `components/RayAnswers.tsx`.
+
+**The journey, in order**
+1. **Ask.** The merchant types a request or taps a suggestion. Their message appears as a white bubble, right-aligned.
+2. **Analyse.** The agent answers on the left with no bubble. A bold title that leads with the number ("₹1,91,000 pending"), then one muted line starting "I've analysed..." that says what it looked at and how it ordered the result.
+3. **Show the evidence as cards.** White cards, one per item. Groups are separated by a centred divider with a small-caps coloured label ("URGENT · OVERDUE >14 DAYS" in red, "DUE SOON" in orange, "UPCOMING" in green). Inside a card: name, a status pill, a muted reference line, the amount right-aligned over a small-caps label (AMOUNT), the actions on the far right. Detail cards use small-caps section labels (AMOUNT, BANK DETAILS, ATTACHED DOCUMENTS), label left and value right.
+4. **Propose the action.** The most urgent card has the one blue button ("Auto-Call", "Approve Payment"). Every other card has secondary buttons only ("View Details", "Review Invoice"). Nothing that moves money or messages people happens without that click.
+5. **Confirm.** A success card in a light green tint with a green check, the result in green ("Synced with Tally"), and the reference in monospace ("Voucher #PV-2026-0303-01"), followed by a details card.
+6. **Offer the next step.** A divider, the Ray glyph and "How can I help you next?", then numbered options as plain rows ("1. Call TechCorp now").
+7. **Stay available.** The input ("Ask Ray anything related to Razorpay...") stays pinned at the bottom of the page on a faint gradient. A hamburger and a "+" (new chat) sit in a thin rail on the left.
+
+**Mapping to Blindspot.** Detect (Day-0 scan, incidents) is step 2. Whose side and who is affected is step 3. Fix in stages with approval is step 4. Verify and close is step 5. The next-step list is step 6. Today the Ray home runs steps 1 to 3 and 6; the fix flow lives on the incident page.
+
+**Rules**
+- The title states the number. The sentence under it says what was analysed. No filler greeting.
+- Group by urgency, biggest first, and say how you grouped.
+- Exactly one primary action per answer, on the card that needs it most.
+- Every figure comes from the data. Ray's chat on the home is a router plus read-only answers, not a language model.
+- Success is calm green, not confetti. Save RazorSense motion for the heroes in DESIGN.md section 8.
+
+**The full journey, step by step** (from Razorpay's Agentic Business Banking demo, screen recording of 7 Oct 2026, banking agent: pay an overdue vendor, then book it in Tally). This is the longest agent flow we have seen and the model for our fix flow.
+
+1. **Start from a suggestion.** The previous answer ends with numbered next steps ("1. Tell me which vendors to pay"). Tapping one is the same as typing it.
+2. **"Analyzing".** Before any answer appears, the Ray glyph in green turns beside the green word "Analyzing". Then the answer streams in: the title first, then the line under it. No spinner, no blank wait.
+3. **Answer with one recommended action.** "Vendor Invoice Analysis - 4 Overdue: ₹4,00,000", one line on how it was prioritised, then a 2 by 2 grid of cards. Each card: name and a small status tag (Critical in red), one reason line, the amount large, a due line. Only the critical card has a blue button ("Pay Now"). The others carry advice in plain coloured text ("Pay within 2 days", "Safe to delay", "Can wait 5 days"). Nothing else to click.
+4. **Every click becomes a message.** Pressing "Pay Now" puts "Pay SpreadWorks now" into the thread as the merchant's own bubble, then the agent answers. The thread is the record of what the merchant decided. Buttons never act silently.
+5. **Review before the act.** The next answer is the full detail card (amount, due date, bank details with the account masked, attached documents) with two buttons: blue "Approve Payment" and secondary "Review Invoice".
+6. **Verify a human for money.** "Approve Payment" becomes another bubble, then a "Confirm Payment" card: "Enter OTP sent to xxxxxx7890", "Paying ₹20,000 to SpreadWorks", six boxes, "Resend OTP". Our fix flow has no OTP. Its equivalent is the staged approval (dry run, first 5, the rest), shown the same way: a card, then one explicit approve.
+7. **Success, with proof.** Green check, "Payment Successful!", "₹20,000 paid to SpreadWorks", an UPDATED BALANCE line, and a small table (Amount Paid, Ref #, To, Time). For us: customers restored, how many were checked against the records, and the audit entry.
+8. **Chain the next job.** The agent does not stop at success. It says what it can now do ("SpreadWorks is already mapped to SaaS Subscriptions on Tally... ready to create the payment entry") with one blue button ("Sync with Tally"). For us: after access is restored, "Message the 17 customers who complained".
+9. **Close the loop.** The last answer is a calm green card ("Synced with Tally", voucher number in monospace) and a details table. Under any agent text there is a small feedback row: thumbs up, thumbs down, copy, share.
+10. **Voice.** The same journey also runs by phone: the agent calls a vendor on the merchant's behalf ("Call to TechCorp Solutions initiated... I will notify you once the call is done and share a full summary"). Out of scope for us, but the pattern holds: say it started, say when you will report back.
+
+**What to take for Blindspot.** Thread as record (each click is a bubble). One primary button per answer. Calm "Analyzing" instead of spinners. Review card, then explicit approve, then proof, then the next job. Money and customer messages always sit behind an approval step.
+
+---
+
+## 18. Source of truth when documents disagree
+
+A third-party style summary circulated on 7 Oct (name "Razorpay", brand Dodger Blue `#0d94fb`, Prussian Blue `#012652`, font Muli, radius 4px, success `#04db7c`) does not match what the dashboard and Blade actually ship. Measured production values and Blade's own source win:
+
+| Thing | Third-party summary | What ships (use this) |
+|---|---|---|
+| Primary blue | `#0d94fb` | `#1364F1` (azure.500), hover `#0E54CD` |
+| Sidebar | Prussian Blue column | White side nav, grey fill on the active item; the top bar is black |
+| Font | Muli | Inter for UI, TASA Orbiter for headings |
+| Radius | 4px | 8px buttons and inputs, 12px cards, 16px chat |
+| Success | `#04db7c` | `#008F47` solid, `#00753B` text |
+
+Where the summary is right and useful: status pills with a soft tinted fill, thin 1px lines, tooltips on a deep navy background, monospace for IDs and amounts in code-like contexts, a three-level shadow system. These are already in Blade.
+
+Figma references given by Eshan: Blade Design System (community) and Organising Design Systems (community). They describe the same tokens as the installed `@razorpay/blade` 12.127.0. When Figma and the installed package differ, the installed package wins because that is what renders.
+
+---
+
+## 19. Checklist before you open a pull request
+
+Run through this for every screen you add or change.
+
+1. Does it use `Shell` and the page container, with no navigation or layout of its own?
+2. Does it start with `PageHeader`, and is it one of the templates in section 15?
+3. Blade components and tokens only? No hex, no pixel padding, no `style=` where a token exists. (`grep -rn "#[0-9a-fA-F]\{3,8\}" src --include='*.tsx'` should find nothing.)
+4. One blue primary button per view or card? Blue only on things the user does, green only on Ray and success?
+5. Copy: leads with the number, sentence case, names the cause and the next step, no em dashes, no "Oops".
+6. Amounts in rupees with Indian grouping, every figure from the data?
+7. Does it ask a customer or merchant for a credential anywhere? It must not.
+8. Production items still inert, none removed, none made clickable?
+9. Looks right at 1440px and at a phone width (the side nav becomes a drawer, grids stack)?
+10. `npx tsc -b`, `npx oxlint` and the snapshot e2e tests pass?

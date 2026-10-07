@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from 'react'
-import { Alert, Badge, Box, Button, Heading, SegmentedControl, SegmentedControlItem, Switch, Text, TextInput } from '@razorpay/blade/components'
+import { Alert, Badge, Box, Button, SegmentedControl, SegmentedControlItem, Switch, Text, TextInput } from '@razorpay/blade/components'
 import { Panel } from '../components/Panel'
 import { isLive, rupees, send, useGet, type Schemas } from '../lib/api'
+import { PageHeader } from '../components/PageHeader'
 
 type Settings = Schemas['Settings']
 
@@ -54,10 +55,7 @@ export default function SettingsPage() {
 
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7" testID="settings">
-      <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="xlarge">Settings</Heading>
-        <Text color="surface.text.gray.muted">How much Blindspot does without asking, and the limits it stays inside.</Text>
-      </Box>
+      <PageHeader title="Settings" description="How much Blindspot does without asking, and the limits it stays inside." />
       {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Read-only snapshot" description="Settings cannot be changed in this demo." />}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="Not saved" description={error} />}
 

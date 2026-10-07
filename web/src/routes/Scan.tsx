@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom'
-import { AlertTriangleIcon, Alert, Badge, Box, CheckCircleIcon, Heading, Link, RupeeIcon, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
+import { AlertTriangleIcon, Alert, Badge, Box, CheckCircleIcon, Link, RupeeIcon, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
 import { Panel } from '../components/Panel'
 import { Stat } from '../components/Stat'
 import { rupees, useGet, type Schemas } from '../lib/api'
+import { PageHeader } from '../components/PageHeader'
 
 // Day 0: the first thing a merchant sees on connecting. It finds money that is already stuck.
 export default function Scan() {
@@ -12,15 +13,15 @@ export default function Scan() {
   if (!data) return <Text color="surface.text.gray.muted">Scanning</Text>
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <Heading size="xlarge">Here is what I found</Heading>
+      <PageHeader title="Day-0 scan" description="Here is what I found." guide="scan" />
       <Alert isFullWidth color={data.leaked_customers ? 'notice' : 'positive'} isDismissible={false} title={data.headline} description="Checked against Razorpay's records and your access records. Nothing has been changed." />
-      <Box display="grid" gridTemplateColumns={{ base: '1fr', m: 'repeat(3, 1fr)' }} gap="spacing.5">
+      <Box display="grid" gridTemplateColumns={{ base: '1fr', m: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
         <Stat label="Customers without access" value={String(data.leaked_customers)} icon={AlertTriangleIcon} tone="notice" />
         <Stat label="Paid and not restored" value={rupees(data.leaked_paise)} icon={RupeeIcon} />
         <Stat label="Incidents" value={String(data.incidents.length)} icon={CheckCircleIcon} />
       </Box>
       <Panel title="Incidents behind it" pad={false}>
-        <Table data={{ nodes: data.incidents }} gridTemplateColumns="3fr 1fr 1fr" isHeaderSticky={false}>
+        <Table data={{ nodes: data.incidents }} gridTemplateColumns="minmax(300px, 3fr) minmax(100px, 1fr) minmax(100px, 1fr)" isHeaderSticky={false}>
           {(rows) => (
             <>
               <TableHeader>

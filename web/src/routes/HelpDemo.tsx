@@ -24,13 +24,13 @@ export default function HelpDemo() {
   const [tid, setTid] = useState<string>()
   const pay = isLive ? (members?.find((m) => m.tier === 'exact' && !m.complained) ?? members?.[0]) : members?.find((m) => m.payment_id === demoPay)
   return (
-    <Box display="flex" flexDirection="column" gap="spacing.7" alignItems="center">
+    <Box display="flex" flexDirection="column" gap="spacing.7">
       <Box display="flex" gap="spacing.5" flexWrap="wrap">
         {Object.keys(SURFACES).map((k) => <Link key={k} to={`/help-demo/${k}`} style={{ textDecoration: 'none', fontWeight: k === surface ? 600 : 400 }}><Text color="interactive.text.primary.normal">{k.replace('-', ' ')}</Text></Link>)}
       </Box>
       {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={demoNote} />}
       <Card><CardBody>
-        <Box display="flex" flexDirection="column" gap="spacing.4" maxWidth="420px">
+        <Box display="flex" flexDirection="column" gap="spacing.4">
           <Text size="small" color="surface.text.gray.muted">razorpay · simulated page</Text>
           <Heading size="large">{s.title}</Heading>
           <Text>{s.body}</Text>
@@ -39,7 +39,7 @@ export default function HelpDemo() {
         </Box>
       </CardBody></Card>
       {open && pay && (
-        <Box display="flex" flexDirection="column" gap="spacing.4" alignItems="center">
+        <Box display="flex" flexDirection="column" gap="spacing.4">
           <CustomerChat channel="help_button" who="+919800012399" title="Kaksha payment help" context={{ payment_id: pay.payment_id, surface }} onThread={setTid} placeholder="You do not need to look anything up. This page already knows the payment." />
           {tid && <Link to={`/threads/${tid}`}><Text size="small" color="interactive.text.primary.normal">See it as the founder</Text></Link>}
         </Box>

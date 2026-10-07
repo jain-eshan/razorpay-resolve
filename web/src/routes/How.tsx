@@ -1,7 +1,8 @@
-import { Badge, Box, Heading, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
+import { Badge, Box, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
 import { Panel } from '../components/Panel'
 import { useGet, type Schemas } from '../lib/api'
 import { sentence } from '../lib/format'
+import { PageHeader } from '../components/PageHeader'
 
 const TONE = { pass: 'positive', fail: 'negative', report: 'neutral', 'n/a': 'neutral' } as const
 
@@ -13,14 +14,9 @@ export default function How() {
   const gates = data.metrics.filter((m) => m.status === 'pass' || m.status === 'fail')
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="xlarge">How we know it works</Heading>
-        <Text color="surface.text.gray.muted">
-          Synthetic world, seed {data.seed}. The pipeline never sees the ground truth. This world is clean, so near-perfect scores are expected here. Harder cases arrive in later releases.
-        </Text>
-      </Box>
+      <PageHeader title="How we know it works" description={`Synthetic world, seed ${data.seed}. The pipeline never sees the ground truth. This world is clean, so near-perfect scores are expected here. Harder cases arrive in later releases.`} />
       <Panel title="Checks against ground truth" pad={false} trailing={<Badge size="medium" color={gates.every((g) => g.status === 'pass') ? 'positive' : 'negative'}>{`${gates.filter((g) => g.status === 'pass').length} of ${gates.length} gates pass`}</Badge>}>
-        <Table data={{ nodes: data.metrics.map((m) => ({ ...m, id: m.name })) }} gridTemplateColumns="3fr 1fr 3fr 0.9fr" isHeaderSticky={false}>
+        <Table data={{ nodes: data.metrics.map((m) => ({ ...m, id: m.name })) }} gridTemplateColumns="minmax(300px, 3fr) minmax(100px, 1fr) minmax(300px, 3fr) minmax(90px, 0.9fr)" isHeaderSticky={false}>
           {(rows) => (
             <>
               <TableHeader>

@@ -1,9 +1,10 @@
 import { useParams } from 'react-router-dom'
-import { Alert, Box, Button, Card, CardBody, Heading, Text } from '@razorpay/blade/components'
+import { Alert, Box, Button, Card, CardBody, Text } from '@razorpay/blade/components'
 import { Crumbs } from '../components/Crumbs'
 import { Panel } from '../components/Panel'
 import { useGet, type Schemas } from '../lib/api'
 import { OWNER, when } from '../lib/format'
+import { PageHeader } from '../components/PageHeader'
 
 function download(name: string, type: string, body: string) {
   const a = document.createElement('a')
@@ -28,10 +29,7 @@ export default function Dev() {
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7" testID="dev-handoff">
       <Crumbs items={[{ label: 'Incidents', to: '/incidents' }, { label: id, to: `/incidents/${id}` }, { label: 'For your developer', to: `/incidents/${id}/dev` }]} />
-      <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="xlarge">For your developer</Heading>
-        <Text color="surface.text.gray.muted">Reference {pack.ref}. Read-only. Opening this page changes nothing.</Text>
-      </Box>
+      <PageHeader title="For your developer" description={`Reference ${pack.ref}. Read-only. Opening this page changes nothing.`} />
 
       <Alert isFullWidth color="notice" isDismissible={false} title={OWNER[inc.owner]} description={inc.title} />
 
