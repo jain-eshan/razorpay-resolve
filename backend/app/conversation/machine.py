@@ -43,7 +43,8 @@ LEGAL = re.compile(r"charge\s?back|consumer court|legal|lawyer|police|\bfir\b|om
 OPEN = ("opened", "triage", "identify", "lookup", "matched", "explain", "wait_for_fix", "not_found")
 CLAIM_LABEL = {"debited_no_access": "paid but has no access", "debited_no_order": "was charged but the order did not go through", "charged_twice": "was charged twice",
                "refund_not_received": "has not received a refund", "charged_after_cancel": "was charged after cancelling", "renewal_failed": "renewal failed",
-               "payment_failed": "payment failed", "other": "something about payments"}
+               "payment_failed": "payment failed", "page_error": "the pay page did not open", "checkout_not_opening": "checkout would not open",
+               "other": "something about payments"}
 CONVERSATIONAL = ("help_button", "whatsapp_payments", "email")
 
 

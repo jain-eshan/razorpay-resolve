@@ -173,8 +173,13 @@ def test_extraction_sees_only_tokens_never_the_identifiers():
     assert "839966257732" not in x.model_dump_json() and "9876543210" not in x.model_dump_json()
 
 
+def hero_a_complaints(db):
+    """The complaints that carry a payment reference. Before-the-payment complaints (R4) have none."""
+    return [c for c in db.execute("SELECT * FROM complaints ORDER BY received_at").fetchall() if any(extract_keys(c["raw_text"]).values())]
+
+
 def test_the_world_complaints_all_extract_as_paid_but_no_access(world):
-    rows = world.execute("SELECT * FROM complaints").fetchall()
+    rows = hero_a_complaints(world)
     assert len(rows) == 17
     for c in rows:
         x = extract(redact(c["raw_text"]), datetime.fromisoformat(c["received_at"]))
@@ -187,6 +192,7 @@ def test_the_world_complaints_all_extract_as_paid_but_no_access(world):
 import random
 
 from app.match import lookup as mt
+from app.match.keys import extract_keys
 
 from synth.messages import complaint_text
 
@@ -197,7 +203,7 @@ def match(db, text, received=RX):
 
 
 def test_every_world_complaint_matches_one_payment_by_an_exact_key(world):
-    for c in world.execute("SELECT * FROM complaints").fetchall():
+    for c in hero_a_complaints(world):
         res = match(world, c["raw_text"], datetime.fromisoformat(c["received_at"]))
         assert res.status == "matched" and len(res.exact) == 1, c["raw_text"]
         assert res.exact[0].method in ("exact_payment_id", "exact_rrn") and res.exact[0].score >= 0.97

@@ -58,5 +58,34 @@ merchant_events:
   - {id: me_deploy_279, kind: deploy, label: "web v2.7.9: search fix", at: "2026-09-26T12:30:00"}
   - {id: me_deploy_280, kind: deploy, label: "web v2.8.0: auth middleware on /api/*", at: "2026-09-29T14:20:00"}
   - {id: me_fix_281, kind: config_change, label: "web v2.8.1: webhook route excluded from session auth, webhook re-enabled", at: "2026-10-01T11:05:00"}
+  - {id: me_key_rotate, kind: config_change, label: "Razorpay key rotated, checkout still has the old key", at: "2026-09-28T10:58:00"}
+  - {id: me_deploy_282, kind: deploy, label: "web v2.8.2: route rename /buy to /checkout", at: "2026-10-01T20:08:00"}
 downtime:
   - {id: dt_1, method: upi, issuer: Sahyadri Bank, started_at: "2026-09-27T19:00:00", ended_at: "2026-09-27T19:20:00", severity: high}
+# ---- R4 Zone 1, problems before the payment (contracts-v0.5, additive). Two incidents and five look-alikes that must not alert. ----
+# INC-4 is still broken at the snapshot so the founder can watch the fix land. Dates differ from SPEC 13.2 so the 24 hour WhatsApp window is still open.
+zone1:
+  pay_url: "https://kaksha.example/buy"
+  probe_every_minutes: 5
+  probe_flake_rate: 0.002          # a single failed check now and then. Two in a row are needed to raise anything.
+  inc4:                            # ad links return 404 after a route rename
+    onset: "2026-10-01T20:08:00"
+    suppress_share: 0.75           # share of visitors who never get as far as creating an order
+    pay_trouble_complaints: 12
+    content_questions: 2
+    channels: {whatsapp_payments: 7, email: 4, ig_dm: 3}   # across all 14 messages
+    paid_since: 1                  # one complainer got through another way
+  inc5:                            # key rotated: the page loads, checkout will not open
+    onset: "2026-09-28T11:00:00"
+    end: "2026-09-28T12:30:00"
+    extra_orders: 11               # ad spend sends more visitors than usual
+    complaints: 4
+  n1: {start: "2026-09-27T03:00:00", end: "2026-09-27T05:00:00"}                                   # a quiet Sunday night
+  n2: {start: "2026-09-22T18:00:00", end: "2026-09-22T20:00:00", drop_share: 0.30}                 # an ordinary evening dip
+  n3: {start: "2026-09-23T19:00:00", end: "2026-09-23T19:45:00", complaints: 5}                    # questions about the course, not about paying
+  n4: {start: "2026-09-27T19:00:00", end: "2026-09-27T19:20:00", failed_customers: 5, complaints: 4}   # a bank outage: real failed payments
+  n5: {start: "2026-09-26T17:00:00", end: "2026-09-26T21:00:00", extra_orders_per_hour: 12, complaints: 4}   # a sale: more orders, a few failed payments
+  recovery:                        # how simulated customers behave once a link arrives (synthetic, labelled)
+    pay_with_link: 0.55
+    pay_without_link: 0.10
+    max_delay_hours: 36

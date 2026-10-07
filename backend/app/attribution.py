@@ -1,5 +1,7 @@
 """Whose side is it (F-32). The decision table from v1 section 11.6, evaluated top to bottom, first match wins.
-Rows 8a to 8c (inferred before-payment causes) arrive in R4. The deciding row id is always stored with the verdict."""
+Rows 8a to 8c (inferred before-payment causes, R4) sit just before row 10 and are stored as 81, 82 and 83 because the stored id is an integer.
+Bank outages that explain a cluster of complaints use row 7: the complaint spike monitor routes them before any Zone 1 incident exists.
+The deciding row id is always stored with the verdict."""
 from collections import Counter
 from dataclasses import dataclass, field
 
@@ -16,6 +18,11 @@ class Evidence:
     failures_inside_downtime_window: bool = False
     error_source: str | None = None
     single_gateway_code_unexplained: bool = False
+    zone1_confidence: str | None = None                          # high | medium when Zone 1 inference built an incident
+    probe_failure: bool = False                                  # the pay page failed its checks
+    route_change_event: bool = False                             # a deploy that renamed, moved or redirected something, just before onset
+    zero_attempt_orders: bool = False                            # orders were created and nobody tried to pay
+    one_channel_only: bool = False                               # the only evidence is complaints, from a single channel
 
 
 @dataclass
@@ -45,4 +52,10 @@ def attribute(ev: Evidence) -> Attribution:
         return Attribution("razorpay", 8, "One gateway error across methods that downtime does not explain")
     if ev.error_source == "customer":
         return Attribution("customer", 9, "The customer cancelled or could not complete the payment")
+    if ev.zone1_confidence in ("high", "medium") and (ev.probe_failure or ev.route_change_event):
+        return Attribution("merchant_code", 81, "Your pay page failed its checks, or a change to your pages went live just before it started (inferred)")
+    if ev.zone1_confidence and ev.zero_attempt_orders and not ev.probe_failure:
+        return Attribution("merchant_config", 82, "Orders were created and nobody could pay for them, while the page itself loads (inferred)")
+    if ev.zone1_confidence and ev.one_channel_only:
+        return Attribution("unknown", 83, "Customers say they cannot pay, but nothing else points to a cause yet (inferred)")
     return Attribution("unknown", 10, "None of the known patterns matched")

@@ -68,17 +68,17 @@ def test_extract_keys():
 
 # ---- the pipeline on a freshly generated world ----
 def test_pipeline_finds_exactly_the_injected_incident(world):
-    rows = world.execute("SELECT * FROM incidents").fetchall()
+    rows = world.execute("SELECT * FROM incidents WHERE zone = 'after'").fetchall()
     assert len(rows) == 1 and rows[0]["owner"] == "merchant_code" and rows[0]["owner_rule_id"] == 1
     assert rows[0]["cause_code"] == "WEBHOOK_ENDPOINT_401_AFTER_DEPLOY"
 
 
 def test_alert_is_early_and_cohort_has_every_tier_and_reason(world):
-    sig = json.loads(world.execute("SELECT signature FROM incidents").fetchone()[0])
+    sig = json.loads(world.execute("SELECT signature FROM incidents WHERE id = 'INC-1'").fetchone()[0])
     deploy = datetime.fromisoformat("2026-09-29T14:20:00+05:30")
     assert (datetime.fromisoformat(sig["alert_at"]) - deploy).total_seconds() < 2 * 3600
     assert sig["events_before_alert"] == 1
-    tiers = {(r[0], r[1]) for r in world.execute("SELECT tier, exclusion_reason FROM incident_members")}
+    tiers = {(r[0], r[1]) for r in world.execute("SELECT tier, exclusion_reason FROM incident_members WHERE incident_id = 'INC-1'")}
     assert ("exact", None) in tiers and ("excluded", "refunded") in tiers and ("excluded", "already active (manual grant)") in tiers
 
 
@@ -93,14 +93,14 @@ def test_pipeline_is_idempotent(world):
 
     before = world.execute("SELECT count(*) FROM incident_members").fetchone()[0]
     pipeline.run(world)
-    assert world.execute("SELECT count(*) FROM incidents").fetchone()[0] == 1
+    assert world.execute("SELECT count(*) FROM incidents").fetchone()[0] == 3
     assert world.execute("SELECT count(*) FROM incident_members").fetchone()[0] == before
 
 
 def test_service_numbers_add_up(world):
     from app import service
 
-    inc = service.summaries(world)[0]
+    inc = next(i for i in service.summaries(world) if i.id == "INC-1")
     assert inc.complained + inc.silent == inc.affected
     d = service.detail(world, "INC-1")
     assert sum(d.tier_counts.values()) == inc.affected

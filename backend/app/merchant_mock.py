@@ -19,6 +19,8 @@ WEBHOOK_MODES = ("ok", "401", "500", "ack_then_fail")  # same names as merchant_
 HEALTHY_HOURS = 24  # FR-VE-2: the webhook must answer 2xx for this long before an incident can close
 GRANT_SOURCE = "make_good_grant"
 PLAN_DAYS = {"monthly": 30, "annual": 365}
+PAGE_MODES = ("ok", "404", "key_mismatch")  # the pay page: fine, route not found, or the page loads and checkout will not open
+PAGE_HEALTHY_HOURS = 2  # the pay page must answer normally this long before recovery links go out and the incident can close
 
 
 class MockError(Exception):
@@ -89,6 +91,33 @@ def health(db: sqlite3.Connection) -> dict:
             "signal_healthy": mode == "ok" and hours >= HEALTHY_HOURS}
 
 
+# ---------- the merchant's pay page (Zone 1, R4) ----------
+def pay_page(db: sqlite3.Connection) -> dict:
+    """What a visitor, or the pay-URL probe, gets from the merchant's pay page right now."""
+    mode = _setting(db, "mock.page_mode") or "404"  # the INC-4 world starts broken
+    return {"ok": {"status": 200, "load_ms": 180, "checkout_script_present": True, "note": None},
+            "404": {"status": 404, "load_ms": 120, "checkout_script_present": False, "note": "Route not found"},
+            "key_mismatch": {"status": 200, "load_ms": 210, "checkout_script_present": True, "note": "Page loads, checkout does not open"}}[mode] | {"mode": mode}
+
+
+def set_page_mode(db: sqlite3.Connection, mode: str) -> dict:
+    """Demo control: the merchant's developer fixes (or breaks) the pay page. Records when it started answering normally."""
+    if mode not in PAGE_MODES:
+        raise MockError(f"Unknown mode {mode}. Use one of {', '.join(PAGE_MODES)}.")
+    ok_since = clock.now().isoformat() if mode == "ok" and _setting(db, "mock.page_mode") != "ok" else _setting(db, "mock.page_ok_since")
+    db.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('mock.page_mode', ?)", (mode,))
+    db.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('mock.page_ok_since', ?)", (ok_since if mode == "ok" else "",))
+    return page_health(db)
+
+
+def page_health(db: sqlite3.Connection) -> dict:
+    mode = _setting(db, "mock.page_mode") or "404"
+    since = _setting(db, "mock.page_ok_since") or None
+    hours = (clock.now() - datetime.fromisoformat(since)).total_seconds() / 3600 if mode == "ok" and since else 0.0
+    return {"page_mode": mode, "page_status": pay_page(db)["status"], "page_ok_since": since if mode == "ok" else None, "healthy_hours": round(max(hours, 0.0), 1),
+            "signal_healthy": mode == "ok" and hours >= PAGE_HEALTHY_HOURS}
+
+
 # ---------- HTTP face of the mock, mounted at /merchant-mock (not part of the frozen /api contract) ----------
 app = FastAPI(title="Merchant mock")
 
@@ -122,6 +151,17 @@ def get_check(payment_id: str): return _run(check, payment_id)
 def post_grant(body: GrantBody): return {"prior": _run(grant, body.razorpay_payment_id)}
 @app.post("/webhook-mode")
 def post_mode(body: ModeBody): return _run(set_webhook_mode, body.mode)
+@app.get("/pay-page")
+def get_pay_page():
+    """The probe target. Answers the way the pay page mode says."""
+    page = _run(pay_page)
+    if page["status"] >= 400:
+        raise HTTPException(page["status"], page["note"])
+    return page
+@app.get("/page-health")
+def get_page_health(): return _run(page_health)
+@app.post("/page-mode")
+def post_page_mode(body: ModeBody): return _run(set_page_mode, body.mode)
 
 
 @app.post("/webhook")

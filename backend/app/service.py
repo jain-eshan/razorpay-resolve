@@ -33,6 +33,7 @@ from .schemas import (
 )
 from .widen.silent import Member as Cohort
 from .widen.silent import build_cohort
+from .zone1 import read as z1
 
 OWNER_CHIP = {"merchant_code": "YOUR SIDE · Code", "merchant_config": "YOUR SIDE · Setup", "razorpay": "RAZORPAY SIDE", "bank": "BANK SIDE",
               "customer": "CUSTOMER SIDE", "unknown": "NOT SURE YET"}
@@ -67,6 +68,9 @@ def _summary(row: sqlite3.Row, run: Run, members: list[Cohort], verdict: Verdict
 def summaries(db: sqlite3.Connection) -> list[IncidentSummary]:
     out = []
     for row in db.execute("SELECT * FROM incidents ORDER BY onset_at").fetchall():
+        if row["zone"] == "before":
+            out.append(z1.summary(db, row))
+            continue
         run, members, _ = _cohort(db, row)
         out.append(_summary(row, run, members, Verdict.model_validate_json(row["verdict_json"])))
     return out
@@ -126,6 +130,8 @@ def detail(db: sqlite3.Connection, incident_id: str) -> IncidentDetail | None:
     row = _row(db, incident_id)
     if not row:
         return None
+    if row["zone"] == "before":
+        return z1.detail(db, row)
     run, members, disabled = _cohort(db, row)
     verdict = Verdict.model_validate_json(row["verdict_json"])
     verdict.affected_count = len(members)
@@ -138,6 +144,8 @@ def members(db: sqlite3.Connection, incident_id: str, tier: str | None = None) -
     row = _row(db, incident_id)
     if not row:
         return None
+    if row["zone"] == "before":
+        return z1.members(db, row, tier)
     _, cohort, _ = _cohort(db, row)
     return [Member(payment_id=m.payment_id, customer_masked=m.customer_masked, amount_paise=m.amount_paise, captured_at=m.captured_at, plan=m.plan, complained=m.complained,
                    delivery_outcome=m.delivery_outcome, merchant_state=m.merchant_state, tier=m.tier, exclusion_reason=m.exclusion_reason, replay_eligibility=m.replay_eligibility)
@@ -148,6 +156,8 @@ def sample(db: sqlite3.Connection, incident_id: str) -> list[SampleTimeline] | N
     row = _row(db, incident_id)
     if not row:
         return None
+    if row["zone"] == "before":
+        return z1.sample(db, row)
     _, cohort, disabled = _cohort(db, row)
     complaints = complaints_by_payment(db)
     picks, seen = [], set()
@@ -183,6 +193,8 @@ def ray_card(db: sqlite3.Connection, incident_id: str) -> RayCard | None:
     if not d:
         return None
     row = _row(db, incident_id)
+    if row["zone"] == "before":
+        return z1.ray_card(db, row)
     run, _, disabled = _cohort(db, row)
     status = d.verdict.signature.get("status")
     line = f"Your server returned {status} to Razorpay from {_fmt(run.first_bad_at)}."
@@ -196,6 +208,8 @@ def evidence_pack(db: sqlite3.Connection, incident_id: str) -> EvidencePack | No
     row = _row(db, incident_id)
     if not row:
         return None
+    if row["zone"] == "before":
+        return z1.evidence_pack(db, row, pack_ref(incident_id))
     run, cohort, _ = _cohort(db, row)
     return build_pack(db, incident_id, run, Verdict.model_validate_json(row["verdict_json"]), cohort, pack_ref(incident_id))
 
@@ -204,6 +218,8 @@ def replay(db: sqlite3.Connection, incident_id: str) -> ReplaySummary | None:
     row = _row(db, incident_id)
     if not row:
         return None
+    if row["zone"] == "before":
+        return z1.detail(db, row).replay
     return _replay(incident_id, _cohort(db, row)[1])
 
 
@@ -211,11 +227,16 @@ def scan_day0(db: sqlite3.Connection, days: int = 30) -> ScanResult:
     incs = summaries(db)
     customers, paise = 0, 0
     for i in incs:
+        if i.zone == "before":
+            continue
         cohort = _cohort(db, _row(db, i.id))[1]
         live = [m for m in cohort if m.tier != "excluded"]
         customers += len(live)
         paise += sum(m.amount_paise for m in live)
     head = f"I found {customers} customers in the last {days} days who paid and have no access." if customers else f"No mismatches found in the last {days} days."
+    before = [i for i in incs if i.zone == "before"]
+    if before:
+        head += f" Before the payment, {len(before)} more times customers could not pay, about {sum(i.affected for i in before)} lost orders."
     return ScanResult(days=days, headline=head, leaked_customers=customers, leaked_paise=paise, incidents=incs)
 
 
@@ -249,6 +270,8 @@ def case_lanes(db: sqlite3.Connection, case_id: str) -> ThreeLane | None:
     r = _case_row(db, case_id)
     if not r:
         return None
+    if r["mismatch_type"] == "Z1" and r["incident_id"]:
+        return z1.case_lanes(db, r)
     thread = db.execute("SELECT id FROM threads WHERE case_id = ?", (case_id,)).fetchone()
     if thread:
         said = [LaneEvent(at=datetime.fromisoformat(m["created_at"]), text=m["body_redacted"], source_ref=m["id"])
@@ -281,7 +304,9 @@ def case_detail(db: sqlite3.Connection, case_id: str) -> CaseDetail | None:
     thread = db.execute("SELECT * FROM threads WHERE case_id = ?", (case_id,)).fetchone()
     draft = db.execute("SELECT body_redacted FROM thread_messages WHERE thread_id = ? AND direction = 'outbound' AND json_extract(policy_json, '$.status') = 'draft' ORDER BY created_at DESC, rowid DESC LIMIT 1", (thread["id"],)).fetchone() if thread else None
     pids = json.loads(r["matched_payment_ids"] or "[]")
-    if r["match_status"] == "matched" and r["incident_id"]:
+    if r["mismatch_type"] == "Z1" and r["incident_id"]:
+        line = f"Part of {r['incident_id']}, inferred: this customer could not get as far as paying, so no payment exists. {OWNER_CHIP.get(r['owner'] or 'unknown', '')}."
+    elif r["match_status"] == "matched" and r["incident_id"]:
         line = f"Matched to {pids[0]} by an exact identifier. Part of {r['incident_id']}: {OWNER_CHIP.get(r['owner'] or 'unknown', '')}."
     elif r["match_status"] == "matched":
         line = f"Matched to {pids[0]} by an exact identifier. No incident covers it."

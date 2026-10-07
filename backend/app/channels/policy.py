@@ -17,8 +17,8 @@ from .sim import ADAPTERS
 RATE_LIMIT_PER_HOUR = 6
 
 
-def check(db: sqlite3.Connection, *, customer_id: str, template_id: str, language: str, slots: dict, body: str, approved_by: str | None) -> PolicyDecision:
-    reasons = []
+def check(db: sqlite3.Connection, *, customer_id: str, template_id: str, language: str, slots: dict, body: str, approved_by: str | None, block: str | None = None) -> PolicyDecision:
+    reasons = [block] if block else []  # `block`: a reason the caller already knows (the channel's window has closed, there is no permission to message them)
     if db.execute("SELECT 1 FROM suppressions WHERE customer_ref_hash = ?", (customer_id,)).fetchone():  # R3 keys this by hashed channel handle
         reasons.append("This customer asked not to be contacted.")
     if not autonomy.read(db).messaging_enabled:
@@ -30,10 +30,10 @@ def check(db: sqlite3.Connection, *, customer_id: str, template_id: str, languag
     return PolicyDecision(allowed=not reasons, needs_founder_approval=not approved_by, reasons=reasons)
 
 
-def send(db: sqlite3.Connection, *, action_id: str, payment_id: str, customer_id: str, template_id: str, language: str, slots: dict, approved_by: str | None) -> str:
+def send(db: sqlite3.Connection, *, action_id: str, payment_id: str, customer_id: str, template_id: str, language: str, slots: dict, approved_by: str | None, block: str | None = None) -> str:
     """Returns the message id, or raises PermissionError with the reasons. A blocked attempt is logged and stored as a draft."""
     body = messages.render(template_id, language, slots)
-    decision = check(db, customer_id=customer_id, template_id=template_id, language=language, slots=slots, body=body, approved_by=approved_by)
+    decision = check(db, customer_id=customer_id, template_id=template_id, language=language, slots=slots, body=body, approved_by=approved_by, block=block)
     mid = f"msg_{uuid.uuid4().hex[:12]}"
     category = messages.TEMPLATES[template_id]["category"]
     status = "sent" if decision.allowed else "blocked"

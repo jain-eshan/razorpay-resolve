@@ -96,7 +96,7 @@ def record(world_path: Path) -> dict:
     # ---- conversations, on a world where the incident is still open ----
     db = _fresh(src)
     r = Rec(db)
-    victims = [x["payment_id"] for x in db.execute("SELECT payment_id FROM incident_members WHERE tier = 'exact' AND complained = 0 ORDER BY payment_id").fetchall()]
+    victims = [x["payment_id"] for x in db.execute("SELECT payment_id FROM incident_members WHERE incident_id = 'INC-1' AND tier = 'exact' AND complained = 0 ORDER BY payment_id").fetchall()]
     chat = out["chat"]
 
     def thread_step(channel, who, text, ctx=None):

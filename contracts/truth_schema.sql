@@ -6,3 +6,4 @@ CREATE TABLE truth_incidents (incident_id TEXT PRIMARY KEY, cause_code TEXT, own
 CREATE TABLE truth_threads (thread_id TEXT PRIMARY KEY, script_id TEXT, expected_payment_id TEXT, expected_zone TEXT, expected_outcome TEXT, persona TEXT);
 CREATE TABLE truth_zone1 (incident_id TEXT PRIMARY KEY, onset_at TEXT, resolved_at TEXT, cause_code TEXT, expected_lost_orders INTEGER, kind TEXT);   -- kind: positive | negative
 CREATE TABLE truth_recovery (order_id TEXT PRIMARY KEY, would_pay INTEGER);
+CREATE TABLE truth_zone1_members (incident_id TEXT, customer_id TEXT, role TEXT, PRIMARY KEY (incident_id, customer_id));   -- role: affected | affected_paid_since
