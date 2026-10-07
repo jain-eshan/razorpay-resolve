@@ -88,5 +88,6 @@ Kill criteria: K1 passes on the synthetic world (ratio 4.0). K4 passes on script
 2. Check the inbox of the Razorpay test account (including Promotions and Spam) for any "webhook failing" or "webhook disabled" email, and tell the next session. The dashboard check is done (nothing shown), so this is the last part of item 1.
 3. Ask Razorpay's contact the K2 question: does RAY or the agentic dashboard list every payment affected by one webhook failure?
 4. Record two takes from the script, from the hosted site, with the caption on.
-5. Run `make eval && make snapshot`, commit if anything moved, and check the hosted link in a clean browser window with no server running.
-6. Remove the test objects (V5) only if you want them gone: the disabled `httpbin` webhook and the ₹10 payment link.
+5. Decide whether the note and the video should mention INC-3 (card renewals that failed on Razorpay's side, with the evidence pack). It is built and in the hosted demo, but the note is at 545 of 550 words and the script does not show it. Only the gate count (98) was updated.
+6. Run `make eval && make snapshot`, commit if anything moved, and check the hosted link in a clean browser window with no server running.
+7. Remove the test objects (V5) only if you want them gone: the disabled `httpbin` webhook and the ₹10 payment link.
