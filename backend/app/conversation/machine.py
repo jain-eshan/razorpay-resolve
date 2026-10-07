@@ -34,6 +34,7 @@ from ..schemas import (
     ThreadStep,
     ThreadSummary,
 )
+from . import handover
 
 MAX_QUESTIONS = 3
 QUESTIONS = ("T-ID1", "T-ID2", "T-ID3")
@@ -45,7 +46,8 @@ CLAIM_LABEL = {"debited_no_access": "paid but has no access", "debited_no_order"
                "refund_not_received": "has not received a refund", "charged_after_cancel": "was charged after cancelling", "renewal_failed": "renewal failed",
                "payment_failed": "payment failed", "page_error": "the pay page did not open", "checkout_not_opening": "checkout would not open",
                "other": "something about payments"}
-CONVERSATIONAL = ("help_button", "whatsapp_payments", "email")
+CONVERSATIONAL = ("help_button", "whatsapp_payments", "email", "ig_dm", "fb_dm")
+PUBLIC_SCOPES = ["Read public posts that mention the merchant", "Post one generic public reply with a private link"]
 
 
 def _merchant(db: sqlite3.Connection) -> sqlite3.Row:
@@ -62,11 +64,13 @@ def ensure_channels(db: sqlite3.Connection) -> None:
         return
     m, now = _merchant(db), clock.now().isoformat()
     ident = f"{_name(db)} payment help, powered by Razorpay"
-    seeds = [("ch_help", "help_button", True), ("ch_wa", "whatsapp_payments", True), ("ch_email", "email", True), ("ch_ig", "ig_dm", False), ("ch_fb", "fb_dm", False),
-             ("ch_public", "public_mention", False), ("ch_ray", "ray_forward", True), ("ch_paste", "paste", True), ("ch_csv", "csv", True)]
+    seeds = [("ch_help", "help_button", True), ("ch_wa", "whatsapp_payments", True), ("ch_email", "email", True), ("ch_ig", "ig_dm", True), ("ch_fb", "fb_dm", True),
+             ("ch_public", "public_mention", True), ("ch_ray", "ray_forward", True), ("ch_paste", "paste", True), ("ch_csv", "csv", True)]
     for cid, kind, on in seeds:
         db.execute("INSERT INTO channels (id, merchant_id, type, status, reply_identity, autonomy_level, connected_at) VALUES (?,?,?,?,?,?,?)",
                    (cid, m["id"], kind, "connected" if on else "disconnected", ident if kind in CONVERSATIONAL else None, "suggest", now if on else None))
+        if kind == "public_mention":
+            _grant(db, cid, m["id"], PUBLIC_SCOPES, m["owner_contact"] or "founder", f"cn_{cid}")
         if kind in CONVERSATIONAL:
             _grant(db, cid, m["id"], ["Read payment-related messages", f"Reply as {ident}", "Look up payments by an identifier the customer shares"], m["owner_contact"] or "founder", f"cn_{cid}")
     db.commit()
@@ -185,6 +189,7 @@ def handle_inbound(db: sqlite3.Connection, channel: str, customer_ref: str, text
         if ch["status"] != "connected":
             raise ActError(409, f"The {channel.replace('_', ' ')} channel is not connected.")
         now = received_at or clock.now()
+        is_public = is_public or channel == "public_mention"
         cref = f"cust_{hashlib.sha256(customer_ref.encode()).hexdigest()[:12]}"
         th = db.execute("SELECT * FROM threads WHERE channel_id = ? AND customer_ref = ? AND state IN (%s) ORDER BY opened_at DESC LIMIT 1" % ",".join("?" * len(OPEN)),
                         (ch["id"], cref, *OPEN)).fetchone()
@@ -197,6 +202,9 @@ def handle_inbound(db: sqlite3.Connection, channel: str, customer_ref: str, text
             db.execute("UPDATE threads SET last_inbound_at = ? WHERE id = ?", (now.isoformat(), tid))
         body = (text or "") + ("\n" + context["screenshot_text"] if context.get("screenshot_text") else "")  # the screenshot reader's output is treated as customer text
         _turn(db, tid, channel, body, context, now)
+        if context.get("public_thread") and not is_public:  # the customer is answering a public reply by writing privately
+            handover.link_public(db, context["public_thread"], tid, now)
+        handover.sync(db, tid, now)
     return tid
 
 
@@ -206,7 +214,7 @@ def _say(db: sqlite3.Connection, tid: str, tpl: str, slots: dict, language: str,
     lang = language if language in messages.LANGS else "en"
     body = messages.render(tpl, lang, slots)
     use_tpl = tpl
-    if not th["disclosed"]:  # the first agent message says it is an AI. The inner greeting is dropped so it does not say "Hi" twice.
+    if not th["disclosed"] and tpl != "T-PUB":  # the public reply says it is an AI in its own words  # the first agent message says it is an AI. The inner greeting is dropped so it does not say "Hi" twice.
         inner = re.sub(r"^Hi [^,]+,\s*", "", body)
         inner = inner[:1].upper() + inner[1:]
         body = messages.render("T-DISC", lang, {"merchant": slots["merchant"], "body": inner})
@@ -235,6 +243,17 @@ def _turn(db: sqlite3.Connection, tid: str, channel: str, body: str, context: di
     lang = _lang(new)  # replaced by the language of the whole conversation once the earlier messages are merged in
 
     handoff = _handoff_reason(new, body)
+    if th["is_public"]:
+        _public_turn(db, tid, red, new, handoff, context, lang, name, now)
+        return
+    if channel in handover.IG_CHANNELS and th["handover_state"] != "with_blindspot":
+        if new.is_payment_related or handoff:  # payment words: the Meta inbox passes the thread to us
+            handover.pass_control(db, tid, "The message is about a payment" if new.is_payment_related else "The message needs a person", now)
+        else:  # not ours: nothing is kept, nothing is said, and the thread stays with the inbox
+            db.execute("UPDATE threads SET state = 'pass_back', handover_state = 'stayed_with_inbox', closed_at = ? WHERE id = ?", (now.isoformat(), tid))
+            handover.note(db, tid, "Not about a payment, so control stays with the Meta inbox. Nothing was kept and nothing was said.", now, "stayed")
+            db.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('dropped_messages', ?)", (json.dumps(1 + int((db.execute("SELECT value FROM settings WHERE key = 'dropped_messages'").fetchone() or {"value": "0"})["value"])),))
+            return
     if not new.is_payment_related and not th["claim"] and not ctx_pay and not handoff:
         # not a payment: nothing about the customer's message is kept, only a count
         db.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('dropped_messages', ?)", (json.dumps(1 + int((db.execute("SELECT value FROM settings WHERE key = 'dropped_messages'").fetchone() or {"value": "0"})["value"])),))
@@ -320,6 +339,30 @@ def _zone1(db: sqlite3.Connection, tid: str, inc: sqlite3.Row, lang: str, slots0
     db.execute("UPDATE cases SET match_status = 'no_payment_found', mismatch_type = 'Z1', owner = ?, incident_id = ? WHERE id = ?", (inc["owner"], inc["id"], th["case_id"]))
     db.execute("UPDATE threads SET state = 'wait_for_fix', incident_id = ?, zone = 'before' WHERE id = ?", (inc["id"], tid))
     _say(db, tid, "T-Z1", slots0, lang, "status_reply", now)
+
+
+def _public_turn(db: sqlite3.Connection, tid: str, red: Redacted, x: Extraction, handoff: str | None, context: dict, lang: str, name: str, now: datetime) -> None:
+    """A public post. At most one generic reply with a private link. No lookup, no vault entry, no complaint or case: the post's identifiers are tokens that
+    cannot be turned back, so a handle is never tied to a payment until the customer writes privately."""
+    label = context.get("label", "synthetic")
+    if not x.is_payment_related and not handoff:
+        db.execute("UPDATE threads SET state = 'pass_back', closed_at = ? WHERE id = ?", (now.isoformat(), tid))
+        handover.note(db, tid, "Not about a payment. Nothing is kept and nothing is posted.", now, "ignored")
+        return
+    db.execute("INSERT INTO thread_messages (id, thread_id, direction, sender_role, body_redacted, raw_hash, created_at) VALUES (?,?,?,?,?,?,?)",
+               (f"tm_{uuid.uuid4().hex[:12]}", tid, "inbound", "customer", red.text, hashlib.sha256(red.text.encode()).hexdigest(), now.isoformat()))
+    db.execute("UPDATE threads SET claim = ?, language = ? WHERE id = ?", (x.claim, lang, tid))
+    if handoff:  # a threat or an instruction aimed at the system: a person looks at it, and nothing is said in public
+        db.execute("UPDATE threads SET state = 'handoff', handover_state = 'public_flagged' WHERE id = ?", (tid,))
+        handover.note(db, tid, f"Needs a person: {handoff} Nothing is posted in public.", now, "flagged")
+        return
+    if label == "real_public_post":
+        db.execute("UPDATE threads SET state = 'pass_back', closed_at = ?, handover_state = 'observed_only' WHERE id = ?", (now.isoformat(), tid))
+        handover.note(db, tid, "A real post from the public record. Blindspot only watches it and never replies to a real person's post in this prototype.", now, "observed")
+        return
+    link = f"https://rzp.io/h/{hashlib.sha256(tid.encode()).hexdigest()[:8]}"
+    db.execute("UPDATE threads SET handover_state = 'public_invited' WHERE id = ?", (tid,))
+    _say(db, tid, "T-PUB", {"merchant": name, "link": link}, lang, "public_reply", now)
 
 
 def _date_slot(x: Extraction, now: datetime) -> str:
@@ -439,6 +482,7 @@ def handoff(db: sqlite3.Connection, thread_id: str, reason: str) -> ThreadStep:
         cid = db.execute("SELECT complaint_id FROM cases WHERE id = ?", (th["case_id"],)).fetchone()
         x = _saved(db, cid["complaint_id"] if cid else None) or Extraction(topic="other", is_payment_related=False, language="en", claim="other")
         _handoff(db, thread_id, reason, x, None, clock.now())
+        handover.sync(db, thread_id, clock.now())
     return step(db, thread_id)
 
 
@@ -471,6 +515,7 @@ def resolve_threads(db: sqlite3.Connection, incident_id: str) -> int:
         if not db.execute("SELECT 1 FROM messages WHERE payment_id = ? AND status = 'sent'", (pid,)).fetchone():
             slots = {k: v for k, v in messages.slots_for(db, pid).items() if not k.startswith("_")}
             _say(db, th["id"], "T-A2", slots, th["language"], "status_reply", now)
+        handover.sync(db, th["id"], now)
         n += 1
     return n
 

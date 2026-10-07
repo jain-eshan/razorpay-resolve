@@ -22,6 +22,7 @@ from app.schemas import ActionType, EvalMetric, EvalReport
 
 from eval.calibrate import fit
 from eval.conversation import run as run_conversation
+from eval.handovers import run as run_handovers
 
 world = sqlite3.connect(ROOT / "data" / "world.db")
 world.row_factory = sqlite3.Row
@@ -173,6 +174,10 @@ else:
 
 # ---- R3: the conversation, 40 scripted threads against hidden truth ----
 for name, value, target, ok in run_conversation(world, truth):
+    add(name, value, target, ok)
+
+# ---- R5: handovers (Instagram and Messenger control passing, public posts to private messages) ----
+for name, value, target, ok in run_handovers(world, truth):
     add(name, value, target, ok)
 
 # ---- R3: understanding. Extraction and matching on the world's complaints, scored against hidden ground truth. ----

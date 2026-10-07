@@ -44,10 +44,31 @@ class WhatsApp(Sim):
         return WindowStatus(free_form_allowed=now <= expires, expires_at=expires, requires_template=now > expires)
 
 
+class Instagram(Sim):
+    """Instagram DMs. Handover protocol: the Meta inbox passes the thread to us and we release it back. Free-form replies inside 24 hours of the customer's last
+    message. Up to 7 days only when a person sends, with the Human Agent tag. The assistant never uses that tag."""
+    channel = "ig_dm"
+    caps = ChannelCaps(attachments=True, templates=False, handover=True, window_hours=24, human_agent_tag_hours=168)
+
+    def window(self, thread: ThreadRef, now: datetime) -> WindowStatus:
+        expires = thread.last_inbound_at + WHATSAPP_WINDOW
+        return WindowStatus(free_form_allowed=now <= expires, expires_at=expires, requires_template=False)
+
+
+class Messenger(Instagram):
+    channel = "fb_dm"
+
+
+class PublicMention(Sim):
+    """A public post that mentions the merchant. The only reply is one generic public line with a private link: no amounts, names or status."""
+    channel = "public_mention"
+    caps = ChannelCaps(attachments=False, templates=False, handover=True, window_hours=None)
+
+
 class Email(Sim):
     """Forwarded or aliased mail. No window. Replies go in the same thread."""
     channel = "email"
     caps = ChannelCaps(attachments=True, templates=False, handover=False, window_hours=None)
 
 
-ADAPTERS: dict[str, Sim] = {a.channel: a for a in (HelpButton(), WhatsApp(), Email())}
+ADAPTERS: dict[str, Sim] = {a.channel: a for a in (HelpButton(), WhatsApp(), Email(), Instagram(), Messenger(), PublicMention())}
