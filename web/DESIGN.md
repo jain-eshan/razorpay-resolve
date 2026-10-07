@@ -461,7 +461,7 @@ Observed 7 Oct 2026 in Razorpay's own agents (Payout, Receivables, Bookkeeping, 
 6. **Offer the next step.** A divider, the Ray glyph and "How can I help you next?", then numbered options as plain rows ("1. Call TechCorp now").
 7. **Stay available.** The input ("Ask Ray anything related to Razorpay...") stays pinned at the bottom of the page on a faint gradient. A hamburger and a "+" (new chat) sit in a thin rail on the left.
 
-**Mapping to Blindspot.** Detect (Day-0 scan, incidents) is step 2. Whose side and who is affected is step 3. Fix in stages with approval is step 4. Verify and close is step 5. The next-step list is step 6. Today the Ray home runs steps 1 to 3 and 6; the fix flow lives on the incident page.
+**Mapping to Blindspot.** Detect (Day-0 scan, incidents) is step 2. Whose side and who is affected is step 3. Fix in stages with approval is step 4. Verify and close is step 5. The next-step list is step 6. The Ray home runs steps 1 to 3 and 6. The fix flow on the incident page runs steps 4 to 7 as turns (`Turn`, `UserBubble`, `Analyzing`, `NextSteps` in `components/AgentAnswer.tsx`, used by `FixPanel.tsx` and `Zone1Fix.tsx`): each step is a titled card with one blue button, pressing it adds the founder's bubble above the next step, steps appear as the founder reaches them, and a closed incident ends with "How can I help you next?". There is no OTP and no feedback row yet.
 
 **Rules**
 - The title states the number. The sentence under it says what was analysed. No filler greeting.

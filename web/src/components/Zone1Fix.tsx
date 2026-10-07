@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Alert, Badge, Box, Button, Card, CardBody, Heading, Text } from '@razorpay/blade/components'
-import { Panel } from './Panel'
 import { SuccessMoment } from './SuccessMoment'
+import { NextSteps, Turn } from './AgentAnswer'
 import { demoNote } from '../lib/demo'
 import { get, isLive, rupees, send, type Schemas } from '../lib/api'
 
@@ -12,17 +12,10 @@ type Health = { page_mode: string; page_status: number; healthy_hours: number; s
 const BUTTON: Record<string, string> = { dry_run: 'Looks right, continue', first_5: 'Send the first 5', rest: 'Send the rest' }
 const NEED_HOURS = 2
 
-function Step({ n, title, badge, children }: { n: number; title: string; badge?: [string, 'positive' | 'notice' | 'neutral' | 'negative']; children: React.ReactNode }) {
-  return (
-    <Panel title={`${n} · ${title}`} trailing={badge && <Badge color={badge[1]} size="medium">{badge[0]}</Badge>}>
-      {children}
-    </Panel>
-  )
-}
-
 // Hero B. The cause is on the merchant's side and Blindspot only infers it, so the fix is the developer's. What Blindspot does here is
 // check the fix held, then offer the customers who could not pay a link, in stages, with a few held back to measure what the link adds.
 export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; onChanged: () => void }) {
+  const nav = useNavigate()
   const kind = String((inc.verdict.signature as { kind?: string }).kind ?? 'probe')
   const [health, setHealth] = useState<Health>()
   const [probe, setProbe] = useState<Schemas['ProbeResult']>()
@@ -85,12 +78,12 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
       {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Click through the steps. Each one is the engine's real answer.`} />}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="That did not go through" description={error} />}
 
-      <Step n={1} title="Send the evidence to your developer">
+      <Turn n={1} title="Send the evidence to your developer">
         <Text size="small">What failed, when it started, the change that went live just before, and the suggested fix, in one page they can open without signing in.</Text>
         <Box><Link to={`/incidents/${inc.id}/dev`}><Text color="interactive.text.primary.normal" weight="semibold">Open the page for your developer</Text></Link></Box>
-      </Step>
+      </Turn>
 
-      <Step n={2} title={kind === 'probe' ? 'Check your pay page' : 'Confirm checkout works again'} badge={health?.signal_healthy ? ['Healthy', 'positive'] : health ? [health.page_mode === 'ok' ? `Healthy ${health.healthy_hours} of ${NEED_HOURS} h` : `Answers ${health.page_status}`, health.page_mode === 'ok' ? 'notice' : 'negative'] : undefined}>
+      <Turn n={2} analyzing={busy === 'probe'} you={probe ? 'Check the pay page now' : undefined} title={kind === 'probe' ? 'Check your pay page' : 'Confirm checkout works again'} badge={health?.signal_healthy ? ['Healthy', 'positive'] : health ? [health.page_mode === 'ok' ? `Healthy ${health.healthy_hours} of ${NEED_HOURS} h` : `Answers ${health.page_status}`, health.page_mode === 'ok' ? 'notice' : 'negative'] : undefined}>
         {kind === 'probe' ? (
           <>
             <Text size="small">Blindspot requests your pay page every 5 minutes. Two failed checks in a row raised this. Recovery links go out only after the page has answered normally for {NEED_HOURS} hours.</Text>
@@ -104,9 +97,9 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
         ) : (
           <Text size="small">A page check cannot see a checkout that will not open, because the page itself loads. Blindspot confirms the fix from the orders that came after: at least 3 of them got a payment attempt.</Text>
         )}
-      </Step>
+      </Turn>
 
-      <Step n={3} title="Recovery links, in stages" badge={rec ? [rec.status === 'done' ? 'Sent' : rec.status === 'drafted' ? 'Draft' : rec.status === 'failed' ? 'Stopped' : `${sent} of ${planned - holdout}`, rec.status === 'done' ? 'positive' : rec.status === 'failed' ? 'negative' : 'neutral'] : undefined}>
+      <Turn n={3} analyzing={busy === 'plan'} you={rec ? 'Plan the links' : undefined} title="Recovery links, in stages" badge={rec ? [rec.status === 'done' ? 'Sent' : rec.status === 'drafted' ? 'Draft' : rec.status === 'failed' ? 'Stopped' : `${sent} of ${planned - holdout}`, rec.status === 'done' ? 'positive' : rec.status === 'failed' ? 'negative' : 'neutral'] : undefined}>
         {!rec ? (
           <Box display="flex" flexDirection="column" gap="spacing.3" alignItems="flex-start">
             <Text size="small">Lists who could be sent the link for the same plan and amount: customers who wrote in, never paid, and can be messaged on the channel they used. Changes nothing yet.</Text>
@@ -145,9 +138,10 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
             )}
           </Box>
         )}
-      </Step>
+      </Turn>
 
-      <Step n={4} title="What the customers did" badge={sent ? ['Simulated customers', 'neutral'] : undefined}>
+      {!!sent && (
+        <Turn n={4} you={'Show me what the customers did'} title="What the customers did" badge={sent ? ['Simulated customers', 'neutral'] : undefined}>
         {!sent ? (
           <Text size="small" color="surface.text.gray.muted">Opens once links are out. Links stay valid for 48 hours, so give it time: move the demo clock forward.</Text>
         ) : (
@@ -157,9 +151,10 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
             <Text size="small" color="surface.text.gray.muted">The customers here are simulated, with behaviour set in the synthetic world. This is not a result.</Text>
           </Box>
         )}
-      </Step>
+      </Turn>
+      )}
 
-      <Step n={5} title="Verify and close" badge={inc.status === 'closed' ? ['Closed', 'positive'] : undefined}>
+      <Turn n={5} analyzing={busy === 'verify'} you={result ? 'Verify and close' : undefined} title="Verify and close" badge={inc.status === 'closed' ? ['Closed', 'positive'] : undefined}>
         <Text size="small">{kind === 'probe' ? `Checks that your pay page has answered normally for ${NEED_HOURS} hours.` : 'Checks that orders are getting payment attempts again.'} A recovery that is half sent keeps the incident open.</Text>
         <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
           <Button variant="secondary" isLoading={busy === 'verify'} isDisabled={!!busy} onClick={() => run('verify', async () => { setResult(await send<Schemas['VerifyResult']>('POST', `/api/incidents/${inc.id}/verify`)); await refreshHealth(); onChanged() })}>
@@ -170,7 +165,9 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
         {result?.closeable && inc.status === 'closed' && (
           <SuccessMoment heading={result.total ? `${result.verified} of ${result.total} customers paid` : 'Your pay page works again'} detail={result.total ? `${rupees(result.restored_paise)} came back. This incident is closed.` : 'This incident is closed.'} />
         )}
-      </Step>
+      </Turn>
+
+      {result?.closeable && inc.status === 'closed' && <NextSteps next={[{ label: 'Open the audit log', onClick: () => nav('/audit') }, { label: 'See all incidents', onClick: () => nav('/incidents') }, { label: 'Run the Day-0 scan', onClick: () => nav('/scan') }]} />}
 
       <Card>
         <CardBody>

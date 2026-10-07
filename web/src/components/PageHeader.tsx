@@ -13,7 +13,7 @@ export function PageHeader({ title, description, actions, guide }: { title: stri
         {description && <Text color="surface.text.gray.muted">{description}</Text>}
       </Box>
       {(guide || actions) && (
-        <Box display="flex" alignItems="center" gap="spacing.3">
+        <Box display="flex" alignItems="center" gap="spacing.3" flexShrink={0} whiteSpace="nowrap">
           {guide && <Button variant="tertiary" size="medium" icon={PlayCircleIcon} onClick={() => nav(`/guides/${guide}`)}>How it works</Button>}
           {actions}
         </Box>

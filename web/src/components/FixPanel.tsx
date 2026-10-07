@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Alert, Badge, Box, Button, Card, CardBody, Heading, ProgressBar, SegmentedControl, SegmentedControlItem, Text } from '@razorpay/blade/components'
-import { Panel } from './Panel'
 import { SuccessMoment } from './SuccessMoment'
+import { NextSteps, Turn } from './AgentAnswer'
 import { demoNote } from '../lib/demo'
 import { get, isLive, rupees, send, type Schemas } from '../lib/api'
 
@@ -17,15 +17,8 @@ const LEVEL_NOTE = {
 }
 const BUTTON: Record<string, string> = { dry_run: 'Looks right, continue', first_5: 'Grant the first 5', rest: 'Grant the rest' }
 
-function Step({ n, title, badge, children }: { n: number; title: string; badge?: [string, 'positive' | 'notice' | 'neutral' | 'negative']; children: React.ReactNode }) {
-  return (
-    <Panel title={`${n} · ${title}`} trailing={badge && <Badge color={badge[1]} size="medium">{badge[0]}</Badge>}>
-      {children}
-    </Panel>
-  )
-}
-
 export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDetail']; members: Schemas['Member'][]; onChanged: () => void }) {
+  const nav = useNavigate()
   const [grant, setGrant] = useState<Action>()
   const [msg, setMsg] = useState<Action>()
   const [previews, setPreviews] = useState<Schemas['MessagePreview'][]>([])
@@ -106,15 +99,16 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
       {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Click through the steps. Each one is the engine's real answer.`} />}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="That did not go through" description={error} />}
 
-      <Step n={1} title="Test your access hook" badge={tested ? ['Reachable', 'positive'] : grant ? ['Skipped, plan already exists', 'neutral'] : undefined}>
+      <Turn n={1} analyzing={busy === 'test'} title="Test your access hook" badge={tested ? ['Reachable', 'positive'] : grant ? ['Skipped, plan already exists', 'neutral'] : undefined}>
         <Text size="small">Before anything changes, check that your side answers. Blindspot only switches access on through this hook. It cannot switch it off.</Text>
         <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
           <Button variant="secondary" isLoading={busy === 'test'} isDisabled={!!busy} onClick={() => run('test', async () => { await refreshHook(); setTested(true) })}>Test hook</Button>
           {tested && hook && <Text size="small">Your hook answered. Your webhook {hook.webhook_mode === 'ok' ? 'is answering normally' : `is returning ${hook.webhook_mode}`}.</Text>}
         </Box>
-      </Step>
+      </Turn>
 
-      <Step n={2} title="Dry run" badge={grant && grant.status !== 'reverted' ? [grant.status === 'drafted' ? 'Waiting for you' : 'Reviewed', grant.status === 'drafted' ? 'notice' : 'positive'] : undefined}>
+      {(tested || !!grant) && (
+        <Turn n={2} analyzing={busy === 'plan'} you={'Test hook'} title="Dry run" badge={grant && grant.status !== 'reverted' ? [grant.status === 'drafted' ? 'Waiting for you' : 'Reviewed', grant.status === 'drafted' ? 'notice' : 'positive'] : undefined}>
         {!grant || grant.status === 'reverted' ? (
           <Box display="flex" flexDirection="column" gap="spacing.3" alignItems="flex-start">
             <Text size="small">Lists who would be switched on. Changes nothing.</Text>
@@ -133,13 +127,13 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
             {grant.status === 'drafted' && stageButton(grant, setGrant)}
           </Box>
         )}
-      </Step>
+      </Turn>
+      )}
 
-      <Step n={3} title="Switch access on, 5 then the rest" badge={grant && grant.status !== 'drafted' && grant.status !== 'reverted' ? [grant.status === 'done' ? 'Done' : grant.status === 'failed' ? 'Stopped' : `${done} of ${total}`, grant.status === 'done' ? 'positive' : grant.status === 'failed' ? 'negative' : 'notice'] : undefined}>
-        {!grant || grant.status === 'drafted' || grant.status === 'reverted' ? (
-          <Text size="small" color={grant?.status === 'reverted' ? undefined : 'surface.text.gray.muted'}>
-            {grant?.status === 'reverted' ? 'Undone. Every record is back to how it was. Plan again whenever you are ready.' : 'Waiting for the dry run.'}
-          </Text>
+      {!!grant && grant.status !== 'drafted' && (
+        <Turn n={3} analyzing={busy === 'undo' || busy === `${grant.id}:${grant.next_stage}`} you={grant.status === 'reverted' ? 'Undo the grants' : 'Looks right, continue'} title="Switch access on, 5 then the rest" badge={grant.status !== 'reverted' ? [grant.status === 'done' ? 'Done' : grant.status === 'failed' ? 'Stopped' : `${done} of ${total}`, grant.status === 'done' ? 'positive' : grant.status === 'failed' ? 'negative' : 'notice'] : undefined}>
+        {grant.status === 'reverted' ? (
+          <Text size="small">Undone. Every record is back to how it was. Plan again whenever you are ready.</Text>
         ) : (
           <Box display="flex" flexDirection="column" gap="spacing.3">
             <ProgressBar label="Confirmed by your records" value={total ? Math.round((done / total) * 100) : 0} />
@@ -154,9 +148,11 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
             )}
           </Box>
         )}
-      </Step>
+      </Turn>
+      )}
 
-      <Step n={4} title="Tell customers" badge={msg ? [msg.status === 'done' ? 'Sent' : msg.status === 'drafted' ? 'Draft' : 'In progress', msg.status === 'done' ? 'positive' : 'neutral'] : undefined}>
+      {done > 0 && (
+        <Turn n={4} analyzing={busy === 'msgplan'} you={'Tell the customers'} title="Tell customers" badge={msg ? [msg.status === 'done' ? 'Sent' : msg.status === 'drafted' ? 'Draft' : 'In progress', msg.status === 'done' ? 'positive' : 'neutral'] : undefined}>
         {done === 0 ? (
           <Text size="small" color="surface.text.gray.muted">Opens once access is confirmed for at least one customer, because the message says access is on.</Text>
         ) : !msg ? (
@@ -190,9 +186,11 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
             {stageButton(msg, setMsg)}
           </Box>
         )}
-      </Step>
+      </Turn>
+      )}
 
-      <Step n={5} title="Verify and close" badge={inc.status === 'closed' ? ['Closed', 'positive'] : undefined}>
+      {(done > 0 || inc.status === 'closed') && (
+        <Turn n={5} analyzing={busy === 'verify'} you={result ? 'Verify and close' : undefined} title="Verify and close" badge={inc.status === 'closed' ? ['Closed', 'positive'] : undefined}>
         <Text size="small">Checks every restored customer against your records again, and that your webhook has answered normally for 24 hours.</Text>
         <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
           <Button variant="secondary" isLoading={busy === 'verify'} isDisabled={!grant || !!busy} onClick={() => run('verify', async () => { setResult(await send<Schemas['VerifyResult']>('POST', `/api/incidents/${inc.id}/verify`)); await refreshHook(); onChanged() })}>
@@ -201,7 +199,10 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
           {result && <Text weight="semibold" color={result.closeable ? 'feedback.text.positive.intense' : 'feedback.text.notice.intense'}>{result.line}</Text>}
         </Box>
         {result?.closeable && inc.status === 'closed' && <SuccessMoment heading={`${result.verified} customers have access again`} detail={`${rupees(restoredPaise)} restored. This incident is closed.`} />}
-      </Step>
+      </Turn>
+      )}
+
+      {result?.closeable && inc.status === 'closed' && <NextSteps next={[{ label: 'Open the audit log', onClick: () => nav('/audit') }, { label: 'See all incidents', onClick: () => nav('/incidents') }, { label: 'Run the Day-0 scan', onClick: () => nav('/scan') }]} />}
 
       <Card>
         <CardBody>

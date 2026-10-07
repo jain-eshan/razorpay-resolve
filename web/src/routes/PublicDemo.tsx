@@ -4,6 +4,7 @@ import { ThreadView } from '../components/ThreadView'
 import { isLive, send, type Schemas } from '../lib/api'
 import { demoNote } from '../lib/demo'
 import { useLiveThread } from '../lib/live'
+import { PageHeader } from '../components/PageHeader'
 
 type Post = { id: string; kind: string; label: string; handle: string; text: string; url: string | null; follow_up: { channel: string; who: string; text: string } | null }
 const KIND: Record<string, string> = { public_with_reference: 'Names a payment', public_without_reference: 'No payment named', public_threat: 'A threat', real_public_post: 'Real post' }
@@ -45,16 +46,11 @@ export default function PublicDemo() {
   }
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7">
-      <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="xlarge">A public post</Heading>
-        <Text color="surface.text.gray.muted">
-          When someone posts about a payment problem in public, Blindspot does not discuss it there. It drafts one generic reply with a private link, with no amount, name or status in it, and holds it for the founder. Nothing in the post is looked up, and the handle is never tied to a payment until the customer writes privately.
-        </Text>
-      </Box>
+      <PageHeader title="A public post" description="When someone posts about a payment problem in public, Blindspot does not discuss it there. It drafts one generic reply with a private link, with no amount, name or status in it, and holds it for the founder. Nothing in the post is looked up, and the handle is never tied to a payment until the customer writes privately." />
       {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Pick a post. Real posts from the research are watched and never answered.`} />}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="Not done" description={error} />}
-      <Box display="flex" gap="spacing.7" flexWrap="wrap" alignItems="flex-start">
-        <Box display="flex" flexDirection="column" gap="spacing.4" width="100%" maxWidth="440px" testID="public-posts">
+      <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(320px, 440px) minmax(0, 1fr)' }} gap="spacing.7" alignItems="start">
+        <Box display="flex" flexDirection="column" gap="spacing.4" testID="public-posts">
           {posts.map((p) => (
             <Card key={p.id}><CardBody>
               <Box display="flex" flexDirection="column" gap="spacing.3">
@@ -70,7 +66,7 @@ export default function PublicDemo() {
             </CardBody></Card>
           ))}
         </Box>
-        <Box flex="1" minWidth="320px" display="flex" flexDirection="column" gap="spacing.5">
+        <Box minWidth="0px" display="flex" flexDirection="column" gap="spacing.5">
           {t ? <ThreadView thread={t} onChanged={() => setV((n) => n + 1)} /> : <Text color="surface.text.gray.muted">The founder's view appears when you pick a post.</Text>}
           {t && sel?.follow_up && !ptid && t.messages.some((m) => m.sender_role === 'agent' && m.policy.status === 'sent') && (
             <Box display="flex" flexDirection="column" gap="spacing.3" alignItems="flex-start">
