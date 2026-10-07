@@ -363,3 +363,26 @@ Changed: `docs/PRD.md` (4.1 retry schedule and dashboard rows, 16.3 item 1), `do
 What this does and does not show: in a test-mode account, Razorpay stopped retrying and did not disable the webhook, and the dashboard said nothing. It does not show what a live-mode account does, and it does not show whether an email was sent (no alert email was set on the webhook). The note and video must not say "Razorpay disables the webhook after 24 hours" as something we saw. `docs/SPEC.md` INC-1 (a simulated incident that says "disabled after 24 hours") follows the docs claim and was left alone; it is a scenario, not a claim about what we observed.
 
 Not done: the inbox check for a Razorpay email. Nothing in `web/` changed, so no design review was needed.
+
+## 8 Oct 2026, phone menu hid the whole page from assistive technology (web)
+
+Goal: at 375px `#root` carried `aria-hidden="true"` and `data-floating-ui-inert=""` on every route, so a screen reader saw nothing and Playwright's `getByRole('button')` found 0. The R4 entry above noted it and handed it off. Found the cause, fixed it, added tests.
+
+Cause: Blade's `SideNav`, given `onDismiss`, switches to phone mode below the `m` breakpoint and renders two modal `Drawer`s. The second one (for second-level menus, which we do not use) is created with `isLazy: false`, so it is mounted even while the menu is closed. A mounted Drawer always renders floating-ui's `FloatingFocusManager`, and that marks everything outside its own portal `aria-hidden`. That is `#root`. At 1440px SideNav takes its desktop branch and none of this mounts, which is why only phones were affected and why it was page-independent. Reproduced before touching code (`#root` hidden before any click, and still hidden after the menu was opened and closed).
+
+What I rejected:
+- Passing `onDismiss` only while the menu is open, plus a timer for the exit animation. It fixed the closed page but not the open menu: with SideNav's two stacked drawers, each hides the other's portal, so the open menu was not in the accessibility tree either (`getByRole('dialog')` found nothing), and Tab escaped the menu. Measured over repeated runs: focus stayed in the menu in 0 to 2 of 5 runs, with the original code and with this change. Not committed.
+
+What shipped (`web/src/components/Shell.tsx`):
+- SideNav is now the desktop nav only (no `onDismiss`, hidden below `m` as before).
+- The phone menu is one Blade `Drawer` around the same nav items, which are built once and used in both places. A Drawer mounts only while open, so nothing is mounted when the menu is closed, there is one focus manager, and the dialog is in the accessibility tree and named "Main menu". Measured: focus stayed in the menu in 10 of 10 runs.
+- Blade hides the line after a section title (`show-when-collapsed`) with a rule on SideNav's own phone container. The Drawer is outside it, so a four-line wrapper carries the same rule. Blade's `Box` drops `className`, so the wrapper is a plain element with `display: contents`.
+- Every production item is still in the menu, greyed and not a link. No item was added, removed or made clickable.
+
+Tests (`web/e2e/layout.spec.ts`), each written first and run red on the old code: at 375px the closed page is not `aria-hidden` and its buttons are found by role; the same line is in the layout loop, so it covers all 22 routes; the open menu is a named dialog that hides the page, keeps focus inside through 14 Tab and 14 Shift+Tab presses, shows the production items as non-links, and on Escape gives the page back.
+
+Checks: `tsc -b` and `oxlint` clean. Snapshot suite run the way CI does it (`CI=1`, production build) on port 5199 through a throwaway config, because 5173 was held by another worktree: all pass. The `talk` and `live` projects were not run; nothing they cover changed.
+
+Not changed, found on the way: the nav is built twice in the page while the phone menu is open (the desktop copy is `display: none`), which is harmless. The phone menu does not close by itself if the window is widened past `m` while it is open.
+
+Design review: pending.

@@ -16,6 +16,7 @@ for (const route of ROUTES) {
     await page.goto(path)
     await page.getByTestId('page').waitFor()
     await page.waitForLoadState('networkidle')
+    await expect(page.locator('#root'), 'the page must not be hidden from assistive technology at phone width').not.toHaveAttribute('aria-hidden', 'true')
     const spills: string[] = []
     for (const width of WIDTHS) {
       await page.setViewportSize({ width, height: 900 })
@@ -35,3 +36,37 @@ for (const route of ROUTES) {
     expect(spills, `content spills sideways on ${route}`).toEqual([])
   })
 }
+
+// Phone width also has to work for assistive technology and the keyboard. Blade's mobile SideNav keeps a hidden drawer mounted, and the focus manager inside it marks the whole page aria-hidden, so every button and link disappears from screen readers and from getByRole.
+test('phone: a closed menu leaves the page readable to assistive technology', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 900 })
+  await page.goto('/channels')
+  await page.getByTestId('page').waitFor()
+  await expect(page.locator('#root')).not.toHaveAttribute('aria-hidden', 'true')
+  await expect(page.locator('#root')).not.toHaveAttribute('data-floating-ui-inert')
+  await expect(page.getByRole('button', { name: 'Open menu' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'How it works' })).toBeVisible()
+})
+
+test('phone: the open menu is reachable, traps focus and hides the page, closing it gives the page back', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 900 })
+  await page.goto('/channels')
+  await page.getByTestId('page').waitFor()
+  await page.getByRole('button', { name: 'Open menu' }).click()
+  const menu = page.getByRole('dialog', { name: 'Main menu' })
+  await expect(menu).toBeVisible()
+  await expect(page.locator('#root')).toHaveAttribute('aria-hidden', 'true')
+  await expect(menu.getByRole('link', { name: 'Channels' })).toBeVisible()
+  await expect(menu.getByText('Transactions')).toBeVisible() // production items stay in the menu, greyed and not links
+  await expect(menu.getByRole('link', { name: 'Transactions' })).toHaveCount(0)
+  const focusInMenu = () => page.evaluate(() => !!document.activeElement?.closest('[role="dialog"]'))
+  expect(await focusInMenu(), 'focus starts in the menu').toBe(true)
+  for (let i = 0; i < 14; i++) await page.keyboard.press('Tab') // more presses than the menu has stops, so focus has to wrap
+  await expect.poll(focusInMenu, { message: 'Tab cannot leave the menu' }).toBe(true)
+  for (let i = 0; i < 14; i++) await page.keyboard.press('Shift+Tab')
+  await expect.poll(focusInMenu, { message: 'Shift+Tab cannot leave the menu' }).toBe(true)
+  await page.keyboard.press('Escape')
+  await expect(menu).toHaveCount(0)
+  await expect(page.locator('#root')).not.toHaveAttribute('aria-hidden', 'true')
+  await expect(page.getByRole('button', { name: 'How it works' })).toBeVisible()
+})
