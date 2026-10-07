@@ -1095,6 +1095,18 @@
             ],
             "title": "Target",
             "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
           }
         },
         "required": [
@@ -2542,6 +2554,19 @@
         "title": "ScanResult",
         "type": "object"
       },
+      "SendEscalationRequest": {
+        "properties": {
+          "approver": {
+            "title": "Approver",
+            "type": "string"
+          }
+        },
+        "required": [
+          "approver"
+        ],
+        "title": "SendEscalationRequest",
+        "type": "object"
+      },
       "Settings": {
         "properties": {
           "autonomy": {
@@ -3957,6 +3982,54 @@
       }
     },
     "/api/escalations": {
+      "get": {
+        "operationId": "list_escalations_api_escalations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "incident_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Incident Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Escalation"
+                  },
+                  "title": "Response List Escalations Api Escalations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Escalations"
+      },
       "post": {
         "operationId": "create_escalation_api_escalations_post",
         "requestBody": {
@@ -4031,6 +4104,55 @@
           }
         },
         "summary": "Get Escalation"
+      }
+    },
+    "/api/escalations/{escalation_id}/send": {
+      "post": {
+        "operationId": "send_escalation_api_escalations__escalation_id__send_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "escalation_id",
+            "required": true,
+            "schema": {
+              "title": "Escalation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendEscalationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Escalation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Send Escalation"
       }
     },
     "/api/eval/report": {

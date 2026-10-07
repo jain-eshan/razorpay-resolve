@@ -47,8 +47,9 @@ incidents = world.execute("SELECT * FROM incidents WHERE zone = 'after' ORDER BY
 t_inc = truth.execute("SELECT * FROM truth_incidents").fetchall()
 add("incidents_found_minus_true", len(incidents) - len(t_inc), "0 (no missed, no false incident after the payment)", len(incidents) == len(t_inc))
 
-if incidents and t_inc:
-    inc, ti = incidents[0], t_inc[0]
+inc1 = next((i for i in incidents if i["id"] == "INC-1"), None)
+if inc1 and t_inc:
+    inc, ti = inc1, next(t for t in t_inc if t["incident_id"] == "INC-1")  # Hero A by name: INC-3 sits earlier in time but is a different story
     sig = json.loads(inc["signature"])
     add("cause_and_owner_correct", float(inc["cause_code"] == ti["cause_code"] and inc["owner"] == ti["owner"]), "1.0", inc["cause_code"] == ti["cause_code"] and inc["owner"] == ti["owner"])
     err = minutes(inc["onset_at"], ti["onset_at"])
@@ -187,6 +188,7 @@ for name, value, target, ok in run_learning(cfg["seed"]):
 
 # ---- R3: understanding. Extraction and matching on the world's complaints, scored against hidden ground truth. ----
 tc = {r["complaint_id"]: dict(r) for r in truth.execute("SELECT * FROM truth_complaints")}
+failed_ids = {r[0] for r in world.execute("SELECT id FROM payments WHERE status = 'failed'")}  # INC-3's complaints name one of these. They are scored in the INC-3 section.
 n = amt = rrn_n = rrn_ok = lang = hi = hi_ok = topic = exact_n = exact_ok = keyed = 0
 for c in world.execute("SELECT * FROM complaints").fetchall():
     t = tc[c["id"]]
@@ -203,7 +205,7 @@ for c in world.execute("SELECT * FROM complaints").fetchall():
     if x.ids.rrn:
         rrn_n += 1
         rrn_ok += red.value(x.ids.rrn) == t["rrn"]
-    if json.loads(t["payment_ids"]):  # only complaints about a real payment can be matched by an exact key. Before-the-payment complaints have none.
+    if json.loads(t["payment_ids"]) and not set(json.loads(t["payment_ids"])) & failed_ids:  # only complaints about a captured payment can be matched by an exact key. Before-the-payment complaints have none, and INC-3's name a failed renewal (scored below).
         keyed += 1
         res = mt.lookup(world, red, x, when)
         if res.status == "matched":
@@ -336,6 +338,111 @@ if inc4:
     on_time = executor.verify(db, inc4["id"]).closeable
     add("zone1_incident_closes_only_after_two_healthy_hours", float((not too_early) and on_time), "1.0", (not too_early) and on_time)
     clock.reset()
+
+
+# ---- R4/R5: INC-3, card renewals that failed on Razorpay's side, and the escalation pack. Scored against hidden truth. ----
+ti3 = truth.execute("SELECT * FROM truth_incidents WHERE incident_id = 'INC-3'").fetchone()
+inc3 = world.execute("SELECT * FROM incidents WHERE id = 'INC-3'").fetchone()
+if ti3:
+    add("renewal_incident_found", float(inc3 is not None), "1.0 (INC-3 within two buckets)", inc3 is not None and minutes(inc3["onset_at"], ti3["onset_at"]) <= 60)
+if ti3 and inc3:
+    err3 = minutes(inc3["onset_at"], ti3["onset_at"])
+    add("renewal_onset_error_minutes", err3, "<= 60", err3 <= 60)
+    add("renewal_cause_and_owner_correct", float(inc3["cause_code"] == ti3["cause_code"] and inc3["owner"] == ti3["owner"]), "1.0", inc3["cause_code"] == ti3["cause_code"] and inc3["owner"] == ti3["owner"])
+    add("renewal_minutes_from_start_to_alert", minutes(json.loads(inc3["signature"])["alert_at"], ti3["onset_at"]), "reported (needs 5 failures in a row to raise anything)", None)
+    false3 = [i for i in world.execute("SELECT id FROM incidents WHERE mismatch_type = 'G'") if i["id"] != "INC-3"]
+    add("renewal_incidents_not_in_ground_truth", float(len(false3)), "0 (no false renewal alarm over the fortnight)", not false3)
+    m3 = {r["payment_id"]: r["tier"] for r in world.execute("SELECT payment_id, tier FROM incident_members WHERE incident_id = 'INC-3'")}
+    t3 = {r["payment_id"]: dict(r) for r in truth.execute("SELECT * FROM truth_payments WHERE incident_id = 'INC-3'")}
+    owed = {p for p, t in t3.items() if t["should_fix"]}
+    ex3 = {p for p, tier in m3.items() if tier == "exact"}
+    add("renewal_fix_precision", len(ex3 & owed) / len(ex3) if ex3 else 0.0, ">= 0.98", bool(ex3) and len(ex3 & owed) / len(ex3) >= 0.98)
+    add("renewal_fix_recall", len(ex3 & owed) / len(owed) if owed else 1.0, ">= 0.98", (len(ex3 & owed) / len(owed) if owed else 1.0) >= 0.98)
+    add("renewal_members_not_in_ground_truth", float(len(set(m3) - set(t3))), "0", not set(m3) - set(t3))
+    again = {p for p, t in t3.items() if t["exclusion_reason"] == "paid_since"}
+    add("renewal_paid_again_left_out", float(len(again & ex3)), "0 (customers who paid again are not in the fix)", not again & ex3)
+    tc3 = {r["complaint_id"] for r in truth.execute("SELECT complaint_id, payment_ids FROM truth_complaints") if set(json.loads(r["payment_ids"])) & set(t3)}
+    joined = {r["complaint_id"] for r in world.execute("SELECT complaint_id FROM cases WHERE incident_id = 'INC-3'")}
+    add("renewal_complaints_joined_to_the_incident", len(tc3 & joined) / len(tc3) if tc3 else 1.0, "1.0", tc3 <= joined)
+
+    def renewal_scenario() -> sqlite3.Connection:
+        db = sqlite3.connect(":memory:")
+        db.row_factory = sqlite3.Row
+        world.backup(db)
+        clock.reset()
+        return db
+
+    def all_ents(db: sqlite3.Connection) -> list:
+        return [tuple(r) for r in db.execute("SELECT * FROM entitlements ORDER BY id")]
+
+    db = renewal_scenario()
+    base_ents = all_ents(db)
+    gid = executor.create(db, "INC-3", "grant", {})
+    for stage in ("dry_run", "first_5", "rest"):
+        executor.approve(db, gid, stage, "merchant:founder")
+    granted3 = {i.payment_id for i in executor.get(db, gid).items if i.status == "verified"}
+    add("renewal_grace_for_customers_not_owed", float(len(granted3 - owed)), "0", not granted3 - owed)
+    add("renewal_customers_covered", len(granted3 & owed) / len(owed) if owed else 1.0, ">= 0.98", (len(granted3 & owed) / len(owed) if owed else 1.0) >= 0.98)
+    done = all_ents(db)
+    for stage in ("first_5", "rest", "rest"):
+        executor.approve(db, gid, stage, "merchant:founder")
+    add("renewal_changes_made_by_repeat_approvals", float(sum(a != b for a, b in zip(done, all_ents(db), strict=True))), "0 (idempotency)", done == all_ents(db))
+    touched = sum(1 for p in again for r in db.execute("SELECT e.* FROM entitlements e JOIN payments pm ON pm.subscription_id = e.subscription_id WHERE pm.id = ?", (p,)) if tuple(r) not in base_ents)
+    add("renewal_paid_again_customers_touched", float(touched), "0", touched == 0)
+    executor.revert(db, gid)
+    add("renewal_records_not_back_after_undo", float(sum(a != b for a, b in zip(base_ents, all_ents(db), strict=True))), "0", base_ents == all_ents(db))
+
+    db = renewal_scenario()
+    autonomy.write(db, autonomy.read(db).model_copy(update={"messaging_enabled": True}), "eval")
+    db.commit()
+    try:
+        executor.create(db, "INC-3", "message", {"language": "auto"})
+        early_msg = 1
+    except executor.ActError:
+        early_msg = 0
+    add("renewal_messages_planned_before_access_is_kept", float(early_msg), "0 (nobody is told before it is true)", early_msg == 0)
+    gid = executor.create(db, "INC-3", "grant", {})
+    for stage in ("dry_run", "first_5", "rest"):
+        executor.approve(db, gid, stage, "merchant:founder")
+    mid = executor.create(db, "INC-3", "message", {"language": "auto"})
+    for stage in ("dry_run", "first_5", "rest"):
+        executor.approve(db, mid, stage, "merchant:founder")
+    sent3 = db.execute("SELECT * FROM messages WHERE template_id = 'T-G1' AND status = 'sent'").fetchall()
+    bad3 = sum(not messages.numbers_ok(m["template_id"], m["language"], messages.slots_for(db, m["payment_id"]), m["body"]) for m in sent3)
+    add("renewal_messages_with_a_number_not_from_the_record", float(bad3), "0", bad3 == 0 and len(sent3) == len(granted3))
+    add("renewal_customers_messaged_twice", float(len(sent3) - len({m["payment_id"] for m in sent3})), "0", len(sent3) == len({m["payment_id"] for m in sent3}))
+
+    db = renewal_scenario()
+    gid = executor.create(db, "INC-3", "grant", {})
+    for stage in ("dry_run", "first_5", "rest"):
+        executor.approve(db, gid, stage, "merchant:founder")
+    ok_close = executor.verify(db, "INC-3").closeable
+    last_bad = json.loads(inc3["signature"])["last_failure_at"]
+    db.execute("UPDATE payments SET status = 'failed', captured_at = NULL WHERE is_renewal = 1 AND method = 'card' AND created_at > ?", (last_bad,))
+    still_failing = executor.verify(db, "INC-3").closeable
+    add("renewal_closes_only_when_cards_work_again", float(ok_close and not still_failing), "1.0", ok_close and not still_failing)
+
+    # the escalation to Razorpay
+    from app.act import escalate
+
+    db = renewal_scenario()
+    esc = escalate.create(db, "INC-3", "razorpay")
+    add("escalation_sent_without_the_founders_approval", float(esc.status != "drafted"), "0 (drafted until the founder sends)", esc.status == "drafted")
+    add("escalation_pack_payments_match_ground_truth", float(set(esc.pack["payment_ids"]) == set(t3)), "1.0", set(esc.pack["payment_ids"]) == set(t3))
+    people = db.execute("SELECT c.name, c.email, c.phone, c.vpa FROM customers c JOIN payments pm ON pm.customer_id = c.id JOIN incident_members im ON im.payment_id = pm.id WHERE im.incident_id = 'INC-3'").fetchall()
+    blob = json.dumps(esc.pack)
+    leaked = sum(any(v and v in blob for v in tuple(r)) for r in people)
+    add("escalation_pack_customer_details", float(leaked), "0 (payment ids and counts only)", leaked == 0)
+    try:
+        escalate.create(db, "INC-1", "razorpay")
+        refused = 0
+    except executor.ActError:
+        refused = 1
+    add("escalation_of_a_merchant_side_incident_refused", float(refused), "1.0 (only what is Razorpay's goes to Razorpay)", refused == 1)
+    escalate.send(db, esc.id, "merchant:founder")
+    add("escalation_messages_sent_to_customers", float(db.execute("SELECT COUNT(*) FROM messages").fetchone()[0]), "0", db.execute("SELECT COUNT(*) FROM messages").fetchone()[0] == 0)
+    clock.reset()
+
 
 report = EvalReport(seed=cfg["seed"], generated_at=datetime.fromisoformat(cfg["snapshot_at"] + "+05:30"), metrics=metrics, arms=[])
 (Path(__file__).parent / "report.json").write_text(report.model_dump_json(indent=2) + "\n")

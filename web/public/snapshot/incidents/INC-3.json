@@ -1,0 +1,436 @@
+{
+  "id": "INC-3",
+  "title": "Card renewals failed with a gateway error",
+  "zone": "after",
+  "mismatch_type": "G",
+  "owner": "razorpay",
+  "inferred": false,
+  "status": "open",
+  "opened_by": "signal",
+  "affected": 27,
+  "complained": 3,
+  "silent": 24,
+  "fixed": 3,
+  "at_risk_paise": 717600,
+  "onset_at": "2026-09-29T02:10:00+05:30",
+  "would_have_alerted_at": "2026-09-29T03:35:23+05:30",
+  "verdict": {
+    "incident_id": "INC-3",
+    "mismatch_type": "G",
+    "zone": "after",
+    "inferred": false,
+    "cause_code": "RENEWAL_GATEWAY_ERROR_CARD",
+    "cause_summary_slots": {
+      "title": "Card renewals failed with a gateway error",
+      "failed": 27,
+      "left_out": 3,
+      "method": "card",
+      "code": "GATEWAY_ERROR",
+      "networks": 3,
+      "control_renewals": 11,
+      "control_failed": 0,
+      "baseline_one_in": 31
+    },
+    "owner": "razorpay",
+    "owner_rule_id": 8,
+    "owner_evidence_ids": [
+      "27 card renewals in a row failed. Normally about 1 in 31 does",
+      "100% of them carry GATEWAY_ERROR, reported by the gateway",
+      "3 card networks: Mastercard, RuPay, Visa",
+      "11 UPI AutoPay renewals in the same hours, 0 failed",
+      "No deploy or setting change on your side in the 2 hours before",
+      "No bank outage covers the hours"
+    ],
+    "signature": {
+      "kind": "renewal",
+      "method": "card",
+      "error_code": "GATEWAY_ERROR",
+      "error_source": "gateway",
+      "first_failure_at": "2026-09-29T02:10:00+05:30",
+      "last_failure_at": "2026-09-29T09:29:39+05:30",
+      "alert_at": "2026-09-29T03:35:23+05:30",
+      "resolved_at": "2026-09-29T10:12:44+05:30",
+      "baseline_rate": 0.032,
+      "p_value": 3.4929432591277324e-08,
+      "run_length": 27,
+      "networks": [
+        "Mastercard",
+        "RuPay",
+        "Visa"
+      ],
+      "control": {
+        "method": "upi",
+        "renewals": 11,
+        "failed": 0
+      },
+      "hourly": [
+        {
+          "at": "2026-09-28T20:00:00+05:30",
+          "card_ok": 0,
+          "card_failed": 0,
+          "upi_ok": 0,
+          "upi_failed": 0
+        },
+        {
+          "at": "2026-09-28T21:00:00+05:30",
+          "card_ok": 0,
+          "card_failed": 0,
+          "upi_ok": 0,
+          "upi_failed": 0
+        },
+        {
+          "at": "2026-09-28T22:00:00+05:30",
+          "card_ok": 0,
+          "card_failed": 0,
+          "upi_ok": 0,
+          "upi_failed": 0
+        },
+        {
+          "at": "2026-09-28T23:00:00+05:30",
+          "card_ok": 0,
+          "card_failed": 0,
+          "upi_ok": 0,
+          "upi_failed": 0
+        },
+        {
+          "at": "2026-09-29T00:00:00+05:30",
+          "card_ok": 0,
+          "card_failed": 0,
+          "upi_ok": 0,
+          "upi_failed": 0
+        },
+        {
+          "at": "2026-09-29T01:00:00+05:30",
+          "card_ok": 0,
+          "card_failed": 0,
+          "upi_ok": 0,
+          "upi_failed": 0
+        },
+        {
+          "at": "2026-09-29T02:00:00+05:30",
+          "card_ok": 0,
+          "card_failed": 4,
+          "upi_ok": 2,
+          "upi_failed": 0
+        },
+        {
+          "at": "2026-09-29T03:00:00+05:30",
+          "card_ok": 0,
+          "card_failed": 4,
+          "upi_ok": 0,
+          "upi_failed": 0
+        },
+        {
+          "at": "2026-09-29T04:00:00+05:30",
+          "card_ok": 0,
+          "card_failed": 5,
+          "upi_ok": 3,
+          "upi_failed": 0
+        },
+        {
+          "at": "2026-09-29T05:00:00+05:30",
+          "card_ok": 0,
+          "card_failed": 3,
+          "upi_ok": 2,
+          "upi_failed": 0
+        },
+        {
+          "at": "2026-09-29T06:00:00+05:30",
+          "card_ok": 0,
+          "card_failed": 1,
+          "upi_ok": 2,
+          "upi_failed": 0
+        },
+        {
+          "at": "2026-09-29T07:00:00+05:30",
+          "card_ok": 0,
+          "card_failed": 3,
+          "upi_ok": 0,
+          "upi_failed": 0
+        },
+        {
+          "at": "2026-09-29T08:00:00+05:30",
+          "card_ok": 0,
+          "card_failed": 3,
+          "upi_ok": 1,
+          "upi_failed": 0
+        },
+        {
+          "at": "2026-09-29T09:00:00+05:30",
+          "card_ok": 0,
+          "card_failed": 4,
+          "upi_ok": 1,
+          "upi_failed": 0
+        },
+        {
+          "at": "2026-09-29T10:00:00+05:30",
+          "card_ok": 3,
+          "card_failed": 0,
+          "upi_ok": 0,
+          "upi_failed": 0
+        },
+        {
+          "at": "2026-09-29T11:00:00+05:30",
+          "card_ok": 6,
+          "card_failed": 0,
+          "upi_ok": 0,
+          "upi_failed": 0
+        },
+        {
+          "at": "2026-09-29T12:00:00+05:30",
+          "card_ok": 0,
+          "card_failed": 0,
+          "upi_ok": 0,
+          "upi_failed": 0
+        },
+        {
+          "at": "2026-09-29T13:00:00+05:30",
+          "card_ok": 0,
+          "card_failed": 0,
+          "upi_ok": 0,
+          "upi_failed": 0
+        }
+      ]
+    },
+    "onset_at": "2026-09-29T02:10:00+05:30",
+    "resolved_at": "2026-09-29T10:12:44+05:30",
+    "linked_event_id": null,
+    "affected_count": 27,
+    "confidence": "medium",
+    "unexplained_case_ids": [],
+    "runner_up": null,
+    "evidence": [
+      {
+        "kind": "renewal_failures",
+        "weight": 3,
+        "ref": "27 card renewals in a row failed. Normally about 1 in 31 does"
+      },
+      {
+        "kind": "one_error_code",
+        "weight": 2,
+        "ref": "100% of them carry GATEWAY_ERROR, reported by the gateway"
+      },
+      {
+        "kind": "several_networks",
+        "weight": 1,
+        "ref": "3 card networks: Mastercard, RuPay, Visa"
+      },
+      {
+        "kind": "other_method_fine",
+        "weight": 2,
+        "ref": "11 UPI AutoPay renewals in the same hours, 0 failed"
+      },
+      {
+        "kind": "no_change_on_your_side",
+        "weight": 1,
+        "ref": "No deploy or setting change on your side in the 2 hours before"
+      },
+      {
+        "kind": "no_bank_outage",
+        "weight": 1,
+        "ref": "No bank outage covers the hours"
+      }
+    ],
+    "what_we_cannot_see": [
+      "Why the gateway returned the error. That is inside Razorpay.",
+      "Whether other merchants were hit in the same hours",
+      "Whether Razorpay has already fixed it"
+    ]
+  },
+  "timeline": [
+    {
+      "bucket_start": "2026-09-28T20:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-28T21:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-28T22:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-28T23:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T00:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T01:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T02:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 4,
+      "not_attempted": 0,
+      "markers": [
+        "first card renewal fails"
+      ]
+    },
+    {
+      "bucket_start": "2026-09-29T03:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 4,
+      "not_attempted": 0,
+      "markers": [
+        "alert would fire"
+      ]
+    },
+    {
+      "bucket_start": "2026-09-29T04:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 5,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T05:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 3,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T06:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 1,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T07:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 3,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T08:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 3,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T09:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 4,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T10:00:00+05:30",
+      "ok": 3,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": [
+        "card renewals work again"
+      ]
+    },
+    {
+      "bucket_start": "2026-09-29T11:00:00+05:30",
+      "ok": 6,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T12:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T13:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    }
+  ],
+  "lift": [
+    {
+      "dimension": "method",
+      "value": "card",
+      "share_affected": 1.0,
+      "share_baseline": 0.4524,
+      "lift": 2.2
+    },
+    {
+      "dimension": "card_network",
+      "value": "Visa",
+      "share_affected": 0.5556,
+      "share_baseline": 0.1579,
+      "lift": 3.5
+    },
+    {
+      "dimension": "card_network",
+      "value": "Mastercard",
+      "share_affected": 0.2963,
+      "share_baseline": 0.4211,
+      "lift": 0.7
+    },
+    {
+      "dimension": "card_network",
+      "value": "RuPay",
+      "share_affected": 0.1481,
+      "share_baseline": 0.4211,
+      "lift": 0.4
+    }
+  ],
+  "tier_counts": {
+    "exact": 24,
+    "likely": 0,
+    "check": 0,
+    "excluded": 3
+  },
+  "replay": {
+    "incident_id": "INC-3",
+    "replayable_by_support": 0,
+    "not_replayable_disabled_window": 0,
+    "too_old": 0,
+    "note": "Nothing to replay. These renewals never succeeded, so Razorpay sent your server no event for them."
+  },
+  "actions": []
+}

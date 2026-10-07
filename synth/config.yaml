@@ -89,3 +89,14 @@ zone1:
     pay_with_link: 0.55
     pay_without_link: 0.10
     max_delay_hours: 36
+# ---- INC-3, Razorpay-side card renewal failures (contracts-v0.8, additive). Sits before the INC-1 deploy, so the merchant's webhook was healthy. ----
+# Dates differ from SPEC 13.2 (Thu 1 Oct): that window falls inside the INC-1 outage and would turn ordinary renewals into INC-1 victims.
+inc3:
+  start: "2026-09-29T02:10:00"
+  end: "2026-09-29T09:30:00"
+  card_failures: 26             # every card mandate renewal due in the window fails
+  card_paid_since: 3            # customers who paid again on their own later (left out of the incident)
+  card_ok_after: 6              # card renewals that work once it clears
+  upi_ok_during: 10             # UPI AutoPay renewals in the same hours, which go through
+  complaints: 3
+  error: {code: GATEWAY_ERROR, description: "Payment processing failed due to error at bank or wallet gateway", source: gateway, step: payment_authorization, reason: gateway_technical_error}

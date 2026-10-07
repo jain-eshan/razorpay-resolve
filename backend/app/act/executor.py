@@ -15,6 +15,7 @@ from .. import audit, clock, merchant_mock
 from ..channels import policy
 from ..conversation.templates import TEMPLATES
 from ..db import write_tx as _write
+from ..renewal import read as rn
 from ..schemas import Action, ActionItem, ActionSummary, MessagePreview, VerifyResult
 from ..zone1 import read as z1
 from ..zone1 import recovery
@@ -166,7 +167,9 @@ def _nobody(db: sqlite3.Connection, incident_id: str) -> str:
 
 # ---------- run ----------
 def _do_grant(db, a, item, approver):
-    return merchant_mock.grant(db, item["payment_id"]), {"granted": True}
+    """Switch access on. For a renewal that failed on Razorpay's side the payment is a failed one, and what is switched on is a grace period."""
+    failed = db.execute("SELECT status FROM payments WHERE id = ?", (item["payment_id"],)).fetchone()["status"] == "failed"
+    return (merchant_mock.extend_grace(db, item["payment_id"]) if failed else merchant_mock.grant(db, item["payment_id"])), {"granted": True}
 
 
 def _do_message(db, a, item, approver):
@@ -314,8 +317,11 @@ def verify(db: sqlite3.Connection, incident_id: str, actor: str = "system") -> V
     with _write(db):
         if not db.execute("SELECT 1 FROM incidents WHERE id = ?", (incident_id,)).fetchone():
             raise ActError(404, f"Incident {incident_id} not found.")
-        if db.execute("SELECT zone FROM incidents WHERE id = ?", (incident_id,)).fetchone()["zone"] == "before":
+        inc = db.execute("SELECT zone, mismatch_type FROM incidents WHERE id = ?", (incident_id,)).fetchone()
+        if inc["zone"] == "before":
             return z1.verify(db, incident_id, actor)
+        if inc["mismatch_type"] == "G":
+            return rn.verify(db, incident_id, actor)
         h = merchant_mock.health(db)
         g = db.execute("SELECT * FROM actions WHERE incident_id = ? AND action_type = 'grant' AND status != 'reverted'", (incident_id,)).fetchone()
         if not g:

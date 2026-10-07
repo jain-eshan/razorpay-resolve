@@ -40,6 +40,11 @@
     "operation": "list_consents_api_consents_get"
   },
   {
+    "path": "/api/escalations",
+    "file": "escalations.json",
+    "operation": "list_escalations_api_escalations_get"
+  },
+  {
     "path": "/api/escalations/esc_001",
     "file": "escalations/esc_001.json",
     "operation": "get_escalation_api_escalations__escalation_id__get"

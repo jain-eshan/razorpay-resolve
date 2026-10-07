@@ -1,0 +1,16 @@
+{
+  "incident_id": "INC-3",
+  "owner_chip": "RAZORPAY SIDE",
+  "inferred": false,
+  "cause_line": "Card renewals started failing at Tue 29 Sep 02:10 with a gateway error. 27 renewals failed. UPI AutoPay renewals in the same hours went through (11 of 11).",
+  "affected": 27,
+  "complained": 3,
+  "silent": 24,
+  "fixed": 3,
+  "at_risk_paise": 717600,
+  "language": "en",
+  "buttons": [
+    "See what failed",
+    "Send to Razorpay"
+  ]
+}

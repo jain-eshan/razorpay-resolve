@@ -316,6 +316,44 @@ What checking caught:
 
 Not done: item 1 of the verify list (the 24-hour webhook disable, due about 18:41 IST on 7 Oct) needs Eshan to look at the dashboard. Nothing in `web/` changed, so no design review was needed. No recording was made.
 
+## 7 Oct 2026, R4 and R5 rest: INC-3 and the escalation to Razorpay (integrator)
+
+Goal: the one incident where the fault is Razorpay's, and the evidence pack that goes with it. A burst of card renewals fails inside Razorpay's gateway, the merchant's access job cuts access, and nobody on the merchant's side did anything wrong. No model.
+
+Built:
+- World (`synth/renewals.py`, own random stream, applied last so no earlier number moves): 27 card mandate renewals fail with one gateway error between Tue 29 Sep 02:10 and 09:29, 11 UPI AutoPay renewals in the same hours go through, card renewals work again at 10:12, three customers pay again on their own, three write in. Truth rows for all of it.
+- Monitor (`detect/renewal.py`): a run of at least 5 failed renewals in a row on one method whose chance under the normal failure rate is under 1 in 1,000. It says "Razorpay" only when nothing else explains it: no change on the merchant's side in the 2 hours before, no bank outage over the hours, one error code on at least 80% of the run, at least 2 card networks, and the other method fine. Otherwise attribution moves off Razorpay (tested for each).
+- Incident (`renewal/build.py`, `renewal/read.py`): INC-3, owner Razorpay by attribution row 8, confidence medium, 6 pieces of evidence with points, three things Blindspot cannot see, a rule-based trace. Members are the 27 failed renewals; 24 get the fix and 3 are left out with the reason "Paid since".
+- The fix reuses the staged executor: a "grant" on a failed renewal is a grace extension (access on for 3 days from now, never shortens access, undoable until the customers are told). The message template `T-G1`, in the contracts since v0.1 and never sent, is now sent to customers whose access is confirmed. Verify closes the incident only when everyone's record shows access and at least 3 card renewals have gone through since the last failure.
+- Escalation (`act/escalate.py`): draft, then the founder's approval sends. The pack holds payment ids, counts, error codes, hours, what was ruled out and what was already tried, and never a customer's name, email or phone. Only a Razorpay-owned incident can be escalated.
+- Web: `RenewalView`, `RenewalFix`, `RenewalChart`, an INC-3 pair on the RAY page, hosted-demo frames recorded from the engine (`record_renewal`), contracts v0.8.
+
+Result (invented data, one seed): found with 0 minutes onset error, 0 false renewal incidents, fix precision and recall 1.0, all 3 complaints joined to the incident, the alert would fire 85 minutes after onset (it needs 5 failures in a row). 24 INC-3 and escalation checks: 23 gates pass, 1 reported figure. Whole eval: 98 gates pass, 15 reported figures, none fail (was 75 and 14). Hero A, Hero B and conversation numbers are unchanged.
+
+What the checks caught, which a read-through had not:
+- The first world found 19 of 26 failures: an ordinary card renewal inside the window had gone through, which splits the run. In a real outage it would have failed too, so any card renewal in the window now fails (27 in all, not the 26 configured).
+- Hero A was picked as "the earliest incident after the payment" in the eval and as "the first incident after the payment" on the RAY page. INC-3 is earlier on the same day, so both would have silently shown the wrong story. Both now pick INC-1 by name.
+- `extraction_amount_exact` fell to 0.94 (gate 0.95) because INC-3's complaint texts gave no amount. Real customers say it; the texts now do.
+- My first scoring of INC-3's complaints used the truth label "G", which Hero A's renewal complaints also carry. It would have dropped them from the exact-key gates without any failure. It now selects by the failed payment a complaint names.
+- After 5 of 24 were extended, verify said "19 still show no access. Run the plan again", which is wrong for customers not reached yet. It now says they are waiting for the next step.
+- The message step reused the access step's button names ("Keep access on for the first 5"). Separate labels now.
+- At 375px the language control's first option wrapped out of its box. Shortened to "Auto" in this panel. The same control in Hero A's panel has the same problem and was left alone.
+- The live browser test failed because an earlier test in the file switches the global autonomy to Autopilot, and then the extension runs by itself. Test order, not product.
+- Mutation check on the new tests: leaving nobody out, letting the pack leak names, letting a grace shorten access, and ignoring renewals in verify were each introduced on purpose; each was caught (my first leak mutation was not a real leak and was redone).
+
+Decisions and deviations:
+- The window is Tue 29 Sep, not Thu 1 Oct as in SPEC 13.2: Thu falls inside the INC-1 outage and would turn ordinary renewals into INC-1 victims.
+- Attribution to Razorpay is by elimination, so confidence is medium and the screen says what Blindspot cannot see. No threshold was tuned on the result: the 5-in-a-row and 1-in-1,000 settings were chosen before looking, but the world was built with the monitor in view, so quote this as "works as designed on a simulation".
+- Only the first run becomes INC-3 (the id is reserved). A second renewal incident would need its own number.
+- INC-3 has no "Was this a real problem?" panel: its monitor is not one the learning loop tunes, and a button that does nothing would mislead.
+- The hosted demo tells customers only after access is on for all of them; the live version can do it in steps.
+
+Not built: the recovery link for failed renewals once Razorpay says it is fixed (with the 10% holdout), collecting the renewals themselves, the "failed but access still on" report (J6), duplicate charges and the guarded refund (INC-2), the investigation agent. The submission note (`docs/SUBMISSION.md`) mentions INC-3 only through the gate count.
+
+Checks: 363 backend and synth tests (was 334), 46 snapshot browser tests (was 43; 2 new walkthroughs and INC-3 in the layout test), 13 live browser tests including a new INC-3 flow (the `fix` and `talk` specs ran this time), eval as above, types and lint clean, secret scan clean, no em dashes in new files.
+
+Design review: the `design-reviewer` agent could not be started as an agent in this session, so I ran its checks by hand. Mechanical: types, lint, no hex colours, no inline styles, no raw tags, no `repeat(N, 1fr)`, fixed widths only on an icon tile and legend swatches, no em dashes, INC-3 added to the layout test (375, 768 and 1440 px, no sideways overflow). Looked at: INC-3 at 1440 and 375 px, the fix panel after working through it at 1440 and 375 px, the RAY home at 1440 px. Found and fixed: the language control at 375 px. Not looked at by eye: INC-3 at 768 px (the layout test passes), dark mode, the RAY WhatsApp section (asserted by the browser test, not seen), the Incidents list row for INC-3. Found and not fixed: at 375 px opened directly, no button on the incident pages (Hero A, Hero B, INC-3) is exposed to the accessibility tree; handed off as a separate task.
+
 ## 7 Oct 2026, 24-hour webhook experiment (integrator)
 
 Closed the experiment that had been open since 6 Oct. Eshan checked the Razorpay test dashboard at 9:12 PM IST: webhook A (the Supabase sink) was still "Enabled", with no banner, warning, failure count or delivery log on the list or the details panel. I read the sink's own log with SQL (read-only): 30 deliveries, two events, 15 attempts each, from 18:41:03 IST on 6 Oct to 17:27:07 IST on 7 Oct (22.8 hours). Each gap was about double the last. The next gap would have been about 23 hours, past the 24-hour limit, and no further attempt came. The sink was still in `401` mode throughout, so the failure never stopped.
@@ -325,6 +363,51 @@ Changed: `docs/PRD.md` (4.1 retry schedule and dashboard rows, 16.3 item 1), `do
 What this does and does not show: in a test-mode account, Razorpay stopped retrying and did not disable the webhook, and the dashboard said nothing. It does not show what a live-mode account does, and it does not show whether an email was sent (no alert email was set on the webhook). The note and video must not say "Razorpay disables the webhook after 24 hours" as something we saw. `docs/SPEC.md` INC-1 (a simulated incident that says "disabled after 24 hours") follows the docs claim and was left alone; it is a scenario, not a claim about what we observed.
 
 Not done: the inbox check for a Razorpay email. Nothing in `web/` changed, so no design review was needed.
+
+## 7 Oct 2026, phone-width page hidden from assistive technology (web)
+
+Goal: find out why `getByRole('button', { name: 'Test hook' })` (and the INC-4 and INC-3 buttons) found nothing on an incident page loaded straight at 375px, while `getByText` found the same labels and a screenshot showed them.
+
+Cause: real, not a test artefact. At phone width Blade's `SideNav` renders the menu as two `Drawer`s. The second is created with `isLazy: false`, so it stays mounted while the menu is closed, and its focus manager sets `aria-hidden="true"` on `#root` (and `overflow: hidden` on `<body>`). The whole page was hidden from screen readers and from role queries. A page loaded at 1440px and then resized was fine because the drawers did not exist when the hiding is applied.
+
+What changed:
+- `web/src/components/Shell.tsx`: on a phone (Blade's `useBreakpoint`, device type `mobile`) the `SideNav` is mounted only while the menu is open. Tablet and desktop are unchanged. Production nav items are untouched (still greyed and inert).
+- `web/e2e/layout.spec.ts`: one new test loads INC-1 at 375px (not resized), finds `Test hook` by role, checks `#root` is not `aria-hidden`, opens the menu, goes to Conversations, and checks the drawer is gone and the page is exposed again. With the fix reverted it fails at the `Test hook` lookup.
+- `web/CLAUDE.md`: a Known quirks entry for the workaround (DESIGN.md section 20, rule 6).
+
+Checks: 44 snapshot tests pass on port 5190 (not the shared 5173), `npx tsc -b` and `npx oxlint` clean.
+
+Known and not fixed: while the menu is open, the two drawers each mark the other `aria-hidden`, so the open menu is invisible to assistive technology. This is in Blade and was true before this change. A fix means replacing Blade's mobile `SideNav` with one `Drawer` of our own. Side effect of the fix: the menu now disappears at once when closed instead of sliding out, because it is unmounted. The new test clicks the menu entry by text for the same reason.
+
+Not checked: INC-3 and INC-4 were not loaded at 375px (same shell, same cause, one test on INC-1). No screen reader was used; "exposed" means Playwright's accessibility-tree queries.
+
+Design review: the `design-reviewer` agent was not available in this session, so I ran its checks by hand from `.claude/agents/design-reviewer.md`. A (mechanical): `tsc -b` and `oxlint` clean; no hex colours, no `repeat(N, 1fr)`, no raw elements and no em dashes in the changed lines; the one fixed width in `Shell.tsx` (the 360px search field) is not in the diff; no new routes. B (structure): every production item is still present and inert; the menu button still opens the drawer below the `m` breakpoint (section 14); no page, button or agent flow changed. C (content): no copy changed. D (looked at INC-1 in Chrome at 375, 768 and 1440px): the phone shows the menu button and no side nav, tablet and desktop show the full side nav, the open phone drawer looks as before, no page errors. One finding, the missing `web/CLAUDE.md` note, was fixed. Verdict: pass with notes. The notes are the two items under "Known and not fixed", and a human has not seen the instant close.
+## 8 Oct 2026, phone menu hid the whole page from assistive technology (web)
+
+Goal: at 375px `#root` carried `aria-hidden="true"` and `data-floating-ui-inert=""` on every route, so a screen reader saw nothing and Playwright's `getByRole('button')` found 0. The R4 entry above noted it and handed it off. Found the cause, fixed it, added tests.
+
+Overlap: the entry above (PR 21) fixed the closed-page half of this while this change was in review. It mounts `SideNav` on phones only while the menu is open. This change replaces that with one Drawer, which also fixes the two things that entry lists as known and not fixed: the open menu being invisible to assistive technology, and the menu vanishing at once instead of sliding out. Merged with it: its `Test hook` test is kept, its `Shell.tsx` change (the `useBreakpoint` condition) is gone, and its comment and `web/CLAUDE.md` note were rewritten to match.
+
+Cause: Blade's `SideNav`, given `onDismiss`, switches to phone mode below the `m` breakpoint and renders two modal `Drawer`s. The second one (for second-level menus, which we do not use) is created with `isLazy: false`, so it is mounted even while the menu is closed. A mounted Drawer always renders floating-ui's `FloatingFocusManager`, and that marks everything outside its own portal `aria-hidden`. That is `#root`. At 1440px SideNav takes its desktop branch and none of this mounts, which is why only phones were affected and why it was page-independent. Reproduced before touching code (`#root` hidden before any click, and still hidden after the menu was opened and closed).
+
+What I rejected:
+- Passing `onDismiss` only while the menu is open, plus a timer for the exit animation. It fixed the closed page but not the open menu: with SideNav's two stacked drawers, each hides the other's portal, so the open menu was not in the accessibility tree either (`getByRole('dialog')` found nothing), and Tab escaped the menu. Measured over repeated runs: focus stayed in the menu in 0 to 2 of 5 runs, with the original code and with this change. Not committed.
+
+What shipped (`web/src/components/Shell.tsx`):
+- SideNav is now the desktop nav only (no `onDismiss`, hidden below `m` as before).
+- The phone menu is one Blade `Drawer` around the same nav items, which are built once and used in both places. A Drawer mounts only while open, so nothing is mounted when the menu is closed, there is one focus manager, and the dialog is in the accessibility tree and named "Main menu". Measured: focus stayed in the menu in 10 of 10 runs.
+- Blade hides the line after a section title (`show-when-collapsed`) with a rule on SideNav's own phone container. The Drawer is outside it, so a four-line wrapper carries the same rule. Blade's `Box` drops `className`, so the wrapper is a plain element with `display: contents`.
+- Every production item is still in the menu, greyed and not a link. No item was added, removed or made clickable.
+
+Tests (`web/e2e/layout.spec.ts`), each written first and run red on the old code: at 375px the closed page is not `aria-hidden` and its buttons are found by role; the same line is in the layout loop, so it covers all 22 routes; when the window is widened past the phone layout the open menu closes and the page comes back; the open menu is a named dialog that hides the page, keeps focus inside through 14 Tab and 14 Shift+Tab presses, shows the production items as non-links, and on Escape gives the page back.
+
+Checks: `tsc -b` and `oxlint` clean. Snapshot suite run the way CI does it (`CI=1`, production build) on port 5199 through a throwaway config, because 5173 was held by another worktree: all pass. The `talk` and `live` projects were not run; nothing they cover changed.
+
+Also: widening the window past `m` while the phone menu is open closes it, as SideNav's own phone mode did (the first version of this change lost that; the reviewer caught it, and a test now covers it). The `show-when-collapsed` rule also hides the short "+11" button, not only the lines after section titles. `web/CLAUDE.md` now says why the phone menu is a plain Drawer.
+
+Not changed, found on the way: the nav is built twice in the page while the phone menu is open (the desktop copy is `display: none`), which is harmless. Inert nav items compute `cursor: pointer` rather than the `not-allowed` DESIGN.md section 14 asks for; identical on main, left alone.
+
+Design review: the `design-reviewer` agent is not registered in this session, so I ran its checklist (`.claude/agents/design-reviewer.md`) through a separate general-purpose agent that had not seen my work, and it did not edit anything. Verdict: pass with notes. It ran types and lint, the hardcoded-value, fixed-width, grid and em dash searches (nothing found), and the snapshot suite on a production build (48 passed). It compared the branch with a temporary checkout of main: the closed page at 375, 768 and 1440px and the open phone menu at 375px are pixel-identical except a 1px animation strip; all 18 production items are present and inert in the desktop nav and the phone menu, and clicking one does nothing. Escape and Close both close the menu and return focus to "Open menu". Findings, all fixed or answered above: the widening regression (fixed, tested), no `web/CLAUDE.md` note (added), an incomplete code comment (fixed), and the older cursor note. Not checked by the reviewer: the `talk` and `live` projects, a real screen reader (VoiceOver or NVDA), a real phone, browsers other than Chrome, dark mode, the Drawer animation under reduced motion; it read the 375px screenshots but compared 768 and 1440px by pixel difference only.
 
 ## 7 Oct 2026, product guides for people who have never heard of Blindspot (web)
 

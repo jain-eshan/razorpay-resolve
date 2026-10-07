@@ -21,12 +21,13 @@ A starter for building Razorpay products in Razorpay's own design language, Razo
 - `src/main.tsx`: BladeProvider, fonts, LazyMotion setup
 - `src/razorsense.ts`: the four emotional states (Blade gradient maps + static fallbacks), Ray glyph path, reduced-motion flag
 - `src/App.tsx`: the routes. The page container lives here.
-- `src/components/Shell.tsx`: top bar and side nav, copied from the production dashboard. Production items are inert. Add a screen by adding to `BLINDSPOT` or `PROOF` there.
+- `src/components/Shell.tsx`: top bar and side nav, copied from the production dashboard. Production items are inert. Add a screen by adding to `BLINDSPOT` or `PROOF` there. The phone menu is a plain Blade `Drawer` around the same items (see Known quirks).
 - `src/components/PageHeader.tsx`: the title block every page starts with.
 - `src/components/AgentAnswer.tsx`, `RayAnswers.tsx`: how Ray answers, and the `Turn` pieces the fix flows use (DESIGN.md section 17).
 - `e2e/layout.spec.ts`: opens every route at 375, 768 and 1440px and fails on errors or sideways overflow. Add new routes to its list.
 - `src/lib/guides.ts`, `routes/GuidePage.tsx`, `routes/Setup.tsx`, `routes/Home.tsx`: product guides (three slides: what, why, how), first-run setup, the Ray home with its welcome card.
 - `src/components/GuideHero.tsx`, `IsoScenes.tsx`, `IsoHero.tsx`, `iso.tsx`, `src/lib/guideStats.ts`: the guide hero (a wash with an isometric scene, drawn in code with Blade tokens) and the figures on it, read from the data. `FlatArt.tsx` and `GuideArt.tsx`: the flat pictures on guide cards and in Setup, in the style of the dashboard home's illustrations, chosen by an `art` id.
+- `src/routes/RenewalView.tsx`, `components/RenewalFix.tsx`, `components/RenewalChart.tsx`: INC-3, the incident on Razorpay's side (card renewals failed in its gateway): evidence, the 3 day grace extension in stages, the customer message, and the evidence pack to Razorpay. `Incident.tsx` sends `mismatch_type: G` here, `zone: before` to `Zone1View`.
 - `src/routes/Reference.tsx`: the RazorSense reference screens (state switcher, voice examples, Ask Ray chat, success moment)
 
 ## Rules
@@ -45,6 +46,7 @@ A starter for building Razorpay products in Razorpay's own design language, Razo
 - Blade assumes `box-sizing: border-box` on everything. `index.html` sets it. Without it the top bar overflows the window and clips the avatar.
 - The top bar shows Razorpay, not the product name. Blindspot is one product tab beside Payments, and a section in the side nav. Everything Razorpay already ships is shown but inert (greyed, not clickable).
 - Blade's `TabNav` crashes when it unmounts overflowing tabs. `Shell.tsx` renders every tab always. Do not switch it back to the `items` argument.
+- Blade's `SideNav`, given `onDismiss`, renders two modal `Drawer`s at phone width and keeps the second mounted even when the menu is closed. Their focus managers set `aria-hidden` on `#root`, hide each other's portals (so the open menu is not in the accessibility tree) and let Tab escape. So `Shell.tsx` uses `SideNav` for desktop only and a plain Blade `Drawer` for the phone menu, which mounts only while open. Do not give `SideNav` an `onDismiss` again.
 - `npm run dev` and the e2e config use port 5173, shared with every other worktree. If another chat has it, a test run hits their code. Use a different `--port` locally and do not commit that change.
 - Blade's `Table` logs a React "Cannot update a component while rendering" warning in dev. It comes from Blade, not our code.
 - Blade's `Table` logs "Cannot update a component (`_Table`) while rendering `_TableHeaderRow`" in dev. It is Blade's own, not ours.

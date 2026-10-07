@@ -12,6 +12,7 @@ from .ingest.redact import redact
 from .investigate.rules_fallback import build_trace, build_verdict
 from .match import lookup as mt
 from .match.keys import complaints_by_payment
+from .renewal import build as renewal
 from .widen.silent import build_cohort
 from .zone1 import build as zone1
 
@@ -46,6 +47,7 @@ def run(db: sqlite3.Connection) -> list[str]:
                            [(iid, m.payment_id, m.tier, m.exclusion_reason, int(m.complained), None, m.amount_paise) for m in members])
             ids.append(iid)
     _cases(db)
+    ids += renewal.run(db, now)  # INC-3 is reserved for it: it must exist before Zone 1 numbers start at INC-4
     ids += zone1.run(db, now)
     db.commit()
     return ids

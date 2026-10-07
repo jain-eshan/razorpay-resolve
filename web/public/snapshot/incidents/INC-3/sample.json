@@ -1,0 +1,73 @@
+[
+  {
+    "payment_id": "pay_AdvBqsoOUPDr1E",
+    "lanes": {
+      "customer": [
+        {
+          "at": "2026-09-29T19:26:15+05:30",
+          "text": "Premium Monthly ka 299 ka auto renewal fail ho gaya aur ab course nahi khul raha. pay_AdvBqsoOUPDr1E",
+          "source_ref": "cmp_Zp1UZjN7bq"
+        }
+      ],
+      "razorpay": [
+        {
+          "at": "2026-09-29T03:45:31+05:30",
+          "text": "Card renewal of \u20b9299 failed: GATEWAY_ERROR, no fault of the customer's card",
+          "source_ref": "pay_AdvBqsoOUPDr1E"
+        }
+      ],
+      "merchant": [
+        {
+          "at": "2026-10-02T10:40:00+05:30",
+          "text": "Access record: expired, until Tue 29 Sep 03:45",
+          "source_ref": "cust_r0016"
+        }
+      ]
+    }
+  },
+  {
+    "payment_id": "pay_vQpOlwcwyYym9a",
+    "lanes": {
+      "customer": [],
+      "razorpay": [
+        {
+          "at": "2026-09-29T02:10:00+05:30",
+          "text": "Card renewal of \u20b9299 failed: GATEWAY_ERROR, no fault of the customer's card",
+          "source_ref": "pay_vQpOlwcwyYym9a"
+        }
+      ],
+      "merchant": [
+        {
+          "at": "2026-10-02T10:40:00+05:30",
+          "text": "Access record: expired, until Tue 29 Sep 02:10",
+          "source_ref": "cust_r0010"
+        }
+      ]
+    }
+  },
+  {
+    "payment_id": "pay_iUfWI2K5uaOyOm",
+    "lanes": {
+      "customer": [],
+      "razorpay": [
+        {
+          "at": "2026-09-29T07:02:48+05:30",
+          "text": "Card renewal of \u20b9299 failed: GATEWAY_ERROR, no fault of the customer's card",
+          "source_ref": "pay_iUfWI2K5uaOyOm"
+        },
+        {
+          "at": "2026-10-02T10:40:00+05:30",
+          "text": "Paid since Tue 11:23",
+          "source_ref": "pay_iUfWI2K5uaOyOm"
+        }
+      ],
+      "merchant": [
+        {
+          "at": "2026-10-02T10:40:00+05:30",
+          "text": "Access record: active, until Thu 29 Oct 11:24",
+          "source_ref": "cust_r0026"
+        }
+      ]
+    }
+  }
+]

@@ -21,6 +21,7 @@ No server is needed. The hosted demo replays frames recorded from the real engin
 | `/chat-demo`, `/email-demo`, `/help-demo/receipt` | A customer talks to the agent. It says it is an AI, finds the payment from an exact identifier, and holds its reply for the founder. |
 | `/ig-demo` | Instagram: the Meta inbox passes a payment thread to Blindspot and takes it back. |
 | `/public-demo` | A public post gets one generic reply with a private link, held for the founder. Nothing about a payment is said in public. |
+| Razorpay side, `INC-3` | Card renewals failed inside Razorpay's gateway while UPI AutoPay was fine and nothing changed on the merchant's side. Blindspot says it is Razorpay's, how sure it is and what it cannot see, keeps customers' access on for 3 days, tells them, and drafts an evidence pack that only goes (simulated) when the founder approves. |
 | `/learning` | What the product changed about itself this week and why. On an incident, press "This was a false alarm", then "Review this week now": the alerts that raised it get one step stricter, with a reason, a version and an audit line. A simulated six-week table shows whether it helps. |
 | `/how` | Every eval check against hidden ground truth. |
 
@@ -51,10 +52,11 @@ The web app has two modes. Without `VITE_MODE=live` it plays the demo from `web/
 | R4 first slice: Hero B, customers who cannot reach the pay page (no model) | Done, on `main`. Contracts v0.5 |
 | R5 first slice: handovers (Instagram, Messenger, public posts) | Done, on `main`. Contracts v0.6 |
 | R5 second slice: learning loop, weekly card, Learning screen (no model) | Done, on `main`. Contracts v0.7 |
-| R7 submission kit: one-page note, 90-second script, verify-list status (`docs/SUBMISSION.md`) | Drafted. Needs Eshan's checks and two recorded takes |
-| R4 rest (investigation agent, three-way eval, escalation, duplicates, refunds), R5 rest (renewal anomaly), R6 | Not started |
+| R7 submission kit: one-page note, 90-second script, verify-list status (`docs/SUBMISSION.md`) | Merged (PR #16). Needs Eshan's checks and two recorded takes |
+| R4 and R5 rest, INC-3: card renewals that failed in Razorpay's gateway, and the evidence pack to Razorpay (no model) | Done, on `main` (PR #19). Contracts v0.8 |
+| R4 rest: investigation agent and three-way eval (need a model), duplicate charges and the guarded refund (INC-2), R6 | Not started |
 
-Contract changes are logged in `docs/CONTRACT_CHANGES.md` (currently v0.7). The plan for every release is in `docs/BUILD_PLAN.md`.
+Contract changes are logged in `docs/CONTRACT_CHANGES.md` (currently v0.8). The plan for every release is in `docs/BUILD_PLAN.md`.
 
 ## What is real and what is simulated
 

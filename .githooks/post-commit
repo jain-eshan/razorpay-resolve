@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Refresh the graphify code map after each commit. Free (no model), about 3 seconds,
+# runs in the background and never blocks or fails a commit. Skipped if graphify is not installed.
+export PATH="$HOME/.local/bin:$PATH"
+command -v graphify >/dev/null 2>&1 || exit 0
+( graphify update . >/dev/null 2>&1 & ) 
+exit 0

@@ -1,4 +1,4 @@
-# Handoff: where Blindspot stands (7 Oct 2026: R0 to R5 on `main` except the items marked "not started" below; R7 submission kit drafted)
+# Handoff: where Blindspot stands (7 Oct 2026: R0 to R5 on `main` except the items marked "not started" below; R7 submission kit and INC-3 with the escalation to Razorpay merged as PRs #16 and #19)
 
 Read this first in a new chat, then `docs/PRD.md`. Everything below is true as of the last commit on `main`.
 
@@ -28,12 +28,14 @@ Blindspot (working name) is Eshan Jain's entry for the Razorpay x ISB AI PM Buil
 | Dashboard-aligned frontend (Blade TopNav and SideNav, header-band panels, sticky timeline) | Done. Merged as PR #5. |
 | UX review and one-branch cleanup (7 Oct, section 2b) | Done. Merged as PR #6. `main` is now the only branch. |
 | R4 first slice: Zone 1, Hero B (cannot reach the pay page), no model | Done, contracts v0.5. Merged as PR #8. Section 2c. |
-| R4 rest: investigation agent, three-way eval, escalation to Razorpay, duplicates, refunds | Not started |
+| R4 rest: escalation to Razorpay | Done with INC-3, contracts v0.8. Merged as PR #19. Section 2f. |
+| R4 rest: investigation agent, three-way eval (need a model) | Not started |
+| R4 rest: duplicate-charge monitor and guarded refund (INC-2, F-03, F-39) | Not started |
 | R5 first slice: handovers (Instagram and Messenger control passing, public posts to private) | Done, contracts v0.6. Merged as PR #9. Section 2d. |
 | R5 second slice: learning loop, weekly card, screen S-18 (no model) | Done, contracts v0.7. Merged as PR #15. Section 2e. |
-| R5 rest: renewal anomaly (F-08, INC-3) | Not started |
+| R5 rest: renewal anomaly (F-08, INC-3) | Done, contracts v0.8. Merged as PR #19. Section 2f. |
 | R6 real rails (stretch) | Not started |
-| R7 submission kit | Drafted 7 Oct in `docs/SUBMISSION.md`: note (545 words), 90-second script, verify-list status. Eshan still has to check, record and submit (its section 4). |
+| R7 submission kit | Merged as PR #16: `docs/SUBMISSION.md` with note (545 words), 90-second script, verify-list status. Eshan still has to check, record and submit (its section 4). |
 
 Plan, sizing and kickoff prompts for every stream: `docs/BUILD_PLAN.md`.
 
@@ -101,6 +103,15 @@ Merged as PR #15. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/C
 - **Results (invented data):** false alerts per six-week replay 6.2 with no learning, 5.0 weekly baseline only, 3.2 with the loop; one weak outage missed in 1 of 5 replays. Quote these as "works as designed on a simulation", never as a result about real merchants.
 - **Limits:** no live source yet for customer replies and founder edits (needs real channels, R6), so message-language learning runs only in the replay and tests. Calibrator refit and body-reader examples are not built. The review runs when asked, not on a timer. A changed threshold applies from the next pipeline run. The hosted demo takes one piece of feedback and cannot report a missed incident.
 - **Not run:** the `fix` and `talk` live browser specs (ports were busy; CI runs them). The `design-reviewer` agent was not started as an agent; its mechanical checks were run by hand (see the build log).
+
+### INC-3 and the escalation to Razorpay, 7 Oct 2026 (section 2f)
+Merged as PR #19. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.8).
+- **What it does:** card renewals fail inside Razorpay's gateway for seven hours (27 failed, UPI AutoPay in the same hours fine, nothing changed on the merchant's side). Blindspot puts it on Razorpay's side by elimination, says it is medium confidence and what it cannot see, keeps access on for the 24 customers who have not paid again (a 3 day grace extension, staged, undoable until they are told), tells them in a template message, and drafts an evidence pack the founder approves before it goes to Razorpay (simulated). Verify closes it when every record shows access and card renewals work again.
+- **Code:** `synth/renewals.py`, `backend/app/detect/renewal.py`, `backend/app/renewal/` (build, read), `backend/app/act/escalate.py`, `merchant_mock.extend_grace`, T-G1 slots in `act/messages.py`. Web: `routes/RenewalView.tsx`, `components/RenewalFix.tsx`, `components/RenewalChart.tsx`, an INC-3 pair on the RAY page. Demo frames: `record_renewal` in `scripts/demo_script.py` and the `c3` state in `web/src/lib/demo.ts`.
+- **Results (invented data):** found with 0 minutes onset error, alert 85 minutes after onset (it needs 5 failed renewals in a row), fix precision and recall 1.0, 3 of 3 complaints joined, 0 customers who paid again touched. 24 INC-3 and escalation checks, 23 gates pass. Quote as "works as designed on a simulation".
+- **Limits:** one seed, and the world was built with the monitor in view. Razorpay-side is by elimination (medium confidence). The escalation is a mock: nothing leaves and no reply comes. Not built: the recovery link for failed renewals once Razorpay says it is fixed (with the 10% holdout), collecting the renewals, the "failed but access still on" report. Only one renewal incident can exist (the id is reserved). The hosted demo tells customers only after access is on for all of them.
+- **Dates:** the window is Tue 29 Sep, not Thu 1 Oct as in SPEC 13.2, because Thu falls inside the INC-1 outage.
+- **Open, found on the way:** at 375px opened directly, no button on the incident pages is exposed to the accessibility tree (Hero A, Hero B and INC-3 alike). A separate task chip was raised. Hero A's fix panel has the language control overflow at 375px that INC-3's panel no longer has.
 
 ### UX review, 7 Oct 2026 (PR #6)
 Eshan asked for a designer's review of the whole web app. Method: Playwright with the installed Chrome at 1440 and 390 wide (full-resolution screenshots, computed styles, overflow, text size and contrast checks on 13 routes), because the in-app browser shrinks screenshots.
@@ -198,39 +209,61 @@ The full verify list is PRD section 16.3.
 
 **No accounts needed for the demo.** Vercel is live. A model key (Anthropic or an open-model host) is only needed if a model arm is added. Fly or Render, a Meta developer account and an inbound email provider only at R6.
 
-## 6b. Pending (as of 6 Oct 2026, after the R3 merge)
+## 6b. Pending (as of the end of 7 Oct 2026)
+
+**Pull requests:** #16 (submission kit) and #19 (INC-3 and the escalation) are merged, #19 by Eshan himself at 18:03 UTC on 7 Oct after CI passed. Clean up if not done: delete the remote branch `claude/r4-inc3-renewal`, remove its worktree (section 3b rule 5). A later PR carries this handoff. CodeRabbit has hit its free review limit on this repo and offers paid reviews ($0.25 a file). Not switched on, Eshan's call.
+
+**Open task started by Eshan in a separate session:** "buttons exposed to assistive tech at phone width". At 375px opened directly, no button on the incident pages (Hero A, Hero B, INC-3) shows up when Playwright asks for buttons by role, though the text is there. It may be a real accessibility problem in the mobile shell or an artifact of how the page loads. Check that session's branch or PR before touching `web/src/components/Shell.tsx`.
 
 Needs Eshan:
-- **Five founder calls (V2, kill criterion K3):** none done. Script is in `docs/BUILD_PLAN.md` section 8. If fewer than 3 of 5 confirm a paid-but-not-fulfilled incident, the plan is to pivot to international-failure diagnosis.
-- **Razorpay questions (V3, nine of them) and the two for Prane:** does RAY already list every payment affected by one webhook failure (kill criterion K2), and could Razorpay expose a bulk replay or delivery-log API for a prototype. No answers yet.
-- **Test account cleanup (V5):** the disabled `httpbin` webhook and the ₹10 payment link are still there. Nothing is deleted until Eshan says so.
-- **A model, if wanted:** R3 was built without one (rules and scripted threads). Eshan's Claude plan has no API, so use an open model (Ollama locally, or Groq's free tier) behind `extract()` if the agent arm of the three-way eval is built. Not needed for the demo.
-- **Vercel:** live at razorsense-starter.vercel.app (Root Directory `web`, no env vars). It deploys `main`.
+- **Decide the next slice** (section 7).
+- **The submission to-do list** is in `docs/SUBMISSION.md` section 4: click the three quote links, ask Razorpay the K2 question (does RAY already list every payment hit by one webhook failure), record two takes, run `make eval && make snapshot` and check the hosted link in a clean browser.
+- **A decision on the webhook story.** The 7 Oct experiment (PRD 4.1) showed that in a test-mode account Razorpay retried each event for 22.8 hours and then stopped, and did not disable the webhook, with no banner, warning or log. The synthetic world and the INC-1 screen still say "Razorpay turned the webhook off after 24 hours" (the docs claim it, `synth/config.yaml` `webhooks.disable_after_hours`, attribution row 4). Nothing in the note makes that claim. Decide whether the product should keep the docs' behaviour, soften the screen text, or model what was observed. Whether live mode differs is unknown.
+- **Five founder calls (V2, kill criterion K3):** none done. Script in `docs/BUILD_PLAN.md` section 8.
+- **Razorpay questions (V3, nine of them):** no answers yet.
+- **Test account cleanup (V5):** the disabled `httpbin` webhook and the ₹10 payment link are still there. Nothing is deleted until Eshan says so. The Supabase sink is still in `401` mode.
+- **A free model, if the investigation agent is wanted:** his Claude plan has no API, so Ollama locally or Groq's free tier (needs him to make a free account and key).
+- **Two UX questions:** is RAY (the WhatsApp page) still the right landing page, and should the avatar do something when clicked.
+- **Vercel:** live at razorsense-starter.vercel.app (Root Directory `web`, no env vars). Check that the production branch is `main`.
 
 Needs the next session:
-- **Contract tags:** only `contracts-v0.1` is tagged. v0.2, v0.3 and v0.4 are not. Tag after Eshan agrees.
-- **Verify list (PRD 16.3, V4):** items still without a status.
-- **No executor yet for** refunds, recovery links and event re-sending, although the autonomy matrix lists them (refunds and recovery links belong to R4).
+- **Contract tags:** only `contracts-v0.1` is tagged. v0.2 to v0.8 are not. Tag after Eshan agrees.
+- **Hero A's language control overflows at 375px** (the label "Each customer's language" wraps out of its box in `components/FixPanel.tsx`). INC-3's panel uses "Auto" instead.
 - **Deferred from R1:** the 24 synthetic screenshots (R3 simulated screenshot text instead; real images need a vision model).
 - **Demo state is in memory** (clock offset, webhook fix). A restart gives a fresh world.
 - **Bundle is 1.3 MB** (Blade). Code-split later.
+- **Not built from the roadmap:** INC-2 and the guarded refund, the investigation agent and three-way eval, the recovery link for failed renewals, the "failed but access still on" report (J6), R6.
 
 ## 7. Next steps
 
-Eshan chose to continue in a new chat. Suggested order:
-1. **Check `razorsense-starter.vercel.app` end to end** (RAY, incident, fix, undo, messages, verify, close, audit, chat, help button, email). Vercel deploys `main`, and PR #6 changed the shell, so look at the top bar, nav and avatar on the live site, and on a phone.
-2. **Polish the user journey** before more backend depth: a guided path through the demo (what to click first), the RAY alert leading into the incident, mobile layout, and the copy. The journey, not the engine, is what a judge will see.
-3. **R4 rest** (`docs/BUILD_PLAN.md` section 5): Hero B is built without a model (section 2c). Left: the investigation agent and the three-way eval (needs an open model or a key with a cap, see section 4), escalation to Razorpay, duplicate monitor and guarded refund, renewal anomaly. Then push the branch and open the PR for the first slice.
-4. **R5** renewal anomaly (F-08, INC-3; handovers and the learning loop are built), **R7** submission kit (note, video script, evidence section). Cut order if short on time is in `docs/BUILD_PLAN.md` section 10.
-5. **Validation track runs alongside:** the founder calls, the Razorpay questions, the 7 Oct webhook observation, the PRD 16.3 verify list.
+Order of work, with what each needs:
+1. **Start clean.** Fix any `ci-failure` issue first (section 0), `git fetch`, cut a branch from `origin/main`, `make setup`, `cd web && npm ci`. The accessibility task from 6b may have opened its own PR; check `gh pr list`.
+2. **Pick the next slice** (one PR per slice):
+   - **INC-2, charged twice, with the guarded refund (F-03, F-39).** The first action that moves real money, so the riskiest. A duplicate-capture monitor (15 duplicate pairs within 120 seconds after an Android release, with legitimate two-seat buyers and auto-reversed pairs as look-alikes that must not be refunded: SPEC section 13 and V1_SPEC J2, FR-DG-3). Refund rules (V1_SPEC FR-AC-7): only Exact-tier duplicates, original method only (no destination field), per-merchant daily cap (`daily_refund_cap_paise` is already a setting), one customer at a time on the web, never from WhatsApp, status shows the refund id and later the ARN. Attribution row 6 exists. Matrix class `refund` is `per_row_web` at every level. The `refunds` table exists; the executor has no refund action type and `ActionType` already lists `refund`. Template `T-F1` (refund not received) exists. Eval needs: no refund outside ground truth, no second refund, cap respected, look-alikes untouched.
+   - **The investigation agent and the three-way eval (rules, agent, no signal).** Needs the model decision above. Goes behind the existing interfaces (`ingest/extract.py` for reading messy text, `investigate/` for causes nobody listed, a response-body reader for free-text server errors). `AgentTrace` already has `model_id` and `rule_based`. Cache every model output for tests (BUILD_PLAN section 10). The hosted demo stays on recorded frames.
+   - **Recovery link for failed renewals** once Razorpay says it is fixed, with the 10% holdout (V1_SPEC J5): a small follow-up to INC-3 that reuses the Zone 1 recovery code. Needs a way for Razorpay to "mark it resolved", which today has no source.
+3. **Finish R7.** Decide whether the note and the video should mention INC-3 (the note is 545 words of a 450 to 550 limit, so something has to go), then the items in `docs/SUBMISSION.md` section 4.
+4. **Validation track runs alongside:** founder calls, Razorpay questions, the webhook decision above, the PRD 16.3 verify list (statuses are in `docs/SUBMISSION.md` section 3).
+
+**Recipe for a new after-the-payment incident** (what INC-3 touched, in order). Follow it and the new incident cannot silently break the existing ones:
+1. World: a new `synth/<name>.py` with its own random stream (`seed + n`), applied last in `synth/generate.py`, a block in `synth/config.yaml`, truth rows in `truth.db`. Never change `synth/world.py`'s draws or earlier numbers move.
+2. Monitor in `backend/app/detect/`, incident build and read layer in a new `backend/app/<name>/` package, a call in `backend/app/pipeline.py` before Zone 1 (ids: INC-1 webhook, INC-2 reserved, INC-3 renewals, Zone 1 from INC-4).
+3. `backend/app/service.py` dispatches on `mismatch_type` (renewals are `G`, Zone 1 is `Z1`); `act/executor.py` dispatches verify the same way.
+4. **Everywhere that picks "the first incident of a zone" must be checked:** `eval/run_eval.py` (now picks INC-1 by name), `web/src/routes/Ray.tsx` (now picks INC-1 by name), and the tests that count incidents.
+5. Contracts: `make contracts` and an entry in `docs/CONTRACT_CHANGES.md`. A new GET route needs every parameter optional, or `scripts/snapshot.py` fails (it calls every GET route with no arguments).
+6. Hosted demo: a `record_*` function in `scripts/demo_script.py`, a state block and branches in `web/src/lib/demo.ts` (ids like `act_3_grant` must be matched before the Hero A pattern), then `make snapshot` and commit `web/public/snapshot/`.
+7. Web: a view in `web/src/routes/`, the dispatch in `Incident.tsx`, the route in `web/e2e/layout.spec.ts`, a hosted-demo walkthrough in `demo.spec.ts` and a live one in `fix.spec.ts`.
+8. Prove the tests can fail: break the thing on purpose and see the test catch it (INC-3 did this for four rules).
 
 ## 8. Working agreements
 
-- Contracts are frozen. Change them only via `make contracts` plus an entry in `docs/CONTRACT_CHANGES.md` (currently v0.7).
+- Contracts are frozen. Change them only via `make contracts` plus an entry in `docs/CONTRACT_CHANGES.md` (currently v0.8).
 - Every number on screen comes from SQL or Python. The pipeline must never read `truth.db` (a test enforces it).
 - Ask Eshan before: commit, push, delete, create accounts, send anything outward, or change his Razorpay account beyond test objects he has allowed.
 - Keys go in `.env` only. Razorpay keys must be `rzp_test_`.
 - Files stay few. Answer in chat by default. Explain without jargon.
+- Eshan merges, or names the pull request to merge. Open the PR, switch Auto-fix on, report, and ask before merging. He merged PR #19 himself.
+- Quote every result as "works as designed on a simulation". The world is invented and the generator and detector share assumptions.
 
 ## 9. Known loose ends
 
@@ -241,6 +274,7 @@ Eshan chose to continue in a new chat. Suggested order:
 - Guided demo: a full page reload starts it over; customers pick suggested messages; writing your own reply, taking a conversation over, channels and settings changes are live-only. If the engine or data changes, run `make snapshot` and commit `web/public/snapshot/`.
 - The demo clock and the merchant's webhook fix are simulated and live in process memory and two `settings` keys. Restarting the API (`make run-api`) gives a fresh world; running only `make pipeline` on a world that already has grants does not reset them.
 - `make e2e` now starts the API on port 8000 (fresh world) and a live web on 5174, so both ports must be free.
-- Refunds, recovery links and event re-sending are in the autonomy matrix but have no executor yet.
-- Zone 1 incidents are INC-4 and INC-5 in pipeline mode. INC-2 and INC-3 are reserved for after-the-payment incidents of the spec that are not built.
+- Refunds and event re-sending are in the autonomy matrix but have no executor yet. Recovery links (Zone 1) and grace extensions (INC-3) do.
+- Zone 1 incidents are INC-4 and INC-5 in pipeline mode. INC-3 is the Razorpay-side renewal incident (built). INC-2 (charged twice) is reserved and not built.
 - The parallel R2 branch (`claude/docs-review-build-d91b5a`) was deleted on 7 Oct 2026 at Eshan's request. It duplicated PR #2. Last commit `d96b591`.
+- Traps hit while building INC-3: (1) port 5173 is shared by every chat, so run browser tests from a throwaway Playwright config on another port (write it, run it, delete it); (2) the live specs in `web/e2e/fix.spec.ts` share one world and run in order, and the autonomy test sets Autopilot for everything after it, so put new live tests before it; (3) `sed -i` on macOS needs an empty string argument, use Python for edits; (4) a shell variable holding several file names is not split in zsh, so list the files out; (5) Playwright's `getByRole` cannot find buttons at 375px opened directly (see 6b), load wide and resize; (6) `make run-api` rebuilds the world each start, so the live suites begin fresh, but `data/world.db` is changed by any test run against it.
