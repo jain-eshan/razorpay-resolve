@@ -197,3 +197,31 @@ Metrics: 318 backend and synth tests, 13 snapshot browser tests in the demo spec
 
 Deferred to the next R5 slice: the learning loop (feedback, bounded parameters, weekly card, six-week replay) and the Razorpay-side renewal anomaly (F-08).
 
+
+## 7 Oct 2026, web design consistency (design stream)
+
+Goal: make the web app look and behave like an addition to the live Razorpay dashboard, and write the rules down so later work follows them.
+
+What I asked the coding agent to do: copy the production top bar and side nav (Blindspot as a product tab, production items greyed and inert), add the Ray home, product guides in the Smart Collect format and a first-run setup in the layout of Razorpay's merchant onboarding, make the fix flows read like Razorpay's own agents (from Eshan's screen recordings of the Agentic Business Banking demo), apply one page header and responsive fixes everywhere, and document it. PR 10.
+
+What it produced:
+- `components/Shell.tsx`, `PageHeader.tsx`, `AgentAnswer.tsx`, `RayAnswers.tsx`; routes `Home`, `GuidePage`, `Setup`; `lib/guides.ts`, `lib/setup.ts`.
+- `FixPanel.tsx` and `Zone1Fix.tsx` now run as turns: one blue button per step, the founder's choice as a bubble, an Analyzing state, next steps on close. Logic and button text unchanged.
+- Tables got column minimums and grids use `minmax(0, 1fr)`, so nothing crushes or spills on a phone. Demo layouts fill the width.
+- `web/DESIGN.md` sections 14 to 20 (shell, templates, guides, agent journey, source of truth, checklist, philosophy). `e2e/layout.spec.ts` opens every screen at 375, 768 and 1440px.
+
+What I rejected or changed, and why:
+- A pasted style file (Dodger Blue `#0d94fb`, Muli, 4px corners) was not used. Production and Blade ship `#1364F1`, Inter and TASA, 8 and 12px. Recorded in DESIGN.md section 18.
+- Blade's `TabNav` crashes in a fresh browser when it unmounts overflowing tabs, so every tab is always rendered.
+- The OTP step and the feedback row from the banking demo were left out. Our equivalent of the OTP is the staged approval, and a row of controls that do nothing would mislead.
+- Ray's chat on the home is a router plus read-only answers, not a model.
+
+Bugs found by tests or review:
+- A layout test found a 60px sideways overflow on INC-4 and INC-5 at tablet width (plain `1fr` columns). Fixed across the app.
+- CI failed on PR 10 after merge: the layout test (one test visiting 20 screens) and the long Hero A walkthrough both passed the 30 s limit on a slower runner. Fixed in a follow-up: 60 s limit and one test per screen and width.
+
+Metrics: 80 snapshot browser tests pass (20 existing, 60 layout). Types and lint clean. The two live-API specs (`fix`, `talk`) were not run.
+
+Design review: not run through the `design-reviewer` agent, which did not exist when this work was built. I audited by hand (code scan for colours, raw HTML, fixed widths; screens looked at in a browser at pane width and 1440px; not looked at: chat, help and email demos, thread and case detail, How we know; dark mode not checked). The agent runs from the next entry that touches `web/`.
+
+Decisions: Blindspot is a top-bar tab beside Payments (Eshan). Production links are greyed and not clickable (Eshan). Ray home sits on top of the Blindspot home (Eshan). The design philosophy is DESIGN.md section 20.

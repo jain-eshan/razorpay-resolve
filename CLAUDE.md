@@ -14,8 +14,18 @@ Product monorepo (working name) for the Razorpay x ISB AI PM Build Challenge, Tr
 ## Branches and worktrees
 One long-lived branch, `main`. Eshan runs one Claude chat per git worktree, so each chat works on its own short-lived branch: `git fetch`, cut it from `origin/main`, then `make setup` and `cd web && npm ci` in the new folder. Merge by PR once CI passes, delete the branch, remove the worktree. Details and traps: `docs/HANDOFF.md` section 3b.
 
+## Build log and design review
+- Every build stream adds an entry to `docs/BUILD_LOG.md` when it finishes a piece of work. For any work that touches `web/`, the entry ends with a line `Design review:` and the result.
+- **After writing a build log entry that touches `web/`, run the `design-reviewer` agent (`.claude/agents/design-reviewer.md`) on the branch, before opening the pull request.** Give it the entry and the diff. It checks the work against `web/DESIGN.md` sections 14 to 20: mechanical checks, structure, content, and a look at 375, 768 and 1440px.
+- Fix every finding, or write down why not in the entry. Run the agent again after fixing. The pull request goes up only when the verdict is pass, or pass with notes that are listed in the entry.
+- Say in the entry and the pull request what the reviewer could not check. Never write "Design review: passed" for a review that did not run.
+- If the agent is not available in your session, do the same checks by hand from its file and say so in the entry.
+
+## Pull requests
+After opening a pull request: bind it to the session, read CI with the PR tools (do not poll with `gh`), and **switch Auto-fix on** (`set_monitor` with `auto_fix` and `address_comments`) so CI failures, merge conflicts and review comments wake the session. Do not enable auto-merge unless Eshan asks. Auto-fix only works while the PR is open, so turn it on straight after `gh pr create`.
+
 ## Web
-Work in `web/`. Read `web/CLAUDE.md` and `web/DESIGN.md` first, and follow `web/DESIGN.md` sections 14 to 19: the product is an addition to the live Razorpay dashboard, so reuse the shell, the page templates and the agent answer pattern, and run the checklist in section 19 before a PR. Use Blade components and tokens only, and read a component's docs through the Blade MCP server (`.mcp.json`) before using one this repo has not used.
+Work in `web/`. Read `web/CLAUDE.md` and `web/DESIGN.md` first (start with section 20, the design philosophy), and follow `web/DESIGN.md` sections 14 to 19: the product is an addition to the live Razorpay dashboard, so reuse the shell, the page templates and the agent answer pattern, and run the checklist in section 19 before a PR. Use Blade components and tokens only, and read a component's docs through the Blade MCP server (`.mcp.json`) before using one this repo has not used.
 
 ## Commands
 `make setup`, `make synth`, `make snapshot`, `make run-web`, `make run-api`, `make test`, `make lint`, `make eval`, `make contracts`.
