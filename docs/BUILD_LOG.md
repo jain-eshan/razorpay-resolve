@@ -316,6 +316,44 @@ What checking caught:
 
 Not done: item 1 of the verify list (the 24-hour webhook disable, due about 18:41 IST on 7 Oct) needs Eshan to look at the dashboard. Nothing in `web/` changed, so no design review was needed. No recording was made.
 
+## 7 Oct 2026, R4 and R5 rest: INC-3 and the escalation to Razorpay (integrator)
+
+Goal: the one incident where the fault is Razorpay's, and the evidence pack that goes with it. A burst of card renewals fails inside Razorpay's gateway, the merchant's access job cuts access, and nobody on the merchant's side did anything wrong. No model.
+
+Built:
+- World (`synth/renewals.py`, own random stream, applied last so no earlier number moves): 27 card mandate renewals fail with one gateway error between Tue 29 Sep 02:10 and 09:29, 11 UPI AutoPay renewals in the same hours go through, card renewals work again at 10:12, three customers pay again on their own, three write in. Truth rows for all of it.
+- Monitor (`detect/renewal.py`): a run of at least 5 failed renewals in a row on one method whose chance under the normal failure rate is under 1 in 1,000. It says "Razorpay" only when nothing else explains it: no change on the merchant's side in the 2 hours before, no bank outage over the hours, one error code on at least 80% of the run, at least 2 card networks, and the other method fine. Otherwise attribution moves off Razorpay (tested for each).
+- Incident (`renewal/build.py`, `renewal/read.py`): INC-3, owner Razorpay by attribution row 8, confidence medium, 6 pieces of evidence with points, three things Blindspot cannot see, a rule-based trace. Members are the 27 failed renewals; 24 get the fix and 3 are left out with the reason "Paid since".
+- The fix reuses the staged executor: a "grant" on a failed renewal is a grace extension (access on for 3 days from now, never shortens access, undoable until the customers are told). The message template `T-G1`, in the contracts since v0.1 and never sent, is now sent to customers whose access is confirmed. Verify closes the incident only when everyone's record shows access and at least 3 card renewals have gone through since the last failure.
+- Escalation (`act/escalate.py`): draft, then the founder's approval sends. The pack holds payment ids, counts, error codes, hours, what was ruled out and what was already tried, and never a customer's name, email or phone. Only a Razorpay-owned incident can be escalated.
+- Web: `RenewalView`, `RenewalFix`, `RenewalChart`, an INC-3 pair on the RAY page, hosted-demo frames recorded from the engine (`record_renewal`), contracts v0.8.
+
+Result (invented data, one seed): found with 0 minutes onset error, 0 false renewal incidents, fix precision and recall 1.0, all 3 complaints joined to the incident, the alert would fire 85 minutes after onset (it needs 5 failures in a row). 24 INC-3 and escalation checks: 23 gates pass, 1 reported figure. Whole eval: 98 gates pass, 15 reported figures, none fail (was 75 and 14). Hero A, Hero B and conversation numbers are unchanged.
+
+What the checks caught, which a read-through had not:
+- The first world found 19 of 26 failures: an ordinary card renewal inside the window had gone through, which splits the run. In a real outage it would have failed too, so any card renewal in the window now fails (27 in all, not the 26 configured).
+- Hero A was picked as "the earliest incident after the payment" in the eval and as "the first incident after the payment" on the RAY page. INC-3 is earlier on the same day, so both would have silently shown the wrong story. Both now pick INC-1 by name.
+- `extraction_amount_exact` fell to 0.94 (gate 0.95) because INC-3's complaint texts gave no amount. Real customers say it; the texts now do.
+- My first scoring of INC-3's complaints used the truth label "G", which Hero A's renewal complaints also carry. It would have dropped them from the exact-key gates without any failure. It now selects by the failed payment a complaint names.
+- After 5 of 24 were extended, verify said "19 still show no access. Run the plan again", which is wrong for customers not reached yet. It now says they are waiting for the next step.
+- The message step reused the access step's button names ("Keep access on for the first 5"). Separate labels now.
+- At 375px the language control's first option wrapped out of its box. Shortened to "Auto" in this panel. The same control in Hero A's panel has the same problem and was left alone.
+- The live browser test failed because an earlier test in the file switches the global autonomy to Autopilot, and then the extension runs by itself. Test order, not product.
+- Mutation check on the new tests: leaving nobody out, letting the pack leak names, letting a grace shorten access, and ignoring renewals in verify were each introduced on purpose; each was caught (my first leak mutation was not a real leak and was redone).
+
+Decisions and deviations:
+- The window is Tue 29 Sep, not Thu 1 Oct as in SPEC 13.2: Thu falls inside the INC-1 outage and would turn ordinary renewals into INC-1 victims.
+- Attribution to Razorpay is by elimination, so confidence is medium and the screen says what Blindspot cannot see. No threshold was tuned on the result: the 5-in-a-row and 1-in-1,000 settings were chosen before looking, but the world was built with the monitor in view, so quote this as "works as designed on a simulation".
+- Only the first run becomes INC-3 (the id is reserved). A second renewal incident would need its own number.
+- INC-3 has no "Was this a real problem?" panel: its monitor is not one the learning loop tunes, and a button that does nothing would mislead.
+- The hosted demo tells customers only after access is on for all of them; the live version can do it in steps.
+
+Not built: the recovery link for failed renewals once Razorpay says it is fixed (with the 10% holdout), collecting the renewals themselves, the "failed but access still on" report (J6), duplicate charges and the guarded refund (INC-2), the investigation agent. The submission note (`docs/SUBMISSION.md`) mentions INC-3 only through the gate count.
+
+Checks: 363 backend and synth tests (was 334), 46 snapshot browser tests (was 43; 2 new walkthroughs and INC-3 in the layout test), 13 live browser tests including a new INC-3 flow (the `fix` and `talk` specs ran this time), eval as above, types and lint clean, secret scan clean, no em dashes in new files.
+
+Design review: the `design-reviewer` agent could not be started as an agent in this session, so I ran its checks by hand. Mechanical: types, lint, no hex colours, no inline styles, no raw tags, no `repeat(N, 1fr)`, fixed widths only on an icon tile and legend swatches, no em dashes, INC-3 added to the layout test (375, 768 and 1440 px, no sideways overflow). Looked at: INC-3 at 1440 and 375 px, the fix panel after working through it at 1440 and 375 px, the RAY home at 1440 px. Found and fixed: the language control at 375 px. Not looked at by eye: INC-3 at 768 px (the layout test passes), dark mode, the RAY WhatsApp section (asserted by the browser test, not seen), the Incidents list row for INC-3. Found and not fixed: at 375 px opened directly, no button on the incident pages (Hero A, Hero B, INC-3) is exposed to the accessibility tree; handed off as a separate task.
+
 ## 7 Oct 2026, 24-hour webhook experiment (integrator)
 
 Closed the experiment that had been open since 6 Oct. Eshan checked the Razorpay test dashboard at 9:12 PM IST: webhook A (the Supabase sink) was still "Enabled", with no banner, warning, failure count or delivery log on the list or the details panel. I read the sink's own log with SQL (read-only): 30 deliveries, two events, 15 attempts each, from 18:41:03 IST on 6 Oct to 17:27:07 IST on 7 Oct (22.8 hours). Each gap was about double the last. The next gap would have been about 23 hours, past the 24-hour limit, and no further attempt came. The sink was still in `401` mode throughout, so the failure never stopped.

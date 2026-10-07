@@ -18,6 +18,15 @@ type Demo = {
   }
   chat: Record<string, Scenario>
   learning: Record<string, { weekly: Record<'none' | 'told' | 'reviewed', Frame<Schemas['LearningWeekly']>>; params: Record<'none' | 'reviewed', Frame<Schemas['LearningParam'][]>>; ack: Frame; review: Frame<Schemas['LearningWeekly']> }>
+  renewal: {
+    grant: Record<'drafted' | 'dry_run' | 'first_5' | 'rest', Frame<Action>>
+    detail: Record<'base' | 'first5' | 'rest' | 'closed', Frame<Schemas['IncidentDetail']>>
+    members: Record<'base' | 'first5' | 'rest' | 'closed', Frame<Schemas['Member'][]>>
+    verify: Record<'none' | 'dry_run' | 'first5' | 'rest' | 'closed', Frame>
+    escalation: Record<'drafted' | 'sent_plain' | 'sent_graced', Frame<Schemas['Escalation']>>
+    messages: { blocked: Record<string, Frame<Action>>; ready: Record<string, Frame<Action>>; previews: Record<string, unknown>; stages: Record<string, Frame<Action>> }
+    revert: Record<'first_5' | 'rest', Frame<Action>>
+  }
   zone1: {
     probe: Record<'broken' | 'ok', Frame>
     health: Record<'broken' | 'ok0' | 'ok1' | 'ok2', Frame>
@@ -63,6 +72,20 @@ const zAction = (d: Demo): Frame<Action> | undefined => {
   if (z.r === 'rest') return f.stages[phase() as 'rest0' | 'rest24' | 'rest48']
   return f.stages[z.r]
 }
+
+// INC-3 (Razorpay's side) has its own small state, because the demo user works through it from its own page: grace in stages, the customers told, the pack sent.
+const c3 = {
+  g: 'none' as 'none' | 'drafted' | 'dry_run' | 'first_5' | 'rest' | 'reverted', m: 'none' as 'none' | 'drafted' | 'dry_run' | 'first_5' | 'rest', lang: 'auto',
+  esc: 'none' as 'none' | 'drafted' | 'sent', graced: false, closed: false, revert: undefined as Frame<Action> | undefined,
+}
+const c3Grant = (d: Demo) => (c3.g === 'none' ? undefined : c3.g === 'reverted' ? c3.revert : d.renewal.grant[c3.g])
+const c3Msg = (d: Demo): Frame<Action> | undefined => {
+  if (c3.m === 'none') return undefined
+  const f = c3.m === 'drafted' ? (st.messagingOn ? d.renewal.messages.ready : d.renewal.messages.blocked)[c3.lang] : d.renewal.messages.stages[c3.m]
+  return { ...f, data: { ...f.data, params: { ...f.data.params, language: c3.lang } } }
+}
+const c3Phase = () => (c3.closed ? 'closed' : c3.g === 'first_5' ? 'first5' : c3.g === 'rest' ? 'rest' : 'base') as 'base' | 'first5' | 'rest' | 'closed'
+const c3Esc = (d: Demo) => (c3.esc === 'none' ? undefined : c3.esc === 'drafted' ? d.renewal.escalation.drafted : c3.graced ? d.renewal.escalation.sent_graced : d.renewal.escalation.sent_plain)
 
 let loaded: Promise<Demo> | undefined
 const demo = () => (loaded ??= fetch('/snapshot/demo.json').then((r) => r.json() as Promise<Demo>))
@@ -112,6 +135,22 @@ export async function demoGet(path: string): Promise<unknown | undefined> {
   }
   if (p === '/merchant-mock/page-health') return d.zone1.health[pageKey()].data
   if (p === '/api/settings') return settings(d)
+  if (p === '/api/incidents/INC-3') return { ...d.renewal.detail[c3Phase()].data, actions: [c3Grant(d), c3Msg(d)].filter((f): f is Frame<Action> => !!f).map((f) => f.data) }
+  if (p === '/api/incidents/INC-3/members') {
+    const tier = new URLSearchParams(q).get('tier')
+    return d.renewal.members[c3Phase()].data.filter((m) => !tier || m.tier === tier)
+  }
+  if (p === '/api/actions/act_3_grant' || p === '/api/actions/act_3_message') {
+    const f = p.endsWith('_message') ? c3Msg(d) : c3Grant(d)
+    if (!f) throw new Error('404 action')
+    return f.data
+  }
+  if (p === '/api/messages/preview' && q.includes('act_3_message')) return d.renewal.messages.previews[c3.lang]
+  if (p === '/api/escalations') return c3Esc(d) ? [c3Esc(d)!.data] : []
+  if (p === '/api/escalations/esc_3_razorpay') {
+    if (!c3Esc(d)) throw new Error('404 escalation')
+    return c3Esc(d)!.data
+  }
   if (p === `/api/actions/${ZID}`) {
     const f = zAction(d)
     if (!f) throw new Error('404 action')
@@ -200,6 +239,82 @@ export async function demoSend(method: string, path: string, body: Record<string
     z.status = k.startsWith('closed') ? 'closed' : k === 'broken' ? 'open' : 'verifying'
     if (k.startsWith('closed')) add(fr.audit)
     return fr.data
+  }
+  if (path === '/api/incidents/INC-3/actions') {
+    const r3 = d.renewal
+    if (body.action_type === 'grant') {
+      if (c3.g === 'none' || c3.g === 'reverted') {
+        c3.g = 'drafted'
+        add(r3.grant.drafted.audit)
+      }
+      return c3Grant(d)!.data
+    }
+    if (c3.g === 'none' || c3.g === 'drafted' || c3.g === 'dry_run' || c3.g === 'reverted') throw new Error('Nothing to do yet. Restore access first: a message says access is on, so it only goes to customers whose access is confirmed.')
+    if (c3.g !== 'rest') throw new Error('In the hosted demo, tell the customers once access is on for all of them. The live version can do it in steps.')
+    c3.lang = (body.params as { language?: string } | undefined)?.language ?? 'auto'
+    if (c3.m === 'none') {
+      c3.m = 'drafted'
+      add(r3.messages.blocked.auto.audit)
+    }
+    return c3Msg(d)!.data
+  }
+  const a3 = path.match(/^\/api\/actions\/act_3_(grant|message)\/(approve|revert)$/)
+  if (a3) {
+    const [, kind, verb] = a3
+    const r3 = d.renewal
+    if (verb === 'revert') {
+      if (kind === 'message') throw new Error('Messages cannot be unsent.')
+      if (c3.g === 'drafted' || c3.g === 'none') throw new Error('Nothing has run yet, so there is nothing to undo.')
+      if (c3.m === 'first_5' || c3.m === 'rest') throw new Error('Customers were already told their access is on, so the grants can no longer be undone.')
+      c3.revert = c3.g === 'rest' ? r3.revert.rest : r3.revert.first_5
+      add(c3.revert.audit)
+      c3.g = 'reverted'
+      c3.m = 'none'
+      c3.closed = false
+      return c3.revert.data
+    }
+    const stage = body.stage as string
+    if (kind === 'grant') {
+      const next = NEXT[c3.g]
+      if (!next || STAGES.indexOf(stage as (typeof STAGES)[number]) < STAGES.indexOf(next as (typeof STAGES)[number])) return c3Grant(d)!.data
+      if (stage !== next) throw new Error(`Approve '${label(next)}' next, not '${label(stage)}'.`)
+      c3.g = stage as typeof c3.g
+      add(r3.grant[stage as (typeof STAGES)[number]].audit)
+      return c3Grant(d)!.data
+    }
+    if (!st.messagingOn) throw new Error('Messaging is switched off. Turn it on in settings, then approve.')
+    const next = NEXT[c3.m]
+    if (!next || STAGES.indexOf(stage as (typeof STAGES)[number]) < STAGES.indexOf(next as (typeof STAGES)[number])) return c3Msg(d)!.data
+    if (stage !== next) throw new Error(`Approve '${label(next)}' next, not '${label(stage)}'.`)
+    c3.m = stage as typeof c3.m
+    add(r3.messages.stages[stage].audit)
+    return c3Msg(d)!.data
+  }
+  if (path === '/api/incidents/INC-3/verify') {
+    const r3 = d.renewal
+    const fr = c3.g === 'none' || c3.g === 'reverted' ? r3.verify.none : c3.g === 'drafted' || c3.g === 'dry_run' ? r3.verify.dry_run : c3.g === 'first_5' ? r3.verify.first5 : r3.verify.closed
+    if (fr === r3.verify.closed && !c3.closed) {
+      c3.closed = true
+      add(fr.audit)
+    }
+    return fr.data
+  }
+  if (path === '/api/escalations') {
+    if (body.incident_id !== 'INC-3') throw new Error("Blindspot has not put this on Razorpay's side, so there is nothing to send them. Send the evidence pack to your own developer.")
+    if (c3.esc === 'none') {
+      c3.esc = 'drafted'
+      add(d.renewal.escalation.drafted.audit)
+    }
+    return c3Esc(d)!.data
+  }
+  if (path === '/api/escalations/esc_3_razorpay/send') {
+    if (c3.esc === 'none') throw new Error('Escalation esc_3_razorpay not found.')
+    if (c3.esc === 'drafted') {
+      c3.esc = 'sent'
+      c3.graced = c3.g === 'rest'
+      add(c3Esc(d)!.audit)
+    }
+    return c3Esc(d)!.data
   }
   if (path === '/api/incidents/INC-1/actions') {
     if (body.action_type === 'grant') {

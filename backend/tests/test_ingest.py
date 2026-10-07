@@ -174,8 +174,10 @@ def test_extraction_sees_only_tokens_never_the_identifiers():
 
 
 def hero_a_complaints(db):
-    """The complaints that carry a payment reference. Before-the-payment complaints (R4) have none."""
-    return [c for c in db.execute("SELECT * FROM complaints ORDER BY received_at").fetchall() if any(extract_keys(c["raw_text"]).values())]
+    """The complaints about a payment that went through and has no access. Before-the-payment complaints (R4) carry no reference, and INC-3's name a failed renewal."""
+    failed = {r[0] for r in db.execute("SELECT id FROM payments WHERE status = 'failed'")}
+    return [c for c in db.execute("SELECT * FROM complaints ORDER BY received_at").fetchall()
+            if any(extract_keys(c["raw_text"]).values()) and not set(extract_keys(c["raw_text"])["payment_id"]) & failed]
 
 
 def test_the_world_complaints_all_extract_as_paid_but_no_access(world):

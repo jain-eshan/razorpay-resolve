@@ -492,6 +492,11 @@ class Escalation(BaseModel):
     status: Literal["drafted", "sent", "acknowledged", "resolved"]
     pack: dict[str, Any]
     created_at: datetime
+    updated_at: datetime | None = None
+
+
+class SendEscalationRequest(BaseModel):
+    approver: str
 
 
 class FeedbackRequest(BaseModel):

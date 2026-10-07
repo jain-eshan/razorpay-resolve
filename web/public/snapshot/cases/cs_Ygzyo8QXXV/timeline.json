@@ -1,0 +1,23 @@
+{
+  "customer": [
+    {
+      "at": "2026-09-29T18:59:58+05:30",
+      "text": "bhai kal subah ko Premium Monthly ka 299 ka renewal nahi hua par maine kuch galat nahi kiya, access band ho gaya. ref pay_zH6PRujYSPLDAY",
+      "source_ref": "cmp_Ygzyo8QXXV"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-09-29T07:14:59+05:30",
+      "text": "Renewal of \u20b9299 failed: GATEWAY_ERROR",
+      "source_ref": "pay_zH6PRujYSPLDAY"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-10-02T10:40:00+05:30",
+      "text": "Access record: expired",
+      "source_ref": "pay_zH6PRujYSPLDAY"
+    }
+  ]
+}

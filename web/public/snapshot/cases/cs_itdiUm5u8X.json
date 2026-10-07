@@ -66,7 +66,7 @@
     {
       "payment_id": "pay_nfLguW0LtU6qMI",
       "method": "fuzzy",
-      "calibrated_score": 0.11092097613093421,
+      "calibrated_score": 0.11125101619869605,
       "features": {
         "amount": 1.0,
         "time": 0.3,

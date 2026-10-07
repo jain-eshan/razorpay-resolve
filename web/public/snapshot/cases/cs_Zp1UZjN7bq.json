@@ -1,0 +1,108 @@
+{
+  "id": "cs_Zp1UZjN7bq",
+  "complaint_id": "cmp_Zp1UZjN7bq",
+  "channel": "whatsapp_payments",
+  "match_status": "matched",
+  "mismatch_type": "G",
+  "owner": "razorpay",
+  "incident_id": "INC-3",
+  "received_at": "2026-09-29T19:26:15+05:30",
+  "extraction": {
+    "topic": "subscription",
+    "is_payment_related": true,
+    "language": "hi_latn",
+    "claim": "renewal_failed",
+    "amount_paise": 29900,
+    "amount_count": null,
+    "stated_time_text": null,
+    "method": "unknown",
+    "app_or_bank_name": null,
+    "ids": {
+      "payment_id": "[PAYMENT_ID_1]",
+      "order_id": null,
+      "rrn": null,
+      "email": null,
+      "phone": null,
+      "vpa": null,
+      "card4": null
+    },
+    "product_or_plan": "Premium Monthly",
+    "customer_wants": "unknown",
+    "sentiment": "calm",
+    "injection_suspected": false,
+    "window": null
+  },
+  "candidates": [
+    {
+      "payment_id": "pay_4AWi6TYFX3KKzD",
+      "method": "fuzzy",
+      "calibrated_score": 0.17125492321845442,
+      "features": {
+        "amount": 1.0,
+        "time": 0.3,
+        "method": 0.5,
+        "bank_app": 0.5,
+        "contact_partial": 0.0,
+        "card_last4": 0.0,
+        "vpa_suffix": 0.0,
+        "crowding": 0.0
+      }
+    },
+    {
+      "payment_id": "pay_WwmBnmqNIbbPHb",
+      "method": "fuzzy",
+      "calibrated_score": 0.17125492321845442,
+      "features": {
+        "amount": 1.0,
+        "time": 0.3,
+        "method": 0.5,
+        "bank_app": 0.5,
+        "contact_partial": 0.0,
+        "card_last4": 0.0,
+        "vpa_suffix": 0.0,
+        "crowding": 0.0
+      }
+    },
+    {
+      "payment_id": "pay_yPPaUhCN3FtgBd",
+      "method": "fuzzy",
+      "calibrated_score": 0.17125492321845442,
+      "features": {
+        "amount": 1.0,
+        "time": 0.3,
+        "method": 0.5,
+        "bank_app": 0.5,
+        "contact_partial": 0.0,
+        "card_last4": 0.0,
+        "vpa_suffix": 0.0,
+        "crowding": 0.0
+      }
+    }
+  ],
+  "lanes": {
+    "customer": [
+      {
+        "at": "2026-09-29T19:26:15+05:30",
+        "text": "Premium Monthly ka 299 ka auto renewal fail ho gaya aur ab course nahi khul raha. pay_AdvBqsoOUPDr1E",
+        "source_ref": "cmp_Zp1UZjN7bq"
+      }
+    ],
+    "razorpay": [
+      {
+        "at": "2026-09-29T03:45:31+05:30",
+        "text": "Renewal of \u20b9299 failed: GATEWAY_ERROR",
+        "source_ref": "pay_AdvBqsoOUPDr1E"
+      }
+    ],
+    "merchant": [
+      {
+        "at": "2026-10-02T10:40:00+05:30",
+        "text": "Access record: expired",
+        "source_ref": "pay_AdvBqsoOUPDr1E"
+      }
+    ]
+  },
+  "state_line": "Matched to pay_AdvBqsoOUPDr1E by an exact identifier. Part of INC-3: RAZORPAY SIDE.",
+  "reply_draft": null,
+  "injection_suspected": false
+}

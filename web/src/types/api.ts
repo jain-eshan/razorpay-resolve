@@ -284,7 +284,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** List Escalations */
+        get: operations["list_escalations_api_escalations_get"];
         put?: never;
         /** Create Escalation */
         post: operations["create_escalation_api_escalations_post"];
@@ -305,6 +306,23 @@ export interface paths {
         get: operations["get_escalation_api_escalations__escalation_id__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/escalations/{escalation_id}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send Escalation */
+        post: operations["send_escalation_api_escalations__escalation_id__send_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1197,6 +1215,8 @@ export interface components {
              * @enum {string}
              */
             target: "founder" | "developer" | "razorpay";
+            /** Updated At */
+            updated_at?: string | null;
         };
         /** EscalationRequest */
         EscalationRequest: {
@@ -1748,6 +1768,11 @@ export interface components {
             leaked_customers: number;
             /** Leaked Paise */
             leaked_paise: number;
+        };
+        /** SendEscalationRequest */
+        SendEscalationRequest: {
+            /** Approver */
+            approver: string;
         };
         /** Settings */
         Settings: {
@@ -2538,6 +2563,37 @@ export interface operations {
             };
         };
     };
+    list_escalations_api_escalations_get: {
+        parameters: {
+            query?: {
+                incident_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Escalation"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_escalation_api_escalations_post: {
         parameters: {
             query?: never;
@@ -2581,6 +2637,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Escalation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_escalation_api_escalations__escalation_id__send_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                escalation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendEscalationRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

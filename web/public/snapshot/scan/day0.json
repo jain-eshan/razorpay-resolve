@@ -1,6 +1,6 @@
 {
   "days": 30,
-  "headline": "I found 81 customers in the last 30 days who paid and have no access. Before the payment, 2 more times customers could not pay, about 25 lost orders.",
+  "headline": "I found 81 customers in the last 30 days who paid and have no access. Before the payment, 2 more times customers could not pay, about 25 lost orders. On Razorpay's side, 27 card renewals failed with a gateway error.",
   "leaked_customers": 81,
   "leaked_paise": 5631900,
   "incidents": [
@@ -20,6 +20,23 @@
       "at_risk_paise": 849000,
       "onset_at": "2026-09-28T11:04:29+05:30",
       "would_have_alerted_at": "2026-09-28T12:30:00+05:30"
+    },
+    {
+      "id": "INC-3",
+      "title": "Card renewals failed with a gateway error",
+      "zone": "after",
+      "mismatch_type": "G",
+      "owner": "razorpay",
+      "inferred": false,
+      "status": "open",
+      "opened_by": "signal",
+      "affected": 27,
+      "complained": 3,
+      "silent": 24,
+      "fixed": 3,
+      "at_risk_paise": 717600,
+      "onset_at": "2026-09-29T02:10:00+05:30",
+      "would_have_alerted_at": "2026-09-29T03:35:23+05:30"
     },
     {
       "id": "INC-1",

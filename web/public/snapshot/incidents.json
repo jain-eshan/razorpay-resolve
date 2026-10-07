@@ -17,6 +17,23 @@
     "would_have_alerted_at": "2026-09-28T12:30:00+05:30"
   },
   {
+    "id": "INC-3",
+    "title": "Card renewals failed with a gateway error",
+    "zone": "after",
+    "mismatch_type": "G",
+    "owner": "razorpay",
+    "inferred": false,
+    "status": "open",
+    "opened_by": "signal",
+    "affected": 27,
+    "complained": 3,
+    "silent": 24,
+    "fixed": 3,
+    "at_risk_paise": 717600,
+    "onset_at": "2026-09-29T02:10:00+05:30",
+    "would_have_alerted_at": "2026-09-29T03:35:23+05:30"
+  },
+  {
     "id": "INC-1",
     "title": "Webhook returned 401 after web v2.8.0: auth middleware on /api/*",
     "zone": "after",

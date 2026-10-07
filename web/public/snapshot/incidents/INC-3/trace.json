@@ -1,0 +1,53 @@
+{
+  "id": "tr_INC-3",
+  "incident_id": "INC-3",
+  "steps": [
+    {
+      "tool": "get_renewal_failures",
+      "input": {
+        "method": "card",
+        "from": "Tue 02:10",
+        "to": "Tue 09:29"
+      },
+      "output_summary": "27 card renewals in a row failed. Normally about 1 in 31 does, so this has a chance of 0.0000"
+    },
+    {
+      "tool": "get_error_codes",
+      "input": {
+        "payment_ids": 27
+      },
+      "output_summary": "100% carry GATEWAY_ERROR, source gateway, across 3 card networks"
+    },
+    {
+      "tool": "get_other_method_renewals",
+      "input": {
+        "method": "upi",
+        "same_hours": true
+      },
+      "output_summary": "11 renewals in the same hours, 0 failed"
+    },
+    {
+      "tool": "list_events",
+      "input": {
+        "window": "2 hours before the first failure"
+      },
+      "output_summary": "No change on the merchant's side in that window"
+    },
+    {
+      "tool": "get_downtime_events",
+      "input": {
+        "window": "incident window"
+      },
+      "output_summary": "No bank outage covers the window"
+    },
+    {
+      "tool": "attribute",
+      "input": {},
+      "output_summary": "Rule 8: razorpay. One gateway error across methods that downtime does not explain"
+    }
+  ],
+  "budget_used": 6,
+  "budget_total": 8,
+  "model_id": null,
+  "rule_based": true
+}
