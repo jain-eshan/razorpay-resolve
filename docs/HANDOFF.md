@@ -1,4 +1,4 @@
-# Handoff: where Blindspot stands (7 Oct 2026: R0 to R5 on `main` except the items marked "not started" below; R7 submission kit merged; INC-3 and the escalation on branch `claude/r4-inc3-renewal`)
+# Handoff: where Blindspot stands (7 Oct 2026: R0 to R5 on `main` except the items marked "not started" below; R7 submission kit and INC-3 with the escalation to Razorpay merged as PRs #16 and #19)
 
 Read this first in a new chat, then `docs/PRD.md`. Everything below is true as of the last commit on `main`.
 
@@ -28,12 +28,12 @@ Blindspot (working name) is Eshan Jain's entry for the Razorpay x ISB AI PM Buil
 | Dashboard-aligned frontend (Blade TopNav and SideNav, header-band panels, sticky timeline) | Done. Merged as PR #5. |
 | UX review and one-branch cleanup (7 Oct, section 2b) | Done. Merged as PR #6. `main` is now the only branch. |
 | R4 first slice: Zone 1, Hero B (cannot reach the pay page), no model | Done, contracts v0.5. Merged as PR #8. Section 2c. |
-| R4 rest: escalation to Razorpay | Done with INC-3, contracts v0.8. Open as PR #19 (branch `claude/r4-inc3-renewal`), not merged. Section 2f. |
+| R4 rest: escalation to Razorpay | Done with INC-3, contracts v0.8. Merged as PR #19. Section 2f. |
 | R4 rest: investigation agent, three-way eval (need a model) | Not started |
 | R4 rest: duplicate-charge monitor and guarded refund (INC-2, F-03, F-39) | Not started |
 | R5 first slice: handovers (Instagram and Messenger control passing, public posts to private) | Done, contracts v0.6. Merged as PR #9. Section 2d. |
 | R5 second slice: learning loop, weekly card, screen S-18 (no model) | Done, contracts v0.7. Merged as PR #15. Section 2e. |
-| R5 rest: renewal anomaly (F-08, INC-3) | Done, contracts v0.8. Open as PR #19. Section 2f. |
+| R5 rest: renewal anomaly (F-08, INC-3) | Done, contracts v0.8. Merged as PR #19. Section 2f. |
 | R6 real rails (stretch) | Not started |
 | R7 submission kit | Merged as PR #16: `docs/SUBMISSION.md` with note (545 words), 90-second script, verify-list status. Eshan still has to check, record and submit (its section 4). |
 
@@ -105,7 +105,7 @@ Merged as PR #15. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/C
 - **Not run:** the `fix` and `talk` live browser specs (ports were busy; CI runs them). The `design-reviewer` agent was not started as an agent; its mechanical checks were run by hand (see the build log).
 
 ### INC-3 and the escalation to Razorpay, 7 Oct 2026 (section 2f)
-Open as PR #19 (branch `claude/r4-inc3-renewal`). Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.8).
+Merged as PR #19. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.8).
 - **What it does:** card renewals fail inside Razorpay's gateway for seven hours (27 failed, UPI AutoPay in the same hours fine, nothing changed on the merchant's side). Blindspot puts it on Razorpay's side by elimination, says it is medium confidence and what it cannot see, keeps access on for the 24 customers who have not paid again (a 3 day grace extension, staged, undoable until they are told), tells them in a template message, and drafts an evidence pack the founder approves before it goes to Razorpay (simulated). Verify closes it when every record shows access and card renewals work again.
 - **Code:** `synth/renewals.py`, `backend/app/detect/renewal.py`, `backend/app/renewal/` (build, read), `backend/app/act/escalate.py`, `merchant_mock.extend_grace`, T-G1 slots in `act/messages.py`. Web: `routes/RenewalView.tsx`, `components/RenewalFix.tsx`, `components/RenewalChart.tsx`, an INC-3 pair on the RAY page. Demo frames: `record_renewal` in `scripts/demo_script.py` and the `c3` state in `web/src/lib/demo.ts`.
 - **Results (invented data):** found with 0 minutes onset error, alert 85 minutes after onset (it needs 5 failed renewals in a row), fix precision and recall 1.0, 3 of 3 complaints joined, 0 customers who paid again touched. 24 INC-3 and escalation checks, 23 gates pass. Quote as "works as designed on a simulation".
@@ -211,7 +211,7 @@ The full verify list is PRD section 16.3.
 
 ## 6b. Pending (as of the end of 7 Oct 2026)
 
-**Open pull request: #19** (`claude/r4-inc3-renewal`, INC-3 and the escalation to Razorpay). CI was running, nothing had failed, GitHub said mergeable, the Vercel preview deployed. **Not merged.** Eshan authorised merging PR #16 only, so ask before merging this one. After the merge: delete the remote branch, then remove this worktree (section 3b rule 5). CodeRabbit has hit its free review limit on this repo and offers paid reviews ($0.25 a file). Not switched on, Eshan's call.
+**Pull requests:** #16 (submission kit) and #19 (INC-3 and the escalation) are merged, #19 by Eshan himself at 18:03 UTC on 7 Oct after CI passed. Clean up if not done: delete the remote branch `claude/r4-inc3-renewal`, remove its worktree (section 3b rule 5). A later PR carries this handoff. CodeRabbit has hit its free review limit on this repo and offers paid reviews ($0.25 a file). Not switched on, Eshan's call.
 
 **Open task started by Eshan in a separate session:** "buttons exposed to assistive tech at phone width". At 375px opened directly, no button on the incident pages (Hero A, Hero B, INC-3) shows up when Playwright asks for buttons by role, though the text is there. It may be a real accessibility problem in the mobile shell or an artifact of how the page loads. Check that session's branch or PR before touching `web/src/components/Shell.tsx`.
 
@@ -237,7 +237,7 @@ Needs the next session:
 ## 7. Next steps
 
 Order of work, with what each needs:
-1. **Look at PR #19.** `gh pr view 19` and the PR tools: CI green and no conflicts, then ask Eshan about merging. Fix any `ci-failure` issue first (section 0).
+1. **Start clean.** Fix any `ci-failure` issue first (section 0), `git fetch`, cut a branch from `origin/main`, `make setup`, `cd web && npm ci`. The accessibility task from 6b may have opened its own PR; check `gh pr list`.
 2. **Pick the next slice** (one PR per slice):
    - **INC-2, charged twice, with the guarded refund (F-03, F-39).** The first action that moves real money, so the riskiest. A duplicate-capture monitor (15 duplicate pairs within 120 seconds after an Android release, with legitimate two-seat buyers and auto-reversed pairs as look-alikes that must not be refunded: SPEC section 13 and V1_SPEC J2, FR-DG-3). Refund rules (V1_SPEC FR-AC-7): only Exact-tier duplicates, original method only (no destination field), per-merchant daily cap (`daily_refund_cap_paise` is already a setting), one customer at a time on the web, never from WhatsApp, status shows the refund id and later the ARN. Attribution row 6 exists. Matrix class `refund` is `per_row_web` at every level. The `refunds` table exists; the executor has no refund action type and `ActionType` already lists `refund`. Template `T-F1` (refund not received) exists. Eval needs: no refund outside ground truth, no second refund, cap respected, look-alikes untouched.
    - **The investigation agent and the three-way eval (rules, agent, no signal).** Needs the model decision above. Goes behind the existing interfaces (`ingest/extract.py` for reading messy text, `investigate/` for causes nobody listed, a response-body reader for free-text server errors). `AgentTrace` already has `model_id` and `rule_based`. Cache every model output for tests (BUILD_PLAN section 10). The hosted demo stays on recorded frames.
@@ -262,7 +262,7 @@ Order of work, with what each needs:
 - Ask Eshan before: commit, push, delete, create accounts, send anything outward, or change his Razorpay account beyond test objects he has allowed.
 - Keys go in `.env` only. Razorpay keys must be `rzp_test_`.
 - Files stay few. Answer in chat by default. Explain without jargon.
-- Eshan authorises a merge for the pull request he names. Open the PR, switch Auto-fix on, report, and ask before merging a later one.
+- Eshan merges, or names the pull request to merge. Open the PR, switch Auto-fix on, report, and ask before merging. He merged PR #19 himself.
 - Quote every result as "works as designed on a simulation". The world is invented and the generator and detector share assumptions.
 
 ## 9. Known loose ends
