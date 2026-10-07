@@ -220,7 +220,7 @@ def update_channel(channel_id: str, body: ChannelUpdate):
 def list_consents(): return _real(machine.consents) if _live() else fx.CONSENTS
 @api.post("/consents", response_model=Consent)
 def grant_consent(body: ConsentRequest): return _real(machine.grant_consent, body) if _live() else fx.CONSENTS[0]
-@api.post("/handovers", response_model=Handover)
+@api.post("/handovers", response_model=Handover, operation_id="handover_api_handovers_post", summary="Handover")
 def pass_or_release(body: HandoverRequest): return _real(lambda db: _commit(db, handover.request(db, body, clock.now()))) if _live() else fx.HANDOVER
 
 # ---------- zone 1, escalation, learning ----------

@@ -186,7 +186,7 @@ def test_a_help_button_has_no_window_so_a_late_reply_is_allowed(fresh):
 
 def test_a_public_thread_cannot_carry_numbers(fresh):
     tid = inbound(fresh, "paisa kat gaya 299 ka", "public_mention", is_public=True)
-    draft = [x for x in msgs(fresh, tid) if x.sender_role == "agent"][0]
+    draft = next(x for x in msgs(fresh, tid) if x.sender_role == "agent")
     assert draft.policy["status"] == "draft" and not re.search(r"\d", re.sub(r"https?://\S+", "", draft.body))  # the generic reply carries no number
     with pytest.raises(ActError, match="cannot contain numbers"):  # and the founder cannot post one either
         m.reply(fresh, tid, "Your 299 payment is safe", None, "founder")

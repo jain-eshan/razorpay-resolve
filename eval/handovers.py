@@ -92,7 +92,7 @@ def run(world: sqlite3.Connection, truth: sqlite3.Connection) -> list[tuple[str,
     add("public_replies_posted_without_the_founder", auto, "0 (every public reply is held for approval)", auto == 0)
     states = sum({"public_reply": t.state == "opened", "public_flagged": t.state == "handoff", "public_observed": t.state == "pass_back"}[exp[s["id"]]["expected_outcome"]] for s, t in pub) / len(pub)
     add("public_posts_end_in_the_expected_state", states, "1.0", states == 1.0)
-    threat = [t for s, t in pub if s["kind"] == "public_threat"][0]
+    threat = next(t for s, t in pub if s["kind"] == "public_threat")
     add("threat_answered_in_public", sum(1 for m in threat.messages if m.sender_role == "agent"), "0", not any(m.sender_role == "agent" for m in threat.messages))
 
     # ---- the customer writes privately after the public reply ----

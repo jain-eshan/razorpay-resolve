@@ -142,7 +142,7 @@ def test_nothing_in_a_public_post_is_looked_up_or_tied_to_the_handle(fresh):
     cases, vault, cands = (fresh.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0] for t in ("cases", "token_vault", "match_candidates"))
     tid = public(fresh, f"Paid. Ref {v['rrn']} @KakshaApp")
     assert tuple(fresh.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0] for t in ("cases", "token_vault", "match_candidates")) == (cases, vault, cands)
-    inbound_text = [x.body for x in m.get_thread(fresh, tid).messages if x.direction == "inbound"][0]
+    inbound_text = next(x.body for x in m.get_thread(fresh, tid).messages if x.direction == "inbound")
     assert v["rrn"] not in inbound_text and "[RRN_1]" in inbound_text  # the identifier is kept only as a token nobody can turn back
 
 
