@@ -50,8 +50,11 @@ def channel_level(db: sqlite3.Connection, channel_id: str) -> str:
 
 
 # ---------- thread replies: the full engine (SPEC 3.3), in the order the spec gives ----------
+HUMAN_AGENT_WINDOW = timedelta(days=7)
+
+
 def check_thread(db: sqlite3.Connection, thread: sqlite3.Row, channel_type: str, *, body: str, template_id: str | None, language: str, slots: dict | None,
-                 message_class: str, approved_by: str | None, now: datetime) -> PolicyDecision:
+                 message_class: str, approved_by: str | None, now: datetime, human: bool = False) -> PolicyDecision:
     """Checks in order: suppression, consent, window, disclosure, never-ask lint, number-from-slot, public-channel filter, rate limit, autonomy.
     Every failed check adds a reason, so a blocked reply shows all of them."""
     reasons: list[str] = []
@@ -69,6 +72,13 @@ def check_thread(db: sqlite3.Connection, thread: sqlite3.Row, channel_type: str,
             reasons.append("The 24 hour window is closed, so only an approved template can be sent.")
         elif messages.TEMPLATES[template_id]["category"] == "service_promotional":
             reasons.append("Promotional templates cannot be sent after the window closes.")
+    if channel_type in ("ig_dm", "fb_dm") and not win.free_form_allowed:  # Meta: after 24 hours only a person may reply, with the Human Agent tag, for up to 7 days
+        if not human:
+            reasons.append("The 24 hour window is closed. Only a person can reply now, with the Human Agent tag, for up to 7 days.")
+        elif now > ref.last_inbound_at + HUMAN_AGENT_WINDOW:
+            reasons.append("The 7 day Human Agent window is closed too, so nothing more can be sent on this channel.")
+    if channel_type == "public_mention" and (message_class != "public_reply" or template_id != "T-PUB"):
+        reasons.append("In public, only the one generic reply with a private link may be posted.")
     if not thread["disclosed"] and not re.search(r"i'm an ai|i am an ai|main ek ai", body, re.IGNORECASE):
         reasons.append("The first message must say it is an AI assistant.")
     for v in violations(body):
@@ -95,7 +105,8 @@ def send_thread(db: sqlite3.Connection, thread: sqlite3.Row, channel_type: str, 
     (not sent) so the founder sees it with the reasons. Sending a draft again passes `draft_of`, which replaces the draft."""
     import json
 
-    decision = check_thread(db, thread, channel_type, body=body, template_id=template_id, language=language, slots=slots, message_class=message_class, approved_by=approved_by, now=now)
+    decision = check_thread(db, thread, channel_type, body=body, template_id=template_id, language=language, slots=slots, message_class=message_class, approved_by=approved_by, now=now,
+                            human=sender_role == "founder")
     mid = f"tm_{uuid.uuid4().hex[:12]}"
     cost = 0
     if decision.allowed:

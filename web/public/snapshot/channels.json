@@ -29,28 +29,28 @@
   {
     "id": "ch_ig",
     "type": "ig_dm",
-    "status": "disconnected",
-    "reply_identity": null,
+    "status": "connected",
+    "reply_identity": "Kaksha payment help, powered by Razorpay",
     "autonomy_level": "suggest",
-    "connected_at": null,
+    "connected_at": "2026-10-02T10:40:00+05:30",
     "mocked": true
   },
   {
     "id": "ch_fb",
     "type": "fb_dm",
-    "status": "disconnected",
-    "reply_identity": null,
+    "status": "connected",
+    "reply_identity": "Kaksha payment help, powered by Razorpay",
     "autonomy_level": "suggest",
-    "connected_at": null,
+    "connected_at": "2026-10-02T10:40:00+05:30",
     "mocked": true
   },
   {
     "id": "ch_public",
     "type": "public_mention",
-    "status": "disconnected",
-    "reply_identity": null,
+    "status": "connected",
+    "reply_identity": "Kaksha payment help, powered by Razorpay",
     "autonomy_level": "suggest",
-    "connected_at": null,
+    "connected_at": "2026-10-02T10:40:00+05:30",
     "mocked": true
   },
   {

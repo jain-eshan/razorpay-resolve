@@ -201,6 +201,90 @@
       "status": "pass"
     },
     {
+      "name": "handover_passed_only_for_payment_or_person",
+      "value": 1.0,
+      "target": "1.0 (the inbox keeps what is not about a payment)",
+      "status": "pass"
+    },
+    {
+      "name": "handover_released_when_over_or_a_person_is_needed",
+      "value": 1.0,
+      "target": "1.0 (and kept while a fix is awaited)",
+      "status": "pass"
+    },
+    {
+      "name": "handovers_left_open_after_the_conversation_ended",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "replies_or_stored_messages_on_threads_that_stayed_with_the_inbox",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "handover_threads_matched_to_the_right_payment",
+      "value": 1.0,
+      "target": "1.0",
+      "status": "pass"
+    },
+    {
+      "name": "messaging_window_rules_followed",
+      "value": 1.0,
+      "target": "1.0 (24 h for the assistant, 7 days only for a person)",
+      "status": "pass"
+    },
+    {
+      "name": "public_replies_with_a_number_a_name_or_a_status",
+      "value": 0.0,
+      "target": "0 (over 8 replies)",
+      "status": "pass"
+    },
+    {
+      "name": "public_posts_looked_up_or_stored_as_cases",
+      "value": 0.0,
+      "target": "0 (a handle is never tied to a payment)",
+      "status": "pass"
+    },
+    {
+      "name": "real_posts_answered",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "public_replies_posted_without_the_founder",
+      "value": 0.0,
+      "target": "0 (every public reply is held for approval)",
+      "status": "pass"
+    },
+    {
+      "name": "public_posts_end_in_the_expected_state",
+      "value": 1.0,
+      "target": "1.0",
+      "status": "pass"
+    },
+    {
+      "name": "threat_answered_in_public",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "public_replies_the_founder_could_not_send",
+      "value": 0.0,
+      "target": "0 (English and Hinglish)",
+      "status": "pass"
+    },
+    {
+      "name": "public_to_private_handoff_correct",
+      "value": 1.0,
+      "target": "1.0 (public thread closed, private one matched, move recorded)",
+      "status": "pass"
+    },
+    {
       "name": "complaint_triage_accuracy",
       "value": 1.0,
       "target": ">= 0.95",

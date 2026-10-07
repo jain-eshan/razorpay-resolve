@@ -85,7 +85,7 @@ test('S-12 channels: consent is shown, autonomy is set per channel, and disconne
   await page.goto('/channels')
   await expect(page.getByText('Speaks as: Kaksha payment help, powered by Razorpay').first()).toBeVisible()
   await expect(page.getByText('Instagram DMs')).toBeVisible()
-  await expect(page.getByText('Later release').first()).toBeVisible()
+  await expect(page.getByText('Public mentions')).toBeVisible() // Instagram, Messenger and public posts are in the list too, as simulated channels
   await expect(page.getByText('Read payment-related messages').first()).toBeVisible()
   await page.getByRole('button', { name: 'Disconnect' }).nth(1).click() // the WhatsApp number is the second conversational channel
   await expect(page.getByText('Consent withdrawn, so nothing from this channel is being processed.')).toBeVisible()

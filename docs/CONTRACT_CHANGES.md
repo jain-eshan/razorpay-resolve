@@ -4,6 +4,16 @@ A change to anything under `contracts/`, to `backend/app/schemas.py`, `backend/a
 `backend/app/conversation/templates.py`, the capability flags in `backend/app/config.py` or `synth/config.yaml` needs a pull request that
 updates `contracts/` (run `make contracts`), bumps the version below and adds an entry here. Streams do not edit these files directly.
 
+## contracts-v0.6 (7 Oct 2026, during R5, handovers)
+
+Additive only. No API path, request or response model changed: `contracts/openapi.json` is identical (the handover operation keeps its id and summary).
+- One template in `backend/app/conversation/templates.py`: `T-PUB` (the one generic public reply, with a private link). English and Hinglish, category `service`, slots `link` and `merchant`. It says it is an AI in its own words, so the public path skips the usual greeting wrapper.
+- Three adapters in `backend/app/channels/sim.py`: `ig_dm`, `fb_dm` (24 hour window for the assistant, 7 days for a person with the Human Agent tag) and `public_mention`. Policy gains two rules: after 24 hours on Instagram and Messenger only a person may reply, and in public only `T-PUB` as a `public_reply`.
+- `POST /api/handovers` now does real work with `BS_SOURCE=pipeline`: `pass` and `release` for Instagram and Messenger threads. A pass or release is a row in `handovers` and a plain line in the thread (sender role `system`, never sent to anyone).
+- Instagram, Messenger and public mentions start connected with consent in a fresh world (they were disconnected).
+- `data/handover_scripts.json` (7 Instagram and Messenger customers, 12 public posts: 6 name a payment, 2 do not, 1 threat, 3 real anchor posts from the research labelled `real_public_post`) and `truth_threads` rows with ids `h01` to `h07`, `p01` to `p12` and `pNN_dm` for private follow-ups. No SQL contract change.
+- Thread `handover_state` is used: `with_blindspot`, `released`, `stayed_with_inbox`, `public_invited`, `public_flagged`, `observed_only`, `moved_private`, `from_public`.
+
 ## contracts-v0.5 (7 Oct 2026, during R4, Hero B)
 
 Additive only. No API path, request or response model changed: `contracts/openapi.json` is identical.

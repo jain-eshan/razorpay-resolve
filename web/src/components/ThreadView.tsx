@@ -46,6 +46,13 @@ export function ThreadView({ thread, onChanged }: { thread: Thread; onChanged: (
 
       <Box display="flex" flexDirection="column" gap="spacing.4">
         {thread.messages.map((m) => {
+          if (m.sender_role === 'system') {  // who has control, or why nothing was said: a line for the founder, never sent to anyone
+            return (
+              <Box key={m.id} alignSelf="center" maxWidth="560px" textAlign="center" paddingY="spacing.2" testID="thread-note">
+                <Text size="small" color="surface.text.gray.muted">{m.body} · {when(m.created_at)}</Text>
+              </Box>
+            )
+          }
           const customer = m.direction === 'inbound'
           const status = m.policy.status as string | undefined
           return (

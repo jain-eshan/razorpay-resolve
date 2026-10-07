@@ -6,7 +6,7 @@ import { isLive, useGet, type Schemas } from '../lib/api'
 import { demoNote } from '../lib/demo'
 import { CHANNEL, sentence, when } from '../lib/format'
 
-const DEMOS = [['/chat-demo', 'Talk to it on WhatsApp'], ['/help-demo/receipt', 'Tap help on a receipt'], ['/email-demo', 'Write to it by email']] as const
+const DEMOS = [['/chat-demo', 'Talk to it on WhatsApp'], ['/help-demo/receipt', 'Tap help on a receipt'], ['/email-demo', 'Write to it by email'], ['/ig-demo', 'Instagram: control passes and returns'], ['/public-demo', 'A public post']] as const
 
 // S-04 list and S-14 founder side: every conversation, newest first, and the complaints that were already in the data.
 export function Threads() {

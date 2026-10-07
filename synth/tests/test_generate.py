@@ -44,7 +44,21 @@ def test_forty_scripted_threads_with_truth_that_the_scripts_do_not_contain(tmp_p
     scripts = json.loads((tmp_path / "threads.json").read_text())
     assert len(scripts) == 40 and len({s["who"] for s in scripts}) == 40
     t = sqlite3.connect(tmp_path / "truth.db")
-    assert t.execute("select count(*) from truth_threads").fetchone()[0] == 40
-    outcomes = dict(t.execute("select expected_outcome, count(*) from truth_threads group by 1").fetchall())
+    assert t.execute("select count(*) from truth_threads where thread_id like 't%'").fetchone()[0] == 40
+    outcomes = dict(t.execute("select expected_outcome, count(*) from truth_threads where thread_id like 't%' group by 1").fetchall())
     assert outcomes == {"wait_for_fix": 26, "explain": 3, "human": 6, "pass_back": 2, "handoff": 3}
     assert not any("expected" in s or "payment_id" in json.dumps(s["turns"]) for s in scripts if s["kind"] not in ("healthy_payment", "key_at_once"))
+
+
+def test_handover_scripts_are_seven_messages_and_twelve_public_posts_with_answers_only_in_truth(tmp_path):
+    import json
+
+    assert generate(tmp_path)["handover_scripts"] == 19
+    d = json.loads((tmp_path / "handover_scripts.json").read_text())
+    assert len(d["messaging"]) == 7 and len(d["public"]) == 12
+    assert [p["label"] for p in d["public"]].count("real_public_post") == 3 and all(p["url"] for p in d["public"] if p["label"] == "real_public_post")
+    assert sum(1 for p in d["public"] if "UPI ref" in p["text"] or "Ref " in p["text"]) == 6  # six carry a payment reference
+    assert not any("expected" in json.dumps(x) for x in d["messaging"] + d["public"])
+    t = sqlite3.connect(tmp_path / "truth.db")
+    out = dict(t.execute("select expected_outcome, count(*) from truth_threads where thread_id like 'h%' or thread_id like 'p%' group by 1").fetchall())
+    assert out["public_reply"] == 8 and out["public_flagged"] == 1 and out["public_observed"] == 3 and out["stayed"] == 2

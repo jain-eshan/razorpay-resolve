@@ -4,7 +4,6 @@ import { isLive, send, useGet, type Schemas } from '../lib/api'
 import { CHANNEL, sentence } from '../lib/format'
 
 type Channel = Schemas['Channel']
-const LATER = new Set(['ig_dm', 'fb_dm', 'public_mention'])
 
 // S-12. What the agent may read, who it speaks as, and the switch that stops it at once.
 export default function Channels() {
@@ -41,7 +40,6 @@ export default function Channels() {
                 <Heading size="small">{CHANNEL[c.type] ?? sentence(c.type)}</Heading>
                 <Badge color={c.status === 'connected' ? 'positive' : 'neutral'}>{sentence(c.status)}</Badge>
                 {c.mocked && <Badge color="neutral">Simulated</Badge>}
-                {LATER.has(c.type) && <Badge color="neutral">Later release</Badge>}
               </Box>
               {talks && <Text size="small">Speaks as: {c.reply_identity}</Text>}
               {talks && (
