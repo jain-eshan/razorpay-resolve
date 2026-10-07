@@ -1,5 +1,7 @@
 """The guided demo is a replay of the real engine. These tests check that the recording is complete, consistent and honest."""
 import json
+import shutil
+from pathlib import Path
 
 import pytest
 
@@ -14,6 +16,8 @@ def demo(world, tmp_path_factory):
     dst = sqlite3.connect(path)
     world.backup(dst)
     dst.close()
+    src = Path(world.execute("PRAGMA database_list").fetchone()[2]).parent / "handover_scripts.json"
+    shutil.copy(src, path.parent / "handover_scripts.json")
     return record(path)
 
 
@@ -64,3 +68,15 @@ def test_conversations_show_each_outcome_the_agent_can_reach(demo):
 def test_the_recording_holds_no_raw_customer_handle(demo):
     text = json.dumps(demo)
     assert "9800012345" not in text and "asha.demo@example.test" not in text.replace("customer_ref", "")
+
+
+def test_instagram_and_public_post_scenarios_are_recorded(demo):
+    c = demo["chat"]
+    ig = c["ig_payment"]["steps"]
+    assert [x["step"]["thread"]["state"] for x in ig] == ["identify", "wait_for_fix"] and any(m["policy"].get("kind") == "pass" for m in ig[0]["step"]["thread"]["messages"])
+    assert c["ig_not_payment"]["steps"][0]["step"]["thread"]["state"] == "pass_back" and c["ig_threat"]["steps"][0]["step"]["thread"]["state"] == "handoff"
+    pubs = {k: v for k, v in c.items() if k.startswith("pub_")}
+    assert len(pubs) == 12 and sum(1 for v in pubs.values() if v["label"] == "real_public_post") == 3
+    first = pubs["pub_p01"]
+    assert first["steps"][0]["step"]["drafted_reply"] and first["approve"]["messages"][-1]["policy"]["status"] == "sent" and first["follow_up"]["public_after"]["state"] == "closed"
+    assert all(not v["steps"][0]["step"]["drafted_reply"] for v in pubs.values() if v["label"] == "real_public_post")

@@ -8,11 +8,13 @@ import Channels from './routes/Channels'
 import Dev from './routes/Dev'
 import EmailDemo from './routes/EmailDemo'
 import HelpDemo from './routes/HelpDemo'
+import IgDemo from './routes/IgDemo'
 import How from './routes/How'
 import Incident from './routes/Incident'
 import Incidents from './routes/Incidents'
 import GuidePage from './routes/GuidePage'
 import Home from './routes/Home'
+import PublicDemo from './routes/PublicDemo'
 import Reference from './routes/Reference'
 import Scan from './routes/Scan'
 import Settings from './routes/Settings'
@@ -41,6 +43,8 @@ export default function App() {
               <Route path="/chat-demo" element={<ChatDemo />} />
               <Route path="/help-demo/:surface" element={<HelpDemo />} />
               <Route path="/email-demo" element={<EmailDemo />} />
+              <Route path="/ig-demo" element={<IgDemo />} />
+              <Route path="/public-demo" element={<PublicDemo />} />
               <Route path="/audit" element={<Audit />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/how" element={<How />} />

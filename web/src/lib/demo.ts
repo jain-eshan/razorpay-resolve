@@ -7,7 +7,8 @@ type Audit = Schemas['AuditEntry']
 type Frame<T = unknown> = { data: T; audit: Audit[] }
 type Action = Schemas['Action']
 type Detail = Schemas['ThreadDetail']
-type Scenario = { id: string; channel: string; steps: { customer: string; step: Schemas['ThreadStep'] }[]; approve?: Detail; payment_id?: string }
+type Scenario = { id: string; channel: string; steps: { customer: string; step: Schemas['ThreadStep'] }[]; approve?: Detail; payment_id?: string
+  follow_up?: { channel: string; customer: string; step: Schemas['ThreadStep']; public_after: Detail } }
 type Demo = {
   fix: {
     grant: Record<'drafted' | 'dry_run' | 'first_5' | 'rest', Frame<Action>>
@@ -246,7 +247,10 @@ export async function demoSend(method: string, path: string, body: Record<string
     return settings(d)
   }
   const inb = path.match(/^\/api\/inbound\/(\w+)$/)
-  if (inb) return inbound(d, inb[1], String(body.text ?? ''))
+  if (inb) {
+    const pub = (body.context as { public_thread?: string } | undefined)?.public_thread
+    return pub ? publicFollowUp(d, pub) : inbound(d, inb[1], String(body.text ?? ''))
+  }
   const rep = path.match(/^\/api\/threads\/(thr_\w+)\/(reply|handoff)$/)
   if (rep) {
     if (rep[2] === 'handoff') throw new Error('Taking over a conversation works in the live demo.')
@@ -271,6 +275,19 @@ function inbound(d: Demo, channel: string, text: string) {
   st.byThread[id] = sc.id
   st.threads[id] = step.thread
   return step
+}
+
+// The customer answers a public reply by writing privately: the public thread closes and the private one carries on, both as recorded.
+function publicFollowUp(d: Demo, publicThread: string) {
+  const sc = d.chat[st.byThread[publicThread]]
+  if (!sc?.follow_up) throw new Error('In the hosted demo, only a post with a recorded private follow-up can be answered. Run it live to try any post.')
+  const f = sc.follow_up
+  st.threads[publicThread] = f.public_after
+  const id = f.step.thread.id
+  st.order.unshift(id)
+  st.byThread[id] = sc.id
+  st.threads[id] = f.step.thread
+  return f.step
 }
 
 export async function demoSuggestions(channel: string, tid?: string): Promise<string[]> {

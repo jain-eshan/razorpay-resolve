@@ -28,7 +28,8 @@ Blindspot (working name) is Eshan Jain's entry for the Razorpay x ISB AI PM Buil
 | UX review and one-branch cleanup (7 Oct, section 2b) | Done. Merged as PR #6. `main` is now the only branch. |
 | R4 first slice: Zone 1, Hero B (cannot reach the pay page), no model | Done on `claude/r4-hero-b-zone1`, contracts v0.5, not pushed. Section 2c. |
 | R4 rest: investigation agent, three-way eval, escalation to Razorpay, duplicates, refunds | Not started |
-| R5 learning loop, handovers | Not started |
+| R5 first slice: handovers (Instagram and Messenger control passing, public posts to private) | Done on `claude/r5-learning-handovers`, contracts v0.6, not pushed. Section 2d. |
+| R5 rest: learning loop and weekly card, renewal anomaly (F-08) | Not started |
 | R6 real rails (stretch) | Not started |
 | R7 submission kit | Not started |
 
@@ -84,6 +85,12 @@ Branch `claude/r4-hero-b-zone1`, local only until Eshan says push. Full account 
 - **Deviations from the spec, on purpose:** INC-4 is Thu 1 Oct and still broken (so WhatsApp windows are open), monitors scaled to 1.5 to 4.5 orders an hour, Zone 1 ids start at INC-4.
 - **Limits:** the monitors' windows were set after looking at this world. Eight customers cannot measure what a link adds. A customer who writes in live joins the incident but not the recovery list. INC-5 has no interactive demo (read-only in the hosted demo). The probe cannot see a checkout that will not open, which is why the order gap monitor exists. No model.
 - **Tests:** 296 backend and synth, 29 browser tests, 64 eval checks (55 gates pass, 9 reported figures).
+
+### R5 first slice: handovers, 7 Oct 2026 (section 2d)
+Branch `claude/r5-learning-handovers`. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.6).
+- **Instagram and Messenger:** `backend/app/conversation/handover.py`. The Meta inbox passes a thread only for a payment message or a message that needs a person, and takes it back when the conversation ends or needs a person. Window rules in `channels/policy.py` and `channels/sim.py`. Screen `/ig-demo`.
+- **Public posts:** one generic reply (`T-PUB`) held for the founder, nothing looked up, nothing stored as a case, real posts watched only, threats to a person, then the private message carries on. Screen `/public-demo`. Scripts in `synth/handovers.py`, checks in `eval/handovers.py`.
+- **Limits:** everything is simulated, no real Meta or X connection. The real anchor posts are the three from the research that name a payment problem. Instagram and Messenger consent is granted in the seed, not by the founder.
 
 ### UX review, 7 Oct 2026 (PR #6)
 Eshan asked for a designer's review of the whole web app. Method: Playwright with the installed Chrome at 1440 and 390 wide (full-resolution screenshots, computed styles, overflow, text size and contrast checks on 13 routes), because the in-app browser shrinks screenshots.

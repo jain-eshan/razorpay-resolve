@@ -185,9 +185,11 @@ def test_a_help_button_has_no_window_so_a_late_reply_is_allowed(fresh):
 
 
 def test_a_public_thread_cannot_carry_numbers(fresh):
-    tid = inbound(fresh, "paisa kat gaya 299 ka", is_public=True)
-    out = msgs(fresh, tid)
-    assert out[0].policy["status"] == "draft" and any("public reply cannot contain numbers" in r for r in out[0].policy["reasons"])
+    tid = inbound(fresh, "paisa kat gaya 299 ka", "public_mention", is_public=True)
+    draft = next(x for x in msgs(fresh, tid) if x.sender_role == "agent")
+    assert draft.policy["status"] == "draft" and not re.search(r"\d", re.sub(r"https?://\S+", "", draft.body))  # the generic reply carries no number
+    with pytest.raises(ActError, match="cannot contain numbers"):  # and the founder cannot post one either
+        m.reply(fresh, tid, "Your 299 payment is safe", None, "founder")
 
 
 def test_a_suppressed_customer_is_never_contacted(fresh):
@@ -224,7 +226,7 @@ def test_only_conversational_channels_take_inbound_messages(fresh):
     with pytest.raises(ActError):
         inbound(fresh, "hi", "csv")
     with pytest.raises(ActError):
-        inbound(fresh, "hi", "ig_dm")  # not an adapter yet
+        inbound(fresh, "hi", "ray_forward")  # drafts only, no adapter
 
 
 # ---------- silence, closing, bookkeeping ----------
@@ -284,7 +286,7 @@ def test_every_outbound_thread_message_is_written_by_the_policy_engine_only():
     writers = []
     for p in (ROOT / "backend" / "app").rglob("*.py"):
         for stmt in re.findall(r"INSERT INTO thread_messages.*?\)\)", p.read_text(), re.DOTALL):
-            if "outbound" in stmt:
+            if "outbound" in stmt and '"system"' not in stmt:  # a line the system writes into the thread for the founder is never sent to anyone
                 writers.append(p.relative_to(ROOT).as_posix())
     assert writers == ["backend/app/channels/policy.py"]
 
@@ -349,7 +351,7 @@ def test_http_handoff_and_errors(api):
 
 def test_http_channels_and_consents(api):
     chs = {c["id"]: c for c in api.get("/api/channels").json()}
-    assert chs["ch_wa"]["status"] == "connected" and chs["ch_ig"]["status"] == "disconnected" and chs["ch_wa"]["reply_identity"] == "Kaksha payment help, powered by Razorpay"
+    assert chs["ch_wa"]["status"] == "connected" and chs["ch_ig"]["status"] == "connected" and chs["ch_public"]["status"] == "connected" and chs["ch_wa"]["reply_identity"] == "Kaksha payment help, powered by Razorpay"
     assert api.put("/api/channels/ch_wa", json={"autonomy_level": "assist"}).json()["autonomy_level"] == "assist"
     assert api.put("/api/channels/ch_wa", json={"status": "disconnected"}).json()["status"] == "disconnected"
     assert api.post("/api/inbound/whatsapp_payments", json={"customer_ref": "x", "text": "paisa kat gaya 299 ka"}).status_code == 409

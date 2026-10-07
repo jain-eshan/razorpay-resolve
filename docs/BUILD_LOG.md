@@ -178,3 +178,22 @@ Metrics (one seed, so rough): INC-4 and INC-5 found, onset error 4.5 minutes at 
 
 Deferred: investigation agent and three-way eval, escalation to Razorpay (no Razorpay-owned incident exists here), duplicates, refunds, Instagram, a live recipient list for customers who write in after the incident was opened, a recovery holdout big enough to measure (8 customers cannot), any real traffic.
 
+## 7 Oct 2026, R5 first slice: handovers (integrator)
+
+Goal: Instagram and Messenger the way Meta documents it (the merchant's inbox passes a thread to Blindspot and takes it back), and public posts that move to a private message, with the rules that keep Blindspot from saying anything about a payment in public.
+
+Built:
+- Instagram and Messenger: the inbox passes a thread only when the message is about a payment or needs a person. Everything else stays with the inbox: nothing said, nothing kept. Control is kept while a fix is awaited and given back when the thread resolves, is answered from the record, or needs a person (with the brief). Each pass and release is a `handovers` row and a plain line in the thread. Meta's window: the assistant until 24 hours after the customer's last message, a person with the Human Agent tag until 7 days.
+- Public posts: at most one generic reply (`T-PUB`) with a private link, no amount, name or status, always held for the founder. Nothing in the post is looked up and no case is made: the post's identifiers are tokens that cannot be turned back. A threat goes to a person and nothing is posted. Real posts from the research are watched and never answered. When the customer writes privately, the public thread closes and the private one carries on, with the move recorded.
+- Screens: Instagram (`/ig-demo`, S-16) and a public post screen (`/public-demo`), both in the hosted demo from recorded frames. The thread view shows who had control as plain lines.
+- Eval: 14 handover checks, all pass.
+
+What the checks caught:
+- The Hinglish public reply did not say it was an AI in the words the policy looks for, so the founder could not approve it. Only the approval path found it (the draft had been written, never sent). The eval now approves every public reply.
+- A public threat with no payment word was ignored as "not about a payment". Threats now go to a person before the payment test.
+- Five older tests assumed Instagram, Messenger and public mentions were switched off, and that a public post was drafted and blocked for numbers.
+
+Metrics: 318 backend and synth tests, 13 snapshot browser tests in the demo spec, 14 handover eval checks.
+
+Deferred to the next R5 slice: the learning loop (feedback, bounded parameters, weekly card, six-week replay) and the Razorpay-side renewal anomaly (F-08).
+

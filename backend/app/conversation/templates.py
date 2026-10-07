@@ -125,6 +125,14 @@ TEMPLATES: dict[str, Template] = {'T-A1': {'use': 'Silent victim, access fixed',
                  '{hours} hours.',
            'hi_latn': 'Page ab theek chal raha hai. Yeh raha aapka link, wahi ₹{amount} ke plan ke liye. Yeh '
                       '{hours} ghante tak valid hai.'},
+ 'T-PUB': {'use': 'Generic public reply, private link',
+           'category': 'service',
+           'slots': ['link', 'merchant'],
+           'en': "I'm an AI assistant for {merchant}, powered by Razorpay. Sorry about this. We can help, but not "
+                 'in public. Please message us privately and we will take it from here: {link}',
+           'hi_latn': 'Main ek AI assistant hoon, {merchant} ke liye, Razorpay ke saath. Maaf kijiye. Hum madad kar sakte '
+                      'hain, par public mein nahi. Kripya humein private message karein, hum wahin se dekhenge: '
+                      '{link}'},
  'T-HO': {'use': 'Handing to the team',
           'category': 'service',
           'slots': ['merchant'],

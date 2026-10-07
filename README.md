@@ -1,10 +1,29 @@
 # Blindspot (working name)
 
-Razorpay x ISB AI PM Build Challenge, Track 2. An agent that owns what happens before and after a payment: it finds every customer a payment problem touched, talks to them to find the payment, says whose side the fault is on, and fixes it with the founder approving.
+Razorpay x ISB AI PM Build Challenge, Track 2. An agent for small Indian merchants that owns what happens before and after a payment, where Razorpay's own tools stop looking. It finds every customer a payment problem touched, talks to them to find the payment, says whose side the fault is on, and fixes it with the founder approving.
 
-Read `docs/PRD.md` first, then `docs/SPEC.md` and `docs/BUILD_PLAN.md`. `docs/V1_SPEC.md` is inherited where the v2 docs are silent.
+Read `docs/PRD.md` first, then `docs/SPEC.md` and `docs/BUILD_PLAN.md`. `docs/V1_SPEC.md` applies where the v2 docs are silent. A new session starts at `docs/HANDOFF.md`. What broke and why is in `docs/BUILD_LOG.md`.
 
-## Run
+## Try it in two minutes
+
+```
+make setup
+make run-web      # http://localhost:5173
+```
+
+No server is needed. The hosted demo replays frames recorded from the real engine on a synthetic merchant (Kaksha, fictional). A page reload starts it over.
+
+| Open | What you see |
+|---|---|
+| `/` (RAY) | Both stories as a WhatsApp alert: customers who paid and have no access (Hero A), and customers who could not reach the pay page (Hero B). |
+| Hero A, `INC-1` | A webhook broke after a deploy. 85 customers affected, 68 never complained. Fix them in stages (dry run, first 5, the rest), message them, undo, verify, close. |
+| Hero B, `INC-4` | Razorpay saw nothing, because no payment existed. Blindspot infers it from orders, a pay-page check and complaints, says it is inferred, shows the evidence, and offers recovery links with a few customers held back to measure the effect. |
+| `/chat-demo`, `/email-demo`, `/help-demo/receipt` | A customer talks to the agent. It says it is an AI, finds the payment from an exact identifier, and holds its reply for the founder. |
+| `/ig-demo` | Instagram: the Meta inbox passes a payment thread to Blindspot and takes it back. |
+| `/public-demo` | A public post gets one generic reply with a private link, held for the founder. Nothing about a payment is said in public. |
+| `/how` | Every eval check against hidden ground truth. |
+
+## Commands
 
 ```
 make setup        # python deps, web deps, git hooks
@@ -14,17 +33,38 @@ make snapshot     # eval, then write web/public/snapshot/ (data and the demo rec
 make run-web      # http://localhost:5173  (guided demo from the snapshot, no backend needed)
 make run-api      # http://localhost:8000  (set VITE_MODE=live to use it)
 make test         # backend tests, web typecheck and build, secret scan
-make e2e          # Playwright smoke tests (uses your installed Chrome)
+make e2e          # Playwright tests (uses your installed Chrome)
 make eval         # compare the pipeline with hidden ground truth; fails on a missed gate
 make contracts    # regenerate openapi.json, snapshot manifest and web types after a contract change
+make lint         # ruff and oxlint
 ```
+
+The web app has two modes. Without `VITE_MODE=live` it plays the demo from `web/public/snapshot/`. With `VITE_MODE=live` it talks to the API on port 8000. If the engine or the data changes, run `make snapshot` and commit `web/public/snapshot/`, because the hosted site has no Python.
 
 ## Status
 
-R0 to R3 done, plus a guided demo. Contracts are at v0.4 (`docs/CONTRACT_CHANGES.md`). What works: detection and the day-0 scan, fixing in stages with undo, messages in the merchant's voice, verify and close, an audit log, settings and autonomy, and a conversation agent on a help button, WhatsApp and email with a policy engine, cases and channels. Triage and extraction are rules, not a model.
+| Release | State |
+|---|---|
+| R0 to R3: foundations, detect and attribute, fix and verify, channels and conversation | Done, on `main` |
+| Guided demo, dashboard-aligned web shell, UX review | Done, on `main` |
+| R4 first slice: Hero B, customers who cannot reach the pay page (no model) | Done, on `main`. Contracts v0.5 |
+| R5 first slice: handovers (Instagram, Messenger, public posts) | Open as PR #9. Contracts v0.6 |
+| R4 rest (investigation agent, three-way eval), R5 rest (learning loop), R6, R7 | Not started |
 
-The web app runs in two modes. Without `VITE_MODE=live` (the hosted site) it plays a guided demo from `web/public/snapshot/` with no server: frames recorded from the real engine. With `VITE_MODE=live` it talks to the API. A page reload restarts the demo.
+Contract changes are logged in `docs/CONTRACT_CHANGES.md` (currently v0.6). The plan for every release is in `docs/BUILD_PLAN.md`.
 
-For a new session start at `docs/HANDOFF.md`. What broke and why is in `docs/BUILD_LOG.md`.
+## What is real and what is simulated
 
-Mocked or simulated: all Razorpay data, all channels, all customer conversations, screenshots (a script supplies the text). Proposed Razorpay capabilities are listed in `backend/app/config.py` (`PROPOSED`) and in PRD section 15.
+No model is used anywhere. Triage, extraction, detection and attribution are rules and SQL, and every number on screen comes from SQL or Python.
+
+Simulated: all Razorpay data, all channels (WhatsApp, email, help button, Instagram, Messenger, public posts), every customer conversation, screenshots (a script supplies the text a reader would return), the merchant's own system, and the customers' behaviour after a recovery link. The synthetic world is clean and the generator and detector share assumptions, so near-perfect eval scores show the logic works, not how often it would be wrong on real traffic. The caveats are at the top of `eval/report.md` and in `docs/HANDOFF.md`.
+
+Proposed Razorpay capabilities that do not exist today are listed in `backend/app/config.py` (`PROPOSED`) and in PRD section 15.
+
+## Rules that hold everywhere
+
+- Numbers come from SQL or Python, never from a model.
+- Nothing moves money or sends bulk messages without the approval the autonomy setting requires. Recovery links always need the founder.
+- The assistant says it is an AI, never asks a customer for credentials, and never discusses a payment in public.
+- Contracts (`contracts/`, `backend/app/schemas.py`, template ids and slots, `synth/config.yaml`) change only through `make contracts` and an entry in `docs/CONTRACT_CHANGES.md`.
+- No secrets in the repo. Razorpay keys are `rzp_test_` only, in `.env`.

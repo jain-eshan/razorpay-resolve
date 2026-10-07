@@ -1,6 +1,7 @@
 """Records the guided demo (R3.5). The hosted site has no server, so the browser replays frames recorded here from the REAL engine
 running on a private copy of the synthetic world: the grant stages, the messages in both languages, verify, undo, and the scripted
 conversations. Nothing in the frames is typed by hand. Output: web/public/snapshot/demo.json (written by scripts/snapshot.py)."""
+import json
 import sqlite3
 import sys
 from pathlib import Path
@@ -195,6 +196,25 @@ def record(world_path: Path) -> dict:
     scenario("unrelated", "A message that is not about a payment", "whatsapp_payments", "+919800012347", ["what time does the live class start tomorrow?"])
     scenario("help", "Help button on a receipt", "help_button", "+919800012399", ["access nahi mila"], approve=True, ctx={"payment_id": victims[1]})
     chat["help"]["payment_id"] = victims[1]
+    # Instagram: the Meta inbox passes the thread to Blindspot, and takes it back
+    v1 = victims[2]
+    scenario("ig_payment", "Instagram: a customer with a payment problem", "ig_dm", "igsid_demo_a", ["paisa kat gaya 299 ka, Premium Monthly nahi mila", f"UPI ref {v1}"], approve=True)
+    scenario("ig_not_payment", "Instagram: a message that is not about a payment", "ig_dm", "igsid_demo_b", ["kal ki class ka link bhejo"])
+    scenario("ig_threat", "Instagram: a message that needs a person", "ig_dm", "igsid_demo_c", ["fix my access today or I will go to consumer court and tweet about this fraud"])
+
+    # public posts: one generic reply with a private link, then the customer writes privately
+    posts = json.loads((world_path.parent / "handover_scripts.json").read_text())["public"]  # written next to the world by the generator
+    for post in posts:
+        tid = machine.handle_inbound(db, "public_mention", post["handle"], post["text"], {"label": post["label"]}, None, True)
+        rec = {"id": f"pub_{post['id']}", "title": post["kind"], "channel": "public_mention", "kind": post["kind"], "label": post["label"], "url": post["url"], "handle": post["handle"],
+               "steps": [{"customer": post["text"], "step": machine.step(db, tid).model_dump(mode="json")}]}
+        if rec["steps"][0]["step"]["drafted_reply"]:
+            rec["approve"] = machine.reply(db, tid, None, None, "founder").thread.model_dump(mode="json")
+        if post["follow_up"]:
+            f = post["follow_up"]
+            ptid = machine.handle_inbound(db, f["channel"], f["who"], f["text"], {"public_thread": tid})
+            rec["follow_up"] = {"channel": f["channel"], "customer": f["text"], "step": machine.step(db, ptid).model_dump(mode="json"), "public_after": machine.get_thread(db, tid).model_dump(mode="json")}
+        chat[rec["id"]] = rec
     scenario("page", "A customer who cannot open the pay page", "whatsapp_payments", "+919800012348", ["The ad link for Test Series says page not found. I wanted to pay Rs 599"], approve=True)
     scenario("email", "A customer writes by email", "email", "asha.demo@example.test", ["Hi, I paid Rs 299 for Premium Monthly yesterday but my account still shows the free plan."])
     return out
