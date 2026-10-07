@@ -1,4 +1,4 @@
-# Handoff: where Blindspot stands (7 Oct 2026: R0 to R4 first slice and R5 handovers on `main`; R5 learning loop in PR #14)
+# Handoff: where Blindspot stands (7 Oct 2026: R0 to R5 on `main` except the items marked "not started" below; R7 submission kit drafted)
 
 Read this first in a new chat, then `docs/PRD.md`. Everything below is true as of the last commit on `main`.
 
@@ -30,10 +30,10 @@ Blindspot (working name) is Eshan Jain's entry for the Razorpay x ISB AI PM Buil
 | R4 first slice: Zone 1, Hero B (cannot reach the pay page), no model | Done, contracts v0.5. Merged as PR #8. Section 2c. |
 | R4 rest: investigation agent, three-way eval, escalation to Razorpay, duplicates, refunds | Not started |
 | R5 first slice: handovers (Instagram and Messenger control passing, public posts to private) | Done, contracts v0.6. Merged as PR #9. Section 2d. |
-| R5 second slice: learning loop, weekly card, screen S-18 (no model) | Done, contracts v0.7. Open as PR #14 (branch `claude/roadmap-implementation-2d4e4e`). Section 2e. |
+| R5 second slice: learning loop, weekly card, screen S-18 (no model) | Done, contracts v0.7. Merged as PR #15. Section 2e. |
 | R5 rest: renewal anomaly (F-08, INC-3) | Not started |
 | R6 real rails (stretch) | Not started |
-| R7 submission kit | Not started |
+| R7 submission kit | Drafted 7 Oct in `docs/SUBMISSION.md`: note (545 words), 90-second script, verify-list status. Eshan still has to check, record and submit (its section 4). |
 
 Plan, sizing and kickoff prompts for every stream: `docs/BUILD_PLAN.md`.
 
@@ -95,7 +95,7 @@ Merged as PR #9. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CO
 - **Limits:** everything is simulated, no real Meta or X connection. The real anchor posts are the three from the research that name a payment problem. Instagram and Messenger consent is granted in the seed, not by the founder.
 
 ### R5 second slice: the learning loop, 7 Oct 2026 (section 2e)
-Branch `claude/roadmap-implementation-2d4e4e`. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.7).
+Merged as PR #15. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.7).
 - **What it does:** the founder says "this was a false alarm" on an incident, or "I missed something" on the Learning screen. The weekly review (button "Review this week now", also safe to press twice) moves a setting one step: the order-dip and complaint-spike monitors get stricter after a false alarm and looser after a miss; the default message language follows the higher reply rate. A setting changes once a week, inside a fixed ladder, with a reason and a version, and each change is an audit line.
 - **Code:** `backend/app/learning/` (params, loop), thresholds as arguments on `volume.find` and `complaint_spike.find`, `Orders(ewma=True)` baseline, `synth/replay.py`, `eval/learning.py`. Web: `routes/Learning.tsx`, `components/FeedbackPanel.tsx`, demo frames from `record_learning` in `scripts/demo_script.py`.
 - **Results (invented data):** false alerts per six-week replay 6.2 with no learning, 5.0 weekly baseline only, 3.2 with the loop; one weak outage missed in 1 of 5 replays. Quote these as "works as designed on a simulation", never as a result about real merchants.

@@ -299,3 +299,19 @@ Result on my laptop in CI mode: 52 tests (was 92, same coverage) in 50 s with 2 
 Not done: `make test` builds the web app once and the e2e step builds it again (about 10 s on CI each); skipping that needs a Makefile change that I left alone.
 
 Design review: not applicable. No screen changed.
+
+## 7 Oct 2026, R7 submission kit (integrator)
+
+Goal: write the deliverables the judges receive, from the committed eval and snapshot, and be honest about what is still unverified.
+
+Built: `docs/SUBMISSION.md` with the one-page note (545 words), the 90-second video script, the status of every item on the verify list (PRD 16.3), and a list of what only Eshan can do. README and HANDOFF status tables brought up to date (the learning loop had merged as PR #15 but both still called it open).
+
+How the numbers were produced: reran `make eval` (75 gates pass, 14 reported figures, 0 fail) and read Hero A and Hero B figures from `web/public/snapshot/`. The sample numbers in `docs/BUILD_PLAN.md` section 11 ("40 customers", "38 of 38") are illustrative and were replaced by the real ones: 85 affected, 17 complained, 68 silent, ₹56,319, 81 of 81 confirmed active after 24 healthy hours, alert 55 minutes after the deploy.
+
+What checking caught:
+- One of the three planned quotes was out of context. "Razorpay just fires a webhook and that's it? no retry..." (r/micro_saas) is about failed UPI AutoPay debits, not a deploy breaking a webhook. Replaced with an r/indiehackersindia post that is exactly the deploy case. All three quotes were matched word for word against the raw files in `_dossier/SOCIAL_LISTENING/`. The live pages were not opened (Reddit and X are blocked in the browser tool).
+- A first draft said "all 40 threads identified within three questions". The metric covers cooperative threads only, so the note says that.
+- The first draft was 572 words; trimmed to 545.
+- Verify item 9 (reversal timelines): template `T-B1` states a bank reversal date, but no code path sends it, so no date reaches a customer. Check the RBI timelines before it is wired.
+
+Not done: item 1 of the verify list (the 24-hour webhook disable, due about 18:41 IST on 7 Oct) needs Eshan to look at the dashboard. Nothing in `web/` changed, so no design review was needed. No recording was made.
