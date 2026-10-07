@@ -192,7 +192,7 @@ The full verify list is PRD section 16.3.
 
 **Supabase project `rjejpxwlfljkydjnjjrd`** (empty before this work): tables `blindspot_webhook_mode` and `blindspot_webhook_log` (row security on, no policies), Edge Function `rzp-sink-55356a50` (JWT check off, because Razorpay cannot send a JWT; the unguessable name is the only protection). Mode is set with SQL: `update public.blindspot_webhook_mode set mode = '401' where id = 1;` (modes: ok, 401, 500, ack_then_fail). Currently `401`. The log keeps the last 500 deliveries. Source is in `merchant_mock/supabase/rzp-sink.ts`.
 
-**Open experiment:** Razorpay should disable webhook A about 24 hours after the first failure (around 18:41 IST on 7 Oct 2026). Ask Eshan what the dashboard shows then (banner, warning, email) and record it in PRD 4.1 and 16.3. No alert email is set, so nobody was told of the failure.
+**Experiment result (7 Oct 2026, 9:12 PM IST):** Razorpay did not disable webhook A. It retried each event 15 times, the last at 22.8 hours, then stopped. The webhook still shows "Enabled" with no banner, warning, failure count or log. No alert email is set, so no email was sent to check. Recorded in PRD 4.1 and 16.3. Still open: whether this is test mode only. The sink is still in `401` mode; set it back to `ok` when no longer needed.
 
 **Old duplicate folder:** `/Users/eshan/Desktop/claude/blindspot` was deleted on 6 Oct 2026 at Eshan's request. It held an R0-stage copy with no commits and nothing this repo lacked.
 
@@ -201,7 +201,6 @@ The full verify list is PRD section 16.3.
 ## 6b. Pending (as of 6 Oct 2026, after the R3 merge)
 
 Needs Eshan:
-- **Webhook experiment, around 18:41 IST on 7 Oct:** Razorpay should disable webhook A about 24 hours after its first failure. Look at the dashboard and tell the next session what it shows (banner, warning, email). Record it in PRD 4.1 and 16.3.
 - **Five founder calls (V2, kill criterion K3):** none done. Script is in `docs/BUILD_PLAN.md` section 8. If fewer than 3 of 5 confirm a paid-but-not-fulfilled incident, the plan is to pivot to international-failure diagnosis.
 - **Razorpay questions (V3, nine of them) and the two for Prane:** does RAY already list every payment affected by one webhook failure (kill criterion K2), and could Razorpay expose a bulk replay or delivery-log API for a prototype. No answers yet.
 - **Test account cleanup (V5):** the disabled `httpbin` webhook and the ₹10 payment link are still there. Nothing is deleted until Eshan says so.
