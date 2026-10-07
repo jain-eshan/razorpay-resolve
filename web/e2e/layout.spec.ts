@@ -81,3 +81,19 @@ test('phone: the open menu is reachable, traps focus and hides the page, closing
   await expect(page.locator('#root')).not.toHaveAttribute('aria-hidden', 'true')
   await expect(page.getByRole('button', { name: 'How it works' })).toBeVisible()
 })
+
+// Blade's mobile SideNav once kept a drawer mounted while closed, which set aria-hidden on the whole page. Loaded straight at phone width, role queries found nothing.
+// This test loads at 375px (not resized from desktop) and looks a button up by role, then checks the menu drawer still opens, navigates and closes.
+// The open menu has its own test above; this one only walks the menu once, end to end, from a page loaded at phone width.
+test('phone width: page is exposed to assistive technology and the menu works', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 900 })
+  await page.goto('/incidents/INC-1')
+  await expect(page.getByRole('button', { name: 'Test hook' })).toBeVisible()
+  await expect(page.locator('#root')).not.toHaveAttribute('aria-hidden', 'true')
+  await page.getByRole('button', { name: 'Open menu' }).click()
+  await page.getByRole('dialog', { name: 'Main menu' }).getByRole('link', { name: 'Conversations' }).click()
+  await expect(page).toHaveURL(/\/threads$/)
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Open menu' })).toBeVisible()
+  await expect(page.locator('#root')).not.toHaveAttribute('aria-hidden', 'true')
+})
