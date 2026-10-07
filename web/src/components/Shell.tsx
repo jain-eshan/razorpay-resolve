@@ -3,8 +3,10 @@ import { Link, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 import {
   ActivityIcon, AtSignIcon, Avatar, Badge, BellIcon, Box, ChevronDownIcon, ClipboardIcon, CreditCardIcon, FileIcon, FileTextIcon, FlaskIcon, HomeIcon, IconButton, LinkIcon, MenuIcon, RadioIcon, RayIcon, RazorpayIcon, RepeatIcon, SearchIcon, SearchInput, SettingsIcon, SideNav, SideNavBody, SideNavFooter, SideNavLink, SideNavSection, Switch, TabNav, TabNavItem, TabNavItems, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent, TrendingUpIcon, UsersIcon, WalletIcon,
+  useTheme,
   type IconComponent,
 } from '@razorpay/blade/components'
+import { useBreakpoint } from '@razorpay/blade/utils'
 
 // The shell copies the live Razorpay dashboard (web/DESIGN.md section 14). Everything Razorpay already ships is shown but inert: greyed, not clickable.
 // Blindspot is one more product tab and two more nav sections. To add a screen, add an item to BLINDSPOT or PROOF below.
@@ -49,6 +51,8 @@ const noop = () => {}
 export function Shell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
+  const { theme } = useTheme()
+  const isPhone = useBreakpoint({ breakpoints: theme.breakpoints }).matchedDeviceType === 'mobile'
   const on = (to: string) => (to === '/' ? pathname === '/' : pathname.startsWith(to))
   const link = (i: Item) => <SideNavLink key={i.to} title={i.title} icon={i.icon} href={i.to} isActive={on(i.to)} as={Link} onClick={() => setOpen(false)} />
   const inert = (title: string, icon: IconComponent) => <SideNavLink key={title} title={title} icon={icon} as={InertItem} />
@@ -88,7 +92,8 @@ export function Shell({ children }: { children: ReactNode }) {
         </TopNavActions>
       </TopNav>
       <Box display="flex" flex="1" minHeight="0px">
-        <SideNav isOpen={open} onDismiss={() => setOpen(false)} position="relative">
+        {/* At phone width Blade's SideNav keeps a second Drawer mounted even when closed (isLazy: false). Its focus manager sets aria-hidden on everything outside it, so the whole page vanishes from assistive technology and role queries. On a phone the nav is mounted only while the menu is open. */}
+        {(!isPhone || open) && <SideNav isOpen={open} onDismiss={() => setOpen(false)} position="relative">
           <SideNavBody>
             <SideNavSection>{CORE.map(([t, i]) => inert(t, i))}</SideNavSection>
             <SideNavSection title="BLINDSPOT">{BLINDSPOT.map(link)}</SideNavSection>
@@ -102,7 +107,7 @@ export function Shell({ children }: { children: ReactNode }) {
             </Box>
             {inert('Account & Settings', SettingsIcon)}
           </SideNavFooter>
-        </SideNav>
+        </SideNav>}
         {children}
       </Box>
     </Box>

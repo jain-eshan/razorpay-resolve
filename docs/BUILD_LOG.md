@@ -363,3 +363,22 @@ Changed: `docs/PRD.md` (4.1 retry schedule and dashboard rows, 16.3 item 1), `do
 What this does and does not show: in a test-mode account, Razorpay stopped retrying and did not disable the webhook, and the dashboard said nothing. It does not show what a live-mode account does, and it does not show whether an email was sent (no alert email was set on the webhook). The note and video must not say "Razorpay disables the webhook after 24 hours" as something we saw. `docs/SPEC.md` INC-1 (a simulated incident that says "disabled after 24 hours") follows the docs claim and was left alone; it is a scenario, not a claim about what we observed.
 
 Not done: the inbox check for a Razorpay email. Nothing in `web/` changed, so no design review was needed.
+
+## 7 Oct 2026, phone-width page hidden from assistive technology (web)
+
+Goal: find out why `getByRole('button', { name: 'Test hook' })` (and the INC-4 and INC-3 buttons) found nothing on an incident page loaded straight at 375px, while `getByText` found the same labels and a screenshot showed them.
+
+Cause: real, not a test artefact. At phone width Blade's `SideNav` renders the menu as two `Drawer`s. The second is created with `isLazy: false`, so it stays mounted while the menu is closed, and its focus manager sets `aria-hidden="true"` on `#root` (and `overflow: hidden` on `<body>`). The whole page was hidden from screen readers and from role queries. A page loaded at 1440px and then resized was fine because the drawers did not exist when the hiding is applied.
+
+What changed:
+- `web/src/components/Shell.tsx`: on a phone (Blade's `useBreakpoint`, device type `mobile`) the `SideNav` is mounted only while the menu is open. Tablet and desktop are unchanged. Production nav items are untouched (still greyed and inert).
+- `web/e2e/layout.spec.ts`: one new test loads INC-1 at 375px (not resized), finds `Test hook` by role, checks `#root` is not `aria-hidden`, opens the menu, goes to Conversations, and checks the drawer is gone and the page is exposed again. With the fix reverted it fails at the `Test hook` lookup.
+- `web/CLAUDE.md`: a Known quirks entry for the workaround (DESIGN.md section 20, rule 6).
+
+Checks: 44 snapshot tests pass on port 5190 (not the shared 5173), `npx tsc -b` and `npx oxlint` clean.
+
+Known and not fixed: while the menu is open, the two drawers each mark the other `aria-hidden`, so the open menu is invisible to assistive technology. This is in Blade and was true before this change. A fix means replacing Blade's mobile `SideNav` with one `Drawer` of our own. Side effect of the fix: the menu now disappears at once when closed instead of sliding out, because it is unmounted. The new test clicks the menu entry by text for the same reason.
+
+Not checked: INC-3 and INC-4 were not loaded at 375px (same shell, same cause, one test on INC-1). No screen reader was used; "exposed" means Playwright's accessibility-tree queries.
+
+Design review: the `design-reviewer` agent was not available in this session, so I ran its checks by hand from `.claude/agents/design-reviewer.md`. A (mechanical): `tsc -b` and `oxlint` clean; no hex colours, no `repeat(N, 1fr)`, no raw elements and no em dashes in the changed lines; the one fixed width in `Shell.tsx` (the 360px search field) is not in the diff; no new routes. B (structure): every production item is still present and inert; the menu button still opens the drawer below the `m` breakpoint (section 14); no page, button or agent flow changed. C (content): no copy changed. D (looked at INC-1 in Chrome at 375, 768 and 1440px): the phone shows the menu button and no side nav, tablet and desktop show the full side nav, the open phone drawer looks as before, no page errors. One finding, the missing `web/CLAUDE.md` note, was fixed. Verdict: pass with notes. The notes are the two items under "Known and not fixed", and a human has not seen the instant close.
