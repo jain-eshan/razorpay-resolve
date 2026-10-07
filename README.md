@@ -52,8 +52,8 @@ The web app has two modes. Without `VITE_MODE=live` it plays the demo from `web/
 | R4 first slice: Hero B, customers who cannot reach the pay page (no model) | Done, on `main`. Contracts v0.5 |
 | R5 first slice: handovers (Instagram, Messenger, public posts) | Done, on `main`. Contracts v0.6 |
 | R5 second slice: learning loop, weekly card, Learning screen (no model) | Done, on `main`. Contracts v0.7 |
-| R7 submission kit: one-page note, 90-second script, verify-list status (`docs/SUBMISSION.md`) | Drafted. Needs Eshan's checks and two recorded takes |
-| R4 and R5 rest, INC-3: card renewals that failed in Razorpay's gateway, and the evidence pack to Razorpay (no model) | Done on branch `claude/r4-inc3-renewal`. Contracts v0.8 |
+| R7 submission kit: one-page note, 90-second script, verify-list status (`docs/SUBMISSION.md`) | Merged (PR #16). Needs Eshan's checks and two recorded takes |
+| R4 and R5 rest, INC-3: card renewals that failed in Razorpay's gateway, and the evidence pack to Razorpay (no model) | Done, on `main` (PR #19). Contracts v0.8 |
 | R4 rest: investigation agent and three-way eval (need a model), duplicate charges and the guarded refund (INC-2), R6 | Not started |
 
 Contract changes are logged in `docs/CONTRACT_CHANGES.md` (currently v0.8). The plan for every release is in `docs/BUILD_PLAN.md`.

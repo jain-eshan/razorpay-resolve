@@ -26,6 +26,7 @@ A starter for building Razorpay products in Razorpay's own design language, Razo
 - `src/components/AgentAnswer.tsx`, `RayAnswers.tsx`: how Ray answers, and the `Turn` pieces the fix flows use (DESIGN.md section 17).
 - `e2e/layout.spec.ts`: opens every route at 375, 768 and 1440px and fails on errors or sideways overflow. Add new routes to its list.
 - `src/lib/guides.ts`, `routes/GuidePage.tsx`, `routes/Setup.tsx`, `routes/Home.tsx`: product guides, first-run setup, the Ray home.
+- `src/routes/RenewalView.tsx`, `components/RenewalFix.tsx`, `components/RenewalChart.tsx`: INC-3, the incident on Razorpay's side (card renewals failed in its gateway): evidence, the 3 day grace extension in stages, the customer message, and the evidence pack to Razorpay. `Incident.tsx` sends `mismatch_type: G` here, `zone: before` to `Zone1View`.
 - `src/routes/Reference.tsx`: the RazorSense reference screens (state switcher, voice examples, Ask Ray chat, success moment)
 
 ## Rules
