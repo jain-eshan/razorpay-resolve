@@ -1,0 +1,58 @@
+name: ci-alert
+
+# When CI on main finishes, keep one GitHub issue in step with it.
+# Red: open an issue labelled ci-failure (or add a comment to the one that is already open).
+# Green: close any open ci-failure issue. A session or a person reads these issues before starting new work (see CLAUDE.md).
+# Runs from the default branch, so it takes effect once merged.
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+jobs:
+  alert:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      RUN_ID: ${{ github.event.workflow_run.id }}
+      RUN_URL: ${{ github.event.workflow_run.html_url }}
+      SHA: ${{ github.event.workflow_run.head_sha }}
+      RESULT: ${{ github.event.workflow_run.conclusion }}
+    steps:
+      - name: On failure, open or update the issue
+        if: github.event.workflow_run.conclusion == 'failure'
+        env:
+          COMMIT_TITLE: ${{ github.event.workflow_run.head_commit.message }}
+        run: |
+          gh label create ci-failure --repo "$REPO" --color D93F0B --description "CI failed on main; fix before building anything new" 2>/dev/null || true
+          steps=$(gh run view "$RUN_ID" --repo "$REPO" --json jobs --jq '[.jobs[].steps[] | select(.conclusion=="failure") | .name] | join(", ")')
+          short="${SHA:0:7}"
+          first_line=$(printf '%s' "$COMMIT_TITLE" | head -n 1)
+          {
+            echo "CI failed on \`main\` at \`$short\`."
+            echo
+            echo "- Commit: $first_line"
+            echo "- Failed step: ${steps:-unknown}"
+            echo "- Run: $RUN_URL"
+            echo
+            echo "Fix this before building anything new. Read the failing log first (\`gh run view $RUN_ID --log-failed\`), find the root cause, and open a pull request that says \`Fixes #<this issue>\`. If the failure is a timeout, say how long the step took."
+          } > body.md
+          existing=$(gh issue list --repo "$REPO" --label ci-failure --state open --json number --jq '.[0].number // empty')
+          if [ -z "$existing" ]; then
+            gh issue create --repo "$REPO" --label ci-failure --title "CI failed on main at $short" --body-file body.md
+          else
+            gh issue comment "$existing" --repo "$REPO" --body-file body.md
+          fi
+      - name: On success, close open failure issues
+        if: github.event.workflow_run.conclusion == 'success'
+        run: |
+          for n in $(gh issue list --repo "$REPO" --label ci-failure --state open --json number --jq '.[].number'); do
+            gh issue close "$n" --repo "$REPO" --comment "CI is green again on main at ${SHA:0:7}: $RUN_URL"
+          done

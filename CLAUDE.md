@@ -11,6 +11,13 @@ Product monorepo (working name) for the Razorpay x ISB AI PM Build Challenge, Tr
 - No secrets in the repo. Razorpay keys are `rzp_test_` only, in `.env`.
 - No em dashes in code, copy or docs.
 
+## First, check for CI failures
+**Before you build anything, in every session:** run `gh issue list --label ci-failure --state open`. A GitHub Action (`.github/workflows/ci-alert.yml`) opens one issue labelled `ci-failure` whenever CI fails on `main`, and closes it when CI is green again.
+- If one is open, fix it before any other work, including work Eshan just asked for. Tell Eshan you are doing this and why, in one line.
+- Cut a branch from `origin/main`, read the failing log (`gh run view <run id> --log-failed`), find the root cause (a timeout, a flaky wait and a real bug are different fixes), and open a PR whose body says `Fixes #<issue>`. Run the checks the way CI does (`CI=1 npx playwright test` in `web/`). Switch Auto-fix on.
+- Also run `gh issue list --state open` and mention any other open issues to Eshan. Do not start on them unasked.
+- If `gh` is not signed in or the repo has no alert workflow yet, say so and ask Eshan to merge the workflow PR first.
+
 ## Branches and worktrees
 One long-lived branch, `main`. Eshan runs one Claude chat per git worktree, so each chat works on its own short-lived branch: `git fetch`, cut it from `origin/main`, then `make setup` and `cd web && npm ci` in the new folder. Merge by PR once CI passes, delete the branch, remove the worktree. Details and traps: `docs/HANDOFF.md` section 3b.
 

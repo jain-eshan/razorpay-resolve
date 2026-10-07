@@ -13,7 +13,9 @@ export default defineConfig({
     { name: 'live', testMatch: /fix\.spec/, dependencies: ['talk'], use: { baseURL: 'http://localhost:5174', channel: 'chrome' } },
   ],
   webServer: [
-    { command: 'npm run dev -- --port 5173', url: 'http://localhost:5173', reuseExistingServer: true },
+    // CI serves a production build: it is about twice as fast as the dev server, which matters on a slow runner (Hero A takes 4 s built, 6 s on the dev server, 5 times that on CI).
+    // Locally the dev server is reused if it is already up. Port 5173 is shared with other worktrees, so check that it is serving this folder before trusting a local run.
+    { command: process.env.CI ? 'npm run build && npm run preview -- --port 5173 --strictPort' : 'npm run dev -- --port 5173', url: 'http://localhost:5173', reuseExistingServer: !process.env.CI, timeout: 120_000 },
     { command: 'cd .. && make run-api', url: 'http://localhost:8000/health', reuseExistingServer: false, timeout: 120_000 },
     { command: 'VITE_MODE=live npm run dev -- --port 5174', url: 'http://localhost:5174', reuseExistingServer: false },
   ],

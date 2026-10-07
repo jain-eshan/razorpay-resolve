@@ -4,6 +4,7 @@ Read this first in a new chat, then `docs/PRD.md`. Everything below is true as o
 
 ## 0. Start a new chat here (5 minutes)
 
+0. **Before anything else:** `gh issue list --label ci-failure --state open`. If CI is red on `main` there is an issue (opened by `.github/workflows/ci-alert.yml`). Fix it first, before any new work. Rules are in the root `CLAUDE.md`.
 1. Read this file, then `docs/BUILD_LOG.md` (what happened and what broke), then `docs/BUILD_PLAN.md` section 5 for the next release.
 2. `make setup` once. Then `make test`, `make eval`, `make e2e` should all pass on a clean checkout (about 3 minutes).
 3. Run it: `make run-api` (fresh synthetic world, API on 8000) and `make run-web` with `VITE_MODE=live`. Without `VITE_MODE=live` the web shows the guided demo from the committed snapshot.
