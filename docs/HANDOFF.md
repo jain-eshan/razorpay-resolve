@@ -29,7 +29,8 @@ Blindspot (working name) is Eshan Jain's entry for the Razorpay x ISB AI PM Buil
 | R4 first slice: Zone 1, Hero B (cannot reach the pay page), no model | Done on `claude/r4-hero-b-zone1`, contracts v0.5, not pushed. Section 2c. |
 | R4 rest: investigation agent, three-way eval, escalation to Razorpay, duplicates, refunds | Not started |
 | R5 first slice: handovers (Instagram and Messenger control passing, public posts to private) | Done on `claude/r5-learning-handovers`, contracts v0.6, not pushed. Section 2d. |
-| R5 rest: learning loop and weekly card, renewal anomaly (F-08) | Not started |
+| R5 second slice: learning loop, weekly card, screen S-18 (no model) | Done on `claude/roadmap-implementation-2d4e4e`, contracts v0.7, not pushed. Section 2e. |
+| R5 rest: renewal anomaly (F-08, INC-3) | Not started |
 | R6 real rails (stretch) | Not started |
 | R7 submission kit | Not started |
 
@@ -91,6 +92,14 @@ Branch `claude/r5-learning-handovers`. Full account in `docs/BUILD_LOG.md`, cont
 - **Instagram and Messenger:** `backend/app/conversation/handover.py`. The Meta inbox passes a thread only for a payment message or a message that needs a person, and takes it back when the conversation ends or needs a person. Window rules in `channels/policy.py` and `channels/sim.py`. Screen `/ig-demo`.
 - **Public posts:** one generic reply (`T-PUB`) held for the founder, nothing looked up, nothing stored as a case, real posts watched only, threats to a person, then the private message carries on. Screen `/public-demo`. Scripts in `synth/handovers.py`, checks in `eval/handovers.py`.
 - **Limits:** everything is simulated, no real Meta or X connection. The real anchor posts are the three from the research that name a payment problem. Instagram and Messenger consent is granted in the seed, not by the founder.
+
+### R5 second slice: the learning loop, 7 Oct 2026 (section 2e)
+Branch `claude/roadmap-implementation-2d4e4e`. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.7).
+- **What it does:** the founder says "this was a false alarm" on an incident, or "I missed something" on the Learning screen. The weekly review (button "Review this week now", also safe to press twice) moves a setting one step: the order-dip and complaint-spike monitors get stricter after a false alarm and looser after a miss; the default message language follows the higher reply rate. A setting changes once a week, inside a fixed ladder, with a reason and a version, and each change is an audit line.
+- **Code:** `backend/app/learning/` (params, loop), thresholds as arguments on `volume.find` and `complaint_spike.find`, `Orders(ewma=True)` baseline, `synth/replay.py`, `eval/learning.py`. Web: `routes/Learning.tsx`, `components/FeedbackPanel.tsx`, demo frames from `record_learning` in `scripts/demo_script.py`.
+- **Results (invented data):** false alerts per six-week replay 6.2 with no learning, 5.0 weekly baseline only, 3.2 with the loop; one weak outage missed in 1 of 5 replays. Quote these as "works as designed on a simulation", never as a result about real merchants.
+- **Limits:** no live source yet for customer replies and founder edits (needs real channels, R6), so message-language learning runs only in the replay and tests. Calibrator refit and body-reader examples are not built. The review runs when asked, not on a timer. A changed threshold applies from the next pipeline run. The hosted demo takes one piece of feedback and cannot report a missed incident.
+- **Not run:** the `fix` and `talk` live browser specs (ports were busy) and the `design-reviewer` agent (it is on `main`; the branch was not synced).
 
 ### UX review, 7 Oct 2026 (PR #6)
 Eshan asked for a designer's review of the whole web app. Method: Playwright with the installed Chrome at 1440 and 390 wide (full-resolution screenshots, computed styles, overflow, text size and contrast checks on 13 routes), because the in-app browser shrinks screenshots.

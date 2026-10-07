@@ -17,6 +17,7 @@ type Demo = {
     hook_broken: Frame; hook_ok: Frame; hook_ok24: Frame; revert_first_5: Frame<Action>; revert_rest: Frame<Action>; settings: Schemas['Settings']
   }
   chat: Record<string, Scenario>
+  learning: Record<string, { weekly: Record<'none' | 'told' | 'reviewed', Frame<Schemas['LearningWeekly']>>; params: Record<'none' | 'reviewed', Frame<Schemas['LearningParam'][]>>; ack: Frame; review: Frame<Schemas['LearningWeekly']> }>
   zone1: {
     probe: Record<'broken' | 'ok', Frame>
     health: Record<'broken' | 'ok0' | 'ok1' | 'ok2', Frame>
@@ -43,6 +44,9 @@ const st = {
   audit: [] as Audit[], nextId: 1,
   threads: {} as Record<string, Detail>, order: [] as string[], byThread: {} as Record<string, string>,
 }
+
+// The learning screen. One piece of feedback is recorded per visit, because what the review changes depends on which monitors raised that incident.
+const learn = { stage: 'none' as 'none' | 'told' | 'reviewed', incident: '' }
 
 // Hero B (INC-4) has its own clock, because the demo user moves it from that page. mode: the pay page. r: how far the recovery links got.
 const z = {
@@ -133,6 +137,8 @@ export async function demoGet(path: string): Promise<unknown | undefined> {
     return (await members(d)).filter((m) => !tier || m.tier === tier)
   }
   if (p === '/api/audit') return [...st.audit].reverse()
+  if (p === '/api/learning/weekly') return d.learning[learn.incident || 'INC-1'].weekly[learn.stage].data
+  if (p === '/api/learning/params') return d.learning[learn.incident || 'INC-1'].params[learn.stage === 'reviewed' ? 'reviewed' : 'none'].data
   if (p === '/api/threads') return st.order.map((id) => st.threads[id])
   if (p.startsWith('/api/threads/')) return st.threads[p.split('/')[3]]
   return undefined
@@ -142,6 +148,25 @@ export async function demoSend(method: string, path: string, body: Record<string
   const d = await demo()
   const f = d.fix
   const zt = d.zone1
+  if (path === '/api/feedback') {
+    const id = String(body.subject_id)
+    if (body.kind !== 'false_alarm' || !d.learning[id]) throw new Error('Reporting a missed incident works in the live demo.')
+    if (learn.stage !== 'none' && learn.incident !== id) throw new Error('The hosted demo takes one piece of feedback. Run it live to give more.')
+    if (learn.stage === 'none') {
+      learn.stage = 'told'
+      learn.incident = id
+      add(d.learning[id].ack.audit)
+    }
+    return d.learning[id].ack.data
+  }
+  if (path === '/api/learning/run') {
+    const l = d.learning[learn.incident || 'INC-1']
+    if (learn.stage === 'told') {
+      learn.stage = 'reviewed'
+      add(l.review.audit)
+    }
+    return l.weekly[learn.stage].data
+  }
   if (path === '/api/probes/run') return (z.mode === '404' ? zt.probe.broken : zt.probe.ok).data
   if (path === '/merchant-mock/page-mode') {
     z.mode = 'ok'

@@ -14,6 +14,7 @@ import Incident from './routes/Incident'
 import Incidents from './routes/Incidents'
 import GuidePage from './routes/GuidePage'
 import Home from './routes/Home'
+import Learning from './routes/Learning'
 import PublicDemo from './routes/PublicDemo'
 import Reference from './routes/Reference'
 import Scan from './routes/Scan'
@@ -48,6 +49,7 @@ export default function App() {
               <Route path="/audit" element={<Audit />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/how" element={<How />} />
+              <Route path="/learning" element={<Learning />} />
               <Route path="/reference" element={<Reference />} />
             </Routes>
           </Box>

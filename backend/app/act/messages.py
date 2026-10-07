@@ -7,6 +7,7 @@ import sqlite3
 from datetime import datetime
 
 from ..conversation.templates import TEMPLATES
+from ..learning import params
 from ..schemas import MessagePreview
 
 LANGS = ("en", "hi_latn")
@@ -27,7 +28,7 @@ def slots_for(db: sqlite3.Connection, payment_id: str) -> dict:
                       FROM payments p JOIN customers c ON c.id = p.customer_id JOIN merchants m ON m.id = p.merchant_id WHERE p.id = ?""", (payment_id,)).fetchone()
     d = datetime.fromisoformat(r["captured_at"])
     return {"first_name": r["name"].split()[0], "merchant": r["merchant"].split(" (")[0], "amount": inr(r["amount_paise"]), "date": f"{d.day} {d:%b}",
-            "plan": r["plan"], "rrn": r["rrn"] or "", "_lang": r["language_pref"] if r["language_pref"] in LANGS else "en"}
+            "plan": r["plan"], "rrn": r["rrn"] or "", "_lang": r["language_pref"] if r["language_pref"] in LANGS else params.get(db, "message_variant")}
 
 
 def pick(complained: bool, slots: dict, language: str) -> tuple[str, str]:

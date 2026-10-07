@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 
 // Layout guard: every screen at phone, tablet and desktop width must render without errors, and its content must not spill sideways.
 // Tables scroll inside their own box, so they are not counted. A failure here means a fixed width or an unwrapped row (web/DESIGN.md section 19).
-const ROUTES = ['/', '/guides/blindspot', '/setup', '/incidents', '/incidents/INC-1', '/incidents/INC-4', '/incidents/INC-5', '/incidents/INC-1/dev', '/threads', '/channels', '/scan', '/audit', '/how', '/settings', '/chat-demo', '/help-demo/receipt', '/email-demo', '/ig-demo', '/public-demo']
+const ROUTES = ['/', '/guides/blindspot', '/setup', '/incidents', '/incidents/INC-1', '/incidents/INC-4', '/incidents/INC-5', '/incidents/INC-1/dev', '/threads', '/channels', '/scan', '/audit', '/how', '/learning', '/settings', '/chat-demo', '/help-demo/receipt', '/email-demo', '/ig-demo', '/public-demo']
 const WIDTHS = [375, 768, 1440]
 
 for (const width of WIDTHS) {

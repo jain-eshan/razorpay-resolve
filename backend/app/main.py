@@ -6,12 +6,14 @@ from contextlib import closing
 from fastapi import APIRouter, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
+from . import audit as audit_log
 from . import clock, merchant_mock, service
 from . import fixtures as fx
 from .act import autonomy, executor
 from .config import BS_NOW
 from .conversation import handover, machine
 from .db import ROOT, connect
+from .learning import loop as learning
 from .schemas import (
     Ack,
     Action,
@@ -40,6 +42,7 @@ from .schemas import (
     IncidentDetail,
     IncidentSummary,
     LearningParam,
+    LearningReplay,
     LearningWeekly,
     Member,
     MessagePreview,
@@ -233,12 +236,34 @@ def create_escalation(body: EscalationRequest): return fx.ESC1
 @api.get("/escalations/{escalation_id}", response_model=Escalation)
 def get_escalation(escalation_id: str): return _get({"esc_001": fx.ESC1}, escalation_id)
 @api.post("/feedback", response_model=Ack)
-def feedback(body: FeedbackRequest): return Ack()
+def feedback(body: FeedbackRequest): return _real(_feedback, body) if _live() else Ack()
 @api.get("/learning/weekly", response_model=LearningWeekly)
-def learning_weekly(): return fx.LEARN_WEEK
+def learning_weekly(): return _real(lambda db: learning.weekly(db, clock.now())) if _live() else fx.LEARN_WEEK
 @api.get("/learning/params", response_model=list[LearningParam])
-def learning_params(): return fx.LEARN_PARAMS
+def learning_params(): return _real(lambda db: learning.all_params(db, clock.now())) if _live() else fx.LEARN_PARAMS
+@api.post("/learning/run", response_model=LearningWeekly)
+def learning_run(): return _real(_review) if _live() else fx.LEARN_WEEK
+@api.get("/learning/replay", response_model=LearningReplay)
+def learning_replay():
+    replay = ROOT / "eval" / "learning_replay.json"
+    return LearningReplay.model_validate_json(replay.read_text()) if _live() and replay.exists() else fx.LEARN_REPLAY
 
+
+def _feedback(db, body: FeedbackRequest) -> Ack:
+    now = clock.now()
+    fid = learning.record(db, body.subject_type, body.subject_id, body.kind, body.payload, now)
+    audit_log.log(db, "merchant:founder", "action", body.subject_id, f"Feedback: {body.kind.replace('_', ' ')}", feedback_id=fid)
+    db.commit()
+    return Ack(detail=fid)
+
+
+def _review(db) -> LearningWeekly:
+    """The weekly review, run now. A setting moves one step at most, and only once in 7 days, so pressing it twice changes nothing more."""
+    now = clock.now()
+    for c in learning.review(db, now):
+        audit_log.log(db, "system", "action", c.key, f"Changed {c.key} from {c.before} to {c.after}: {c.reason}", version=c.version)
+    db.commit()
+    return learning.weekly(db, now)
 
 def _commit(db, value):
     db.commit()
