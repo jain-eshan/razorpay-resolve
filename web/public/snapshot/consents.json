@@ -1,0 +1,41 @@
+[
+  {
+    "id": "cn_ch_help",
+    "channel_id": "ch_help",
+    "scopes": [
+      "Read payment-related messages",
+      "Reply as Kaksha payment help, powered by Razorpay",
+      "Look up payments by an identifier the customer shares"
+    ],
+    "granted_by": "founder@kaksha.example",
+    "granted_at": "2026-10-02T10:40:00+05:30",
+    "revoked_at": null,
+    "retention_days": 30
+  },
+  {
+    "id": "cn_ch_wa",
+    "channel_id": "ch_wa",
+    "scopes": [
+      "Read payment-related messages",
+      "Reply as Kaksha payment help, powered by Razorpay",
+      "Look up payments by an identifier the customer shares"
+    ],
+    "granted_by": "founder@kaksha.example",
+    "granted_at": "2026-10-02T10:40:00+05:30",
+    "revoked_at": null,
+    "retention_days": 30
+  },
+  {
+    "id": "cn_ch_email",
+    "channel_id": "ch_email",
+    "scopes": [
+      "Read payment-related messages",
+      "Reply as Kaksha payment help, powered by Razorpay",
+      "Look up payments by an identifier the customer shares"
+    ],
+    "granted_by": "founder@kaksha.example",
+    "granted_at": "2026-10-02T10:40:00+05:30",
+    "revoked_at": null,
+    "retention_days": 30
+  }
+]

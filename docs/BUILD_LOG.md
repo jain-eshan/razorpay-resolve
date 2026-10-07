@@ -54,3 +54,95 @@ Findings and decisions:
 Deferred from the R1 plan: the 24 synthetic screenshots (first used by extraction in R3), the Vercel deploy (needs your account), complaint matching beyond exact keys (R3).
 
 Bugs found by tests or eval: the first alert latency above; a test fixture that tried to set an attribute on a plain SQLite connection.
+
+## 6 Oct 2026, R2 fix and verify (integrator, all streams)
+
+Goal: Hero A runs end to end: plan, dry run, first 5, rest, message, verify, close, with approval, autonomy, undo and an audit trail.
+
+What was built: see `docs/HANDOFF.md` section 2. Contract v0.3 is additive (`Settings.autonomy`, `Action.next_stage`, `Action.blocked_reason`). The merchant mock is mounted at `/merchant-mock` and is not in the frozen API contract.
+
+Decisions:
+- One plan per incident and type, with the idempotency key `sha256(incident, type, payment)` on a UNIQUE column. Asking again returns the same plan; a second click on a finished stage is ignored and logged. The write lock is taken before the stage runs, so two clicks at once grant once (tested with four threads).
+- Autonomy: Suggest needs a tap for every stage. Assist needs the dry run approved once, then the first 5 and the rest run by themselves and stop on any failure. Autopilot runs by itself within the cap. Messages need the founder on Suggest and Assist.
+- A message says "access is active", so it can only be planned for customers whose grant was confirmed against their records. One message per customer per incident.
+- Undo is refused once customers have been told, and refuses to overwrite a record the merchant changed after the grant.
+- Closing needs every Exact-tier customer confirmed and the webhook healthy for 24 simulated hours (the clock is a demo control).
+
+Rejected: the Blade docs tool, because it wants to write Cursor rule files into the repo first. Props were read from the installed types instead, as the starter's rules say.
+
+Bugs found by tests, e2e or the live page:
+- Number check: replacing the amount first cut a short number out of a 12-digit UPI ref and flagged a valid message. Now longest value first.
+- Restored customers dropped out of the incident (85 became 81), because the 4 "server said OK" customers were only found while they lacked access. They now stay, as "restored by Blindspot".
+- The API's CORS only allowed port 5173, so a second web on 5174 could not read it.
+- After Undo the panel said "plan again" with no button.
+- Reloading a closed incident re-logged the same verification every time. Now logged only when the result changes.
+- Stale "Look at 5" timelines after the fix.
+
+Metrics: 71 backend tests, 10 Playwright tests, 23 eval gates, all passing. Hero A in about 4 seconds of automated clicking (limit 90).
+
+Deferred: refunds, recovery links, event re-sending (no executor); the full policy engine (R3); real WhatsApp or email sending (R6).
+
+## 6 Oct 2026, R3 channels and conversation (integrator, all streams)
+
+Goal: a customer can write on a help button, WhatsApp or email and the agent finds the payment, says what the record shows, and hands over safely. No model yet.
+
+What was built: see `docs/HANDOFF.md` section 2 (R3). Contract v0.4 is additive (two templates, three message classes in the autonomy matrix).
+
+Decisions:
+- Exact identifiers decide. Fuzzy suggestions go only to the founder's brief. The fuzzy scorer is weak (top 3 recall 0.72), which supports that rule.
+- Identifiers become tokens before anything reads the text. The vault stores them per complaint (`complaint_id:[RRN_1]`).
+- Replies go out only through `channels/policy.py`, in the order the spec gives. A reply that fails any check is stored as a held draft with every reason shown. The AI disclosure is added to the first agent message by wrapping it in T-DISC.
+- Not-a-payment messages are not stored. A counter is kept. Injections, threats, requests for a person and money decisions (refunds, duplicate charges) go to the founder at once, with a brief.
+- The conversation dial is per channel. A reply on Suggest is held for approval, so the customer sees nothing until the founder approves it.
+- A message that came from a help button for a known payment is read as a payment claim even if it only says "access nahi mila".
+- The Blade docs tool was skipped again for the same reason as in R2.
+
+Bugs found by the eval and e2e (unit tests passed with all of these present):
+- Token vault: the `token` column is a global key, so a second complaint's `[RRN_1]` was ignored and its identifier was lost. Identification within 3 questions was 31 percent. Now 100 percent on the scripts.
+- Extraction took the first identifier in the whole vault, so a corrected reference was ignored.
+- A time phrase after other words ("bhai 299 deduct hua kal raat 10 baje") was never extracted: the pattern also matched the empty string at position 0.
+- An amount pattern matched a bare comma and crashed.
+- "login nahi ho raha" was read as a failed payment.
+- The nudge never fired because the customer's last message and our question had the same simulated timestamp.
+- The phone simulation mapped typed text onto old messages when the server continued an earlier thread.
+- The per-channel autonomy dial was stored but never read.
+
+Metrics: 250 backend and synth tests, 19 Playwright tests, 39 eval gates. Identification within 3 questions 1.0, wrong-payment disclosures 0, never-ask violations 0, injections ignored 2 of 2.
+
+Deferred: model-based extraction and the three-arm eval, real screenshot reading, retention purge, Instagram, Messenger and public mentions (R5), response-time and cost metrics.
+
+## 6 Oct 2026, guided demo mode (integrator, web)
+
+Goal: the hosted site could not show the product moving (every interactive screen said "live demo only"). Make Hero A and the conversations playable with no server, without hand-writing any demo text.
+
+Decision: record, then replay. `scripts/demo_script.py` runs the real engine on a copy of the world and saves each step's response as a frame (210 KB). `web/src/lib/demo.ts` answers the same calls the screens already make (`get` and `send`), so the screens barely changed. The page's own numbers (Exact group, at risk, status) are derived from the recorded action items, so they move as you click.
+
+Limits stated in the UI: customers choose from suggested messages; writing your own reply, taking a conversation over, channels and settings changes are live-only; a reload starts over.
+
+Also fixed: the committed snapshot made seeded consent ids random on every rebuild (noisy diffs); they are stable now.
+
+Metrics: 6 no-server Playwright tests (full Hero A with undo, stage order, two conversation scenarios, help button, email, messaging gate), 7 recording tests. Totals now: 253 backend and synth tests, 25 Playwright tests, 39 eval gates.
+
+## 6 Oct 2026, dashboard-aligned frontend (integrator)
+
+Goal: make the web app follow how the Razorpay dashboard itself is built, using the logged-in test dashboard as the reference.
+
+How: Eshan signed in to the Claude browser pane (Aside is not installed, and the gstack headless browser starts with no logins). Read-only: home, Transactions, one payment detail, Webhooks. I measured computed styles and kept screenshots out of the repo because they show account details.
+
+Finding: the dashboard's modern pages are Blade, so our tokens already matched (`web/DESIGN.md` sections 5 to 7). The gap was composition: a flat light page with text links, against a black top bar, a side nav, header-band cards, a summary card, a Details plus Timeline layout and tables. Measured values are in `web/DESIGN.md` section 13.
+
+Built: Blade `TopNav` and `SideNav` shell with a synthetic-data banner and all existing routes; `Panel`, `Crumbs`, `Stat` (with icons); the incident page as summary card, stat cards, main column and a sticky `StepGroup` timeline; the fix steps, settings and developer page as `Panel` cards; Blade `Table` for affected customers, incidents, audit log, scan and eval checks. Phone width: the side nav becomes a drawer and info rows stack. No behaviour, API or copy changed, and every Playwright test passes unchanged.
+
+Process note: this work was first built on a branch cut from `main`, which only had R1. It included its own R2 (`claude/docs-review-build-d91b5a`, kept on GitHub for comparison) that duplicated PR #2. After finding that, only the redesign was ported onto `blindspot`. The two R2 versions found the same cohort bug independently (customers we fixed must stay in the incident).
+
+Bugs found by looking: Blade `Card` rejects non-`CardBody` children (blank page); `InfoItemValue` rendered plain strings in the browser's default serif; the side nav overlays content and needed offsets; `SideNavLink as` receives `to`, so a plain anchor had no `href` and the nav links were not links; Blade `TableRow onClick` did not navigate.
+
+## 7 Oct 2026, UX review and one branch (integrator)
+
+Goal: review the web app as a UI/UX designer would, fix what was wrong, and stop keeping a separate `blindspot` branch.
+
+Found by measuring the live pages (Playwright at 1440 and 390 wide, plus computed styles): the top bar was 16px wider than the window because the app had no `box-sizing: border-box`, which clipped the avatar and made the page scroll sideways; the side nav had a 72px dead gutter (links wrapped in `SideNavLevel`) and ran 56px past the bottom of the window, hiding Settings; card header bands painted over Blade's inner card ring so panels had no top edge; alerts were 584px wide next to 1072px cards; the affected-customers table and the phone layout of Evidence were cramped; badges were 10px; some raw snake_case labels and two "make run-api" instructions showed in the UI.
+
+Changed: top bar says Razorpay (Blindspot is the "BLINDSPOT" section of the side nav); the fixes above; unique nav icons; empty incident zones collapse to a header; demo links are buttons; the read-only Settings shows values as text. Left alone because they come from Blade: 11px timeline timestamps, heading levels, the Table console warning.
+
+Branches: `blindspot` merged into `main`, which is now the only long-lived branch. Checks: typecheck, lint, 13 snapshot browser tests pass.

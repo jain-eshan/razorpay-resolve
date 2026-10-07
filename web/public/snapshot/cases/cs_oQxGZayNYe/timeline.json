@@ -1,0 +1,23 @@
+{
+  "customer": [
+    {
+      "at": "2026-10-02T07:34:59+05:30",
+      "text": "paisa kat gaya 199 ka, Mock Test Pack nahi mila. UPI ref pay_1CNqpEFAAB5Un9",
+      "source_ref": "cmp_oQxGZayNYe"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-09-30T19:38:12+05:30",
+      "text": "Payment of \u20b9199 captured",
+      "source_ref": "pay_1CNqpEFAAB5Un9"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-10-02T10:40:00+05:30",
+      "text": "Access record: unpaid",
+      "source_ref": "pay_1CNqpEFAAB5Un9"
+    }
+  ]
+}

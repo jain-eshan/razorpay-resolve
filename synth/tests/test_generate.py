@@ -35,3 +35,16 @@ def test_incident_is_computed_not_typed(tmp_path):
         "select count(*) from webhook_events where event_type='payment.captured' and subscription_id is null").fetchone()[0]
     # the first retry offsets match what was measured on real Razorpay test mode
     assert CFG["webhooks"]["retry_offsets_seconds"][:6] == [0, 9, 24, 45, 88, 169]
+
+
+def test_forty_scripted_threads_with_truth_that_the_scripts_do_not_contain(tmp_path):
+    import json
+
+    assert generate(tmp_path)["threads"] == 40
+    scripts = json.loads((tmp_path / "threads.json").read_text())
+    assert len(scripts) == 40 and len({s["who"] for s in scripts}) == 40
+    t = sqlite3.connect(tmp_path / "truth.db")
+    assert t.execute("select count(*) from truth_threads").fetchone()[0] == 40
+    outcomes = dict(t.execute("select expected_outcome, count(*) from truth_threads group by 1").fetchall())
+    assert outcomes == {"wait_for_fix": 26, "explain": 3, "human": 6, "pass_back": 2, "handoff": 3}
+    assert not any("expected" in s or "payment_id" in json.dumps(s["turns"]) for s in scripts if s["kind"] not in ("healthy_payment", "key_at_once"))

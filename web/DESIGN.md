@@ -331,3 +331,33 @@ They run copy through an internal tool (ToneBlade) that rates it and rewrites it
 - https://medium.com/razorpay-design/copy-reimagined-how-i-built-a-figma-plugin-to-write-contextual-ux-copy-e59918c0da41
 - https://razorpay.com/docs/errors/payments/ · https://razorpay.com/docs/payments/payment-gateway/features/ · https://razorpay.com/magic/
 - https://www.businesstoday.in/latest/corporate/story/idea-is-to-evolve-razorpay-beyond-a-payments-provider-into-a-financial-operating-system-for-businesses-says-harshil-mathur-520358-2026-03-12
+
+---
+
+## 13. How the live dashboard composes pages (observed 6 Oct 2026)
+
+Read from the logged-in test-mode dashboard (home, Transactions, a payment detail page). Values are computed styles, so they are [observed]. The modern pages are built on Blade, so the tokens in sections 5 to 7 hold. What this adds is composition. The Webhooks settings page still uses an older style (2px radius, a different blue) and is not a model.
+
+**Shell.** A 56px black top bar (Blade `TopNav`, default variant) with the logo, product tabs, a search field and an avatar. A left side nav (Blade `SideNav`, 240px, 264px from `xl`) under it: 40px items, 8px radius, 12px side padding, 2px vertical margin, icon plus label, active item a grey fill (`#434B51` at 9%). A 10px/500 uppercase section label above groups. Page content sits on `#F7F7F7`, cards on white. A single settings item and a mode switch live at the bottom of the nav.
+
+**Page anatomy (payment detail).** A blue "Go back" link or a breadcrumb. One summary card: a 56px tinted status tile, the headline, a pill tag. Under it, two columns: a Details card (label left, value right, thin dividers) and a Timeline card with a vertical list of dated steps, green when done and orange when pending, and one call to action at the bottom.
+
+**List anatomy (Transactions).** A row of small stat cards (title 14/600 with an info icon, big value, one muted line), then tabs, filter chips, and a table.
+
+**Measured values.**
+| Thing | Value |
+|---|---|
+| Body text | Inter 14/20, `#58666E` |
+| Card title in a header band | 18/600, `#050505`, band `#F7F7F7`, padding 16px 20px, radius 12px 12px 0 0 |
+| Card | white, radius 12px, padding 24px, 1px `#DEE1E3` ring plus `0 6px 32px 4px rgba(175,182,187,.06)` |
+| Table header | 14/600 `#58666E`, 37px high |
+| Table row | 48px high, cell padding 0 12px, second line 12px `#616D75`, row hover grey |
+| Filter chip | 28px, radius 8px, 1px dashed `rgba(67,75,81,.18)` |
+| Status tag | pill (radius 9999px), 24px high, 9% tint of the status colour, an icon, 12px text |
+| Primary button | `#1364F1`, radius 8px, 14px, layered inset shadows |
+| Link | `#0E54CD`, 14/500 |
+| Page title (home) | TASA Orbiter 32/38, 600 |
+
+**What we did with it.** `web/src/App.tsx` uses Blade `TopNav` and `SideNav`. `components/Panel.tsx` is the header-band card (the fix steps, evidence, replay, customers and settings all use it), `Stat.tsx` the small stat card, `Crumbs.tsx` the breadcrumb. The incident page follows the payment detail page: summary card, stat cards, a Details-style main column and a sticky Timeline (`StepGroup`) on the right. The incident list, scan, audit log and eval checks use Blade `Table`.
+
+Blade gotchas found while building it: `Card` accepts only `CardHeader`, `CardBody` and `CardFooter` as direct children; `InfoItemValue` does not style plain strings, so wrap values in `Text`; `SideNav` is `position: fixed` with `height: 100%`, so a `top` offset pushes its bottom (and the Settings link) off screen; pass `position="relative"` and put it beside the content in a flex row instead. Put the links straight inside `SideNavBody`: `SideNavLevel` adds a 56px left margin meant for the second-level menu. Blade also assumes `box-sizing: border-box` everywhere (`index.html` sets it), otherwise `TopNav` is wider than the window and clips the avatar; `SideNavLink as={Link}` receives React Router's `to`, not `href`; `TableRow onClick` is not a dependable way to navigate, so put a real link in the row.

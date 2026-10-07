@@ -1,6 +1,6 @@
 # Blindspot
 
-Product monorepo (working name) for the Razorpay x ISB AI PM Build Challenge, Track 2. Branch `blindspot` holds the product. `main` is the untouched RazorSense starter.
+Product monorepo (working name) for the Razorpay x ISB AI PM Build Challenge, Track 2. `main` is the only long-lived branch and holds the product. Work on a short-lived branch, merge by pull request once CI passes, and delete the branch.
 
 **Read first:** `docs/PRD.md`, then `docs/SPEC.md` and `docs/BUILD_PLAN.md`. `docs/V1_SPEC.md` applies where the v2 docs are silent.
 

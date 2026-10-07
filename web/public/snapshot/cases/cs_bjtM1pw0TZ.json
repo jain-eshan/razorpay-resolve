@@ -1,0 +1,74 @@
+{
+  "id": "cs_bjtM1pw0TZ",
+  "complaint_id": "cmp_bjtM1pw0TZ",
+  "channel": "email",
+  "match_status": "matched",
+  "mismatch_type": "A",
+  "owner": "merchant_code",
+  "incident_id": "INC-1",
+  "received_at": "2026-09-30T06:06:13+05:30",
+  "extraction": {
+    "topic": "access",
+    "is_payment_related": true,
+    "language": "en",
+    "claim": "debited_no_access",
+    "amount_paise": 29900,
+    "amount_count": null,
+    "stated_time_text": null,
+    "method": "upi",
+    "app_or_bank_name": null,
+    "ids": {
+      "payment_id": null,
+      "order_id": null,
+      "rrn": "[RRN_1]",
+      "email": null,
+      "phone": null,
+      "vpa": null,
+      "card4": null
+    },
+    "product_or_plan": "Premium Monthly",
+    "customer_wants": "access",
+    "sentiment": "calm",
+    "injection_suspected": false,
+    "window": null
+  },
+  "candidates": [
+    {
+      "payment_id": "pay_aSn9LvDblVRAjv",
+      "method": "exact_rrn",
+      "calibrated_score": 0.97,
+      "features": {}
+    }
+  ],
+  "lanes": {
+    "customer": [
+      {
+        "at": "2026-09-30T06:06:13+05:30",
+        "text": "Hi, I paid Rs 299 for Premium Monthly but my account still shows the free plan. Reference 397489300732",
+        "source_ref": "cmp_bjtM1pw0TZ"
+      }
+    ],
+    "razorpay": [
+      {
+        "at": "2026-09-29T18:53:55+05:30",
+        "text": "Payment of \u20b9299 captured",
+        "source_ref": "pay_aSn9LvDblVRAjv"
+      },
+      {
+        "at": "2026-09-29T18:53:55+05:30",
+        "text": "28 webhook attempts, first answered 401",
+        "source_ref": "pay_aSn9LvDblVRAjv"
+      }
+    ],
+    "merchant": [
+      {
+        "at": "2026-10-02T10:40:00+05:30",
+        "text": "Access record: unpaid",
+        "source_ref": "pay_aSn9LvDblVRAjv"
+      }
+    ]
+  },
+  "state_line": "Matched to pay_aSn9LvDblVRAjv by an exact identifier. Part of INC-1: YOUR SIDE \u00b7 Code.",
+  "reply_draft": null,
+  "injection_suspected": false
+}

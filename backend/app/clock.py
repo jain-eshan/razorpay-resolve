@@ -16,3 +16,8 @@ def advance(hours: int) -> datetime:
     global _offset_hours
     _offset_hours += hours
     return now()
+
+
+def reset() -> None:
+    global _offset_hours
+    _offset_hours = 0

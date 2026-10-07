@@ -4,7 +4,8 @@ import sqlite3
 from collections import Counter
 from datetime import datetime, timedelta
 
-from . import clock
+from . import audit, clock, merchant_mock
+from .act import executor, messages
 from .config import ENTITLEMENT_EXPORT_AT
 from .detect.webhook import HANDLER, Run, run_from_json
 from .investigate.rules_fallback import build_pack
@@ -12,11 +13,15 @@ from .match.keys import complaints_by_payment
 from .pipeline import pack_ref
 from .schemas import (
     AgentTrace,
+    AuditEntry,
+    CaseDetail,
+    CaseSummary,
     EvidencePack,
     IncidentDetail,
     IncidentSummary,
     LaneEvent,
     LiftRow,
+    MatchCandidate,
     Member,
     RayCard,
     ReplaySummary,
@@ -126,7 +131,7 @@ def detail(db: sqlite3.Connection, incident_id: str) -> IncidentDetail | None:
     verdict.affected_count = len(members)
     tiers = Counter(m.tier for m in members)
     return IncidentDetail(**_summary(row, run, members, verdict).model_dump(), verdict=verdict, timeline=_timeline(db, run, disabled), lift=_lift(db, run, members),
-                          tier_counts={t: tiers[t] for t in ("exact", "likely", "check", "excluded")}, replay=_replay(incident_id, members), actions=[])
+                          tier_counts={t: tiers[t] for t in ("exact", "likely", "check", "excluded")}, replay=_replay(incident_id, members), actions=executor.summaries(db, incident_id))
 
 
 def members(db: sqlite3.Connection, incident_id: str, tier: str | None = None) -> list[Member] | None:
@@ -212,3 +217,77 @@ def scan_day0(db: sqlite3.Connection, days: int = 30) -> ScanResult:
         paise += sum(m.amount_paise for m in live)
     head = f"I found {customers} customers in the last {days} days who paid and have no access." if customers else f"No mismatches found in the last {days} days."
     return ScanResult(days=days, headline=head, leaked_customers=customers, leaked_paise=paise, incidents=incs)
+
+
+def audit_entries(db: sqlite3.Connection, ref_id: str | None = None) -> list[AuditEntry]:
+    rows = db.execute("SELECT * FROM audit_log WHERE (? IS NULL OR ref_id = ?) ORDER BY id DESC LIMIT 500", (ref_id, ref_id)).fetchall()
+    return [AuditEntry(id=r["id"], at=datetime.fromisoformat(r["at"]), actor=r["actor"], kind=r["kind"], ref_id=r["ref_id"], model_id=r["model_id"], latency_ms=r["latency_ms"],
+                       cost_usd=r["cost_usd"], summary=json.loads(r["payload_json"])["summary"]) for r in rows]
+
+
+def log_clock(db: sqlite3.Connection, hours: int, now: datetime) -> None:
+    audit.log(db, "system", "action", None, f"Demo clock moved forward {hours} hours to {_fmt(now)}.")
+    db.commit()
+
+
+# ---------- cases (S-04): what the customer says, what Razorpay says, what the merchant says ----------
+def _case_row(db: sqlite3.Connection, case_id: str) -> sqlite3.Row | None:
+    return db.execute("SELECT cs.*, cm.channel, cm.received_at, cm.redacted_text, cm.raw_text, cm.id AS cid FROM cases cs JOIN complaints cm ON cm.id = cs.complaint_id WHERE cs.id = ?", (case_id,)).fetchone()
+
+
+def _case_summary(r: sqlite3.Row) -> CaseSummary:
+    return CaseSummary(id=r["id"], complaint_id=r["complaint_id"], channel=r["channel"], match_status=r["match_status"], mismatch_type=r["mismatch_type"], owner=r["owner"],
+                       incident_id=r["incident_id"], received_at=datetime.fromisoformat(r["received_at"]))
+
+
+def cases(db: sqlite3.Connection, status: str | None = None) -> list[CaseSummary]:
+    q = "SELECT cs.*, cm.channel, cm.received_at FROM cases cs JOIN complaints cm ON cm.id = cs.complaint_id WHERE (? IS NULL OR cs.match_status = ?) ORDER BY cm.received_at DESC"
+    return [_case_summary(r) for r in db.execute(q, (status, status)).fetchall()]
+
+
+def case_lanes(db: sqlite3.Connection, case_id: str) -> ThreeLane | None:
+    r = _case_row(db, case_id)
+    if not r:
+        return None
+    thread = db.execute("SELECT id FROM threads WHERE case_id = ?", (case_id,)).fetchone()
+    if thread:
+        said = [LaneEvent(at=datetime.fromisoformat(m["created_at"]), text=m["body_redacted"], source_ref=m["id"])
+                for m in db.execute("SELECT * FROM thread_messages WHERE thread_id = ? AND direction = 'inbound' ORDER BY created_at, rowid", (thread["id"],))]
+    else:
+        said = [LaneEvent(at=datetime.fromisoformat(r["received_at"]), text=r["raw_text"], source_ref=r["cid"])]
+    rz, mer = [], []
+    for pid in json.loads(r["matched_payment_ids"] or "[]")[:1]:
+        p = db.execute("SELECT * FROM payments WHERE id = ?", (pid,)).fetchone()
+        rz.append(LaneEvent(at=datetime.fromisoformat(p["captured_at"]), text=f"Payment of {rupees_text(p['amount_paise'])} captured", source_ref=pid))
+        att = db.execute("SELECT d.attempted_at, d.http_status FROM webhook_deliveries d JOIN webhook_events e ON e.id = d.event_id WHERE e.payment_id = ? ORDER BY d.attempted_at", (pid,)).fetchall()
+        if att:
+            rz.append(LaneEvent(at=datetime.fromisoformat(att[0]["attempted_at"]), text=f"{len(att)} webhook attempts, first answered {att[0]['http_status']}", source_ref=pid))
+        ent = merchant_mock.check(db, pid)
+        mer.append(LaneEvent(at=clock.now(), text=f"Access record: {ent['entitlement_state']}", source_ref=pid))
+    return ThreeLane(customer=said, razorpay=rz, merchant=mer)
+
+
+def rupees_text(paise: int) -> str:
+    return f"₹{messages.inr(paise)}"
+
+
+def case_detail(db: sqlite3.Connection, case_id: str) -> CaseDetail | None:
+    r = _case_row(db, case_id)
+    if not r:
+        return None
+    ex = db.execute("SELECT json, injection_suspected FROM extractions WHERE complaint_id = ?", (r["cid"],)).fetchone()
+    cands = [MatchCandidate(payment_id=c["payment_id"], method=c["method"], calibrated_score=c["calibrated_score"], features={k: v for k, v in json.loads(c["features"] or "{}").items()})
+             for c in db.execute("SELECT * FROM match_candidates WHERE complaint_id = ? ORDER BY rank", (r["cid"],))]
+    thread = db.execute("SELECT * FROM threads WHERE case_id = ?", (case_id,)).fetchone()
+    draft = db.execute("SELECT body_redacted FROM thread_messages WHERE thread_id = ? AND direction = 'outbound' AND json_extract(policy_json, '$.status') = 'draft' ORDER BY created_at DESC, rowid DESC LIMIT 1", (thread["id"],)).fetchone() if thread else None
+    pids = json.loads(r["matched_payment_ids"] or "[]")
+    if r["match_status"] == "matched" and r["incident_id"]:
+        line = f"Matched to {pids[0]} by an exact identifier. Part of {r['incident_id']}: {OWNER_CHIP.get(r['owner'] or 'unknown', '')}."
+    elif r["match_status"] == "matched":
+        line = f"Matched to {pids[0]} by an exact identifier. No incident covers it."
+    elif r["match_status"] == "not_payment":
+        line = "Not about a payment. Nothing is kept."
+    else:
+        line = "No payment found yet. Closest guesses are for the founder only."
+    return CaseDetail(**_case_summary(r).model_dump(), extraction=json.loads(ex["json"]) if ex else {}, candidates=cands, lanes=case_lanes(db, case_id), state_line=line,
+                      reply_draft=draft["body_redacted"] if draft else None, injection_suspected=bool(ex["injection_suspected"]) if ex else False)

@@ -38,3 +38,19 @@ test('S-10 how we know shows every gate passing', async ({ page }) => {
   await expect(page.getByText('fail', { exact: true })).toHaveCount(0)
   await expect(page.getByText('pass', { exact: true }).first()).toBeVisible()
 })
+
+test('S-12 channels shows consent and who the agent speaks as, read-only in the snapshot', async ({ page }) => {
+  await page.goto('/channels')
+  await expect(page.getByText('WhatsApp payments number')).toBeVisible()
+  await expect(page.getByText('Speaks as: Kaksha payment help, powered by Razorpay').first()).toBeVisible()
+  await expect(page.getByText('Read-only snapshot')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Disconnect' })).toHaveCount(0)
+})
+
+test('S-04 a case opens from the snapshot without a server', async ({ page, request }) => {
+  const cases = await (await request.get('/snapshot/cases.json')).json()
+  expect(cases.length).toBeGreaterThan(10)
+  await page.goto(`/cases/${cases[0].id}`)
+  await expect(page.getByText(/Matched to pay_\w+ by an exact identifier/)).toBeVisible()
+  await expect(page.getByText('Customer says')).toBeVisible()
+})

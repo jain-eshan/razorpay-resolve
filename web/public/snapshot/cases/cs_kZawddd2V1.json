@@ -1,0 +1,69 @@
+{
+  "id": "cs_kZawddd2V1",
+  "complaint_id": "cmp_kZawddd2V1",
+  "channel": "whatsapp_payments",
+  "match_status": "matched",
+  "mismatch_type": "A",
+  "owner": "merchant_code",
+  "incident_id": "INC-1",
+  "received_at": "2026-10-01T02:23:48+05:30",
+  "extraction": {
+    "topic": "access",
+    "is_payment_related": true,
+    "language": "hi_latn",
+    "claim": "debited_no_access",
+    "amount_paise": 249900,
+    "amount_count": null,
+    "stated_time_text": null,
+    "method": "upi",
+    "app_or_bank_name": null,
+    "ids": {
+      "payment_id": null,
+      "order_id": null,
+      "rrn": "[RRN_1]",
+      "email": null,
+      "phone": null,
+      "vpa": null,
+      "card4": null
+    },
+    "product_or_plan": "Premium Annual",
+    "customer_wants": "access",
+    "sentiment": "calm",
+    "injection_suspected": false,
+    "window": null
+  },
+  "candidates": [
+    {
+      "payment_id": "pay_XgAVM3ToAF4MLE",
+      "method": "exact_rrn",
+      "calibrated_score": 0.97,
+      "features": {}
+    }
+  ],
+  "lanes": {
+    "customer": [
+      {
+        "at": "2026-10-01T02:23:48+05:30",
+        "text": "paisa kat gaya 2499 ka, Premium Annual nahi mila. UPI ref 796412981407",
+        "source_ref": "cmp_kZawddd2V1"
+      }
+    ],
+    "razorpay": [
+      {
+        "at": "2026-09-30T20:43:22+05:30",
+        "text": "Payment of \u20b92,499 captured",
+        "source_ref": "pay_XgAVM3ToAF4MLE"
+      }
+    ],
+    "merchant": [
+      {
+        "at": "2026-10-02T10:40:00+05:30",
+        "text": "Access record: unpaid",
+        "source_ref": "pay_XgAVM3ToAF4MLE"
+      }
+    ]
+  },
+  "state_line": "Matched to pay_XgAVM3ToAF4MLE by an exact identifier. Part of INC-1: YOUR SIDE \u00b7 Code.",
+  "reply_draft": null,
+  "injection_suspected": false
+}

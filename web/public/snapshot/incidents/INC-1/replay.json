@@ -1,0 +1,7 @@
+{
+  "incident_id": "INC-1",
+  "replayable_by_support": 38,
+  "not_replayable_disabled_window": 43,
+  "too_old": 0,
+  "note": "Razorpay support can replay one event at a time. Bulk replay does not exist, and events sent while the webhook was off cannot be replayed at all."
+}

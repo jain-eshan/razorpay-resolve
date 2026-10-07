@@ -1,0 +1,23 @@
+{
+  "customer": [
+    {
+      "at": "2026-10-01T21:32:33+05:30",
+      "text": "Money debited (Rs 599) but Test Series is not active. Ref 825444197714. Please check.",
+      "source_ref": "cmp_lD0qeBgQ5f"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-09-30T22:42:28+05:30",
+      "text": "Payment of \u20b9599 captured",
+      "source_ref": "pay_RJMDPcf9O7GoQJ"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-10-02T10:40:00+05:30",
+      "text": "Access record: unpaid",
+      "source_ref": "pay_RJMDPcf9O7GoQJ"
+    }
+  ]
+}

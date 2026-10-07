@@ -1,0 +1,677 @@
+{
+  "id": "INC-1",
+  "title": "Webhook returned 401 after web v2.8.0: auth middleware on /api/*",
+  "zone": "after",
+  "mismatch_type": "A",
+  "owner": "merchant_code",
+  "inferred": false,
+  "status": "open",
+  "opened_by": "signal",
+  "affected": 85,
+  "complained": 17,
+  "silent": 68,
+  "fixed": 2,
+  "at_risk_paise": 5631900,
+  "onset_at": "2026-09-29T14:20:00+05:30",
+  "would_have_alerted_at": "2026-09-29T15:15:24+05:30",
+  "verdict": {
+    "incident_id": "INC-1",
+    "mismatch_type": "A",
+    "zone": "after",
+    "inferred": false,
+    "cause_code": "WEBHOOK_ENDPOINT_401_AFTER_DEPLOY",
+    "cause_summary_slots": {
+      "status": 401,
+      "change": "web v2.8.0: auth middleware on /api/*",
+      "events": 81
+    },
+    "owner": "merchant_code",
+    "owner_rule_id": 1,
+    "owner_evidence_ids": [
+      "sig_1_webhook",
+      "me_deploy_280",
+      "disabled@2026-09-30T15:15:15+05:30",
+      "reconciler"
+    ],
+    "signature": {
+      "endpoint_id": "ep_kaksha001",
+      "response_class": "4xx",
+      "status": 401
+    },
+    "onset_at": "2026-09-29T14:20:00+05:30",
+    "resolved_at": "2026-10-01T11:34:37+05:30",
+    "linked_event_id": "me_deploy_280",
+    "affected_count": 85,
+    "confidence": "high",
+    "unexplained_case_ids": [],
+    "runner_up": null,
+    "evidence": [
+      {
+        "kind": "webhook_non2xx_rate",
+        "weight": 2,
+        "ref": "sig_1_webhook"
+      },
+      {
+        "kind": "merchant_event",
+        "weight": 1,
+        "ref": "me_deploy_280"
+      },
+      {
+        "kind": "webhook_disabled",
+        "weight": 1,
+        "ref": "disabled@2026-09-30T15:15:15+05:30"
+      },
+      {
+        "kind": "access_record_mismatch",
+        "weight": 1,
+        "ref": "reconciler"
+      }
+    ],
+    "what_we_cannot_see": [
+      "Why your server answered with an error (only you can see your logs)",
+      "Customers who paid by a route that does not use this webhook"
+    ]
+  },
+  "timeline": [
+    {
+      "bucket_start": "2026-09-29T01:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T02:00:00+05:30",
+      "ok": 1,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T03:00:00+05:30",
+      "ok": 1,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T04:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T05:00:00+05:30",
+      "ok": 1,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T06:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T07:00:00+05:30",
+      "ok": 3,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T08:00:00+05:30",
+      "ok": 2,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T09:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T10:00:00+05:30",
+      "ok": 1,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T11:00:00+05:30",
+      "ok": 1,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T12:00:00+05:30",
+      "ok": 1,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T13:00:00+05:30",
+      "ok": 2,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T14:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": [
+        "web v2.8.0: auth middleware on /api/*"
+      ]
+    },
+    {
+      "bucket_start": "2026-09-29T15:00:00+05:30",
+      "ok": 0,
+      "client_error": 1,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": [
+        "change point",
+        "alert would fire"
+      ]
+    },
+    {
+      "bucket_start": "2026-09-29T16:00:00+05:30",
+      "ok": 0,
+      "client_error": 1,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T17:00:00+05:30",
+      "ok": 0,
+      "client_error": 1,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T18:00:00+05:30",
+      "ok": 0,
+      "client_error": 6,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T19:00:00+05:30",
+      "ok": 0,
+      "client_error": 8,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T20:00:00+05:30",
+      "ok": 0,
+      "client_error": 3,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T21:00:00+05:30",
+      "ok": 0,
+      "client_error": 2,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T22:00:00+05:30",
+      "ok": 0,
+      "client_error": 3,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T23:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T00:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T01:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T02:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T03:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T04:00:00+05:30",
+      "ok": 0,
+      "client_error": 1,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T05:00:00+05:30",
+      "ok": 0,
+      "client_error": 2,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T06:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T07:00:00+05:30",
+      "ok": 0,
+      "client_error": 1,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T08:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T09:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T10:00:00+05:30",
+      "ok": 0,
+      "client_error": 1,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T11:00:00+05:30",
+      "ok": 0,
+      "client_error": 2,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T12:00:00+05:30",
+      "ok": 0,
+      "client_error": 2,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T13:00:00+05:30",
+      "ok": 0,
+      "client_error": 2,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T14:00:00+05:30",
+      "ok": 0,
+      "client_error": 2,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T15:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 1,
+      "markers": [
+        "Razorpay turns the webhook off"
+      ]
+    },
+    {
+      "bucket_start": "2026-09-30T16:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 2,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T17:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 11,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T18:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 2,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T19:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 4,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T20:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 3,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T21:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 4,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T22:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 7,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T23:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 1,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T00:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T01:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 1,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T02:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 2,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T03:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T04:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 1,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T05:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 1,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T06:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 1,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T07:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T08:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T09:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 1,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T10:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 1,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T11:00:00+05:30",
+      "ok": 2,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": [
+        "web v2.8.1: webhook route excluded from session auth, webhook re-enabled"
+      ]
+    },
+    {
+      "bucket_start": "2026-10-01T12:00:00+05:30",
+      "ok": 3,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T13:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T14:00:00+05:30",
+      "ok": 1,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T15:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T16:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    }
+  ],
+  "lift": [
+    {
+      "dimension": "delivery_outcome",
+      "value": "failed or never attempted",
+      "share_affected": 1.0,
+      "share_baseline": 0.0,
+      "lift": 1000.0
+    },
+    {
+      "dimension": "method",
+      "value": "upi",
+      "share_affected": 0.7647,
+      "share_baseline": 0.7202,
+      "lift": 1.1
+    },
+    {
+      "dimension": "method",
+      "value": "card",
+      "share_affected": 0.2118,
+      "share_baseline": 0.2387,
+      "lift": 0.9
+    },
+    {
+      "dimension": "method",
+      "value": "netbanking",
+      "share_affected": 0.0235,
+      "share_baseline": 0.0412,
+      "lift": 0.6
+    },
+    {
+      "dimension": "app_version",
+      "value": "web-2.8.0",
+      "share_affected": 0.6,
+      "share_baseline": 0.0,
+      "lift": 600.0
+    },
+    {
+      "dimension": "app_version",
+      "value": "android-3.4.0",
+      "share_affected": 0.2824,
+      "share_baseline": 0.321,
+      "lift": 0.9
+    },
+    {
+      "dimension": "app_version",
+      "value": "none",
+      "share_affected": 0.0706,
+      "share_baseline": 0.1152,
+      "lift": 0.6
+    },
+    {
+      "dimension": "kind",
+      "value": "one-time",
+      "share_affected": 0.9294,
+      "share_baseline": 0.8848,
+      "lift": 1.1
+    },
+    {
+      "dimension": "kind",
+      "value": "renewal",
+      "share_affected": 0.0706,
+      "share_baseline": 0.1152,
+      "lift": 0.6
+    }
+  ],
+  "tier_counts": {
+    "exact": 81,
+    "likely": 0,
+    "check": 0,
+    "excluded": 4
+  },
+  "replay": {
+    "incident_id": "INC-1",
+    "replayable_by_support": 38,
+    "not_replayable_disabled_window": 43,
+    "too_old": 0,
+    "note": "Razorpay support can replay one event at a time. Bulk replay does not exist, and events sent while the webhook was off cannot be replayed at all."
+  },
+  "actions": []
+}
