@@ -5,6 +5,7 @@ import {
   TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TablePagination, TableRow, Text,
 } from '@razorpay/blade/components'
 import { Crumbs } from '../components/Crumbs'
+import { FeedbackPanel } from '../components/FeedbackPanel'
 import { OrdersChart, type Hour } from '../components/OrdersChart'
 import { Panel } from '../components/Panel'
 import { Stat } from '../components/Stat'
@@ -171,6 +172,7 @@ export default function Zone1View({ id }: { id: string }) {
           )}
 
           <Zone1Fix inc={inc} onChanged={() => setVersion((n) => n + 1)} />
+          <FeedbackPanel incidentId={inc.id} />
         </Box>
 
         <Box position={{ base: 'static', l: 'sticky' }} top="spacing.5">

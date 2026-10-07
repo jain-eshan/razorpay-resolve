@@ -7,6 +7,7 @@ import sqlite3
 from datetime import datetime, timedelta
 
 from ..detect import complaint_spike, order_gap, probe
+from ..learning import params
 from . import verdict, volume
 from .baselines import Orders
 from .inference import Group, group_signals
@@ -45,9 +46,9 @@ def _members(db: sqlite3.Connection, g: Group, orders: Orders, complaints: list[
 
 
 def run(db: sqlite3.Connection, now: datetime, first_id: int = FIRST_ID) -> list[str]:
-    orders = Orders(db)
+    orders = Orders(db, ewma=True)
     complaints = complaint_spike.load(db)
-    signals = probe.find(db) + order_gap.find(db, orders, now) + volume.find(orders, now) + complaint_spike.find(db, now, complaints)
+    signals = probe.find(db) + order_gap.find(db, orders, now) + volume.find(orders, now, params.get(db, "order_dip_p_threshold")) + complaint_spike.find(db, now, complaints, params.get(db, "complaint_spike_p_threshold"))
     for i, s in enumerate(sorted(signals, key=lambda s: s.start), 1):
         s.id = f"sig_z{i:02d}_{s.monitor}"
         before, after = _levels(s)

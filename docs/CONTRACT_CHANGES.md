@@ -4,6 +4,17 @@ A change to anything under `contracts/`, to `backend/app/schemas.py`, `backend/a
 `backend/app/conversation/templates.py`, the capability flags in `backend/app/config.py` or `synth/config.yaml` needs a pull request that
 updates `contracts/` (run `make contracts`), bumps the version below and adds an entry here. Streams do not edit these files directly.
 
+## contracts-v0.7 (7 Oct 2026, during R5, learning loop)
+
+Additive only. Existing paths and models are unchanged; every Hero A and Hero B number is unchanged (the hour-of-week baseline needs 3 weeks of history and the world has 2).
+- New routes: `POST /api/learning/run` (the weekly review, run now; response `LearningWeekly`) and `GET /api/learning/replay` (the six-week replay table; new models `LearningReplay` and `ReplayRow`). The snapshot manifest gains `learning/replay.json`.
+- `POST /api/feedback`, `GET /api/learning/weekly` and `GET /api/learning/params` now do real work with `BS_SOURCE=pipeline` (they were placeholders). A feedback event is a `feedback_events` row and an audit entry. A setting change is a `learning_params` row and an audit entry. No SQL change: both tables were in v0.1.
+- Settings that can change (`learning_params.key`): `order_dip_p_threshold` and `complaint_spike_p_threshold` (a ladder of six values from 0.001 to 0.05, one rung at a time) and `message_variant` (`en` or `hi_latn`, only after 20 sends each and a 5 point lead). One change per setting per 7 days. Defaults are 0.01, 0.01 and `en`; version 0 is the default and has no row.
+- `FeedbackRequest.payload` may carry `monitors` (evidence kinds `order_volume_dip` or `complaint_spike`) and `variant`. For `false_alarm` on an incident the server fills `monitors` from the incident's evidence. `missed_incident` must name a monitor.
+- Monitors take their threshold as an argument (`volume.find(..., max_p)`, `complaint_spike.find(..., max_p)`). `Orders(db, ewma=True)` uses the hour-of-week EWMA baseline (alpha 0.3) once there are 3 earlier weeks, otherwise the old pooled one. The pipeline reads both from the database.
+- `synth/replay.py` is a separate six-week order stream (own random numbers). `synth/config.yaml` is untouched. Eval writes `eval/learning_replay.json` (git-ignored, like `eval/report.json`).
+- Not built from SPEC 11.2: the match calibrator refit (too few confirmed matches to refit) and the body-reader examples (need a model).
+
 ## contracts-v0.6 (7 Oct 2026, during R5, handovers)
 
 Additive only. No API path, request or response model changed: `contracts/openapi.json` is identical (the handover operation keeps its id and summary).

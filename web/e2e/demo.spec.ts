@@ -242,3 +242,27 @@ test('public post: a real post from the research is watched and never answered, 
   await expect(founder.getByText(/Nothing is posted in public/)).toBeVisible()
   await expect(founder.getByText('Needs you', { exact: true })).toBeVisible()
 })
+
+test('Learning: a false alarm makes the alerts stricter at the review, with the reason, the version and an audit line', async ({ page }) => {
+  await page.goto('/incidents/INC-4')
+  await page.getByRole('button', { name: 'This was a false alarm' }).click()
+  await expect(page.getByText(/Noted\. It is counted at the next review/)).toBeVisible()
+  await page.getByRole('link', { name: 'Learning screen' }).click()
+  await expect(page.getByText('No changes this week')).toBeVisible()
+  await expect(page.getByText('You told me 1 false alarm this week.')).toBeVisible()
+  await page.getByRole('button', { name: 'Review this week now' }).click()
+  await expect(page.getByText('2 changes this week')).toBeVisible()
+  await expect(page.getByText(/I made the order-dip alert stricter: .* about 1 in 200 times \(it was 1 in 100\), because 1 order-dip alert was marked false\./)).toBeVisible()
+  await expect(page.getByText('v1: 1 in 200').first()).toBeVisible()
+  await expect(page.getByText('Simulated', { exact: true })).toBeVisible()
+  await expect(page.getByText(/Over six weeks: .* false alerts with no learning/)).toBeVisible()
+  await page.getByRole('link', { name: 'Audit log' }).click()
+  await expect(page.getByText(/Changed order_dip_p_threshold from 0.01 to 0.005/)).toBeVisible()
+  await expect(page.getByText('Feedback: false alarm')).toBeVisible()
+})
+
+test('Learning: reporting a missed incident is a live-demo feature, and says so', async ({ page }) => {
+  await page.goto('/learning')
+  await page.getByRole('button', { name: 'Orders dropped and nothing alerted' }).click()
+  await expect(page.getByText(/works in the live demo/)).toBeVisible()
+})

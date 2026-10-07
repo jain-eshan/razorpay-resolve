@@ -53,7 +53,7 @@ def _routed(db: sqlite3.Connection, attempts: list[sqlite3.Row]) -> str:
     return "customer_or_unknown"
 
 
-def find(db: sqlite3.Connection, now: datetime, complaints: list[dict] | None = None) -> list[Signal]:
+def find(db: sqlite3.Connection, now: datetime, complaints: list[dict] | None = None, max_p: float = MAX_P) -> list[Signal]:
     cs = complaints if complaints is not None else load(db)
     if not cs:
         return []
@@ -63,7 +63,7 @@ def find(db: sqlite3.Connection, now: datetime, complaints: list[dict] | None = 
         win = [c for c in cs if t - WINDOW < c["t"] <= t] if t <= now else []
         past = sum(1 for c in cs if t - WINDOW - timedelta(days=7) <= c["t"] <= t - WINDOW)
         lam = max(past / (7 * 24), FLOOR_PER_HOUR)
-        if len(win) >= MIN_COUNT and poisson_sf(len(win), lam) < MAX_P:
+        if len(win) >= MIN_COUNT and poisson_sf(len(win), lam) < max_p:
             streak.append((t, win))
             continue
         if streak:

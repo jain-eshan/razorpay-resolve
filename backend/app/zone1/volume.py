@@ -13,7 +13,7 @@ WINDOW = timedelta(minutes=150)
 MIN_EXPECTED, MAX_RATIO, MAX_P = 4.0, 0.5, 0.01
 
 
-def check(orders: Orders, t: datetime) -> dict:
+def check(orders: Orders, t: datetime, max_p: float = MAX_P) -> dict:
     """What the dip monitor says about the 150 minutes before t: insufficient_volume, normal or dip."""
     lo = t - WINDOW
     exp = orders.expected(lo, t)
@@ -21,16 +21,16 @@ def check(orders: Orders, t: datetime) -> dict:
     if exp is None or exp < MIN_EXPECTED:
         return {"status": "insufficient_volume", "expected": exp, "observed": obs}
     p = poisson_cdf(obs, exp)
-    return {"status": "dip" if obs / exp <= MAX_RATIO and p < MAX_P else "normal", "expected": round(exp, 2), "observed": obs, "p": p}
+    return {"status": "dip" if obs / exp <= MAX_RATIO and p < max_p else "normal", "expected": round(exp, 2), "observed": obs, "p": p}
 
 
-def find(orders: Orders, now: datetime) -> list[Signal]:
+def find(orders: Orders, now: datetime, max_p: float = MAX_P) -> list[Signal]:
     if not orders.rows:
         return []
     out: list[Signal] = []
     streak: list[tuple[datetime, dict]] = []
     for t in list(grid(orders.rows[0]["t"], now)) + [now + timedelta(days=1)]:
-        c = check(orders, t) if t <= now else {"status": "end"}
+        c = check(orders, t, max_p) if t <= now else {"status": "end"}
         if c["status"] == "dip":
             streak.append((t, c))
             continue

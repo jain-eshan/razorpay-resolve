@@ -525,3 +525,19 @@ class LearningParam(BaseModel):
     value: Any
     reason: str
     updated_at: datetime
+
+
+class ReplayRow(BaseModel):
+    week: int
+    arm: Literal["off", "baseline", "loop"]
+    false_alerts: float  # averaged over the replays: alerts per week
+    true_alerts: float
+    missed: float
+    sends: int
+    reply_rate: float | None = None
+    edit_rate: float | None = None
+
+
+class LearningReplay(BaseModel):
+    note: str
+    rows: list[ReplayRow]

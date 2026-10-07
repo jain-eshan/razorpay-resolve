@@ -6,6 +6,7 @@ import {
   TableRow, Text,
 } from '@razorpay/blade/components'
 import { Crumbs } from '../components/Crumbs'
+import { FeedbackPanel } from '../components/FeedbackPanel'
 import { FixPanel } from '../components/FixPanel'
 import { Lane } from '../components/Lane'
 import { Panel } from '../components/Panel'
@@ -193,6 +194,7 @@ export default function Incident() {
             </Panel>
           )}
           <FixPanel inc={inc} members={members ?? []} onChanged={() => setVersion((n) => n + 1)} />
+          <FeedbackPanel incidentId={inc.id} />
 
         </Box>
 

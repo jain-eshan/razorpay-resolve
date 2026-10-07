@@ -2,7 +2,7 @@ import { forwardRef, useState, type ComponentProps, type ReactNode } from 'react
 import { Link, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 import {
-  ActivityIcon, AtSignIcon, Avatar, Badge, BellIcon, Box, ChevronDownIcon, ClipboardIcon, CreditCardIcon, FileIcon, FileTextIcon, FlaskIcon, HomeIcon, IconButton, LinkIcon, MenuIcon, RadioIcon, RayIcon, RazorpayIcon, RepeatIcon, SearchIcon, SearchInput, SettingsIcon, SideNav, SideNavBody, SideNavFooter, SideNavLink, SideNavSection, Switch, TabNav, TabNavItem, TabNavItems, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent, UsersIcon, WalletIcon,
+  ActivityIcon, AtSignIcon, Avatar, Badge, BellIcon, Box, ChevronDownIcon, ClipboardIcon, CreditCardIcon, FileIcon, FileTextIcon, FlaskIcon, HomeIcon, IconButton, LinkIcon, MenuIcon, RadioIcon, RayIcon, RazorpayIcon, RepeatIcon, SearchIcon, SearchInput, SettingsIcon, SideNav, SideNavBody, SideNavFooter, SideNavLink, SideNavSection, Switch, TabNav, TabNavItem, TabNavItems, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent, TrendingUpIcon, UsersIcon, WalletIcon,
   type IconComponent,
 } from '@razorpay/blade/components'
 
@@ -19,6 +19,7 @@ const BLINDSPOT: Item[] = [
 const PROOF: Item[] = [
   { title: 'Audit log', to: '/audit', icon: ClipboardIcon },
   { title: 'How we know', to: '/how', icon: FileTextIcon },
+  { title: 'Learning', to: '/learning', icon: TrendingUpIcon },
   { title: 'Settings', to: '/settings', icon: SettingsIcon },
 ]
 

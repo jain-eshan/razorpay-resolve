@@ -285,6 +285,72 @@
       "status": "pass"
     },
     {
+      "name": "learning_false_alerts_per_week_weeks_1_to_3_loop",
+      "value": 0.7333,
+      "target": "reported (average of 5 replays)",
+      "status": "report"
+    },
+    {
+      "name": "learning_false_alerts_per_week_weeks_4_to_6_loop",
+      "value": 0.3333,
+      "target": "< weeks 1 to 3 (false alerts fall)",
+      "status": "pass"
+    },
+    {
+      "name": "learning_false_alerts_per_replay_off",
+      "value": 6.2,
+      "target": "reported",
+      "status": "report"
+    },
+    {
+      "name": "learning_false_alerts_per_replay_baseline_only",
+      "value": 5.0,
+      "target": "reported (the weekly-rhythm baseline alone)",
+      "status": "report"
+    },
+    {
+      "name": "learning_false_alerts_per_replay_loop",
+      "value": 3.2,
+      "target": "< off (the loop has fewer false alerts than no loop)",
+      "status": "pass"
+    },
+    {
+      "name": "learning_clear_outages_found_every_arm",
+      "value": 1.0,
+      "target": "1.0 (both clear outages alerted in every replay, every arm)",
+      "status": "pass"
+    },
+    {
+      "name": "learning_missed_outages_per_replay_off",
+      "value": 0.0,
+      "target": "reported",
+      "status": "report"
+    },
+    {
+      "name": "learning_missed_outages_per_replay_loop",
+      "value": 0.2,
+      "target": "reported (the price of stricter alerts; a miss is reported, the next week loosens)",
+      "status": "report"
+    },
+    {
+      "name": "learning_changes_logged_in_bounds_one_per_week",
+      "value": 1.0,
+      "target": "1.0 (every change has a reason, a version, a value on the ladder and a week since the last)",
+      "status": "pass"
+    },
+    {
+      "name": "learning_message_language_goes_to_higher_reply_rate",
+      "value": 1.0,
+      "target": "1.0 (Hinglish, the language with the higher invented reply rate, in every replay)",
+      "status": "pass"
+    },
+    {
+      "name": "learning_edit_rate_weeks_5_to_6_minus_weeks_1_to_2",
+      "value": -0.1025,
+      "target": "< 0 (the founder edits fewer drafts; invented edit rates)",
+      "status": "pass"
+    },
+    {
       "name": "complaint_triage_accuracy",
       "value": 1.0,
       "target": ">= 0.95",
