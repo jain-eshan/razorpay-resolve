@@ -40,7 +40,7 @@ def _members(db: sqlite3.Connection, g: Group, orders: Orders, complaints: list[
     out = []
     for p in people.values():
         paid = db.execute("SELECT created_at FROM payments WHERE customer_id = ? AND status = 'captured' AND created_at >= ? ORDER BY created_at LIMIT 1", (p["customer_id"], p["at"].isoformat())).fetchone()
-        out.append({**p, "tier": "excluded" if paid else "exact", "reason": f"paid since, {datetime.fromisoformat(paid['created_at']):%a %H:%M}" if paid else None})
+        out.append({**p, "tier": "excluded" if paid else "exact", "reason": f"Paid since {datetime.fromisoformat(paid['created_at']):%a %H:%M}" if paid else None})
     return sorted(out, key=lambda p: (not p["complained"], p["at"]))
 
 

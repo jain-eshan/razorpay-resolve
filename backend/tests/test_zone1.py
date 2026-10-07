@@ -158,7 +158,7 @@ def test_inc4_names_the_customers_and_says_why_some_cannot_be_messaged_now(world
     ms = service.members(world, "INC-4")
     assert len(ms) == 12  # 12 customers wrote that they could not pay
     reasons = {m.exclusion_reason for m in ms if m.tier == "excluded"}
-    assert any(r.startswith("Instagram") for r in reasons) and any(r.startswith("paid since") for r in reasons)
+    assert any(r.startswith("Instagram") for r in reasons) and any(r.startswith("Paid since") for r in reasons)
     assert sum(1 for m in ms if m.tier == "exact") == 8
 
 

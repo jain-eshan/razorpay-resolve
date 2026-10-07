@@ -114,3 +114,83 @@ test('messaging stays off until the founder switches it on, in the demo as in th
   await btn(page, 'Preview the message').click()
   await expect(panel(page).getByText(/Messaging is switched off/)).toBeVisible()
 })
+
+// ---------- Hero B: customers who could not reach the pay page. Inferred, so the fix is the developer's and links wait for the founder ----------
+test('Hero B plays end to end with no server: infer, check the page, fix, links in stages, what happened, close', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByText(/Your pay page is not answering/)).toBeVisible()
+  await page.getByRole('button', { name: 'View evidence' }).click()
+  await expect(page).toHaveURL(/\/incidents\/INC-4$/)
+  await expect(page.getByText('Inferred. Your side · Code').first()).toBeVisible()
+  await expect(page.getByText('Razorpay did not see this')).toBeVisible()
+  await expect(page.getByText(/Inferred from 4 pieces of evidence, 5 points/)).toBeVisible()
+  await expect(page.getByText(/We cannot see: Anything between the customer's device/)).toBeVisible()
+  await expect(page.getByTestId('orders-chart')).toBeVisible()
+  await expect(page.getByText('Instagram replies arrive in a later release.').first()).toBeVisible()
+
+  await btn(page, 'Check the pay page now').click()
+  await expect(panel(page).getByText(/HTTP 404, no checkout script. The page is still failing/)).toBeVisible()
+  await btn(page, 'Plan the links').click()
+  await expect(panel(page).getByText(/^8 customers, 1 of them held back on purpose/)).toBeVisible()
+  await expect(panel(page).getByText(/Button: Pay the same amount/).first()).toBeVisible()
+  await expect(btn(page, 'Looks right, continue')).toBeDisabled()
+  await btn(page, 'Switch messaging on').click()
+  await expect(panel(page).getByText(/Links go out only after the fix is confirmed. Your pay page still answers 404/)).toBeVisible()
+
+  await btn(page, 'Your developer fixes the pay page').click()
+  await btn(page, 'Move the clock forward 2 hours').click()
+  await expect(panel(page).getByText('Healthy', { exact: true })).toBeVisible()
+  await btn(page, 'Looks right, continue').click()
+  await btn(page, 'Send the first 5').click()
+  await expect(panel(page).getByText('5 of 7', { exact: true })).toBeVisible()
+  await btn(page, 'Verify and close').click()
+  await expect(panel(page).getByText(/Paid since: 0 of 5 customers/)).toBeVisible() // half sent: stays open
+  await expect(page.getByText('Still open')).toBeVisible()
+  await btn(page, /^Send the rest/).click()
+  await expect(panel(page).getByText('Sent', { exact: true })).toBeVisible()
+
+  await btn(page, 'Move the clock forward 24 hours').click()
+  await expect(panel(page).getByText(/^1 of 7 customers with a link have paid, ₹2,499 recovered/)).toBeVisible()
+  await btn(page, 'Move the clock forward 24 hours').click()
+  await expect(panel(page).getByText(/^4 of 7 customers with a link have paid/)).toBeVisible()
+  await expect(panel(page).getByText(/Held back on purpose: 0 of 1 paid on their own. Too few customers to say what the link adds/)).toBeVisible()
+  await expect(panel(page).getByText(/simulated, with behaviour set in the synthetic world/)).toBeVisible()
+  await btn(page, 'Verify and close').click()
+  await expect(page.getByTestId('success-moment')).toBeVisible()
+  await expect(panel(page).getByText(/4 of 8 customers paid/).or(panel(page).getByText(/customers paid/)).first()).toBeVisible()
+
+  await page.getByRole('link', { name: 'Audit' }).click()
+  await expect(page.getByText(/Planned recovery_link for 8 customers/).first()).toBeVisible()
+  await expect(page.getByText(/Approved first 5: 5 of 8 done and confirmed/).first()).toBeVisible()
+})
+
+test('Hero B: links cannot be sent before the page has held for two hours, and a stage cannot be skipped', async ({ page }) => {
+  await page.goto('/incidents/INC-4')
+  await btn(page, 'Plan the links').click()
+  await btn(page, 'Switch messaging on').click()
+  await expect(btn(page, 'Looks right, continue')).toBeDisabled()
+  await btn(page, 'Your developer fixes the pay page').click()
+  await expect(panel(page).getByText(/0 of 2 hours/).first()).toBeVisible()
+  await btn(page, 'Move the clock forward 2 hours').click()
+  await expect(btn(page, 'Send the first 5')).toHaveCount(0) // the dry run has to be approved first
+  await expect(btn(page, 'Looks right, continue')).toBeEnabled()
+})
+
+test('the checkout incident (INC-5) reads from the orders, and a pay-page check cannot see it', async ({ page }) => {
+  await page.goto('/incidents')
+  await page.getByRole('link', { name: 'Checkout would not open after the Razorpay key changed' }).click()
+  await expect(page.getByText('Inferred. Your side · Setup').first()).toBeVisible()
+  await expect(page.getByText(/orders were created and nobody tried to pay for them/)).toBeVisible()
+  await expect(panel(page).getByText(/A page check cannot see a checkout that will not open/)).toBeVisible()
+  await expect(btn(page, 'Check the pay page now')).toHaveCount(0)
+})
+
+test('a customer who cannot open the page is told it is the merchant side, in the demo', async ({ page }) => {
+  await page.goto('/chat-demo')
+  const founder = page.getByTestId('thread-view')
+  await page.getByTestId('customer-chat').getByRole('button', { name: /ad link for Test Series says page not found/i }).click()
+  await expect(founder.getByText('Waiting for the fix')).toBeVisible()
+  await expect(founder.getByText('Held for you')).toBeVisible()
+  await founder.getByRole('button', { name: 'Approve and send' }).click()
+  await expect(page.getByTestId('customer-chat').getByText(/no money should have left your account/i)).toBeVisible()
+})

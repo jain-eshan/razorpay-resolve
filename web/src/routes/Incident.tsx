@@ -13,6 +13,7 @@ import { Stat } from '../components/Stat'
 import { TimelineChart } from '../components/TimelineChart'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { OWNER, sentence, when } from '../lib/format'
+import Zone1View from './Zone1View'
 
 const TIERS = ['exact', 'likely', 'check', 'excluded'] as const
 const TIER_LABEL = { exact: 'Exact', likely: 'Likely', check: 'Check manually', excluded: 'Excluded' }
@@ -67,6 +68,7 @@ export default function Incident() {
   const [tier, setTier] = useState<(typeof TIERS)[number]>('exact')
   if (error) return <Text color="feedback.text.negative.intense">Could not load {id}: {error}</Text>
   if (!inc) return <Text color="surface.text.gray.muted">Loading</Text>
+  if (inc.zone === 'before') return <Zone1View id={id} />
   const v = inc.verdict
   const rows = (members ?? []).filter((m) => m.tier === tier).map((m) => ({ ...m, id: m.payment_id }))
   const atAlert = inc.would_have_alerted_at && members ? members.filter((m) => m.captured_at <= inc.would_have_alerted_at!).length : null

@@ -157,7 +157,7 @@ def sample(db: sqlite3.Connection, row: sqlite3.Row) -> list[SampleTimeline]:
         else:
             mer = [LaneEvent(at=p.wrote_at, text="Pay page check passed: the page loads. Checkout is where it stopped.", source_ref=None)]
         if p.state == "paid_since":
-            rz.append(LaneEvent(at=clock.now(), text=f"Paid later: {p.reason}", source_ref=p.customer_id))
+            rz.append(LaneEvent(at=clock.now(), text=p.reason, source_ref=p.customer_id))
         out.append(SampleTimeline(payment_id=p.customer_id, lanes=ThreeLane(customer=cust, razorpay=rz, merchant=mer)))
     return out
 
@@ -244,7 +244,7 @@ def verify(db: sqlite3.Connection, incident_id: str, actor: str = "system") -> V
     closeable = h["healthy"] and not running
     line = h["line"]
     if total:
-        line += f" {verified} of {total} customers have paid since, ₹{messages.inr(out['recovered_paise'] + out['paid_anyway_paise'])} in all."
+        line += f" Paid since: {verified} of {total} customers, ₹{messages.inr(out['recovered_paise'] + out['paid_anyway_paise'])} in all."
         if out["held_back"]:
             line += f" Held back on purpose: {out['held_back_paid']} of {out['held_back']} paid on their own. Too few customers to say what the link adds." if out["held_back"] < 20 else \
                 f" Held back on purpose: {out['held_back_paid']} of {out['held_back']} paid on their own."

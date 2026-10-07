@@ -61,7 +61,7 @@
     "delivery_outcome": "Created an order and never got as far as paying",
     "merchant_state": "paid since",
     "tier": "excluded",
-    "exclusion_reason": "paid since, Mon 20:30",
+    "exclusion_reason": "Paid since Mon 20:30",
     "replay_eligibility": "n/a"
   },
   {
@@ -113,7 +113,7 @@
     "delivery_outcome": "Created an order and never got as far as paying",
     "merchant_state": "paid since",
     "tier": "excluded",
-    "exclusion_reason": "paid since, Tue 13:24",
+    "exclusion_reason": "Paid since Tue 13:24",
     "replay_eligibility": "n/a"
   },
   {

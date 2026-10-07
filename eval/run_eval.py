@@ -214,11 +214,11 @@ add("fuzzy_operating_threshold", fz["t_auto"], "reported (>= 1 means fuzzy never
 
 
 # ---- R4: before the payment (Zone 1). Two incidents to find, five look-alikes that must not alert, and recovery links. ----
-from datetime import timedelta  # noqa: E402
+from datetime import timedelta
 
-from app.zone1 import recovery as z1_recovery  # noqa: E402
-from app.zone1 import volume as z1_volume  # noqa: E402
-from app.zone1.baselines import Orders  # noqa: E402
+from app.zone1 import recovery as z1_recovery
+from app.zone1 import volume as z1_volume
+from app.zone1.baselines import Orders
 
 OWNER_OF = {"ROUTE_NOT_FOUND_AFTER_DEPLOY": "merchant_code", "CHECKOUT_KEY_MISMATCH": "merchant_config"}
 zrows = [dict(r) for r in truth.execute("SELECT * FROM truth_zone1")]

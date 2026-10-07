@@ -4,6 +4,19 @@ A change to anything under `contracts/`, to `backend/app/schemas.py`, `backend/a
 `backend/app/conversation/templates.py`, the capability flags in `backend/app/config.py` or `synth/config.yaml` needs a pull request that
 updates `contracts/` (run `make contracts`), bumps the version below and adds an entry here. Streams do not edit these files directly.
 
+## contracts-v0.5 (7 Oct 2026, during R4, Hero B)
+
+Additive only. No API path, request or response model changed: `contracts/openapi.json` is identical.
+- `synth/config.yaml` gains a `zone1` section (two incidents, five look-alikes that must not alert, probe settings, simulated recovery behaviour) and two merchant events (`me_key_rotate`, `me_deploy_282`). Seed and ids are unchanged, and every Hero A number is unchanged (85 affected, 81 to fix, 17 complaints).
+- `contracts/truth_schema.sql` gains `truth_zone1_members` (who could not pay in each Zone 1 incident, and who got through another way). `truth_zone1` and `truth_complaints` are now filled for Zone 1.
+- `Extraction.claim` (in `ingest/extract.py`, not in the API) gains `page_error` and `checkout_not_opening`. They are read only when the message has no debit words, so Hero A messages read exactly as before.
+- `autonomy.ACTION_CLASS` gains `recovery_link`. Its row in the autonomy matrix already existed: the founder approves every stage at every level.
+- Attribution rows 8a, 8b and 8c are stored as the integers 81, 82 and 83, because `owner_rule_id` is an integer. A bank outage that explains a complaint cluster uses the existing row 7.
+- The routes that were placeholders in v0.1 now serve real output with `BS_SOURCE=pipeline`: `POST /api/probes/run`, `GET /api/clusters`, and `POST /api/incidents/{id}/actions` with `action_type: recovery_link`. `POST /api/clock/advance` also settles simulated recovery payments and ignores an extra `incident` field that the hosted demo sends.
+- `/merchant-mock` gains `GET /pay-page` (the probe target), `GET /page-health` and `POST /page-mode`. It is not part of `/api`.
+- Incident numbers: Zone 1 incidents start at INC-4. INC-2 and INC-3 stay reserved for the after-the-payment incidents of the spec that are not built.
+- Where Zone 1 reuses a column for something else (there is no payment): `incident_members.payment_id` and `action_items.payment_id` hold the customer's id, and `recovery_offers.id` is `ro:<incident>:<customer>`. Nothing else reads those columns as payment ids for a Zone 1 incident.
+
 ## contracts-v0.4 (6 Oct 2026, during R3)
 
 Additive only.
