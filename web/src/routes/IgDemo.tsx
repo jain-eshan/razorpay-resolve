@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Alert, Badge, Box, Heading, Text } from '@razorpay/blade/components'
+import { Alert, Badge, Box, Text } from '@razorpay/blade/components'
 import { CustomerChat } from '../components/CustomerChat'
 import { ThreadView } from '../components/ThreadView'
 import { isLive, type Schemas } from '../lib/api'
 import { demoNote } from '../lib/demo'
 import { useLiveThread } from '../lib/live'
+import { PageHeader } from '../components/PageHeader'
 
 // Who has the thread right now, read from the lines the system wrote into it.
 function control(t?: Schemas['ThreadDetail']): [string, 'positive' | 'neutral' | 'notice'] {
@@ -21,18 +22,13 @@ export default function IgDemo() {
   const [label, tone] = control(t)
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7">
-      <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="xlarge">Instagram: control passes and returns</Heading>
-        <Text color="surface.text.gray.muted">
-          The merchant's Meta inbox stays in charge of every Instagram conversation. When a message is about a payment it passes the thread to Blindspot, and it takes the thread back when the conversation is over or a person is needed. A message that is not about a payment never leaves the inbox, and Blindspot says nothing and keeps nothing.
-        </Text>
-      </Box>
+      <PageHeader title="Instagram: control passes and returns" description="The merchant's Meta inbox stays in charge of every Instagram conversation. When a message is about a payment it passes the thread to Blindspot, and it takes the thread back when the conversation is over or a person is needed. A message that is not about a payment never leaves the inbox, and Blindspot says nothing and keeps nothing." />
       <Alert isFullWidth color="information" isDismissible={false} title="Meta's window rules apply"
         description="Blindspot can reply for 24 hours after the customer's last message. After that only a person can reply, with Meta's Human Agent tag, for up to 7 days. Blindspot never uses that tag." />
       {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Pick a message below. The founder's view on the right is the same screen the live version uses.`} />}
-      <Box display="flex" gap="spacing.7" flexWrap="wrap" alignItems="flex-start">
+      <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(320px, 400px) minmax(0, 1fr)' }} gap="spacing.7" alignItems="start">
         <CustomerChat channel="ig_dm" who="igsid_demo_a" title="kaksha on Instagram" onThread={setTid} placeholder="Send the merchant a direct message." />
-        <Box flex="1" minWidth="320px" display="flex" flexDirection="column" gap="spacing.4">
+        <Box minWidth="0px" display="flex" flexDirection="column" gap="spacing.4">
           <Box display="flex" gap="spacing.3" alignItems="center" flexWrap="wrap">
             <Text weight="semibold">Control of this thread:</Text>
             <Badge color={tone} size="medium">{label}</Badge>

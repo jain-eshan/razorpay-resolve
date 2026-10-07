@@ -15,7 +15,7 @@ Product monorepo (working name) for the Razorpay x ISB AI PM Build Challenge, Tr
 One long-lived branch, `main`. Eshan runs one Claude chat per git worktree, so each chat works on its own short-lived branch: `git fetch`, cut it from `origin/main`, then `make setup` and `cd web && npm ci` in the new folder. Merge by PR once CI passes, delete the branch, remove the worktree. Details and traps: `docs/HANDOFF.md` section 3b.
 
 ## Web
-Work in `web/`. Read `web/CLAUDE.md` and `web/DESIGN.md` first. Use Blade components and tokens only, and read a component's docs through the Blade MCP server (`.mcp.json`) before using one this repo has not used.
+Work in `web/`. Read `web/CLAUDE.md` and `web/DESIGN.md` first, and follow `web/DESIGN.md` sections 14 to 19: the product is an addition to the live Razorpay dashboard, so reuse the shell, the page templates and the agent answer pattern, and run the checklist in section 19 before a PR. Use Blade components and tokens only, and read a component's docs through the Blade MCP server (`.mcp.json`) before using one this repo has not used.
 
 ## Commands
 `make setup`, `make synth`, `make snapshot`, `make run-web`, `make run-api`, `make test`, `make lint`, `make eval`, `make contracts`.

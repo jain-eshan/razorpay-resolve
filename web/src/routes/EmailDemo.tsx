@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Alert, Box, Button, Card, CardBody, Heading, Text, TextArea, TextInput } from '@razorpay/blade/components'
+import { Alert, Box, Button, Card, CardBody, Text, TextArea, TextInput } from '@razorpay/blade/components'
 import { isLive, send, type Schemas } from '../lib/api'
 import { demoNote } from '../lib/demo'
 import { useLiveThread } from '../lib/live'
 import { when } from '../lib/format'
+import { PageHeader } from '../components/PageHeader'
 
 // S-15: a customer writes to the merchant, a forwarding rule hands payment mail to the agent, and the reply goes back in the same thread.
 export default function EmailDemo() {
@@ -26,10 +27,7 @@ export default function EmailDemo() {
   const mails = (t?.messages ?? []).filter((m) => m.direction === 'inbound' || m.policy.status === 'sent')
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7">
-      <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="xlarge">Email</Heading>
-        <Text color="surface.text.gray.muted">The merchant sets one forwarding rule: mail with payment words goes to the agent. Replies go back in the same thread, from the merchant's own domain once it is set up.</Text>
-      </Box>
+      <PageHeader title="Email" description="The merchant sets one forwarding rule: mail with payment words goes to the agent. Replies go back in the same thread, from the merchant's own domain once it is set up." />
       {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Sending any text plays the recorded reply.`} />}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="Not delivered" description={error} />}
       <Card><CardBody>
@@ -38,7 +36,7 @@ export default function EmailDemo() {
           <Text size="small" color="surface.text.gray.muted">If the subject or body has "payment", "paid", "debited", "refund" or "UPI", forward to payments-help. The agent reads only what is forwarded.</Text>
         </Box>
       </CardBody></Card>
-      <Box display="flex" flexDirection="column" gap="spacing.4" maxWidth="640px">
+      <Box display="flex" flexDirection="column" gap="spacing.4">
         <TextInput label="From" value={from} onChange={({ value }) => setFrom(value ?? '')} />
         <TextInput label="Subject" value={subject} onChange={({ value }) => setSubject(value ?? '')} />
         <TextArea label="Message" value={body} onChange={({ value }) => setBody(value ?? '')} numberOfLines={4} />

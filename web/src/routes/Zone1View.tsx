@@ -83,7 +83,7 @@ export default function Zone1View({ id }: { id: string }) {
 
       <Alert isFullWidth color="information" isDismissible={false} title="Razorpay did not see this" description="This happened before any payment existed, so there is nothing in Razorpay to look at. Blindspot inferred it from your orders, your pay page and what customers wrote, and shows its evidence below." />
 
-      <Box display="grid" gridTemplateColumns={{ base: 'repeat(2, 1fr)', m: 'repeat(4, 1fr)' }} gap="spacing.5">
+      <Box display="grid" gridTemplateColumns={{ base: 'repeat(2, minmax(0, 1fr))', l: 'repeat(4, minmax(0, 1fr))' }} gap="spacing.5">
         <Stat label="Orders lost" value={`about ${s.lost_orders}`} hint={`${rupees(Number(s.lost_paise))} · an estimate`} icon={AlertTriangleIcon} tone="notice" />
         <Stat label="Wrote to you" value={String(inc.complained)} hint="could not pay" icon={MessageCircleIcon} />
         <Stat label="Can be messaged now" value={String(ready)} hint={`${rupees(inc.at_risk_paise)} waiting`} icon={BellOffIcon} />
@@ -120,7 +120,7 @@ export default function Zone1View({ id }: { id: string }) {
             {rows.length === 0 ? (
               <Box padding="spacing.6"><Text color="surface.text.gray.muted">Nobody has been identified yet.</Text></Box>
             ) : (
-              <Table data={{ nodes: rows }} pagination={<TablePagination defaultPageSize={10} showPageSizePicker={false} />} gridTemplateColumns="1.3fr 2.6fr 1fr 1.7fr" isHeaderSticky={false}>
+              <Table data={{ nodes: rows }} pagination={<TablePagination defaultPageSize={10} showPageSizePicker={false} />} gridTemplateColumns="minmax(130px, 1.3fr) minmax(260px, 2.6fr) minmax(100px, 1fr) minmax(170px, 1.7fr)" isHeaderSticky={false}>
                 {(items) => (
                   <>
                     <TableHeader>

@@ -16,84 +16,86 @@ export default function Ray() {
   const atAlert = inc?.would_have_alerted_at && members ? members.filter((m) => m.captured_at <= inc.would_have_alerted_at!).length : null
 
   return (
-    <Box display="flex" flexDirection="column" alignItems="center" gap="spacing.5">
-      <Box display="flex" flexDirection="column" gap="spacing.2" maxWidth="560px" textAlign="center">
-        <Heading size="xlarge">RAY on WhatsApp</Heading>
+    <Box display="flex" flexDirection="column" gap="spacing.5">
+      <Box display="flex" flexDirection="column" gap="spacing.2">
+        <Heading size="large">RAY on WhatsApp</Heading>
         <Text color="surface.text.gray.muted">Simulated. Blindspot gives RAY something to say before the founder hears it from a customer.</Text>
       </Box>
       {error && <Text color="feedback.text.negative.intense">Could not load: {error}</Text>}
       {inc && card && (
-        <Box width="100%" maxWidth="380px" backgroundColor="surface.background.gray.subtle" borderRadius="xlarge" borderWidth="thin" borderColor="surface.border.gray.normal" padding="spacing.5" display="flex" flexDirection="column" gap="spacing.5">
+        <Box width="100%" backgroundColor="surface.background.gray.subtle" borderRadius="xlarge" borderWidth="thin" borderColor="surface.border.gray.normal" padding="spacing.5" display="flex" flexDirection="column" gap="spacing.5">
           <Box display="flex" alignItems="center" gap="spacing.3">
             <RayIcon size="large" color="surface.icon.onSea.onSubtle" />
             <Text weight="semibold">RAY</Text>
             <Text size="small" color="surface.text.gray.muted">simulated</Text>
           </Box>
 
-          <Box display="flex" flexDirection="column" gap="spacing.3">
-            <Text size="small" color="surface.text.gray.muted">{when(inc.would_have_alerted_at!)}</Text>
-            <Card>
-              <CardBody>
-                <Box display="flex" flexDirection="column" gap="spacing.3">
-                  <Text size="small" weight="semibold" color="feedback.text.notice.intense">Heads up · {card.owner_chip}</Text>
-                  <Text>Your webhook is failing. Your server is answering Razorpay with an error, so paid customers are not getting access.</Text>
-                  <Text>{atAlert} customer affected so far. I'll keep watching.</Text>
-                </Box>
-              </CardBody>
-            </Card>
-          </Box>
-
-          <Box display="flex" flexDirection="column" gap="spacing.3">
-            <Text size="small" color="surface.text.gray.muted">Friday, after a complaint</Text>
-            <Card>
-              <CardBody>
-                <Box display="flex" flexDirection="column" gap="spacing.3">
-                  <Text size="small" weight="semibold" color="feedback.text.notice.intense">{card.owner_chip}</Text>
-                  <Text>{card.cause_line}</Text>
-                  <Text>
-                    {card.affected} customers paid and have no access. {card.complained} complained, {card.silent} did not. {rupees(card.at_risk_paise)} at risk.
-                  </Text>
-                  <Box display="flex" gap="spacing.3">
-                    <Button size="small" onClick={() => nav(`/incidents/${card.incident_id}`)}>{card.buttons[0]}</Button>
-                    <Button size="small" variant="secondary" onClick={() => nav(`/incidents/${card.incident_id}/dev`)}>{card.buttons[1]}</Button>
+          <Box display="grid" gridTemplateColumns={{ base: '1fr', m: 'repeat(2, minmax(0, 1fr))' }} gap="spacing.5" alignItems="start">
+            <Box display="flex" flexDirection="column" gap="spacing.3">
+              <Text size="small" color="surface.text.gray.muted">{when(inc.would_have_alerted_at!)}</Text>
+              <Card>
+                <CardBody>
+                  <Box display="flex" flexDirection="column" gap="spacing.3">
+                    <Text size="small" weight="semibold" color="feedback.text.notice.intense">Heads up · {card.owner_chip}</Text>
+                    <Text>Your webhook is failing. Your server is answering Razorpay with an error, so paid customers are not getting access.</Text>
+                    <Text>{atAlert} customer affected so far. I'll keep watching.</Text>
                   </Box>
-                </Box>
-              </CardBody>
-            </Card>
-          </Box>
+                </CardBody>
+              </Card>
+            </Box>
 
-          {incB && cardB && (
-            <>
-              <Box display="flex" flexDirection="column" gap="spacing.3">
-                <Text size="small" color="surface.text.gray.muted">{when(incB.would_have_alerted_at ?? incB.onset_at)}, minutes after a deploy</Text>
-                <Card>
-                  <CardBody>
-                    <Box display="flex" flexDirection="column" gap="spacing.3">
-                      <Text size="small" weight="semibold" color="feedback.text.notice.intense">Heads up · {cardB.owner_chip}</Text>
-                      <Text>Your pay page is not answering. A change went live a few minutes before. Razorpay cannot see this, so I am telling you.</Text>
-                      <Text>I'll keep watching.</Text>
+            <Box display="flex" flexDirection="column" gap="spacing.3">
+              <Text size="small" color="surface.text.gray.muted">Friday, after a complaint</Text>
+              <Card>
+                <CardBody>
+                  <Box display="flex" flexDirection="column" gap="spacing.3">
+                    <Text size="small" weight="semibold" color="feedback.text.notice.intense">{card.owner_chip}</Text>
+                    <Text>{card.cause_line}</Text>
+                    <Text>
+                      {card.affected} customers paid and have no access. {card.complained} complained, {card.silent} did not. {rupees(card.at_risk_paise)} at risk.
+                    </Text>
+                    <Box display="flex" gap="spacing.3">
+                      <Button size="small" onClick={() => nav(`/incidents/${card.incident_id}`)}>{card.buttons[0]}</Button>
+                      <Button size="small" variant="secondary" onClick={() => nav(`/incidents/${card.incident_id}/dev`)}>{card.buttons[1]}</Button>
                     </Box>
-                  </CardBody>
-                </Card>
-              </Box>
-              <Box display="flex" flexDirection="column" gap="spacing.3">
-                <Text size="small" color="surface.text.gray.muted">The next morning</Text>
-                <Card>
-                  <CardBody>
-                    <Box display="flex" flexDirection="column" gap="spacing.3">
-                      <Text size="small" weight="semibold" color="feedback.text.notice.intense">{cardB.owner_chip}</Text>
-                      <Text>{cardB.cause_line}</Text>
-                      <Text>{cardB.affected} orders lost, about. {cardB.at_risk_paise ? `${rupees(cardB.at_risk_paise)} from customers who can still be reached.` : ''}</Text>
-                      <Box display="flex" gap="spacing.3">
-                        <Button size="small" onClick={() => nav(`/incidents/${cardB.incident_id}`)}>{cardB.buttons[0]}</Button>
-                        <Button size="small" variant="secondary" onClick={() => nav(`/incidents/${cardB.incident_id}/dev`)}>{cardB.buttons[1]}</Button>
+                  </Box>
+                </CardBody>
+              </Card>
+            </Box>
+
+            {incB && cardB && (
+              <>
+                <Box display="flex" flexDirection="column" gap="spacing.3">
+                  <Text size="small" color="surface.text.gray.muted">{when(incB.would_have_alerted_at ?? incB.onset_at)}, minutes after a deploy</Text>
+                  <Card>
+                    <CardBody>
+                      <Box display="flex" flexDirection="column" gap="spacing.3">
+                        <Text size="small" weight="semibold" color="feedback.text.notice.intense">Heads up · {cardB.owner_chip}</Text>
+                        <Text>Your pay page is not answering. A change went live a few minutes before. Razorpay cannot see this, so I am telling you.</Text>
+                        <Text>I'll keep watching.</Text>
                       </Box>
-                    </Box>
-                  </CardBody>
-                </Card>
-              </Box>
-            </>
-          )}
+                    </CardBody>
+                  </Card>
+                </Box>
+                <Box display="flex" flexDirection="column" gap="spacing.3">
+                  <Text size="small" color="surface.text.gray.muted">The next morning</Text>
+                  <Card>
+                    <CardBody>
+                      <Box display="flex" flexDirection="column" gap="spacing.3">
+                        <Text size="small" weight="semibold" color="feedback.text.notice.intense">{cardB.owner_chip}</Text>
+                        <Text>{cardB.cause_line}</Text>
+                        <Text>{cardB.affected} orders lost, about. {cardB.at_risk_paise ? `${rupees(cardB.at_risk_paise)} from customers who can still be reached.` : ''}</Text>
+                        <Box display="flex" gap="spacing.3">
+                          <Button size="small" onClick={() => nav(`/incidents/${cardB.incident_id}`)}>{cardB.buttons[0]}</Button>
+                          <Button size="small" variant="secondary" onClick={() => nav(`/incidents/${cardB.incident_id}/dev`)}>{cardB.buttons[1]}</Button>
+                        </Box>
+                      </Box>
+                    </CardBody>
+                  </Card>
+                </Box>
+              </>
+            )}
+          </Box>
         </Box>
       )}
       {!inc && !error && <Text color="surface.text.gray.muted">Nothing to report. No mismatches found.</Text>}

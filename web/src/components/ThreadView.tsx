@@ -58,7 +58,7 @@ export function ThreadView({ thread, onChanged }: { thread: Thread; onChanged: (
           return (
             <Box key={m.id} display="flex" gap="spacing.3" flexDirection={customer ? 'row-reverse' : 'row'} alignItems="flex-start">
               {!customer && m.sender_role === 'agent' && <RayIcon size="large" color="surface.icon.onSea.onSubtle" />}
-              <Box maxWidth="560px" backgroundColor={customer ? 'surface.background.gray.intense' : 'surface.background.gray.subtle'} borderRadius="large" padding="spacing.5" display="flex" flexDirection="column" gap="spacing.2">
+              <Box maxWidth="85%" backgroundColor={customer ? 'surface.background.gray.intense' : 'surface.background.gray.subtle'} borderRadius="large" padding="spacing.5" display="flex" flexDirection="column" gap="spacing.2">
                 <Text>{m.body}</Text>
                 <Text size="small" color="surface.text.gray.muted">
                   {customer ? 'Customer' : m.sender_role === 'founder' ? 'You' : 'Agent'} · {when(m.created_at)}

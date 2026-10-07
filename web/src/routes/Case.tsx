@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { Alert, Badge, Box, Card, CardBody, Heading, Text } from '@razorpay/blade/components'
 import { Lane } from '../components/Lane'
 import { useGet, type Schemas } from '../lib/api'
+import { PageHeader } from '../components/PageHeader'
 
 // S-04: the customer says, Razorpay says, your records say. Closest guesses are for the founder only and are never shown to the customer.
 export default function Case() {
@@ -15,14 +16,12 @@ export default function Case() {
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7">
       <Link to="/threads" style={{ textDecoration: 'none' }}><Text size="small" color="interactive.text.primary.normal">All conversations</Text></Link>
-      <Box display="flex" flexDirection="column" gap="spacing.3">
-        <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
-          <Heading size="xlarge">Case</Heading>
+      <PageHeader title="Case" description={c.state_line} actions={
+        <Box display="flex" gap="spacing.3" alignItems="center" flexWrap="wrap">
           <Badge color={c.match_status === 'matched' ? 'positive' : 'notice'}>{c.match_status.replaceAll('_', ' ')}</Badge>
           {c.incident_id && <Link to={`/incidents/${c.incident_id}`}><Badge color="neutral">{c.incident_id}</Badge></Link>}
         </Box>
-        <Text>{c.state_line}</Text>
-      </Box>
+      } />
       {c.injection_suspected && <Alert isFullWidth color="negative" isDismissible={false} title="This message tried to give the system instructions" description="It was treated as data and not followed. A person has the thread." />}
 
       <Card><CardBody>

@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Badge, Box, Heading, SegmentedControl, SegmentedControlItem, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
+import { Badge, Box, SegmentedControl, SegmentedControlItem, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
 import { Panel } from '../components/Panel'
 import { useGet, type Schemas } from '../lib/api'
 import { sentence, when } from '../lib/format'
+import { PageHeader } from '../components/PageHeader'
 
 const KINDS = ['all', 'approval', 'action', 'verify', 'policy', 'tool_call'] as const
 const COLOR = { approval: 'primary', action: 'neutral', verify: 'positive', policy: 'notice', llm_call: 'information', tool_call: 'information' } as const
@@ -14,10 +15,7 @@ export default function Audit() {
   const rows = (data ?? []).filter((e) => kind === 'all' || e.kind === kind)
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="xlarge">Audit log</Heading>
-        <Text color="surface.text.gray.muted">Every approval, change and check, with who did it. Nothing here can be edited.</Text>
-      </Box>
+      <PageHeader title="Audit log" description="Every approval, change and check, with who did it. Nothing here can be edited." />
       {error && <Text color="feedback.text.negative.intense">Could not load: {error}</Text>}
       <Panel title="Log" pad={false} trailing={<Text size="small" color="surface.text.gray.muted">{rows.length} entries</Text>}>
         <Box padding="spacing.5">
@@ -28,7 +26,7 @@ export default function Audit() {
         {data && rows.length === 0 ? (
           <Box padding="spacing.6"><Text color="surface.text.gray.muted">Nothing yet. Entries appear when you plan, approve or verify a fix.</Text></Box>
         ) : (
-          <Table data={{ nodes: rows }} gridTemplateColumns="1.2fr 1fr 4fr 1.8fr" isHeaderSticky={false}>
+          <Table data={{ nodes: rows }} gridTemplateColumns="minmax(120px, 1.2fr) minmax(100px, 1fr) minmax(400px, 4fr) minmax(180px, 1.8fr)" isHeaderSticky={false}>
             {(items) => (
               <>
                 <TableHeader>

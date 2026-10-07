@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Alert, Badge, Box, Button, Card, CardBody, Heading, List, ListItem, SegmentedControl, SegmentedControlItem, Text } from '@razorpay/blade/components'
 import { isLive, send, useGet, type Schemas } from '../lib/api'
 import { CHANNEL, sentence } from '../lib/format'
+import { PageHeader } from '../components/PageHeader'
 
 type Channel = Schemas['Channel']
 
@@ -23,10 +24,7 @@ export default function Channels() {
   if (!chs) return <Text color="surface.text.gray.muted">Loading</Text>
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7" testID="channels">
-      <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="xlarge">Channels</Heading>
-        <Text color="surface.text.gray.muted">Where customers can reach the agent, what it may read, and who it speaks as. It always says it is an AI, and it can be switched off here at any moment.</Text>
-      </Box>
+      <PageHeader title="Channels" description="Where customers can reach the agent, what it may read, and who it speaks as. It always says it is an AI, and it can be switched off here at any moment." guide="channels" />
       {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Read-only snapshot" description="Connecting, disconnecting and changing autonomy are turned off in this demo." />}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="Not changed" description={error} />}
       {chs.map((c) => {

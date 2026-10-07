@@ -96,7 +96,7 @@ export default function Incident() {
         </CardBody>
       </Card>
 
-      <Box display="grid" gridTemplateColumns={{ base: 'repeat(2, 1fr)', m: 'repeat(3, 1fr)' }} gap="spacing.5">
+      <Box display="grid" gridTemplateColumns={{ base: 'repeat(2, minmax(0, 1fr))', m: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
         <Box gridColumn="1 / -1">
           <Stat label="Affected" value={String(inc.affected)} hint={`customers paid and have no access · ${rupees(inc.at_risk_paise)} at risk`} icon={AlertTriangleIcon} tone="notice" />
         </Box>
@@ -146,7 +146,7 @@ export default function Incident() {
             {rows.length === 0 ? (
               <Box padding="spacing.6"><Text color="surface.text.gray.muted">None in this group.</Text></Box>
             ) : (
-              <Table data={{ nodes: rows }} pagination={<TablePagination defaultPageSize={10} showPageSizePicker={false} />} gridTemplateColumns="1.2fr 1.1fr 2.5fr 1.2fr" isHeaderSticky={false}>
+              <Table data={{ nodes: rows }} pagination={<TablePagination defaultPageSize={10} showPageSizePicker={false} />} gridTemplateColumns="minmax(120px, 1.2fr) minmax(110px, 1.1fr) minmax(250px, 2.5fr) minmax(120px, 1.2fr)" isHeaderSticky={false}>
                 {(items) => (
                   <>
                     <TableHeader>

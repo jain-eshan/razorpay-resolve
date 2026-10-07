@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom'
-import { Badge, Box, Heading, Link, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
+import { Badge, Box, Link, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
 import { Panel } from '../components/Panel'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { OWNER, ZONE, sentence, when } from '../lib/format'
+import { PageHeader } from '../components/PageHeader'
 
 const OWNER_TONE = { merchant_code: 'notice', merchant_config: 'notice', razorpay: 'negative', bank: 'information', customer: 'neutral', unknown: 'neutral' } as const
 const STATUS_TONE = { open: 'notice', fixing: 'information', verifying: 'information', closed: 'positive' } as const
@@ -12,10 +13,7 @@ export default function Incidents() {
   const { data, error } = useGet<Schemas['IncidentSummary'][]>('/api/incidents')
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="xlarge">Incidents</Heading>
-        <Text color="surface.text.gray.muted">Grouped by where the payment broke.</Text>
-      </Box>
+      <PageHeader title="Incidents" description="Grouped by where the payment broke." guide="incidents" />
       {error && <Text color="feedback.text.negative.intense">Could not load incidents: {error}</Text>}
       {data?.length === 0 && <Text>No mismatches found. We check every 15 minutes.</Text>}
       {(['before', 'during', 'after'] as const).map((zone) => {
@@ -23,7 +21,7 @@ export default function Incidents() {
         return (
           <Panel key={zone} title={ZONE[zone]} pad={false} trailing={<Badge color="neutral" size="medium">{`${items.length} found`}</Badge>}>
             {items.length === 0 ? undefined : (
-              <Table data={{ nodes: items }} gridTemplateColumns="2.2fr 1.7fr 0.9fr 1fr 1fr 1.5fr" isHeaderSticky={false}>
+              <Table data={{ nodes: items }} gridTemplateColumns="minmax(220px, 2.2fr) minmax(170px, 1.7fr) minmax(90px, 0.9fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(150px, 1.5fr)" isHeaderSticky={false}>
                 {(rows) => (
                   <>
                     <TableHeader>
