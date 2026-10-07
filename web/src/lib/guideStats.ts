@@ -25,7 +25,7 @@ export function useGuideStats(id: string): Stat[] | undefined {
     const mins = minutes(hero?.onset_at, hero?.would_have_alerted_at)
     if (!hero) return undefined
     return [
-      { value: num(hero.affected), label: 'customers paid and got nothing' },
+      { value: num(hero.affected), label: 'customers paid and got nothing in the first incident' },
       { value: num(hero.silent), label: 'of them never wrote in' },
       ...(mins === undefined ? [] : [{ value: `${mins} min`, label: 'from the deploy to the first alert' }]),
     ]

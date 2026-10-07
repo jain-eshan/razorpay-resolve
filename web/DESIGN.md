@@ -377,7 +377,7 @@ Source of truth for the shell: `src/components/Shell.tsx`. Read it before touchi
 - Everything on the bar sits on its vertical centre line at every width. Blade's `TopNavBrand` (`paddingY`) and `TopNavActions` (sized around the 36px search field) do not do this on their own below `xl`; `Shell.tsx` compensates, and `e2e/shell.spec.ts` measures it at 375, 768 and 1440px.
 - Product tabs, in production's order: Payments, then **Blindspot** (our tab, active, with a green `BETA` badge in `titleSuffix`), then Banking+, Payroll, More. Production tabs are shown and inert.
 - Right: search field (xl screens and up), activity icon, announcements icon, avatar. All inert except the avatar.
-- Below the `m` breakpoint the tabs and search are hidden and a menu button opens the side nav drawer.
+- Below the `l` breakpoint the tab strip is hidden (five tabs need about 570px beside the logo and actions, and at 768px `overflow` used to cut Payroll in half and hide More), below `xl` the search is hidden, and below `m` a menu button opens the side nav drawer.
 
 **Side nav** (Blade `SideNav`, in this order)
 1. Home, Transactions, Settlements, Reports: production, inert.
@@ -412,7 +412,7 @@ Every screen is one of these. Pick one before you write any layout code.
 
 **Settings page**: one `Panel` per topic, label above value, the control on the right, one Save button at the end. Read-only snapshots say so in an `Alert`.
 
-**Home page** (Ray): Ray hero, setup card, Explore cards, then supporting content (section 16).
+**Home page** (Ray): Ray hero, the "Take the tour" welcome card, setup card, Explore cards, then supporting content (section 16).
 
 **Agent answer**: section 17.
 
@@ -432,7 +432,7 @@ Every screen is one of these. Pick one before you write any layout code.
 - Slide 1, what it is: on the left a picture on a soft blue-to-green wash (`GuideHero`), on the right a short green rule and "Razorpay", the product name, one paragraph that starts from the merchant's problem, two or three figures read from the data (`lib/guideStats.ts`), a line saying the data is simulated, and a primary "Read more".
 - Slide 2, why: "What makes X great?", three cards in the shape of the product cards on the dashboard home ("Ready-to-use products"): a white Blade `Card`, a light panel inset in it with a flat picture, a bold title, one line of darker body text. Two links at the top right; then a tertiary "Back" and a primary "See how to use it".
 - Slide 3, how: "How to use X", three cards in the same shape as slide 2, each with a neutral chip ("Step 1") between the picture and the title, then "Back" and a primary "Get started".
-- All three slides are the same height from 1024px up (548px), so the card does not change height as you slide. Back and Get started sit at the bottom of the slide, and the arrows have room inside the card. Columns appear from 1024px up; below that every slide stacks (at 768px the content column is only about 480px wide, and two or three columns there were too narrow to read). Content that is short and tall means the pictures are too small or the card is too big; fix that rather than leaving a gap.
+- From 1280px (Blade's xl) the guide is a carousel and all three slides are the same height (548px), so the card does not change height as you slide. Back and Get started sit at the bottom of the slide, and the arrows have room inside the card. Below 1280px the content column is too narrow for columns (about 480px at 768px and about 780px at 1024px with the side nav showing) and the three slides are very different heights, so the guide shows only the active slide, one column, as tall as its content, with dots under it and the same in-slide buttons. A carousel there left a blank band of 300 to 500px. Content that is short and tall means the pictures are too small or the card is too big; fix that rather than leaving a gap.
 - Below the card: "Skip and get started". Dots under the carousel.
 - The big picture on slide 1 is an isometric scene drawn in code (`components/IsoScenes.tsx`, kit in `components/iso.tsx`), one per guide, on a mint-to-blue wash (`useHeroWash`), as Smart Collect's hero is isometric on a tinted panel. The pictures on the cards are flat, in the style of the illustrations on the dashboard home: rounded shapes, blue outline, pale fill, mint for what is fine, a warm tone for the problem (`components/FlatArt.tsx`, shown in an inset panel by `GuideArt.tsx`). 19 pictures, chosen per card with an `art` id in `lib/guides.ts`, so one picture serves every card with that idea. If an illustrator draws a set later, replace the entries in `FlatArt.tsx`; the cards need nothing else. Blue is a person or thing that acts, orange the problem, grey quiet or unseen, green a passed check or the AI assistant. No text in the picture; the aria-label says it in words. Real screens in a device frame (as on Razorpay's agent pages) were dropped: they go stale and are not themed. Blade's `RazorSense` surface was dropped from the guide hero: in testing it painted opaque white over the wash until its animation started.
 - Finding it: the Ray home shows a "New" welcome card with one button, "Take the tour". It always shows, because this is a demo and a judge may take the tour again and again; a real launch would hide it once the overview has been finished. Every guide is also an Explore card on the home. Pages open their own guide from `<PageHeader guide="..." />` (Incidents, Conversations, Channels, Day-0 scan, Settings, Learning, How we know).
@@ -449,7 +449,7 @@ Every screen is one of these. Pick one before you write any layout code.
 
 **Ray home** (`routes/Home.tsx`). From Razorpay's Ray home.
 - Hero on a soft tinted panel: "Hello, {name}" in muted text, then the Ray glyph in AI green beside "What can I do for you today?", then the Blade `ChatInput`, then four topic buttons.
-- Under it: the setup card ("Set up Blindspot in 3 easy steps", a `0/3 COMPLETED` badge, a blue button), then "Explore Blindspot" cards, then the WhatsApp preview.
+- Under it: the welcome card (a mint-to-blue panel, a green "NEW" badge, the guide's headline, one line, one blue "Take the tour" button, the overview picture from 1280px up), then the setup card ("Set up Blindspot in 3 easy steps", a `0/3 COMPLETED` badge, a blue button), then "Explore Blindspot" cards, then the WhatsApp preview.
 - Asking a question turns the page into a conversation (section 17).
 
 **Help bubble.** Razorpay's upload screens show a small blue question pill ("What is a Power of Attorney document?") that opens a short answer card. Use the same for any field a merchant may not understand. Not built yet.

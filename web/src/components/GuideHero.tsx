@@ -13,9 +13,9 @@ export function GuideHero({ id }: { id: string }) {
   const wash = useHeroWash()
   const Scene = SCENES[id]
   return (
-    <Box position="relative" height="100%" minHeight={{ base: '260px', l: '440px' }} display="flex" alignItems="center" testID="guide-hero">
+    <Box position="relative" height="100%" minHeight={{ base: '260px', xl: '440px' }} display="flex" alignItems="center" testID="guide-hero">
       <div style={{ position: 'absolute', inset: 0, background: wash }} />
-      <Box position="relative" width="100%" padding={{ base: 'spacing.5', l: 'spacing.7' }}>{Scene && <Scene />}</Box>
+      <Box position="relative" width="100%" padding={{ base: 'spacing.5', xl: 'spacing.4' }}>{Scene && <Scene />}</Box>
     </Box>
   )
 }

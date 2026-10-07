@@ -87,20 +87,23 @@ export default function Setup() {
 
   return (
     <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: '300px minmax(0, 1fr)' }} gap="spacing.6" alignItems="stretch" testID="setup">
-      <Card height="100%">
-        <CardBody>
-          <Box display="flex" flexDirection="column" gap="spacing.6" height="100%">
-            <Box display="flex" flexDirection="column"><Text color="surface.text.gray.muted">Setup:</Text><Heading size="medium">Blindspot</Heading></Box>
-            <StepGroup size="large">
-              {STEPS.map((t, i) => <StepItem key={t} title={t} description={STEP_HELP[i]} stepProgress={i < step ? 'full' : 'none'} marker={<StepItemIndicator color={i < step ? 'positive' : i === step ? 'primary' : 'neutral'} />} />)}
-            </StepGroup>
-            <Box marginTop="auto" display={{ base: 'none', l: 'block' }}><GuideArt art={ART[step]} /></Box>
-          </Box>
-        </CardBody>
-      </Card>
+      <Box display={{ base: 'none', l: 'block' }}>
+        <Card height="100%">
+          <CardBody>
+            <Box display="flex" flexDirection="column" gap="spacing.6" height="100%">
+              <Box display="flex" flexDirection="column"><Text color="surface.text.gray.muted">Setup:</Text><Heading size="medium">Blindspot</Heading></Box>
+              <StepGroup size="large">
+                {STEPS.map((t, i) => <StepItem key={t} title={t} description={STEP_HELP[i]} stepProgress={i < step ? 'full' : 'none'} marker={<StepItemIndicator color={i < step ? 'positive' : i === step ? 'primary' : 'neutral'} />} />)}
+              </StepGroup>
+              <Box marginTop="auto"><GuideArt art={ART[step]} /></Box>
+            </Box>
+          </CardBody>
+        </Card>
+      </Box>
       <Card height="100%">
         <CardBody>
           <Box display="flex" flexDirection="column" gap="spacing.6" minHeight={{ base: 'auto', m: '480px' }} height="100%">
+            <Box display={{ base: 'block', l: 'none' }}><Text size="small" weight="semibold" color="surface.text.gray.muted">{`Step ${step + 1} of ${STEPS.length}: ${STEPS[step]}`}</Text></Box>
             <Box minHeight="20px">{step > 0 && <Link href="#" onClick={(e) => { e.preventDefault(); setStep(step - 1) }}>Back</Link>}</Box>
             <Box display="flex" flexDirection="column" gap="spacing.2">
               <Heading size="xlarge">{copy[step][0]}</Heading>
@@ -110,7 +113,7 @@ export default function Setup() {
             {NOTE[step] && <Alert isFullWidth isDismissible={false} color="information" description={NOTE[step]} />}
             <Box display="flex" flexDirection="column" gap="spacing.4" marginTop="auto">
               <Button variant="primary" size="large" isFullWidth onClick={next} isDisabled={step === 2 && !scan}>{step === 2 ? 'See what I found' : 'Continue'}</Button>
-              <Text size="small" color="surface.text.gray.muted">Your choices are not saved in this demo. Blindspot never asks for passwords, card details or OTPs.</Text>
+              <Text size="small" color="surface.text.gray.muted">{step < 2 ? 'Your choices are not saved in this demo. ' : ''}Blindspot never asks for passwords, card details or OTPs.</Text>
             </Box>
           </Box>
         </CardBody>

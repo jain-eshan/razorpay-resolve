@@ -100,7 +100,8 @@ export function Shell({ children }: { children: ReactNode }) {
           </Box>
         </TopNavBrand>
         <TopNavContent>
-          <Box display={{ base: 'none', m: 'flex' }} width="100%" minWidth="0px" overflow="hidden">
+          {/* Five tabs need about 570px beside the logo and the actions, so they show from l; at m the strip used to cut Payroll in half and hide More. */}
+          <Box display={{ base: 'none', l: 'flex' }} width="100%" minWidth="0px" overflow="hidden">
             {/* Blade's TabNav unmounts tabs that overflow, and crashes if their size updates are still queued. All five tabs are always rendered instead. */}
             <TabNav items={TABS}>
               {() => (

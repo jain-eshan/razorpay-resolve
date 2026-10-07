@@ -421,6 +421,17 @@ Third pass after Eshan's review ("it should look like an extension of the curren
 
 Found by a full pass at 375, 768, 1024 and 1440px, not by eye on one screen: code comments printing as text in the welcome card (now a test); the welcome card and the guides cramped to unreadable columns at 768px (columns now start at 1024px); the Ray hero heading wrapping beside its icon at 768px.
 
+Design review, run before the PR (a general-purpose agent following `.claude/agents/design-reviewer.md`, because the `design-reviewer` agent type is not registered in this session; it reviewed and did not edit). First verdict: pass with notes. Real screenshots at 375, 768, 1024 and 1440px, `tsc`, `oxlint` and the mechanical greps ran clean. Findings and what was done:
+1. Guide columns cramped at 1024px (about 780px of content beside the side nav). Fixed: columns and the carousel start at 1280px; below that one slide shows at a time, one column.
+2. Top bar cut Payroll in half and hid More at 768px. Fixed: the tab strip shows from 1024px.
+3. Big empty band on slide 1 on phone and tablet (equal slide heights). Fixed by the single-slide mode above; a test covers it.
+4. Hero scenes small in the panel; the black cube too heavy. Fixed: tighter frames and less padding, and the sealed box is slate. Not fixed: some empty space above and below remains, because an isometric platform is wide and short.
+5. Overview guide shown twice on Home (welcome card and an Explore card). Fixed: the Explore card is filtered out again; DESIGN.md sections 15 and 16 now list the welcome card.
+6. Two blue buttons close together on Home (Take the tour, Start setup). Left as is: each is its own card (section 15) and the tour is how a newcomer finds the product. Eshan can demote one.
+7. Setup on a phone put the question about 560px down. Fixed: below 1024px the stepper card is replaced by a "Step 1 of 3: Channels" line. Not fixed: pending steps show a near-black dot; Blade's `StepItemIndicator` only has semantic colours and "neutral" is its own pending look.
+8. Small items fixed: the Blindspot guide's "85 customers" now says "in the first incident" (Setup and the scan say 81 for the last 30 days); the Channels step says which three to start with; the step 3 note no longer says "your choices" where there are none; Explore cards got the divider row of Agent Studio's cards; Home's grid uses `minmax`; indentation. Left: the avatar shape and the dimmer activity and bell icons, which are Shell choices from before this work.
+Not checked by the review: the snapshot suite (taken from my run), dark mode, a real GPU, a real phone or screen reader, browsers other than Chrome, the live-mode screens.
+
 Decisions (Eshan): three slides rather than Razorpay's two; isometric drawings rather than product screens; a welcome card on the home. An image model was offered for the art and declined: code-drawn scenes follow Blade tokens and dark mode and do not go stale.
 
 What checking caught: the first drawing of Incidents hid everything behind its base tile (tiles now always draw first), and Autonomy's blocks sat behind the steps they stand on. Both found by looking at the scenes at full size. Copy was checked against the screens: setup steps, fix stages, channel list (Instagram and Messenger are in the snapshot) and the three-question rule (SPEC).
@@ -428,7 +439,5 @@ What checking caught: the first drawing of Incidents hid everything behind its b
 Checks: `tsc -b`, `oxlint` (0 warnings), `npm run build`, snapshot suite passed (see the final run below) (three failed once under heavy machine load, load average 22, and passed on their own), no hex colours and no em dashes in `web/`.
 
 Design review: run by hand from `.claude/agents/design-reviewer.md` (the agent was not available in this session). Section A ran clean, with two justified notes: the soft wash behind the heroes is an inline gradient (`GuideHero.tsx`, `Home.tsx`) because Blade has no gradient prop, and the 24px accent line and 40px step circle are fixed sizes for marks. B and C read through. D: real screenshots of every guide slide at 1440px, of a sample at 1024, 768 and 375px, and of Home and Setup at 1440, 768 and 375px. Dark mode was not looked at. The animated RazorSense surface was not seen on a real GPU. Figures on guides come from the snapshot, so on the hosted demo they are static.
-
-Found, not fixed: at 375px `#root` is `aria-hidden` on every page (Blade's mobile side nav drawer), so the whole page is hidden from screen readers. It is not from this work; a separate task was raised.
 
 Not done: the other tab (`docs-guides-review-e96552`) still holds the same uncommitted files and should be closed or reset so they do not conflict.

@@ -23,3 +23,18 @@ test('the pages that explain themselves have a How it works button that opens th
     await expect(page).toHaveURL(new RegExp(`/guides/${guide}$`))
   }
 })
+
+// Below 1280px the guide shows one slide at a time (the three slides are different heights and a carousel left a big empty band). The in-slide buttons still walk through it.
+test('on a phone the guide shows one slide at a time and the buttons walk through it', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 800 })
+  await page.goto('/guides/incidents')
+  await page.getByTestId('guide').waitFor()
+  await expect(page.getByRole('heading', { name: 'What makes Incidents great?' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Read more' }).click()
+  await expect(page.getByRole('heading', { name: 'What makes Incidents great?' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Read more' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'See how to use it' }).click()
+  await expect(page.getByTestId('guide-steps').getByText('Check the evidence')).toBeVisible()
+  await page.getByRole('button', { name: 'Back' }).click()
+  await expect(page.getByRole('heading', { name: 'What makes Incidents great?' })).toBeVisible()
+})

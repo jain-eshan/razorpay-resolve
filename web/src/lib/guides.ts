@@ -99,7 +99,7 @@ export const GUIDES: Guide[] = [
       { art: 'lock', title: 'Public posts stay private', text: 'A public post gets one reply that says nothing about the payment and invites the person to message privately. Switch a channel off and it stops at once.' },
     ],
     steps: [
-      { art: 'channels', title: 'Pick a channel', text: 'The help button on Razorpay pages, a payments WhatsApp number, email, Instagram or Messenger. Each is off until you connect it.' },
+      { art: 'channels', title: 'Pick a channel', text: 'Start with the help button on Razorpay pages, a payments WhatsApp number or email. Instagram and Messenger are there too. Each is off until you connect it.' },
       { art: 'proof', title: 'Check what it may read', text: 'You see what the assistant may read and who it replies as before it starts. Only messages about a payment are kept.' },
       { art: 'switch', title: 'Switch it off any time', text: 'Disconnect a channel and the assistant stops on it at once.' },
     ],

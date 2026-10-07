@@ -13,7 +13,7 @@ export function IncidentsScene() {
     const lit = [3, 10, 16].includes(k)
     items.push(...person(`c${k}`, -5.5 + (k % 6) * 1.8, 0.8 + Math.floor(k / 6) * 1.8, T, lit ? blue : grey, lit ? edge : muted))
   }
-  return isoSvg({ label: 'An incident: one cause, and every customer it touched. A few customers wrote in. Most did not.', items })
+  return isoSvg({ viewBox: '-290 -185 580 345', label: 'An incident: one cause, and every customer it touched. A few customers wrote in. Most did not.', items })
 }
 
 // Conversations: a customer with a phone, the assistant in the middle (the green block: AI), and the founder, who steps in when a person is needed.
@@ -26,7 +26,7 @@ export function ConversationsScene() {
   items.push(block('ray', B.x + 1.2, B.y + 1.2, T, 2.4, 2.4, 1.5, green, edge), block('rayTop', B.x + 2, B.y + 2, T + 1.5, 0.8, 0.8, 0.6, white, edge))
   ;[0, 1, 2].forEach((k) => items.push(block(`rec${k}`, B.x + 0.3, B.y + 3.9, T + k * 0.3, 1.8, 0.8, 0.25, k === 0 ? white : soft, muted)))
   items.push(...person('you', C.x + 1.2, C.y + 2.2, T, blue, edge, 1.3), block('desk', C.x + 0.5, C.y + 3.4, T, 3.6, 1.1, 0.7, grey, muted), block('thread', C.x + 2.7, C.y + 1, T, 1.8, 0.4, 1.4, white, muted))
-  return isoSvg({ viewBox: '-345 -110 690 400', label: 'A conversation: a customer writes, the assistant looks up the payment and answers, and you step in when a person is needed.', items, over: [arrow('a1', 5.5, 11.5, blue), arrow('a2', 11.5, 5.5, blue)] })
+  return isoSvg({ viewBox: '-335 -105 670 365', label: 'A conversation: a customer writes, the assistant looks up the payment and answers, and you step in when a person is needed.', items, over: [arrow('a1', 5.5, 11.5, blue), arrow('a2', 11.5, 5.5, blue)] })
 }
 
 // Channels: Blindspot in the middle, four channels connected to it by a line, and one grey channel that is not connected and so is not listening.
@@ -37,7 +37,7 @@ export function ChannelsScene() {
   on.forEach(([x, y], k) => items.push(block(`ch${k}`, x, y, T, 2, 2, 1.2, white, muted), block(`chTop${k}`, x + 0.5, y + 0.5, T + 1.2, 1, 1, 0.3, soft, muted)))
   items.push(block('off', 4.2, 4.2, T, 2, 2, 1.2, grey, muted))
   items.push(block('p0', -4.2, -0.25, T, 2.7, 0.5, 0.08, blue, edge), block('p1', 1.5, -0.25, T, 2.7, 0.5, 0.08, blue, edge), block('p2', -0.25, -4.2, T, 0.5, 2.7, 0.08, blue, edge), block('p3', -0.25, 1.5, T, 0.5, 2.7, 0.08, blue, edge))
-  return isoSvg({ label: 'Channels: Blindspot in the middle, connected to the places customers write from. One channel is not connected, so it is not listening.', items })
+  return isoSvg({ viewBox: '-290 -185 580 345', label: 'Channels: Blindspot in the middle, connected to the places customers write from. One channel is not connected, so it is not listening.', items })
 }
 
 // Day-0 scan: a field of customers who paid, most fine (grey), a few with no access (orange), and a line sweeping across. It only looks.
@@ -49,7 +49,7 @@ export function ScanScene() {
     items.push(...person(`c${k}`, -5.5 + (k % 6) * 1.8, -4.5 + Math.floor(k / 6) * 1.9, T, stuck ? orange : grey, stuck ? edge : muted))
   }
   items.push(block('sweep', -6.4, -1.9, T, 12.8, 0.55, 0.06, blue, edge, 0.7), block('sweepEnd', -6.4, -2.15, T, 0.35, 1.05, 0.5, blue, edge))
-  return isoSvg({ label: 'The Day-0 scan: customers who paid, most with access and a few without. A line sweeps across and only looks.', items })
+  return isoSvg({ viewBox: '-290 -185 580 345', label: 'The Day-0 scan: customers who paid, most with access and a few without. A line sweeps across and only looks.', items })
 }
 
 // Autonomy: three steps up. On the first you approve everything. On the second the assistant (green) works inside a plan you approved. On the third it works alone, behind an orange gate that never opens.
@@ -60,7 +60,7 @@ export function AutonomyScene() {
   items.push(...onTop(person('you', 3.6, -0.6, T + 0.9, blue, edge, 1.3)))
   items.push(...onTop(block('ray1', -0.6, -1.4, T + 1.8, 1.8, 1.8, 1.2, green, edge)))
   items.push(...onTop([block('ray2', -4.8, -2.6, T + 2.7, 1.8, 1.8, 1.2, green, edge), block('g1', -6.5, -3.4, T + 2.7, 0.4, 0.4, 1.8, orange, edge), block('g2', -6.5, 2.6, T + 2.7, 0.4, 0.4, 1.8, orange, edge), block('g3', -6.5, -3.4, T + 4.1, 0.4, 6.4, 0.4, orange, edge)]))
-  return isoSvg({ viewBox: '-345 -250 690 400', label: 'Autonomy in three steps. First you approve everything. Then the assistant works inside a plan you approved. Then it works alone, behind a gate it can never open.', items })
+  return isoSvg({ viewBox: '-290 -245 580 345', label: 'Autonomy in three steps. First you approve everything. Then the assistant works inside a plan you approved. Then it works alone, behind a gate it can never open.', items })
 }
 
 // Learning: three settings as sliders. Each marker moves one notch at a time (the faint copy is where it could go next), never two.
@@ -72,7 +72,7 @@ export function LearningScene() {
     for (let k = 0; k < 6; k++) items.push(block(`n${r}${k}`, -5.6 + k * 2.2, y - 0.1, T + 0.2, 0.5, 1.1, 0.15, muted, edge))
     items.push(block(`m${r}`, -5.85 + at * 2.2, y - 0.1, T + 0.2, 1, 1.1, 1, blue, edge), block(`g${r}`, -5.85 + (at + 1) * 2.2, y - 0.1, T + 0.2, 1, 1.1, 1, blue, edge, 0.28))
   })
-  return isoSvg({ label: 'Learning: each setting is a slider that moves one notch at a time, once a week, and never jumps.', items })
+  return isoSvg({ viewBox: '-290 -185 580 345', label: 'Learning: each setting is a slider that moves one notch at a time, once a week, and never jumps.', items })
 }
 
 // How we know: the answers sit in a locked black box the product never opens. Beside it, the product and a row of checks that passed (green).
@@ -82,5 +82,5 @@ export function HowScene() {
   items.push(block('vault', 1, 9, T, 4, 4, 3, ink, edge), block('lock', 2.4, 13, T + 1.2, 1.2, 0.3, 1, orange, edge))
   items.push(block('prod', 8.6, 0.8, T, 2.8, 2.8, 0.8, white, muted), block('prodTop', 9.2, 1.4, T + 0.8, 1.6, 1.6, 0.35, blue, edge))
   for (let k = 0; k < 5; k++) items.push(block(`ok${k}`, 12.2, 0.6 + k * 1, T, 0.8, 0.8, 0.5, green, edge))
-  return isoSvg({ viewBox: '-345 -50 690 400', label: 'How we know: the true answers are locked in a box the product never opens. Beside it, the product is checked against them, and the checks pass.', items })
+  return isoSvg({ viewBox: '-290 -45 580 345', label: 'How we know: the true answers are locked in a box the product never opens. Beside it, the product is checked against them, and the checks pass.', items })
 }

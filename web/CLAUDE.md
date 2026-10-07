@@ -41,7 +41,6 @@ A starter for building Razorpay products in Razorpay's own design language, Razo
 
 ## Known quirks
 - Blade's `TopNavBrand` and `TopNavActions` do not centre their content on their own below `xl`. `Shell.tsx` passes `paddingY` to the brand and fixes the actions' height; `e2e/shell.spec.ts` guards it. The logo is `public/razorpay-logo.svg`, not Blade's `RazorpayIcon`.
-- At 375px Blade's mobile side nav leaves `#root` with `aria-hidden="true"` on every page. Not ours; raised as a separate task. Playwright's `getByRole` finds nothing on a phone because of it, so use text or CSS locators for phone-width tests.
 - `get_blade_component_docs` refuses to run until `create_blade_cursor_rules` has written files into the repo. Don't. Read the component source in `node_modules/@razorpay/blade/build/lib/web/development/components/<Name>/` instead.
 - Blade assumes `box-sizing: border-box` on everything. `index.html` sets it. Without it the top bar overflows the window and clips the avatar.
 - The top bar shows Razorpay, not the product name. Blindspot is one product tab beside Payments, and a section in the side nav. Everything Razorpay already ships is shown but inert (greyed, not clickable).

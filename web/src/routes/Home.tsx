@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRightIcon, Badge, Box, Button, Card, CardBody, ChatInput, ChevronRightIcon, Heading, PlusIcon, RayIcon, Text } from '@razorpay/blade/components'
+import { ArrowRightIcon, Badge, Box, Button, Card, CardBody, ChatInput, ChevronRightIcon, Divider, Heading, PlusIcon, RayIcon, Text } from '@razorpay/blade/components'
 import { IsoHero } from '../components/IsoHero'
 import { IncidentsAnswer, ScanAnswer } from '../components/RayAnswers'
 import { GUIDES, guideById } from '../lib/guides'
@@ -68,17 +68,17 @@ export default function Home() {
 
       {/* Razorpay's agent pages open a new product with a soft mint-to-blue hero and one button. It always shows, so a judge can take the tour again and again (this is a demo). */}
       <Box position="relative" overflow="hidden" borderRadius="large" testID="tour-card">
-          <div style={{ position: 'absolute', inset: 0, background: wash }} />
-          <Box position="relative" display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'minmax(0, 1fr) minmax(0, 1fr)' }} alignItems="center" gap="spacing.5" padding={{ base: 'spacing.6', m: 'spacing.8' }}>
-            <Box display="flex" flexDirection="column" alignItems="flex-start" gap="spacing.4">
-              <Badge size="medium" color="positive">NEW</Badge>
-              <Heading size="xlarge">{guideById('blindspot')?.tagline}</Heading>
-              <Text color="surface.text.gray.subtle">New to Blindspot? A short tour of what it is, why it helps and how to use it.</Text>
-              <Button variant="primary" size="large" iconPosition="right" icon={ArrowRightIcon} onClick={() => nav('/guides/blindspot')}>Take the tour</Button>
-            </Box>
-            <Box display={{ base: 'none', l: 'block' }}><IsoHero /></Box>
+        <div style={{ position: 'absolute', inset: 0, background: wash }} />
+        <Box position="relative" display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', xl: 'minmax(0, 1fr) minmax(0, 1fr)' }} alignItems="center" gap="spacing.5" padding={{ base: 'spacing.6', m: 'spacing.8' }}>
+          <Box display="flex" flexDirection="column" alignItems="flex-start" gap="spacing.4">
+            <Badge size="medium" color="positive">NEW</Badge>
+            <Heading size="xlarge">{guideById('blindspot')?.tagline}</Heading>
+            <Text color="surface.text.gray.subtle">New to Blindspot? A short tour of what it is, why it helps and how to use it.</Text>
+            <Button variant="primary" size="large" iconPosition="right" icon={ArrowRightIcon} onClick={() => nav('/guides/blindspot')}>Take the tour</Button>
           </Box>
+          <Box display={{ base: 'none', xl: 'block' }}><IsoHero /></Box>
         </Box>
+      </Box>
 
       <Card>
         <CardBody>
@@ -95,15 +95,19 @@ export default function Home() {
 
       <Box display="flex" flexDirection="column" gap="spacing.5">
         <Heading size="large">Explore Blindspot</Heading>
-        <Box display="grid" gridTemplateColumns={{ base: '1fr', m: 'repeat(2, minmax(0, 1fr))', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
-          {GUIDES.map((g) => (
+        <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', m: 'repeat(2, minmax(0, 1fr))', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
+          {/* The overview is the welcome card above, so it is not repeated here. */}
+          {GUIDES.filter((g) => g.id !== 'blindspot').map((g) => (
             <Link key={g.id} to={`/guides/${g.id}`} style={{ textDecoration: 'none' }}>
               <Card height="100%">
                 <CardBody>
                   <Box display="flex" flexDirection="column" gap="spacing.4" height="100%">
                     <Box display="flex" alignItems="center" gap="spacing.3"><g.icon size="medium" color="surface.icon.gray.muted" /><Text color="surface.text.gray.muted">{g.title}</Text></Box>
                     <Heading size="small">{g.tagline}</Heading>
-                    <Box display="flex" justifyContent="flex-end" marginTop="auto"><ChevronRightIcon size="medium" color="surface.icon.gray.muted" /></Box>
+                    <Box display="flex" flexDirection="column" gap="spacing.4" marginTop="auto">
+                      <Divider />
+                      <Box display="flex" justifyContent="flex-end"><ChevronRightIcon size="medium" color="surface.icon.gray.muted" /></Box>
+                    </Box>
                   </Box>
                 </CardBody>
               </Card>

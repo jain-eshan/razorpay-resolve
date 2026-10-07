@@ -60,7 +60,7 @@ export function useIsoPalette() {
     soft: c.surface.background.primary.moderate,
     orange: c.feedback.background.notice.intense,
     green: c.feedback.background.positive.intense,
-    ink: c.interactive.background.staticBlack.default,
+    ink: c.surface.text.gray.muted,
     edge: c.surface.border.gray.subtle,
   }
 }

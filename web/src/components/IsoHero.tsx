@@ -33,5 +33,5 @@ export function IsoHero() {
   for (let k = 0; k < 10; k++) items.push(...person(`c${k}`, C.x + 0.35 + (k % 5) * 0.9, C.y + 3.2 + Math.floor(k / 5) * 0.95, T, k < 2 ? blue : grey, k < 2 ? edge : muted))
 
   // Small arrows in the gaps between the tiles: a payment moves left to right.
-  return isoSvg({ viewBox: '-345 -110 690 400', label: 'Three places a payment can break: before Razorpay, inside the payment, and after it. Razorpay sees the middle one. Blindspot covers the first and the last.', items, over: [arrow('ar1', 5.5, 11.5, blue), arrow('ar2', 11.5, 5.5, blue)] })
+  return isoSvg({ viewBox: '-335 -105 670 365', label: 'Three places a payment can break: before Razorpay, inside the payment, and after it. Razorpay sees the middle one. Blindspot covers the first and the last.', items, over: [arrow('ar1', 5.5, 11.5, blue), arrow('ar2', 11.5, 5.5, blue)] })
 }
