@@ -48,6 +48,17 @@ test('phone: a closed menu leaves the page readable to assistive technology', as
   await expect(page.getByRole('button', { name: 'How it works' })).toBeVisible()
 })
 
+test('phone: widening the window past the phone layout closes the open menu', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 900 })
+  await page.goto('/channels')
+  await page.getByTestId('page').waitFor()
+  await page.getByRole('button', { name: 'Open menu' }).click()
+  await expect(page.getByRole('dialog', { name: 'Main menu' })).toBeVisible()
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.locator('#root')).not.toHaveAttribute('aria-hidden', 'true')
+})
+
 test('phone: the open menu is reachable, traps focus and hides the page, closing it gives the page back', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 900 })
   await page.goto('/channels')

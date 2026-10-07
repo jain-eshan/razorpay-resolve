@@ -21,7 +21,7 @@ A starter for building Razorpay products in Razorpay's own design language, Razo
 - `src/main.tsx`: BladeProvider, fonts, LazyMotion setup
 - `src/razorsense.ts`: the four emotional states (Blade gradient maps + static fallbacks), Ray glyph path, reduced-motion flag
 - `src/App.tsx`: the routes. The page container lives here.
-- `src/components/Shell.tsx`: top bar and side nav, copied from the production dashboard. Production items are inert. Add a screen by adding to `BLINDSPOT` or `PROOF` there.
+- `src/components/Shell.tsx`: top bar and side nav, copied from the production dashboard. Production items are inert. Add a screen by adding to `BLINDSPOT` or `PROOF` there. The phone menu is a plain Blade `Drawer` around the same items, not `SideNav`'s own phone mode (giving `SideNav` an `onDismiss`): that mode keeps two modal drawers mounted even when closed, and hides the whole page from assistive technology. Do not switch it back.
 - `src/components/PageHeader.tsx`: the title block every page starts with.
 - `src/components/AgentAnswer.tsx`, `RayAnswers.tsx`: how Ray answers, and the `Turn` pieces the fix flows use (DESIGN.md section 17).
 - `e2e/layout.spec.ts`: opens every route at 375, 768 and 1440px and fails on errors or sideways overflow. Add new routes to its list.

@@ -1,8 +1,8 @@
-import { forwardRef, useState, type ComponentProps, type ReactNode } from 'react'
+import { forwardRef, useEffect, useState, type ComponentProps, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 import {
-  ActivityIcon, AtSignIcon, Avatar, Badge, BellIcon, Box, ChevronDownIcon, ClipboardIcon, CreditCardIcon, Drawer, DrawerBody, DrawerHeader, FileIcon, FileTextIcon, FlaskIcon, HomeIcon, IconButton, LinkIcon, MenuIcon, RadioIcon, RayIcon, RazorpayIcon, RepeatIcon, SearchIcon, SearchInput, SettingsIcon, SideNav, SideNavBody, SideNavFooter, SideNavLink, SideNavSection, Switch, TabNav, TabNavItem, TabNavItems, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent, TrendingUpIcon, UsersIcon, WalletIcon,
+  ActivityIcon, AtSignIcon, Avatar, Badge, BellIcon, Box, ChevronDownIcon, ClipboardIcon, CreditCardIcon, Drawer, DrawerBody, DrawerHeader, FileIcon, FileTextIcon, FlaskIcon, HomeIcon, IconButton, LinkIcon, MenuIcon, RadioIcon, RayIcon, RazorpayIcon, RepeatIcon, SearchIcon, SearchInput, SettingsIcon, SideNav, SideNavBody, SideNavFooter, SideNavLink, SideNavSection, Switch, TabNav, TabNavItem, TabNavItems, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent, TrendingUpIcon, UsersIcon, useTheme, WalletIcon,
   type IconComponent,
 } from '@razorpay/blade/components'
 
@@ -35,7 +35,7 @@ const InertItem = styled(forwardRef<HTMLSpanElement, { children?: ReactNode; cla
   cursor: not-allowed;
 `
 
-// SideNav hides its collapsed-nav extras (the line after a section title) with a rule on its own container. The phone menu is not inside SideNav, so it needs the same rule.
+// SideNav hides its collapsed-nav extras (the line after a section title, the short "+11" button) with a rule on its own container. The phone menu is not inside SideNav, so it needs the same rule.
 // Blade's Box drops className, hence a plain wrapper. `display: contents` keeps it out of the layout.
 const HideCollapsedExtras = styled.div`
   display: contents;
@@ -56,7 +56,15 @@ const noop = () => {}
 export function Shell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
-  const on = (to: string) => (to === '/' ? pathname === '/' : pathname.startsWith(to))
+  // The phone menu must not outlive the phone layout: widening the window past `m` closes it, as SideNav's own phone mode did.
+  const { theme } = useTheme()
+  useEffect(() => {
+    const wide = window.matchMedia(`(min-width: ${theme.breakpoints.m}px)`)
+    const close = (e: MediaQueryListEvent) => { if (e.matches) setOpen(false) }
+    wide.addEventListener('change', close)
+    return () => wide.removeEventListener('change', close)
+  }, [theme.breakpoints.m])
+  const on =(to: string) => (to === '/' ? pathname === '/' : pathname.startsWith(to))
   const link = (i: Item) => <SideNavLink key={i.to} title={i.title} icon={i.icon} href={i.to} isActive={on(i.to)} as={Link} onClick={() => setOpen(false)} />
   const inert = (title: string, icon: IconComponent) => <SideNavLink key={title} title={title} icon={icon} as={InertItem} />
   // One set of items, shown by the desktop SideNav (hidden below `m`) and by the phone menu below.
