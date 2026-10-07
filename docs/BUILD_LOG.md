@@ -225,3 +225,31 @@ Metrics: 80 snapshot browser tests pass (20 existing, 60 layout). Types and lint
 Design review: not run through the `design-reviewer` agent, which did not exist when this work was built. I audited by hand (code scan for colours, raw HTML, fixed widths; screens looked at in a browser at pane width and 1440px; not looked at: chat, help and email demos, thread and case detail, How we know; dark mode not checked). The agent runs from the next entry that touches `web/`.
 
 Decisions: Blindspot is a top-bar tab beside Payments (Eshan). Production links are greyed and not clickable (Eshan). Ray home sits on top of the Blindspot home (Eshan). The design philosophy is DESIGN.md section 20.
+
+## 7 Oct 2026, CI investigation and failure alert (integrator)
+
+Goal: find out why CI on `main` failed after four merges in a row (#7 to #10), fix it, and make sure a failure after a merge gets noticed and fixed before new work.
+
+What I looked at: the failing step in every red run (all `make e2e`), the full log of each, and the failing test in each.
+
+Findings:
+- Hero A (the demo walkthrough in `e2e/demo.spec.ts`) failed in four runs, each time at a different line (44, 47, 48, 50) and each time with "Test timeout of 30000ms exceeded". The line is just where the 30 s clock ran out. So it is a time limit, not a race or a logic bug.
+- Measured with Chrome's CPU throttling: Hero A takes 6 s at normal speed, 26 s at 4 times slower, 50 s at 8 times slower. CI is about 5 times slower than a laptop, so the test sat on the 30 s edge and failed whenever the runner was busy. The #7 run was a docs-only merge, so this started before the design work.
+- A production build is about twice as fast as the dev server (4 s against 6 s, and 24 s against 50 s at 8 times slower).
+- The layout test I added in the design work made it worse: one test visiting 20 screens in a single 30 s test.
+- One different failure, in the live-API Hero A (`fix.spec.ts`, run for #9): two `canvas` elements where the rule allows one. It did not reproduce locally, even at 6 times slower (the count went 0 then 1). One failure in six CI runs, so I treat it as a transient overlap while the success card mounts. The assertion now waits for the steady state and names the check if it ever fails again.
+
+What changed:
+- `playwright.config.ts`: 60 s test limit (PR 11), and CI now serves a production build for the snapshot tests instead of the dev server. `reuseExistingServer` is off on CI.
+- `e2e/layout.spec.ts`: one small test per screen and width (PR 11).
+- `e2e/fix.spec.ts`: canvas count uses `expect.poll`.
+- `.github/workflows/ci-alert.yml`: when CI finishes on `main`, a red run opens an issue labelled `ci-failure` (or comments on the open one) with the commit, the failed step and the run link, and a green run closes it. It runs from the default branch, so it works from the merge of this change. The issue-body queries were tested against a real failed run.
+- `CLAUDE.md`, `docs/HANDOFF.md`, `web/CLAUDE.md`: every session checks `gh issue list --label ci-failure --state open` first and fixes it before any other work.
+
+Result: after PR 11, CI on `main` is green for the first time since #6. Locally, `CI=1 npx playwright test` passes all 92 tests (80 snapshot, 7 talk, 5 live) in 1.2 minutes. CI itself still takes 8 to 9 minutes, mostly setup, tests and eval; not looked at further.
+
+What I rejected: raising the limit alone (it would only move the edge); retrying failed tests (it hides real flakes).
+
+Not done: the alert reaches a person and any session that reads the issue, but nothing wakes a running session. A scheduled checker is still an option.
+
+Design review: not applicable. No screen changed (test config, CI and docs only).

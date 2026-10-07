@@ -4,6 +4,8 @@ A starter for building Razorpay products in Razorpay's own design language, Razo
 
 **Read [DESIGN.md](DESIGN.md) before designing or building any screen.** It holds the principles, the four emotional states, tokens, motion, components, voice, and product context. **Sections 14 to 19 are the rules for this product**: it is an addition to the live Razorpay dashboard (shell, page templates, guides and onboarding, agent answers, a pre-PR checklist). Follow them for every new screen.
 
+**Before building:** check for open `ci-failure` issues (`gh issue list --label ci-failure --state open`) and fix them first. See the root `CLAUDE.md`.
+
 ## Stack
 - Vite + React 18 + TypeScript
 - `@razorpay/blade` 12.127.0 with styled-components 5, framer-motion 11 and i18nify. React 18 is required because `@razorpay/i18nify-react` doesn't support 19 yet.
