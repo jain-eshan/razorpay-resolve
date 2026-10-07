@@ -42,6 +42,7 @@ A starter for building Razorpay products in Razorpay's own design language, Razo
 - Blade assumes `box-sizing: border-box` on everything. `index.html` sets it. Without it the top bar overflows the window and clips the avatar.
 - The top bar shows Razorpay, not the product name. Blindspot is one product tab beside Payments, and a section in the side nav. Everything Razorpay already ships is shown but inert (greyed, not clickable).
 - Blade's `TabNav` crashes when it unmounts overflowing tabs. `Shell.tsx` renders every tab always. Do not switch it back to the `items` argument.
+- At phone width Blade's `SideNav` keeps a second `Drawer` mounted even when the menu is closed. Its focus manager sets `aria-hidden` on `#root`, so `getByRole` finds nothing on a page loaded at 375px. `Shell.tsx` mounts the `SideNav` on a phone only while the menu is open. Do not mount it always. While the menu is open the two drawers still hide each other from assistive technology (Blade's, not fixed here), so click menu entries by text in tests.
 - `npm run dev` and the e2e config use port 5173, shared with every other worktree. If another chat has it, a test run hits their code. Use a different `--port` locally and do not commit that change.
 - Blade's `Table` logs a React "Cannot update a component while rendering" warning in dev. It comes from Blade, not our code.
 - Blade's `Table` logs "Cannot update a component (`_Table`) while rendering `_TableHeaderRow`" in dev. It is Blade's own, not ours.
