@@ -21,6 +21,7 @@ No server is needed. The hosted demo replays frames recorded from the real engin
 | `/chat-demo`, `/email-demo`, `/help-demo/receipt` | A customer talks to the agent. It says it is an AI, finds the payment from an exact identifier, and holds its reply for the founder. |
 | `/ig-demo` | Instagram: the Meta inbox passes a payment thread to Blindspot and takes it back. |
 | `/public-demo` | A public post gets one generic reply with a private link, held for the founder. Nothing about a payment is said in public. |
+| `/learning` | What the product changed about itself this week and why. On an incident, press "This was a false alarm", then "Review this week now": the alerts that raised it get one step stricter, with a reason, a version and an audit line. A simulated six-week table shows whether it helps. |
 | `/how` | Every eval check against hidden ground truth. |
 
 ## Commands
@@ -48,16 +49,17 @@ The web app has two modes. Without `VITE_MODE=live` it plays the demo from `web/
 | R0 to R3: foundations, detect and attribute, fix and verify, channels and conversation | Done, on `main` |
 | Guided demo, dashboard-aligned web shell, UX review | Done, on `main` |
 | R4 first slice: Hero B, customers who cannot reach the pay page (no model) | Done, on `main`. Contracts v0.5 |
-| R5 first slice: handovers (Instagram, Messenger, public posts) | Open as PR #9. Contracts v0.6 |
-| R4 rest (investigation agent, three-way eval), R5 rest (learning loop), R6, R7 | Not started |
+| R5 first slice: handovers (Instagram, Messenger, public posts) | Done, on `main`. Contracts v0.6 |
+| R5 second slice: learning loop, weekly card, Learning screen (no model) | Open as PR #14. Contracts v0.7 |
+| R4 rest (investigation agent, three-way eval, escalation, duplicates, refunds), R5 rest (renewal anomaly), R6, R7 | Not started |
 
-Contract changes are logged in `docs/CONTRACT_CHANGES.md` (currently v0.6). The plan for every release is in `docs/BUILD_PLAN.md`.
+Contract changes are logged in `docs/CONTRACT_CHANGES.md` (currently v0.7). The plan for every release is in `docs/BUILD_PLAN.md`.
 
 ## What is real and what is simulated
 
 No model is used anywhere. Triage, extraction, detection and attribution are rules and SQL, and every number on screen comes from SQL or Python.
 
-Simulated: all Razorpay data, all channels (WhatsApp, email, help button, Instagram, Messenger, public posts), every customer conversation, screenshots (a script supplies the text a reader would return), the merchant's own system, and the customers' behaviour after a recovery link. The synthetic world is clean and the generator and detector share assumptions, so near-perfect eval scores show the logic works, not how often it would be wrong on real traffic. The caveats are at the top of `eval/report.md` and in `docs/HANDOFF.md`.
+Simulated: all Razorpay data, all channels (WhatsApp, email, help button, Instagram, Messenger, public posts), every customer conversation, screenshots (a script supplies the text a reader would return), the merchant's own system, the customers' behaviour after a recovery link, and the six-week learning replay (invented weeks, a scripted founder, invented reply and edit rates). The synthetic world is clean and the generator and detector share assumptions, so near-perfect eval scores show the logic works, not how often it would be wrong on real traffic. The caveats are at the top of `eval/report.md` and in `docs/HANDOFF.md`.
 
 Proposed Razorpay capabilities that do not exist today are listed in `backend/app/config.py` (`PROPOSED`) and in PRD section 15.
 

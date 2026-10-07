@@ -11,3 +11,4 @@ eval/report.json
 eval/report.md
 *.db
 .DS_Store
+eval/learning_replay.json

@@ -29,6 +29,7 @@ from .schemas import (
     LaneEvent,
     LearningChange,
     LearningParam,
+    LearningReplay,
     LearningWeekly,
     LiftRow,
     MatchCandidate,
@@ -238,6 +239,7 @@ LEARN_WEEK = LearningWeekly(
     changes=[LearningChange(at=NOW, key="order_dip_p_threshold", before=0.01, after=0.005, reason="2 of 2 alerts were false", version=2)],
 )
 LEARN_PARAMS = [LearningParam(key="order_dip_p_threshold", version=2, value=0.005, reason="2 of 2 alerts were false", updated_at=NOW)]
+LEARN_REPLAY = LearningReplay(note="No replay has been run. Run make eval.", rows=[])
 SCAN = ScanResult(days=30, headline="I found 38 customers in the last 30 days who paid and have no access.", leaked_customers=38,
                   leaked_paise=1_854_000, incidents=[INC1])
 STEP = ThreadStep(thread=THR1, drafted_reply=None, auto_sent=True)

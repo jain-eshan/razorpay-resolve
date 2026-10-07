@@ -198,6 +198,30 @@ Metrics: 318 backend and synth tests, 13 snapshot browser tests in the demo spec
 Deferred to the next R5 slice: the learning loop (feedback, bounded parameters, weekly card, six-week replay) and the Razorpay-side renewal anomaly (F-08).
 
 
+## 7 Oct 2026, R5 second slice: the learning loop (integrator)
+
+Goal: the system tunes itself from what the founder tells it, within fixed limits, with every change visible. No model.
+
+Built:
+- `backend/app/learning/`: `params.py` (three settings, hard bounds, one change a week, versions) and `loop.py` (feedback capture, the weekly review, the plain-language card). Settings: order-dip and complaint-spike alert strictness (a ladder of six values from 1 in 20 to 1 in 1,000, one rung per change) and the default message language for customers whose language is unknown (English or Hinglish, only after 20 sends each and a 5 point lead).
+- Monitors take their threshold as an argument; the pipeline reads the learned values. `Orders(ewma=True)` adds the hour-of-week baseline (alpha 0.3) once there are 3 weeks of history. The 14-day world has 2, so no Hero A or Hero B number moved.
+- API: `POST /api/feedback`, `GET /api/learning/weekly`, `GET /api/learning/params` are real; new `POST /api/learning/run` and `GET /api/learning/replay`. Contracts v0.7.
+- Web: screen S-18 (`/learning`: this week's changes, what is in force, version history, the simulated six-week table), a "Was this a real problem?" panel on every incident, and two "I missed something" buttons. The hosted demo replays recorded frames of the real engine.
+- Eval: `synth/replay.py` (six invented weeks: weekly drift, a harmless Wednesday dip, irregular slow days, three real outages) and `eval/learning.py` (three arms: no learning, weekly baseline only, full loop; 5 replays, averaged).
+
+Result (invented data, simulated founder): false alerts per replay 6.2 with no learning, 5.0 with only the weekly baseline, 3.2 with the loop. Weeks 4 to 6 average 0.33 false alerts a week against 0.73 in weeks 1 to 3. Both clear outages are found in every replay. The loop misses the weak Saturday outage in 1 of 5 replays (0.2 per replay), which is the price of stricter alerts. Hinglish is chosen in 5 of 5 replays, and the edit rate falls by 10 points. The last two are mechanical: the replay's reply and edit rates are invented.
+
+Decisions and deviations:
+- Ladder of six values, not a free number, so "within bounds" is checkable and a change is explainable as "1 in 100 to 1 in 200".
+- A false alarm counts only for the monitors that raised that incident; the pay-page probe and order-gap monitors are not tunable (they catch rare, severe things).
+- Feedback is counted only since the setting last changed, so one false alarm cannot move a setting twice.
+- One replay is mostly luck (an alert or two a week), so the eval averages 5. Baseline-only is its own arm so the report shows which part does the work: for a recurring harmless dip the baseline does it; the threshold helps with irregular slow days.
+- Not built from SPEC 11.2: calibrator refit (too few confirmed matches) and body-reader examples (need a model). Reply and edit events have no live source until real channels exist (R6), so message-language learning only has data in the replay and in tests.
+
+What the first draft got wrong, caught by running it: one replay gave 2 false alerts in six weeks, so "falling" was luck (added slow days and 5 replays); the first eval took 70 seconds because `Orders.between` scanned every order (now a binary search, 1 second, same results).
+
+Checks: 334 backend and synth tests, 25 snapshot browser tests (2 new, layout at three widths includes `/learning`), eval 75 gates pass and 14 figures. The live-API browser specs (`fix`, `talk`) were not run: another worktree held ports 5173, 5174 and 8000. Design review: the `design-reviewer` agent could not be started as an agent in this session, so I ran its mechanical checks by hand on `Learning.tsx` and `FeedbackPanel.tsx` after merging `main` (no hex colours, inline styles, raw tags, fixed widths or `repeat(N, 1fr)`; no em dashes in the diff; types and lint clean; all 43 snapshot browser tests pass, including layout at 375, 768 and 1440px for `/learning`). I looked at the Learning screen at 390 and 1440px and the feedback panel at 390px. Not looked at: tablet width by eye, dark mode, the feedback panel at 1440px beyond the passing test.
+
 ## 7 Oct 2026, web design consistency (design stream)
 
 Goal: make the web app look and behave like an addition to the live Razorpay dashboard, and write the rules down so later work follows them.

@@ -1,0 +1,185 @@
+{
+  "note": "Synthetic six-week replay with a simulated founder. Shows the loop working as designed on invented data: a harmless Wednesday dip, a drifting baseline and three real outages. Reply and edit rates come from invented rates, so the message result is mechanical.",
+  "rows": [
+    {
+      "week": 1,
+      "arm": "off",
+      "false_alerts": 0.0,
+      "true_alerts": 0.0,
+      "missed": 0.0,
+      "sends": 40,
+      "reply_rate": 0.2,
+      "edit_rate": 0.35
+    },
+    {
+      "week": 2,
+      "arm": "off",
+      "false_alerts": 1.2,
+      "true_alerts": 1.0,
+      "missed": 0.0,
+      "sends": 40,
+      "reply_rate": 0.195,
+      "edit_rate": 0.365
+    },
+    {
+      "week": 3,
+      "arm": "off",
+      "false_alerts": 1.0,
+      "true_alerts": 0.0,
+      "missed": 0.0,
+      "sends": 40,
+      "reply_rate": 0.175,
+      "edit_rate": 0.365
+    },
+    {
+      "week": 4,
+      "arm": "off",
+      "false_alerts": 1.8,
+      "true_alerts": 1.0,
+      "missed": 0.0,
+      "sends": 40,
+      "reply_rate": 0.125,
+      "edit_rate": 0.37
+    },
+    {
+      "week": 5,
+      "arm": "off",
+      "false_alerts": 0.6,
+      "true_alerts": 1.0,
+      "missed": 0.0,
+      "sends": 40,
+      "reply_rate": 0.17,
+      "edit_rate": 0.415
+    },
+    {
+      "week": 6,
+      "arm": "off",
+      "false_alerts": 1.6,
+      "true_alerts": 0.0,
+      "missed": 0.0,
+      "sends": 40,
+      "reply_rate": 0.22,
+      "edit_rate": 0.335
+    },
+    {
+      "week": 1,
+      "arm": "baseline",
+      "false_alerts": 0.0,
+      "true_alerts": 0.0,
+      "missed": 0.0,
+      "sends": 40,
+      "reply_rate": 0.2,
+      "edit_rate": 0.32
+    },
+    {
+      "week": 2,
+      "arm": "baseline",
+      "false_alerts": 1.2,
+      "true_alerts": 1.0,
+      "missed": 0.0,
+      "sends": 40,
+      "reply_rate": 0.19,
+      "edit_rate": 0.33
+    },
+    {
+      "week": 3,
+      "arm": "baseline",
+      "false_alerts": 1.0,
+      "true_alerts": 0.0,
+      "missed": 0.0,
+      "sends": 40,
+      "reply_rate": 0.17,
+      "edit_rate": 0.405
+    },
+    {
+      "week": 4,
+      "arm": "baseline",
+      "false_alerts": 1.0,
+      "true_alerts": 1.0,
+      "missed": 0.0,
+      "sends": 40,
+      "reply_rate": 0.185,
+      "edit_rate": 0.36
+    },
+    {
+      "week": 5,
+      "arm": "baseline",
+      "false_alerts": 0.2,
+      "true_alerts": 1.0,
+      "missed": 0.0,
+      "sends": 40,
+      "reply_rate": 0.18,
+      "edit_rate": 0.38
+    },
+    {
+      "week": 6,
+      "arm": "baseline",
+      "false_alerts": 1.6,
+      "true_alerts": 0.0,
+      "missed": 0.0,
+      "sends": 40,
+      "reply_rate": 0.195,
+      "edit_rate": 0.32
+    },
+    {
+      "week": 1,
+      "arm": "loop",
+      "false_alerts": 0.0,
+      "true_alerts": 0.0,
+      "missed": 0.0,
+      "sends": 40,
+      "reply_rate": 0.23,
+      "edit_rate": 0.345
+    },
+    {
+      "week": 2,
+      "arm": "loop",
+      "false_alerts": 1.2,
+      "true_alerts": 1.0,
+      "missed": 0.0,
+      "sends": 40,
+      "reply_rate": 0.19,
+      "edit_rate": 0.34
+    },
+    {
+      "week": 3,
+      "arm": "loop",
+      "false_alerts": 1.0,
+      "true_alerts": 0.0,
+      "missed": 0.0,
+      "sends": 40,
+      "reply_rate": 0.225,
+      "edit_rate": 0.225
+    },
+    {
+      "week": 4,
+      "arm": "loop",
+      "false_alerts": 0.4,
+      "true_alerts": 1.0,
+      "missed": 0.0,
+      "sends": 40,
+      "reply_rate": 0.295,
+      "edit_rate": 0.26
+    },
+    {
+      "week": 5,
+      "arm": "loop",
+      "false_alerts": 0.2,
+      "true_alerts": 0.8,
+      "missed": 0.2,
+      "sends": 40,
+      "reply_rate": 0.32,
+      "edit_rate": 0.255
+    },
+    {
+      "week": 6,
+      "arm": "loop",
+      "false_alerts": 0.4,
+      "true_alerts": 0.0,
+      "missed": 0.0,
+      "sends": 40,
+      "reply_rate": 0.28,
+      "edit_rate": 0.225
+    }
+  ]
+}

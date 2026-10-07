@@ -130,6 +130,11 @@
     "operation": "learning_params_api_learning_params_get"
   },
   {
+    "path": "/api/learning/replay",
+    "file": "learning/replay.json",
+    "operation": "learning_replay_api_learning_replay_get"
+  },
+  {
     "path": "/api/learning/weekly",
     "file": "learning/weekly.json",
     "operation": "learning_weekly_api_learning_weekly_get"

@@ -76,7 +76,7 @@ def hourly(db: sqlite3.Connection, row: sqlite3.Row, now: datetime | None = None
     now = now or clock.now()
     sig = _sig(row)
     onset, end = datetime.fromisoformat(sig["onset"]), _dt(sig["end"])
-    orders = Orders(db)
+    orders = Orders(db, ewma=True)
     lo, hi = hour_of(onset) - timedelta(hours=6), hour_of(min(now, (end or now) + timedelta(hours=3))) + timedelta(hours=1)
     probes = db.execute("SELECT checked_at, http_status, load_ms, checkout_script_present FROM probes WHERE checked_at >= ? AND checked_at < ?", (lo.isoformat(), hi.isoformat())).fetchall()
     said = db.execute("""SELECT c.received_at FROM complaints c JOIN extractions e ON e.complaint_id = c.id WHERE c.received_at >= ? AND c.received_at < ?

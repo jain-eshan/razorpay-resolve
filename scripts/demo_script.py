@@ -11,6 +11,9 @@ sys.path.insert(0, str(ROOT / "backend"))
 from app import clock, merchant_mock, service
 from app.act import autonomy, executor
 from app.conversation import machine
+from app.learning import loop as learning
+from app.main import _feedback, _review
+from app.schemas import FeedbackRequest
 from app.zone1 import read as z1
 
 FOUNDER = "merchant:founder"
@@ -116,11 +119,30 @@ def record_zone1(src: sqlite3.Connection) -> dict:
     return out
 
 
+def record_learning(src: sqlite3.Connection) -> dict:
+    """The learning screen: the founder calls an incident a false alarm, then runs the weekly review. One recording per incident, because what changes depends on
+    which monitors raised it. Frames: the card before anything, after the feedback, and after the review, plus the settings in force."""
+    out: dict = {}
+    for iid in [r["id"] for r in src.execute("SELECT id FROM incidents ORDER BY id")]:
+        d = _fresh(src)
+        r = Rec(d)
+        now = clock.now()
+        rec = {"weekly": {"none": r.pack(learning.weekly(d, now))}, "params": {"none": r.pack(learning.all_params(d, now))}}
+        rec["ack"] = r.pack(_feedback(d, FeedbackRequest(subject_type="incident", subject_id=iid, kind="false_alarm")))
+        rec["weekly"]["told"] = r.pack(learning.weekly(d, now))
+        rec["review"] = r.pack(_review(d))
+        rec["weekly"]["reviewed"] = {"data": rec["review"]["data"], "audit": []}
+        rec["params"]["reviewed"] = r.pack(learning.all_params(d, now))
+        out[iid] = rec
+    return out
+
+
 def record(world_path: Path) -> dict:
     src = sqlite3.connect(world_path)
     src.row_factory = sqlite3.Row
     out: dict = {"note": "Replayed from a real run of the engine on the synthetic world. Nothing here is live.", "fix": {}, "chat": {}}
     out["zone1"] = record_zone1(src)
+    out["learning"] = record_learning(src)
 
     # ---- the fix: dry run, first 5, the rest, then messages, then verify and close ----
     db = _fresh(src)

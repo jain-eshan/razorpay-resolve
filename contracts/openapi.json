@@ -1948,6 +1948,27 @@
         "title": "LearningParam",
         "type": "object"
       },
+      "LearningReplay": {
+        "properties": {
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ReplayRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "note",
+          "rows"
+        ],
+        "title": "LearningReplay",
+        "type": "object"
+      },
       "LearningWeekly": {
         "properties": {
           "changes": {
@@ -2333,6 +2354,71 @@
           "thread_ids"
         ],
         "title": "RecoveryRequest",
+        "type": "object"
+      },
+      "ReplayRow": {
+        "properties": {
+          "arm": {
+            "enum": [
+              "off",
+              "baseline",
+              "loop"
+            ],
+            "title": "Arm",
+            "type": "string"
+          },
+          "edit_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edit Rate"
+          },
+          "false_alerts": {
+            "title": "False Alerts",
+            "type": "number"
+          },
+          "missed": {
+            "title": "Missed",
+            "type": "number"
+          },
+          "reply_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reply Rate"
+          },
+          "sends": {
+            "title": "Sends",
+            "type": "integer"
+          },
+          "true_alerts": {
+            "title": "True Alerts",
+            "type": "number"
+          },
+          "week": {
+            "title": "Week",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "week",
+          "arm",
+          "false_alerts",
+          "true_alerts",
+          "missed",
+          "sends"
+        ],
+        "title": "ReplayRow",
         "type": "object"
       },
       "ReplaySummary": {
@@ -4572,6 +4658,42 @@
           }
         },
         "summary": "Learning Params"
+      }
+    },
+    "/api/learning/replay": {
+      "get": {
+        "operationId": "learning_replay_api_learning_replay_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningReplay"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Learning Replay"
+      }
+    },
+    "/api/learning/run": {
+      "post": {
+        "operationId": "learning_run_api_learning_run_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningWeekly"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Learning Run"
       }
     },
     "/api/learning/weekly": {

@@ -583,6 +583,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/learning/replay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Learning Replay */
+        get: operations["learning_replay_api_learning_replay_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learning/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Learning Run */
+        post: operations["learning_run_api_learning_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/learning/weekly": {
         parameters: {
             query?: never;
@@ -1490,6 +1524,13 @@ export interface components {
             /** Version */
             version: number;
         };
+        /** LearningReplay */
+        LearningReplay: {
+            /** Note */
+            note: string;
+            /** Rows */
+            rows: components["schemas"]["ReplayRow"][];
+        };
         /** LearningWeekly */
         LearningWeekly: {
             /** Changes */
@@ -1644,6 +1685,28 @@ export interface components {
             holdout_percent: number;
             /** Thread Ids */
             thread_ids: string[];
+        };
+        /** ReplayRow */
+        ReplayRow: {
+            /**
+             * Arm
+             * @enum {string}
+             */
+            arm: "off" | "baseline" | "loop";
+            /** Edit Rate */
+            edit_rate?: number | null;
+            /** False Alerts */
+            false_alerts: number;
+            /** Missed */
+            missed: number;
+            /** Reply Rate */
+            reply_rate?: number | null;
+            /** Sends */
+            sends: number;
+            /** True Alerts */
+            true_alerts: number;
+            /** Week */
+            week: number;
         };
         /** ReplaySummary */
         ReplaySummary: {
@@ -3014,6 +3077,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LearningParam"][];
+                };
+            };
+        };
+    };
+    learning_replay_api_learning_replay_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningReplay"];
+                };
+            };
+        };
+    };
+    learning_run_api_learning_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningWeekly"];
                 };
             };
         };
