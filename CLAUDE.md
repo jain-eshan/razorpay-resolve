@@ -4,6 +4,8 @@ Product monorepo (working name) for the Razorpay x ISB AI PM Build Challenge, Tr
 
 **Read first:** `docs/PRD.md`, then `docs/SPEC.md` and `docs/BUILD_PLAN.md`. `docs/V1_SPEC.md` applies where the v2 docs are silent.
 
+**Code map:** before searching the repo broadly, use graphify (terminal commands, no model cost): `graphify query "<question>"`, `graphify path "A" "B"`, `graphify affected "X"`, and `graphify-out/GRAPH_REPORT.md` for clusters, hub files and import cycles. It is a map, so read the real file before editing. `.githooks/post-commit` refreshes it after each commit. No `graphify-out/` yet in a new worktree: run `graphify update .`. Not installed: `uv tool install graphifyy`. Docs enter the graph only through a manual `/graphify . --update`.
+
 ## Rules
 - The hard rules are SPEC section 0. Numbers come from SQL or Python, never from a model. Nothing moves money or sends bulk messages without the approval the autonomy setting requires. The assistant never asks customers for credentials.
 - Contracts are frozen (`contracts/`, `backend/app/schemas.py`, `backend/app/channels/base.py`, template IDs and slots, capability flags, `synth/config.yaml`). Change them only through `make contracts` and an entry in `docs/CONTRACT_CHANGES.md`.
