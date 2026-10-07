@@ -325,3 +325,27 @@ Changed: `docs/PRD.md` (4.1 retry schedule and dashboard rows, 16.3 item 1), `do
 What this does and does not show: in a test-mode account, Razorpay stopped retrying and did not disable the webhook, and the dashboard said nothing. It does not show what a live-mode account does, and it does not show whether an email was sent (no alert email was set on the webhook). The note and video must not say "Razorpay disables the webhook after 24 hours" as something we saw. `docs/SPEC.md` INC-1 (a simulated incident that says "disabled after 24 hours") follows the docs claim and was left alone; it is a scenario, not a claim about what we observed.
 
 Not done: the inbox check for a Razorpay email. Nothing in `web/` changed, so no design review was needed.
+
+## 7 Oct 2026, product guides for people who have never heard of Blindspot (web)
+
+Goal: someone who uses Razorpay and meets Blindspot inside the dashboard should understand what it is for, why to use it and how to use it, in Razorpay's own guide format.
+
+Built: finished the half-built guides from the `docs-guides-review` tab (never committed there; copied here, original untouched). Every guide now has three slides: what it is (hero, one paragraph, figures from the data), why (three cards), how to use it (three numbered steps, from the Subscriptions "Get started" strip). Each of the eight guides has its own isometric scene drawn in code (`components/iso.tsx` kit, `IsoScenes.tsx`), replacing screenshots that were never made and showed as broken images. New "Take the tour" welcome card on the Ray home. It always shows (Eshan's call: a judge should be able to take the tour again and again). The overview guide, which no page linked to, is now in Explore. Settings, Learning and How we know got a "How it works" button. Guide routes are in `e2e/layout.spec.ts`; `e2e/guides.spec.ts` walks the tour.
+
+Second pass after Eshan's review of the screens: cards and steps had an icon over a lot of empty height, the arrows touched the card edge, and Setup's two cards did not match. Setup got selectable cards (channels with Blade's own icons, autonomy levels), two large figures for the scan, equal-height cards, a picture in the left card and a short note under the choices. All three slides are one height (548px) from 1024px up.
+
+Third pass after Eshan's review ("it should look like an extension of the current product, not a vibe-coded one"): the shell used Blade's single-colour glyph beside plain text instead of the real logo; the logo is now the official blue and white lockup (`public/razorpay-logo.svg`). The top bar items were 8px low on a phone (Blade's `TopNavBrand` and `TopNavActions` only centre when the search field shows); measured, fixed, and guarded by `e2e/shell.spec.ts`. Guide cards are rebuilt in the shape of the dashboard home's "Ready-to-use products" cards: white card, inset light panel, flat outlined picture (`FlatArt.tsx`, 19 pictures), chip, title, text. The hero is on a static mint-to-blue wash built from Blade tokens (the RazorSense surface painted white over it), clipped to the card's corner, with the shadow ovals that were cut off removed.
+
+Found by a full pass at 375, 768, 1024 and 1440px, not by eye on one screen: code comments printing as text in the welcome card (now a test); the welcome card and the guides cramped to unreadable columns at 768px (columns now start at 1024px); the Ray hero heading wrapping beside its icon at 768px.
+
+Decisions (Eshan): three slides rather than Razorpay's two; isometric drawings rather than product screens; a welcome card on the home. An image model was offered for the art and declined: code-drawn scenes follow Blade tokens and dark mode and do not go stale.
+
+What checking caught: the first drawing of Incidents hid everything behind its base tile (tiles now always draw first), and Autonomy's blocks sat behind the steps they stand on. Both found by looking at the scenes at full size. Copy was checked against the screens: setup steps, fix stages, channel list (Instagram and Messenger are in the snapshot) and the three-question rule (SPEC).
+
+Checks: `tsc -b`, `oxlint` (0 warnings), `npm run build`, snapshot suite passed (see the final run below) (three failed once under heavy machine load, load average 22, and passed on their own), no hex colours and no em dashes in `web/`.
+
+Design review: run by hand from `.claude/agents/design-reviewer.md` (the agent was not available in this session). Section A ran clean, with two justified notes: the soft wash behind the heroes is an inline gradient (`GuideHero.tsx`, `Home.tsx`) because Blade has no gradient prop, and the 24px accent line and 40px step circle are fixed sizes for marks. B and C read through. D: real screenshots of every guide slide at 1440px, of a sample at 1024, 768 and 375px, and of Home and Setup at 1440, 768 and 375px. Dark mode was not looked at. The animated RazorSense surface was not seen on a real GPU. Figures on guides come from the snapshot, so on the hosted demo they are static.
+
+Found, not fixed: at 375px `#root` is `aria-hidden` on every page (Blade's mobile side nav drawer), so the whole page is hidden from screen readers. It is not from this work; a separate task was raised.
+
+Not done: the other tab (`docs-guides-review-e96552`) still holds the same uncommitted files and should be closed or reset so they do not conflict.
