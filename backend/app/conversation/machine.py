@@ -68,7 +68,7 @@ def ensure_channels(db: sqlite3.Connection) -> None:
              ("ch_public", "public_mention", True), ("ch_ray", "ray_forward", True), ("ch_paste", "paste", True), ("ch_csv", "csv", True)]
     for cid, kind, on in seeds:
         db.execute("INSERT INTO channels (id, merchant_id, type, status, reply_identity, autonomy_level, connected_at) VALUES (?,?,?,?,?,?,?)",
-                   (cid, m["id"], kind, "connected" if on else "disconnected", ident if kind in CONVERSATIONAL else None, "suggest", now if on else None))
+                   (cid, m["id"], kind, "connected" if on else "disconnected", ident if kind in CONVERSATIONAL or kind == "public_mention" else None, "suggest", now if on else None))
         if kind == "public_mention":
             _grant(db, cid, m["id"], PUBLIC_SCOPES, m["owner_contact"] or "founder", f"cn_{cid}")
         if kind in CONVERSATIONAL:

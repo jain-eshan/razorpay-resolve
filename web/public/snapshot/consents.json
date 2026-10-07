@@ -37,5 +37,43 @@
     "granted_at": "2026-10-02T10:40:00+05:30",
     "revoked_at": null,
     "retention_days": 30
+  },
+  {
+    "id": "cn_ch_ig",
+    "channel_id": "ch_ig",
+    "scopes": [
+      "Read payment-related messages",
+      "Reply as Kaksha payment help, powered by Razorpay",
+      "Look up payments by an identifier the customer shares"
+    ],
+    "granted_by": "founder@kaksha.example",
+    "granted_at": "2026-10-02T10:40:00+05:30",
+    "revoked_at": null,
+    "retention_days": 30
+  },
+  {
+    "id": "cn_ch_fb",
+    "channel_id": "ch_fb",
+    "scopes": [
+      "Read payment-related messages",
+      "Reply as Kaksha payment help, powered by Razorpay",
+      "Look up payments by an identifier the customer shares"
+    ],
+    "granted_by": "founder@kaksha.example",
+    "granted_at": "2026-10-02T10:40:00+05:30",
+    "revoked_at": null,
+    "retention_days": 30
+  },
+  {
+    "id": "cn_ch_public",
+    "channel_id": "ch_public",
+    "scopes": [
+      "Read public posts that mention the merchant",
+      "Post one generic public reply with a private link"
+    ],
+    "granted_by": "founder@kaksha.example",
+    "granted_at": "2026-10-02T10:40:00+05:30",
+    "revoked_at": null,
+    "retention_days": 30
   }
 ]

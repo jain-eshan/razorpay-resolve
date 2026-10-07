@@ -207,3 +207,10 @@ def test_a_public_thread_is_visible_in_the_thread_list_with_the_public_flag(fres
 def test_handover_request_model_rejects_an_unknown_action():
     with pytest.raises(ValueError):
         HandoverRequest(thread_id="t", action="steal")
+
+
+def test_the_hinglish_public_reply_says_it_is_an_ai_and_the_founder_can_approve_it(fresh):
+    tid = public(fresh, "paisa kat gaya 299 ka, Premium Monthly nahi mila @KakshaApp")
+    draft = next(x for x in m.get_thread(fresh, tid).messages if x.sender_role == "agent")
+    assert "Main ek AI" in draft.body
+    assert [x.policy["status"] for x in m.reply(fresh, tid, None, None, "founder").thread.messages if x.sender_role == "agent"] == ["sent"]

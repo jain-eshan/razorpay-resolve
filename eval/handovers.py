@@ -95,6 +95,17 @@ def run(world: sqlite3.Connection, truth: sqlite3.Connection) -> list[tuple[str,
     threat = next(t for s, t in pub if s["kind"] == "public_threat")
     add("threat_answered_in_public", sum(1 for m in threat.messages if m.sender_role == "agent"), "0", not any(m.sender_role == "agent" for m in threat.messages))
 
+    # ---- the founder approves each public reply: it has to pass the same checks again, in both languages ----
+    failed = 0
+    for s, t in pub:
+        if exp[s["id"]]["expected_outcome"] == "public_reply":
+            try:
+                sent = machine.reply(db, t.id, None, None, "founder").thread
+                failed += [m.policy.get("status") for m in sent.messages if m.sender_role == "agent"] != ["sent"]
+            except ActError:
+                failed += 1
+    add("public_replies_the_founder_could_not_send", failed, "0 (English and Hinglish)", failed == 0)
+
     # ---- the customer writes privately after the public reply ----
     for s, t in pub:
         f = s.get("follow_up")

@@ -130,7 +130,7 @@ TEMPLATES: dict[str, Template] = {'T-A1': {'use': 'Silent victim, access fixed',
            'slots': ['link', 'merchant'],
            'en': "I'm an AI assistant for {merchant}, powered by Razorpay. Sorry about this. We can help, but not "
                  'in public. Please message us privately and we will take it from here: {link}',
-           'hi_latn': 'Main {merchant} ka AI assistant hoon, Razorpay ke saath. Maaf kijiye. Hum madad kar sakte '
+           'hi_latn': 'Main ek AI assistant hoon, {merchant} ke liye, Razorpay ke saath. Maaf kijiye. Hum madad kar sakte '
                       'hain, par public mein nahi. Kripya humein private message karein, hum wahin se dekhenge: '
                       '{link}'},
  'T-HO': {'use': 'Handing to the team',

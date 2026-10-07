@@ -1,0 +1,130 @@
+[
+  {
+    "id": "p01",
+    "kind": "public_with_reference",
+    "label": "synthetic",
+    "handle": "@user_p01",
+    "text": "paisa kat gaya 2499 ka, Premium Annual nahi mila. UPI ref 635333579305 @KakshaApp",
+    "url": null,
+    "follow_up": {
+      "channel": "ig_dm",
+      "who": "private_0",
+      "text": "UPI ref 635333579305"
+    }
+  },
+  {
+    "id": "p02",
+    "kind": "public_with_reference",
+    "label": "synthetic",
+    "handle": "@user_p02",
+    "text": "Paid Rs 299 for Premium Monthly but still locked out. Ref 678690353554. @KakshaApp please fix",
+    "url": null,
+    "follow_up": {
+      "channel": "whatsapp_payments",
+      "who": "private_1",
+      "text": "UPI ref 678690353554"
+    }
+  },
+  {
+    "id": "p03",
+    "kind": "public_with_reference",
+    "label": "synthetic",
+    "handle": "@user_p03",
+    "text": "paisa kat gaya 599 ka, Test Series nahi mila. UPI ref 974889946690 @KakshaApp",
+    "url": null,
+    "follow_up": {
+      "channel": "ig_dm",
+      "who": "private_2",
+      "text": "UPI ref 974889946690"
+    }
+  },
+  {
+    "id": "p04",
+    "kind": "public_with_reference",
+    "label": "synthetic",
+    "handle": "@user_p04",
+    "text": "Paid Rs 299 for Premium Monthly but still locked out. Ref 914294230367. @KakshaApp please fix",
+    "url": null,
+    "follow_up": {
+      "channel": "fb_dm",
+      "who": "private_3",
+      "text": "UPI ref 914294230367"
+    }
+  },
+  {
+    "id": "p05",
+    "kind": "public_with_reference",
+    "label": "synthetic",
+    "handle": "@user_p05",
+    "text": "paisa kat gaya 2499 ka, Premium Annual nahi mila. UPI ref 151339464620 @KakshaApp",
+    "url": null,
+    "follow_up": null
+  },
+  {
+    "id": "p06",
+    "kind": "public_with_reference",
+    "label": "synthetic",
+    "handle": "@user_p06",
+    "text": "Paid Rs 599 for Test Series but still locked out. Ref 727325049295. @KakshaApp please fix",
+    "url": null,
+    "follow_up": null
+  },
+  {
+    "id": "p07",
+    "kind": "public_without_reference",
+    "label": "synthetic",
+    "handle": "@user_p07",
+    "text": "my paisa got deducted but premium not showing @KakshaApp",
+    "url": null,
+    "follow_up": {
+      "channel": "ig_dm",
+      "who": "private_6",
+      "text": "paisa kat gaya 299 ka"
+    }
+  },
+  {
+    "id": "p08",
+    "kind": "public_without_reference",
+    "label": "synthetic",
+    "handle": "@user_p08",
+    "text": "@KakshaApp I paid yesterday and I am still on the free plan",
+    "url": null,
+    "follow_up": null
+  },
+  {
+    "id": "p09",
+    "kind": "public_threat",
+    "label": "synthetic",
+    "handle": "@user_p09",
+    "text": "@KakshaApp you people are frauds. I will go to consumer court and post this everywhere if my money is not back",
+    "url": null,
+    "follow_up": null
+  },
+  {
+    "id": "p10",
+    "kind": "real_public_post",
+    "label": "real_public_post",
+    "handle": "@user_p10",
+    "text": "Payment deducted from users, No update/webhook to us, Nothing visible on dashboard",
+    "url": "https://x.com/stockmock_in/status/2054414319811752172",
+    "follow_up": null
+  },
+  {
+    "id": "p11",
+    "kind": "real_public_post",
+    "label": "real_public_post",
+    "handle": "@user_p11",
+    "text": "Razorpay just fires a webhook and that's it? no retry, no automatic message to the customer",
+    "url": "https://www.reddit.com/r/micro_saas/comments/1s0m63f",
+    "follow_up": null
+  },
+  {
+    "id": "p12",
+    "kind": "real_public_post",
+    "label": "real_public_post",
+    "handle": "@user_p12",
+    "text": "a subscription didn't go through yesterday, I didn't get alerted... and neither did my client",
+    "url": "https://x.com/Ranicket/status/2100870883254636704",
+    "follow_up": null
+  }
+]
