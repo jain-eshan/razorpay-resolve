@@ -1,4 +1,4 @@
-# Handoff: where Blindspot stands (7 Oct 2026, R0 to R3, guided demo and UX review on `main`; R4 first slice, Hero B, on branch `claude/r4-hero-b-zone1`)
+# Handoff: where Blindspot stands (7 Oct 2026: R0 to R4 first slice and R5 handovers on `main`; R5 learning loop in PR #14)
 
 Read this first in a new chat, then `docs/PRD.md`. Everything below is true as of the last commit on `main`.
 
@@ -26,10 +26,10 @@ Blindspot (working name) is Eshan Jain's entry for the Razorpay x ISB AI PM Buil
 | Guided demo (hosted site plays the whole journey with no server) | Done. Merged as PR #4. |
 | Dashboard-aligned frontend (Blade TopNav and SideNav, header-band panels, sticky timeline) | Done. Merged as PR #5. |
 | UX review and one-branch cleanup (7 Oct, section 2b) | Done. Merged as PR #6. `main` is now the only branch. |
-| R4 first slice: Zone 1, Hero B (cannot reach the pay page), no model | Done on `claude/r4-hero-b-zone1`, contracts v0.5, not pushed. Section 2c. |
+| R4 first slice: Zone 1, Hero B (cannot reach the pay page), no model | Done, contracts v0.5. Merged as PR #8. Section 2c. |
 | R4 rest: investigation agent, three-way eval, escalation to Razorpay, duplicates, refunds | Not started |
-| R5 first slice: handovers (Instagram and Messenger control passing, public posts to private) | Done on `claude/r5-learning-handovers`, contracts v0.6, not pushed. Section 2d. |
-| R5 second slice: learning loop, weekly card, screen S-18 (no model) | Done on `claude/roadmap-implementation-2d4e4e`, contracts v0.7, not pushed. Section 2e. |
+| R5 first slice: handovers (Instagram and Messenger control passing, public posts to private) | Done, contracts v0.6. Merged as PR #9. Section 2d. |
+| R5 second slice: learning loop, weekly card, screen S-18 (no model) | Done, contracts v0.7. Open as PR #14 (branch `claude/roadmap-implementation-2d4e4e`). Section 2e. |
 | R5 rest: renewal anomaly (F-08, INC-3) | Not started |
 | R6 real rails (stretch) | Not started |
 | R7 submission kit | Not started |
@@ -78,7 +78,7 @@ The hosted site (Vercel, Root Directory `web`, no env vars) runs the whole journ
 - The first read of `/api/channels` seeds the channel and consent rows (a read that writes). Fine for the prototype.
 
 ### R4 first slice: Hero B, 7 Oct 2026 (section 2c)
-Branch `claude/r4-hero-b-zone1`, local only until Eshan says push. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.5).
+Merged as PR #8. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.5).
 - **What it does:** finds customers who could not reach the pay page, says plainly that it is inferred (Razorpay saw nothing), shows the evidence with points, estimates lost orders, and offers recovery links in stages. INC-4 (pay page 404 after a route rename, still broken at the snapshot) and INC-5 (key rotated, checkout will not open). Five look-alikes (quiet night, ordinary dip, course questions, bank outage, a sale) raise nothing.
 - **Code:** `backend/app/zone1/` (baselines, volume dip, inference, verdict, recovery, read layer), `backend/app/detect/` (probe, order gap, complaint spike), `synth/zone1.py`, executor action `recovery_link`, attribution rows 81 to 83, merchant mock pay page (`/merchant-mock/page-mode`), live routing of a "page not found" message to the open incident. Web: `routes/Zone1View.tsx`, `components/Zone1Fix.tsx`, `components/OrdersChart.tsx`, both heroes on the RAY page. Demo frames: `scripts/demo_script.py` (`record_zone1`) and `web/src/lib/demo.ts`.
 - **Recovery rules:** the founder approves every stage at every autonomy level. Blocked until the pay page has answered normally for 2 hours (checkout incidents: 3 orders with payment attempts since) and messaging is on. Only customers who can be messaged now: WhatsApp inside 24 hours, email; not Instagram (no adapter), not people who never wrote. 10 percent held back by a hash. One link each. Cannot be unsent. Inferred incidents never move money or access.
@@ -88,7 +88,7 @@ Branch `claude/r4-hero-b-zone1`, local only until Eshan says push. Full account 
 - **Tests:** 296 backend and synth, 29 browser tests, 64 eval checks (55 gates pass, 9 reported figures).
 
 ### R5 first slice: handovers, 7 Oct 2026 (section 2d)
-Branch `claude/r5-learning-handovers`. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.6).
+Merged as PR #9. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.6).
 - **Instagram and Messenger:** `backend/app/conversation/handover.py`. The Meta inbox passes a thread only for a payment message or a message that needs a person, and takes it back when the conversation ends or needs a person. Window rules in `channels/policy.py` and `channels/sim.py`. Screen `/ig-demo`.
 - **Public posts:** one generic reply (`T-PUB`) held for the founder, nothing looked up, nothing stored as a case, real posts watched only, threats to a person, then the private message carries on. Screen `/public-demo`. Scripts in `synth/handovers.py`, checks in `eval/handovers.py`.
 - **Limits:** everything is simulated, no real Meta or X connection. The real anchor posts are the three from the research that name a payment problem. Instagram and Messenger consent is granted in the seed, not by the founder.
@@ -131,8 +131,9 @@ backend/app/ schemas.py (models)  fixtures.py (placeholders)  main.py (API)  ser
              act/ (executor, autonomy, messages)  merchant_mock.py  audit.py
              channels/ (base, policy, sim)  conversation/ (machine, lint, templates)
              zone1/ (baselines, volume, inference, verdict, recovery, read, build)  detect/ (webhook, access, probe, order_gap, complaint_spike)
-synth/       config.yaml  world.py  zone1.py (INC-4, INC-5, five look-alikes)  generate.py  messages.py  threads.py (40 scripted threads)
-eval/        run_eval.py  calibrate.py  conversation.py
+             learning/ (params: settings, bounds, versions; loop: feedback, weekly review, card)
+synth/       config.yaml  world.py  zone1.py (INC-4, INC-5, five look-alikes)  generate.py  messages.py  threads.py (40 scripted threads)  replay.py (six invented weeks for the learning eval)
+eval/        run_eval.py  calibrate.py  conversation.py  handovers.py  learning.py
 web/         the RazorSense starter, moved here with history. Read web/CLAUDE.md and web/DESIGN.md.
              src/lib/ (api.ts, demo.ts replay layer, live.ts polling)  src/routes/  src/components/  e2e/ (smoke, talk, fix, demo)
              public/snapshot/ (committed: what the hosted site reads)  vercel.json
@@ -220,12 +221,12 @@ Eshan chose to continue in a new chat. Suggested order:
 1. **Check `razorsense-starter.vercel.app` end to end** (RAY, incident, fix, undo, messages, verify, close, audit, chat, help button, email). Vercel deploys `main`, and PR #6 changed the shell, so look at the top bar, nav and avatar on the live site, and on a phone.
 2. **Polish the user journey** before more backend depth: a guided path through the demo (what to click first), the RAY alert leading into the incident, mobile layout, and the copy. The journey, not the engine, is what a judge will see.
 3. **R4 rest** (`docs/BUILD_PLAN.md` section 5): Hero B is built without a model (section 2c). Left: the investigation agent and the three-way eval (needs an open model or a key with a cap, see section 4), escalation to Razorpay, duplicate monitor and guarded refund, renewal anomaly. Then push the branch and open the PR for the first slice.
-4. **R5** learning loop and handovers, **R7** submission kit (note, video script, evidence section). Cut order if short on time is in `docs/BUILD_PLAN.md` section 10.
+4. **R5** renewal anomaly (F-08, INC-3; handovers and the learning loop are built), **R7** submission kit (note, video script, evidence section). Cut order if short on time is in `docs/BUILD_PLAN.md` section 10.
 5. **Validation track runs alongside:** the founder calls, the Razorpay questions, the 7 Oct webhook observation, the PRD 16.3 verify list.
 
 ## 8. Working agreements
 
-- Contracts are frozen. Change them only via `make contracts` plus an entry in `docs/CONTRACT_CHANGES.md` (currently v0.4).
+- Contracts are frozen. Change them only via `make contracts` plus an entry in `docs/CONTRACT_CHANGES.md` (currently v0.7).
 - Every number on screen comes from SQL or Python. The pipeline must never read `truth.db` (a test enforces it).
 - Ask Eshan before: commit, push, delete, create accounts, send anything outward, or change his Razorpay account beyond test objects he has allowed.
 - Keys go in `.env` only. Razorpay keys must be `rzp_test_`.
