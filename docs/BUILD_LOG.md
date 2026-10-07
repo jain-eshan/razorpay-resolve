@@ -253,3 +253,25 @@ What I rejected: raising the limit alone (it would only move the edge); retrying
 Not done: the alert reaches a person and any session that reads the issue, but nothing wakes a running session. A scheduled checker is still an option.
 
 Design review: not applicable. No screen changed (test config, CI and docs only).
+
+## 7 Oct 2026, CI speed (integrator)
+
+Goal: find out why CI still took 8 to 9 minutes after the timeout fix, and cut it.
+
+What I measured (completed runs of PR 11 and PR 12):
+- Of a 7.5 to 9 minute job, `make e2e` was 430 to 480 s. Setup, snapshot, pytest, eval and lint together were about 50 s.
+- Inside e2e the servers are ready in about 11 s. Then 92 tests ran one after another on a single worker, because GitHub's free runner for a private repo has 2 CPUs and Playwright uses half of them by default.
+- With one worker and a production build, on my laptop: 115 s of test time, of which the 60 layout tests were 67 s (58%). Each one loaded a page and waited for the network to go quiet, three times per screen.
+- With PR 12's production build the e2e step went from 430 to 480 s down to 234 to 304 s. The same commit ran twice (push and pull_request) with 234 s and 304 s, so run-to-run spread is about 30%.
+- `ci.yml` ran on `push` and `pull_request`, so every commit on a branch with an open PR ran the whole job twice.
+
+What changed:
+- `e2e/layout.spec.ts`: one test per screen (20), which loads the screen once and resizes through 375, 768 and 1440 px, instead of 60 page loads. To check it still catches problems I put the old INC-4 overflow back; the test failed with the same message as before (+60 px at 768), then I restored the file.
+- `ci.yml`: runs once per PR (`pull_request`) and once on `main` after a merge (`push`). A newer commit on a PR cancels the older run; runs on `main` are never cancelled so the failure alert always gets a result. npm is cached.
+- `playwright.config.ts`: 2 workers on CI. The live projects still run one after the other.
+
+Result on my laptop in CI mode: 52 tests (was 92, same coverage) in 50 s with 2 workers, against 122 s before. The real CI time is measured on the pull request for this change; see the PR for the number.
+
+Not done: `make test` builds the web app once and the e2e step builds it again (about 10 s on CI each); skipping that needs a Makefile change that I left alone.
+
+Design review: not applicable. No screen changed.

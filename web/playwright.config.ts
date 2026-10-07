@@ -6,6 +6,8 @@ export default defineConfig({
   testDir: 'e2e',
   // CI runners are slower than a laptop and the long walkthroughs (Hero A, Hero B) take about 7 s locally. 60 s keeps them from failing on a busy runner.
   timeout: 60_000,
+  // CI runners have 2 CPUs and one worker left one of them idle. Two workers cut the wall time; the live projects still run one after the other (talk, then live).
+  workers: process.env.CI ? 2 : undefined,
   projects: [
     { name: 'snapshot', testIgnore: /(fix|talk)\.spec/, use: { baseURL: 'http://localhost:5173', channel: 'chrome' } },
     // Both live projects share one fresh world, so they run one after the other: customers talk to the agent while the incident is open, then it is fixed.
