@@ -148,10 +148,11 @@ def test_threats_requests_for_a_person_and_money_decisions_go_to_the_founder(fre
 
 
 def test_a_message_that_is_not_about_a_payment_is_passed_back_and_not_stored(fresh):
+    kept = fresh.execute("SELECT COUNT(*) FROM complaints").fetchone()[0]
     tid = inbound(fresh, "what time does the live class start tomorrow?")
     t = m.get_thread(fresh, tid)
     assert t.state == "pass_back" and [x for x in t.messages if x.direction == "inbound"] == []
-    assert fresh.execute("SELECT COUNT(*) FROM complaints").fetchone()[0] == 17
+    assert fresh.execute("SELECT COUNT(*) FROM complaints").fetchone()[0] == kept
     assert json.loads(fresh.execute("SELECT value FROM settings WHERE key = 'dropped_messages'").fetchone()[0]) == 1
     inbound(fresh, "ok thanks", who="+919800000002")
     assert json.loads(fresh.execute("SELECT value FROM settings WHERE key = 'dropped_messages'").fetchone()[0]) == 2
@@ -303,10 +304,11 @@ from fastapi.testclient import TestClient
 
 
 def test_the_pipeline_makes_a_case_for_every_world_complaint_and_ties_it_to_the_incident(world):
-    rows = world.execute("SELECT * FROM cases").fetchall()
-    assert len(rows) == 17 and {r["match_status"] for r in rows} == {"matched"} and {r["incident_id"] for r in rows} == {"INC-1"}
-    assert world.execute("SELECT COUNT(*) FROM incident_members WHERE case_id IS NOT NULL").fetchone()[0] == 17
-    assert world.execute("SELECT COUNT(*) FROM extractions").fetchone()[0] == 17
+    assert world.execute("SELECT COUNT(*) FROM cases").fetchone()[0] == world.execute("SELECT COUNT(*) FROM complaints").fetchone()[0]
+    rows = world.execute("SELECT * FROM cases WHERE incident_id = 'INC-1'").fetchall()
+    assert len(rows) == 17 and {r["match_status"] for r in rows} == {"matched"}
+    assert world.execute("SELECT COUNT(*) FROM incident_members WHERE incident_id = 'INC-1' AND case_id IS NOT NULL").fetchone()[0] == 17
+    assert world.execute("SELECT COUNT(*) FROM extractions").fetchone()[0] == world.execute("SELECT COUNT(*) FROM complaints").fetchone()[0]
 
 
 @pytest.fixture
@@ -315,6 +317,7 @@ def api(world_file):
 
 
 def test_http_flow_inbound_to_approved_reply_and_case_view(api):
+    cases_before = len(api.get("/api/cases").json())
     v = api.get("/api/incidents/INC-1/members", params={"tier": "exact"}).json()
     silent = next(x for x in v if not x["complained"])
     r = api.post("/api/inbound/help_button", json={"customer_ref": "+919800000009", "text": "access nahi mila", "context": {"payment_id": silent["payment_id"]}})
@@ -329,7 +332,7 @@ def test_http_flow_inbound_to_approved_reply_and_case_view(api):
     assert case["match_status"] == "matched" and case["incident_id"] == "INC-1" and "Part of INC-1" in case["state_line"]
     assert case["lanes"]["customer"] and case["lanes"]["razorpay"] and case["lanes"]["merchant"][0]["text"].startswith("Access record:")
     assert case["extraction"]["claim"] == "debited_no_access" and case["candidates"][0]["method"] == "exact_payment_id"
-    assert len(api.get("/api/cases").json()) == 18
+    assert len(api.get("/api/cases").json()) == cases_before + 1
     assert api.get("/api/cases", params={"status": "matched"}).status_code == 200
 
 

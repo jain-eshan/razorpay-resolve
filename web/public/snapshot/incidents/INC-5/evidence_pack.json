@@ -1,0 +1,13 @@
+{
+  "incident_id": "INC-5",
+  "ref": "MG-INC-5-0E6E",
+  "endpoint": null,
+  "first_failure_at": "2026-09-28T11:04:29+05:30",
+  "last_failure_at": "2026-09-28T12:32:48+05:30",
+  "linked_change": "Razorpay key rotated, checkout still has the old key",
+  "response_excerpt": "Pay page loads. 12 orders created, none with a payment attempt.",
+  "affected_events": 12,
+  "affected_payment_ids": [],
+  "suggested_fix": "Put the new Razorpay key into your checkout, then place one test order and confirm checkout opens.",
+  "for_razorpay": false
+}

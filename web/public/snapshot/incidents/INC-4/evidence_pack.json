@@ -1,0 +1,13 @@
+{
+  "incident_id": "INC-4",
+  "ref": "MG-INC-4-44B0",
+  "endpoint": "https://kaksha.example/buy",
+  "first_failure_at": "2026-10-01T20:10:00+05:30",
+  "last_failure_at": "2026-10-02T10:40:00+05:30",
+  "linked_change": "web v2.8.2: route rename /buy to /checkout",
+  "response_excerpt": "HTTP 404, no Razorpay checkout script on the page",
+  "affected_events": 175,
+  "affected_payment_ids": [],
+  "suggested_fix": "Redirect the old link to the new page (or restore the route), then run the pay page check again.",
+  "for_razorpay": false
+}

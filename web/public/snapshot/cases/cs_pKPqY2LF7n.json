@@ -1,0 +1,108 @@
+{
+  "id": "cs_pKPqY2LF7n",
+  "complaint_id": "cmp_pKPqY2LF7n",
+  "channel": "email",
+  "match_status": "no_payment_found",
+  "mismatch_type": "Z1",
+  "owner": "merchant_code",
+  "incident_id": "INC-4",
+  "received_at": "2026-10-02T00:29:33+05:30",
+  "extraction": {
+    "topic": "payment",
+    "is_payment_related": true,
+    "language": "en",
+    "claim": "page_error",
+    "amount_paise": 59900,
+    "amount_count": null,
+    "stated_time_text": null,
+    "method": "unknown",
+    "app_or_bank_name": null,
+    "ids": {
+      "payment_id": null,
+      "order_id": null,
+      "rrn": null,
+      "email": null,
+      "phone": null,
+      "vpa": null,
+      "card4": null
+    },
+    "product_or_plan": "Test Series",
+    "customer_wants": "unknown",
+    "sentiment": "calm",
+    "injection_suspected": false,
+    "window": null
+  },
+  "candidates": [
+    {
+      "payment_id": "pay_CMt9nNCeXyWTEL",
+      "method": "fuzzy",
+      "calibrated_score": 0.17189819043851795,
+      "features": {
+        "amount": 1.0,
+        "time": 0.3,
+        "method": 0.5,
+        "bank_app": 0.5,
+        "contact_partial": 0.0,
+        "card_last4": 0.0,
+        "vpa_suffix": 0.0,
+        "crowding": 0.0
+      }
+    },
+    {
+      "payment_id": "pay_fnWfuzA65YUl8r",
+      "method": "fuzzy",
+      "calibrated_score": 0.17189819043851795,
+      "features": {
+        "amount": 1.0,
+        "time": 0.3,
+        "method": 0.5,
+        "bank_app": 0.5,
+        "contact_partial": 0.0,
+        "card_last4": 0.0,
+        "vpa_suffix": 0.0,
+        "crowding": 0.0
+      }
+    },
+    {
+      "payment_id": "pay_h30Gq2tMYL5alp",
+      "method": "fuzzy",
+      "calibrated_score": 0.17189819043851795,
+      "features": {
+        "amount": 1.0,
+        "time": 0.3,
+        "method": 0.5,
+        "bank_app": 0.5,
+        "contact_partial": 0.0,
+        "card_last4": 0.0,
+        "vpa_suffix": 0.0,
+        "crowding": 0.0
+      }
+    }
+  ],
+  "lanes": {
+    "customer": [
+      {
+        "at": "2026-10-02T00:29:33+05:30",
+        "text": "Ad link for Test Series says page not found. I wanted to pay Rs 599, please fix it",
+        "source_ref": "cmp_pKPqY2LF7n"
+      }
+    ],
+    "razorpay": [
+      {
+        "at": "2026-10-02T00:29:33+05:30",
+        "text": "No payment attempt from this customer in the 6 hours before they wrote",
+        "source_ref": "cmp_pKPqY2LF7n"
+      }
+    ],
+    "merchant": [
+      {
+        "at": "2026-10-02T00:25:00+05:30",
+        "text": "Pay page check: HTTP 404, no checkout script",
+        "source_ref": "probe_202610020025"
+      }
+    ]
+  },
+  "state_line": "Part of INC-4, inferred: this customer could not get as far as paying, so no payment exists. YOUR SIDE \u00b7 Code.",
+  "reply_draft": null,
+  "injection_suspected": false
+}

@@ -1,0 +1,477 @@
+{
+  "id": "INC-4",
+  "title": "Pay page returned 404 after web v2.8.2",
+  "zone": "before",
+  "mismatch_type": "Z1",
+  "owner": "merchant_code",
+  "inferred": true,
+  "status": "open",
+  "opened_by": "signal",
+  "affected": 13,
+  "complained": 12,
+  "silent": 1,
+  "fixed": 1,
+  "at_risk_paise": 838900,
+  "onset_at": "2026-10-01T20:10:00+05:30",
+  "would_have_alerted_at": "2026-10-01T20:15:00+05:30",
+  "verdict": {
+    "incident_id": "INC-4",
+    "mismatch_type": "Z1",
+    "zone": "before",
+    "inferred": true,
+    "cause_code": "ROUTE_NOT_FOUND_AFTER_DEPLOY",
+    "cause_summary_slots": {
+      "change": "web v2.8.2: route rename /buy to /checkout",
+      "deploy": "web v2.8.2",
+      "title": "Pay page returned 404 after web v2.8.2",
+      "expected": 19,
+      "observed": 6,
+      "zero_attempts": 0,
+      "lost_orders": 13,
+      "avg_order_paise": 59087,
+      "lost_paise": 768131,
+      "status": 404
+    },
+    "owner": "merchant_code",
+    "owner_rule_id": 81,
+    "owner_evidence_ids": [
+      "sig_z06_probe",
+      "sig_z07_complaint_spike",
+      "sig_z05_volume_dip",
+      "me_deploy_282"
+    ],
+    "signature": {
+      "kind": "probe",
+      "onset": "2026-10-01T20:10:00+05:30",
+      "end": null,
+      "ongoing": true,
+      "signal_ids": [
+        "sig_z05_volume_dip",
+        "sig_z06_probe",
+        "sig_z07_complaint_spike"
+      ],
+      "event_id": "me_deploy_282",
+      "first_status": 404,
+      "normal_zero_share": 0.21,
+      "pay_url": "https://kaksha.example/buy",
+      "alert_at": "2026-10-01T20:15:00+05:30",
+      "weight": 5,
+      "event_at": "2026-10-01T20:08:00+05:30",
+      "hourly": [
+        {
+          "at": "2026-10-01T14:00:00+05:30",
+          "orders": 0,
+          "expected": 1.3,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 0,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-10-01T15:00:00+05:30",
+          "orders": 1,
+          "expected": 0.3,
+          "zero_attempts": 1,
+          "probe_checks": 12,
+          "probe_failed": 0,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-10-01T16:00:00+05:30",
+          "orders": 0,
+          "expected": 1.5,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 0,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-10-01T17:00:00+05:30",
+          "orders": 5,
+          "expected": 4.2,
+          "zero_attempts": 2,
+          "probe_checks": 12,
+          "probe_failed": 0,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-10-01T18:00:00+05:30",
+          "orders": 7,
+          "expected": 4.7,
+          "zero_attempts": 1,
+          "probe_checks": 12,
+          "probe_failed": 0,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-10-01T19:00:00+05:30",
+          "orders": 0,
+          "expected": 5.0,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 0,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-10-01T20:00:00+05:30",
+          "orders": 0,
+          "expected": 4.5,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 10,
+          "wrote_in": 1
+        },
+        {
+          "at": "2026-10-01T21:00:00+05:30",
+          "orders": 0,
+          "expected": 3.7,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 12,
+          "wrote_in": 5
+        },
+        {
+          "at": "2026-10-01T22:00:00+05:30",
+          "orders": 3,
+          "expected": 5.7,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 12,
+          "wrote_in": 3
+        },
+        {
+          "at": "2026-10-01T23:00:00+05:30",
+          "orders": 1,
+          "expected": 0.5,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 12,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-10-02T00:00:00+05:30",
+          "orders": 0,
+          "expected": 0,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 12,
+          "wrote_in": 1
+        },
+        {
+          "at": "2026-10-02T01:00:00+05:30",
+          "orders": 0,
+          "expected": 0.6,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 12,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-10-02T02:00:00+05:30",
+          "orders": 0,
+          "expected": 0.1,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 12,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-10-02T03:00:00+05:30",
+          "orders": 0,
+          "expected": 0,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 12,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-10-02T04:00:00+05:30",
+          "orders": 0,
+          "expected": 0.3,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 12,
+          "wrote_in": 1
+        },
+        {
+          "at": "2026-10-02T05:00:00+05:30",
+          "orders": 0,
+          "expected": 0.3,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 12,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-10-02T06:00:00+05:30",
+          "orders": 1,
+          "expected": 0.9,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 12,
+          "wrote_in": 1
+        },
+        {
+          "at": "2026-10-02T07:00:00+05:30",
+          "orders": 0,
+          "expected": 1.6,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 12,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-10-02T08:00:00+05:30",
+          "orders": 0,
+          "expected": 0.4,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 12,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-10-02T09:00:00+05:30",
+          "orders": 0,
+          "expected": 0.7,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 12,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-10-02T10:00:00+05:30",
+          "orders": 1,
+          "expected": 1.4,
+          "zero_attempts": 0,
+          "probe_checks": 9,
+          "probe_failed": 9,
+          "wrote_in": 0
+        }
+      ],
+      "lost_orders": 13
+    },
+    "onset_at": "2026-10-01T20:10:00+05:30",
+    "resolved_at": null,
+    "linked_event_id": "me_deploy_282",
+    "affected_count": 13,
+    "confidence": "high",
+    "unexplained_case_ids": [],
+    "runner_up": null,
+    "evidence": [
+      {
+        "kind": "probe_failure",
+        "weight": 2,
+        "ref": "sig_z06_probe"
+      },
+      {
+        "kind": "complaint_spike",
+        "weight": 1,
+        "ref": "sig_z07_complaint_spike"
+      },
+      {
+        "kind": "order_volume_dip",
+        "weight": 1,
+        "ref": "sig_z05_volume_dip"
+      },
+      {
+        "kind": "merchant_event",
+        "weight": 1,
+        "ref": "me_deploy_282"
+      }
+    ],
+    "what_we_cannot_see": [
+      "Anything between the customer's device and your server",
+      "Visitors who saw the error and left without writing to you",
+      "Why the page stopped answering"
+    ]
+  },
+  "timeline": [
+    {
+      "bucket_start": "2026-10-01T14:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T15:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 1,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T16:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T17:00:00+05:30",
+      "ok": 3,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 2,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T18:00:00+05:30",
+      "ok": 6,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 1,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T19:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T20:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": [
+        "web v2.8.2: route rename /buy to /checkout",
+        "pay page starts failing",
+        "alert would fire"
+      ]
+    },
+    {
+      "bucket_start": "2026-10-01T21:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T22:00:00+05:30",
+      "ok": 3,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T23:00:00+05:30",
+      "ok": 1,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-02T00:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-02T01:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-02T02:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-02T03:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-02T04:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-02T05:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-02T06:00:00+05:30",
+      "ok": 1,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-02T07:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-02T08:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-02T09:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-02T10:00:00+05:30",
+      "ok": 1,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    }
+  ],
+  "lift": [],
+  "tier_counts": {
+    "exact": 8,
+    "likely": 0,
+    "check": 0,
+    "excluded": 4
+  },
+  "replay": {
+    "incident_id": "INC-4",
+    "replayable_by_support": 0,
+    "not_replayable_disabled_window": 0,
+    "too_old": 0,
+    "note": "Not applicable: nobody had paid, so there is nothing to replay."
+  },
+  "actions": []
+}

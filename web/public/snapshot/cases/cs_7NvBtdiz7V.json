@@ -1,0 +1,50 @@
+{
+  "id": "cs_7NvBtdiz7V",
+  "complaint_id": "cmp_7NvBtdiz7V",
+  "channel": "whatsapp_payments",
+  "match_status": "not_payment",
+  "mismatch_type": null,
+  "owner": null,
+  "incident_id": null,
+  "received_at": "2026-10-02T05:48:43+05:30",
+  "extraction": {
+    "topic": "other",
+    "is_payment_related": false,
+    "language": "en",
+    "claim": "other",
+    "amount_paise": null,
+    "amount_count": null,
+    "stated_time_text": null,
+    "method": "unknown",
+    "app_or_bank_name": null,
+    "ids": {
+      "payment_id": null,
+      "order_id": null,
+      "rrn": null,
+      "email": null,
+      "phone": null,
+      "vpa": null,
+      "card4": null
+    },
+    "product_or_plan": null,
+    "customer_wants": "unknown",
+    "sentiment": "calm",
+    "injection_suspected": false,
+    "window": null
+  },
+  "candidates": [],
+  "lanes": {
+    "customer": [
+      {
+        "at": "2026-10-02T05:48:43+05:30",
+        "text": "when will the physics lecture recording be uploaded?",
+        "source_ref": "cmp_7NvBtdiz7V"
+      }
+    ],
+    "razorpay": [],
+    "merchant": []
+  },
+  "state_line": "Not about a payment. Nothing is kept.",
+  "reply_draft": null,
+  "injection_suspected": false
+}

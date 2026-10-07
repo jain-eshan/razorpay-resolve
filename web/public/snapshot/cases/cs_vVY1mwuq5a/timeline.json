@@ -1,0 +1,23 @@
+{
+  "customer": [
+    {
+      "at": "2026-10-01T21:01:50+05:30",
+      "text": "ad ka link kaam nahi kar raha, page not found aa raha hai. Test Series 599 ka lena hai",
+      "source_ref": "cmp_vVY1mwuq5a"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-10-01T21:01:50+05:30",
+      "text": "No payment attempt from this customer in the 6 hours before they wrote",
+      "source_ref": "cmp_vVY1mwuq5a"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-10-01T21:00:00+05:30",
+      "text": "Pay page check: HTTP 404, no checkout script",
+      "source_ref": "probe_202610012100"
+    }
+  ]
+}

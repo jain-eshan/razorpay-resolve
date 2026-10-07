@@ -10,6 +10,7 @@ sys.path.insert(0, str(ROOT / "backend"))
 from app import clock, merchant_mock, service
 from app.act import autonomy, executor
 from app.conversation import machine
+from app.zone1 import read as z1
 
 FOUNDER = "merchant:founder"
 STAGES = ("dry_run", "first_5", "rest")
@@ -32,7 +33,8 @@ class Rec:
     def pack(self, model) -> dict:
         rows = [e.model_dump(mode="json") for e in reversed(service.audit_entries(self.db)) if e.id > self.last]
         self.last = max([self.last, *(r["id"] for r in rows)])
-        return {"data": model if isinstance(model, dict) else model.model_dump(mode="json"), "audit": rows}
+        data = model if isinstance(model, dict) else [m.model_dump(mode="json") for m in model] if isinstance(model, list) else model.model_dump(mode="json")
+        return {"data": data, "audit": rows}
 
 
 def _levels(db: sqlite3.Connection, **changes) -> None:
@@ -40,10 +42,84 @@ def _levels(db: sqlite3.Connection, **changes) -> None:
     db.commit()
 
 
+def _clone(db: sqlite3.Connection) -> sqlite3.Connection:
+    db.commit()  # a backup of a connection with an unsaved change never finishes
+    dst = sqlite3.connect(":memory:")
+    dst.row_factory = sqlite3.Row
+    db.backup(dst)
+    return dst
+
+
+def record_zone1(src: sqlite3.Connection) -> dict:
+    """Hero B (INC-4): the pay page, the fix, recovery links in stages and what the customers did over the next two days.
+    Frames are keyed by the few things the page can differ on: whether messaging is on, how long the page has been fixed, and how long ago the links went out."""
+    out: dict = {"probe": {}, "health": {}, "plan": {"off": {}, "on": {}}, "previews": None, "stages": {}, "members": {}, "detail": {}, "verify": {}}
+
+    def state(msg_on: bool, fixed_hours: float | None):
+        d = _fresh(src)
+        if msg_on:
+            _levels(d, messaging_enabled=True)
+        if fixed_hours is not None:
+            merchant_mock.set_page_mode(d, "ok")
+            clock.advance(int(fixed_hours))
+            # the demo moves the clock in whole hours; half an hour is not offered
+        return d
+
+    def snap(d, key: str, r: Rec, into: dict) -> None:
+        into["members"][key] = r.pack(service.members(d, "INC-4"))
+        into["detail"][key] = r.pack(service.detail(d, "INC-4"))
+
+    d = state(False, None)
+    r = Rec(d)
+    out["probe"]["broken"] = r.pack(z1.run_probe(d))
+    out["health"]["broken"] = r.pack(merchant_mock.page_health(d))
+    out["verify"]["broken"] = r.pack(executor.verify(_clone(d), "INC-4"))
+    snap(d, "base", r, out)
+    for msg in (False, True):
+        for key, hours in (("broken", None), ("ok0", 0), ("ok1", 1), ("ok2", 2)):
+            dd = state(msg, hours)
+            out["plan"]["on" if msg else "off"][key] = Rec(dd).pack(executor.get(dd, executor.create(dd, "INC-4", "recovery_link", {})))
+            if key.startswith("ok") and not msg:
+                out["health"][key] = Rec(dd).pack(merchant_mock.page_health(dd))
+    d = state(False, 0)
+    out["probe"]["ok"] = Rec(d).pack(z1.run_probe(d))
+    for key, hours in (("wait0", 0), ("wait1", 1)):
+        dd = state(False, hours)
+        out["verify"][key] = Rec(dd).pack(executor.verify(dd, "INC-4"))
+    dd = state(False, 2)
+    out["verify"]["closed_none"] = Rec(dd).pack(executor.verify(dd, "INC-4"))
+
+    d = state(True, 2)
+    r = Rec(d)
+    aid = executor.create(d, "INC-4", "recovery_link", {})
+    r.last = max([e.id for e in service.audit_entries(d)] or [0])
+    out["previews"] = [p.model_dump(mode="json") for p in executor.message_previews(d, aid)]
+    for st in STAGES:
+        out["stages"][st] = r.pack(executor.approve(d, aid, st, FOUNDER))
+        if st == "dry_run":
+            continue
+        snap(d, "first5" if st == "first_5" else "rest0", r, out)
+        if st == "first_5":
+            out["verify"]["running"] = Rec(_clone(d)).pack(executor.verify(_clone(d), "INC-4"))
+    out["verify"]["closed_rest0"] = Rec(_clone(d)).pack(executor.verify(_clone(d), "INC-4"))
+    for hours, key in ((24, "rest24"), (24, "rest48")):
+        clock.advance(hours)
+        out["stages"][key] = r.pack(executor.get(d, aid))
+        from app.zone1 import recovery
+
+        recovery.settle(d)
+        snap(d, key, r, out)
+        out["verify"][f"closed_{key}"] = Rec(_clone(d)).pack(executor.verify(_clone(d), "INC-4"))
+    out["stages"]["rest0"] = out["stages"]["rest"]
+    out["settings_on"] = autonomy.read(d).model_dump(mode="json")
+    return out
+
+
 def record(world_path: Path) -> dict:
     src = sqlite3.connect(world_path)
     src.row_factory = sqlite3.Row
     out: dict = {"note": "Replayed from a real run of the engine on the synthetic world. Nothing here is live.", "fix": {}, "chat": {}}
+    out["zone1"] = record_zone1(src)
 
     # ---- the fix: dry run, first 5, the rest, then messages, then verify and close ----
     db = _fresh(src)
@@ -96,7 +172,7 @@ def record(world_path: Path) -> dict:
     # ---- conversations, on a world where the incident is still open ----
     db = _fresh(src)
     r = Rec(db)
-    victims = [x["payment_id"] for x in db.execute("SELECT payment_id FROM incident_members WHERE tier = 'exact' AND complained = 0 ORDER BY payment_id").fetchall()]
+    victims = [x["payment_id"] for x in db.execute("SELECT payment_id FROM incident_members WHERE incident_id = 'INC-1' AND tier = 'exact' AND complained = 0 ORDER BY payment_id").fetchall()]
     chat = out["chat"]
 
     def thread_step(channel, who, text, ctx=None):
@@ -119,5 +195,6 @@ def record(world_path: Path) -> dict:
     scenario("unrelated", "A message that is not about a payment", "whatsapp_payments", "+919800012347", ["what time does the live class start tomorrow?"])
     scenario("help", "Help button on a receipt", "help_button", "+919800012399", ["access nahi mila"], approve=True, ctx={"payment_id": victims[1]})
     chat["help"]["payment_id"] = victims[1]
+    scenario("page", "A customer who cannot open the pay page", "whatsapp_payments", "+919800012348", ["The ad link for Test Series says page not found. I wanted to pay Rs 599"], approve=True)
     scenario("email", "A customer writes by email", "email", "asha.demo@example.test", ["Hi, I paid Rs 299 for Premium Monthly yesterday but my account still shows the free plan."])
     return out

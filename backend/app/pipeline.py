@@ -13,6 +13,7 @@ from .investigate.rules_fallback import build_trace, build_verdict
 from .match import lookup as mt
 from .match.keys import complaints_by_payment
 from .widen.silent import build_cohort
+from .zone1 import build as zone1
 
 
 def run(db: sqlite3.Connection) -> list[str]:
@@ -45,6 +46,7 @@ def run(db: sqlite3.Connection) -> list[str]:
                            [(iid, m.payment_id, m.tier, m.exclusion_reason, int(m.complained), None, m.amount_paise) for m in members])
             ids.append(iid)
     _cases(db)
+    ids += zone1.run(db, now)
     db.commit()
     return ids
 

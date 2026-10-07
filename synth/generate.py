@@ -11,6 +11,7 @@ import yaml
 
 from .threads import build_threads
 from .world import build
+from .zone1 import apply as add_zone1
 
 ROOT = Path(__file__).resolve().parent.parent
 CFG = yaml.safe_load((Path(__file__).parent / "config.yaml").read_text())
@@ -26,6 +27,7 @@ def generate(out: Path, seed: int | None = None) -> dict:
         dbs[name] = sqlite3.connect(path)
         dbs[name].executescript((ROOT / "contracts" / schema).read_text())
     counts = build(cfg, dbs["world.db"], dbs["truth.db"], out)
+    counts.update(add_zone1(cfg, dbs["world.db"], dbs["truth.db"], out))
     counts["threads"] = build_threads(dbs["world.db"], dbs["truth.db"], out, cfg["seed"])
     for d in dbs.values():
         d.close()

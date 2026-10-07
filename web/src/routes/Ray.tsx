@@ -7,10 +7,12 @@ import { when } from '../lib/format'
 export default function Ray() {
   const nav = useNavigate()
   const { data: incs, error } = useGet<Schemas['IncidentSummary'][]>('/api/incidents')
-  const id = incs?.[0]?.id
+  const inc = incs?.find((i) => i.zone === 'after')    // Hero A: paid, and no access
+  const incB = incs?.find((i) => i.zone === 'before' && i.id === 'INC-4') ?? incs?.find((i) => i.zone === 'before')   // Hero B: could not pay at all
+  const id = inc?.id
   const { data: card } = useGet<Schemas['RayCard']>(id ? `/api/incidents/${id}/ray_card` : null)
+  const { data: cardB } = useGet<Schemas['RayCard']>(incB ? `/api/incidents/${incB.id}/ray_card` : null)
   const { data: members } = useGet<Schemas['Member'][]>(id ? `/api/incidents/${id}/members` : null)
-  const inc = incs?.[0]
   const atAlert = inc?.would_have_alerted_at && members ? members.filter((m) => m.captured_at <= inc.would_have_alerted_at!).length : null
 
   return (
@@ -59,6 +61,39 @@ export default function Ray() {
               </CardBody>
             </Card>
           </Box>
+
+          {incB && cardB && (
+            <>
+              <Box display="flex" flexDirection="column" gap="spacing.3">
+                <Text size="small" color="surface.text.gray.muted">{when(incB.would_have_alerted_at ?? incB.onset_at)}, minutes after a deploy</Text>
+                <Card>
+                  <CardBody>
+                    <Box display="flex" flexDirection="column" gap="spacing.3">
+                      <Text size="small" weight="semibold" color="feedback.text.notice.intense">Heads up · {cardB.owner_chip}</Text>
+                      <Text>Your pay page is not answering. A change went live a few minutes before. Razorpay cannot see this, so I am telling you.</Text>
+                      <Text>I'll keep watching.</Text>
+                    </Box>
+                  </CardBody>
+                </Card>
+              </Box>
+              <Box display="flex" flexDirection="column" gap="spacing.3">
+                <Text size="small" color="surface.text.gray.muted">The next morning</Text>
+                <Card>
+                  <CardBody>
+                    <Box display="flex" flexDirection="column" gap="spacing.3">
+                      <Text size="small" weight="semibold" color="feedback.text.notice.intense">{cardB.owner_chip}</Text>
+                      <Text>{cardB.cause_line}</Text>
+                      <Text>{cardB.affected} orders lost, about. {cardB.at_risk_paise ? `${rupees(cardB.at_risk_paise)} from customers who can still be reached.` : ''}</Text>
+                      <Box display="flex" gap="spacing.3">
+                        <Button size="small" onClick={() => nav(`/incidents/${cardB.incident_id}`)}>{cardB.buttons[0]}</Button>
+                        <Button size="small" variant="secondary" onClick={() => nav(`/incidents/${cardB.incident_id}/dev`)}>{cardB.buttons[1]}</Button>
+                      </Box>
+                    </Box>
+                  </CardBody>
+                </Card>
+              </Box>
+            </>
+          )}
         </Box>
       )}
       {!inc && !error && <Text color="surface.text.gray.muted">Nothing to report. No mismatches found.</Text>}

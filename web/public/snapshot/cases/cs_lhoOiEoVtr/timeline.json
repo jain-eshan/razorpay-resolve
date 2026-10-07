@@ -1,0 +1,23 @@
+{
+  "customer": [
+    {
+      "at": "2026-10-01T21:35:11+05:30",
+      "text": "bhai Mock Test Pack ka page khul nahi raha, 404 aa raha hai. 199 ka lena tha",
+      "source_ref": "cmp_lhoOiEoVtr"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-10-01T21:35:11+05:30",
+      "text": "No payment attempt from this customer in the 6 hours before they wrote",
+      "source_ref": "cmp_lhoOiEoVtr"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-10-01T21:35:00+05:30",
+      "text": "Pay page check: HTTP 404, no checkout script",
+      "source_ref": "probe_202610012135"
+    }
+  ]
+}

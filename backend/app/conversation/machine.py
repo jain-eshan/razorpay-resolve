@@ -43,7 +43,8 @@ LEGAL = re.compile(r"charge\s?back|consumer court|legal|lawyer|police|\bfir\b|om
 OPEN = ("opened", "triage", "identify", "lookup", "matched", "explain", "wait_for_fix", "not_found")
 CLAIM_LABEL = {"debited_no_access": "paid but has no access", "debited_no_order": "was charged but the order did not go through", "charged_twice": "was charged twice",
                "refund_not_received": "has not received a refund", "charged_after_cancel": "was charged after cancelling", "renewal_failed": "renewal failed",
-               "payment_failed": "payment failed", "other": "something about payments"}
+               "payment_failed": "payment failed", "page_error": "the pay page did not open", "checkout_not_opening": "checkout would not open",
+               "other": "something about payments"}
 CONVERSATIONAL = ("help_button", "whatsapp_payments", "email")
 
 
@@ -264,6 +265,13 @@ def _turn(db: sqlite3.Connection, tid: str, channel: str, body: str, context: di
         _handoff(db, tid, handoff, x, red, now)
         return
 
+    # before the payment: the customer could not get as far as paying, and an open incident says the pay page or checkout is broken
+    if x.claim in ZONE1_CLAIMS and not ctx_pay and not (x.ids.rrn or x.ids.payment_id or x.ids.order_id):
+        inc = _zone1_incident(db, x, now)
+        if inc:
+            _zone1(db, tid, inc, lang, slots0, now)
+            return
+
     # lookup: a payment id from a help button is as good as one the customer typed
     full = Redacted("\n".join(r["body_redacted"] for r in db.execute("SELECT body_redacted FROM thread_messages WHERE thread_id = ? AND direction = 'inbound' ORDER BY created_at, rowid", (tid,))), _vault(db, cid))
     cal = mt.load_calibrator()
@@ -291,6 +299,27 @@ def _turn(db: sqlite3.Connection, tid: str, channel: str, body: str, context: di
         return
     db.execute("UPDATE threads SET question_count = ?, state = 'identify' WHERE id = ?", (asked + 1, tid))
     _say(db, tid, QUESTIONS[asked], slots0, lang, "disclosure_or_question", now)
+
+
+ZONE1_CLAIMS = ("page_error", "checkout_not_opening")
+
+
+def _zone1_incident(db: sqlite3.Connection, x: Extraction, now: datetime) -> sqlite3.Row | None:
+    """The open before-the-payment incident this complaint belongs to: a page problem for a page complaint, a checkout problem for a checkout complaint."""
+    kind = "probe" if x.claim == "page_error" else "gap"
+    for r in db.execute("SELECT * FROM incidents WHERE zone = 'before' AND status != 'closed' AND onset_at <= ? ORDER BY onset_at DESC", (now.isoformat(),)):
+        sig = json.loads(r["signature"])
+        if sig["kind"] == kind and (not r["resolved_at"] or now - datetime.fromisoformat(r["resolved_at"]) <= timedelta(hours=24)):
+            return r
+    return None
+
+
+def _zone1(db: sqlite3.Connection, tid: str, inc: sqlite3.Row, lang: str, slots0: dict, now: datetime) -> None:
+    """Say it is on the merchant's side and being fixed, without asking for a payment that does not exist. Inferred, so nothing here promises a refund or a fix time."""
+    th = db.execute("SELECT * FROM threads WHERE id = ?", (tid,)).fetchone()
+    db.execute("UPDATE cases SET match_status = 'no_payment_found', mismatch_type = 'Z1', owner = ?, incident_id = ? WHERE id = ?", (inc["owner"], inc["id"], th["case_id"]))
+    db.execute("UPDATE threads SET state = 'wait_for_fix', incident_id = ?, zone = 'before' WHERE id = ?", (inc["id"], tid))
+    _say(db, tid, "T-Z1", slots0, lang, "status_reply", now)
 
 
 def _date_slot(x: Extraction, now: datetime) -> str:
@@ -433,8 +462,12 @@ def resolve_threads(db: sqlite3.Connection, incident_id: str) -> int:
     now, n = clock.now(), 0
     for th in db.execute("SELECT * FROM threads WHERE state = 'wait_for_fix' AND incident_id = ?", (incident_id,)).fetchall():
         case = db.execute("SELECT matched_payment_ids FROM cases WHERE id = ?", (th["case_id"],)).fetchone()
-        pid = json.loads(case["matched_payment_ids"])[0]
+        pids = json.loads(case["matched_payment_ids"])
         db.execute("UPDATE threads SET state = 'resolved', closed_at = ? WHERE id = ?", (now.isoformat(), th["id"]))
+        if not pids:  # a customer who never paid (before the payment): nothing to restore, the recovery link is the follow-up
+            n += 1
+            continue
+        pid = pids[0]
         if not db.execute("SELECT 1 FROM messages WHERE payment_id = ? AND status = 'sent'", (pid,)).fetchone():
             slots = {k: v for k, v in messages.slots_for(db, pid).items() if not k.startswith("_")}
             _say(db, th["id"], "T-A2", slots, th["language"], "status_reply", now)

@@ -13,8 +13,11 @@ from collections import Counter
 
 from .. import audit, clock, merchant_mock
 from ..channels import policy
+from ..conversation.templates import TEMPLATES
 from ..db import write_tx as _write
 from ..schemas import Action, ActionItem, ActionSummary, MessagePreview, VerifyResult
+from ..zone1 import read as z1
+from ..zone1 import recovery
 from . import autonomy, messages
 
 STAGES = autonomy.STAGES
@@ -55,8 +58,10 @@ def _blocked(db: sqlite3.Connection, a: sqlite3.Row) -> str | None:
     n = len(_items(db, a["id"]))
     if n > s.max_bulk_customers:
         return f"{n} customers is above your limit of {s.max_bulk_customers} per action. Raise the limit in settings, then approve."
-    if a["action_type"] == "message" and not s.messaging_enabled:
+    if a["action_type"] in ("message", "recovery_link") and not s.messaging_enabled:
         return "Messaging is switched off. Turn it on in settings, then approve."
+    if a["action_type"] == "recovery_link":
+        return z1.recovery_block(db, db.execute("SELECT * FROM incidents WHERE id = ?", (a["incident_id"],)).fetchone())
     return None
 
 
@@ -66,25 +71,35 @@ def _set_incident(db: sqlite3.Connection, incident_id: str, status: str) -> None
 
 
 # ---------- read ----------
-def _summary(a: sqlite3.Row, items: list[sqlite3.Row]) -> ActionSummary:
-    return ActionSummary(id=a["id"], incident_id=a["incident_id"], action_type=a["action_type"], status=a["status"], stage=a["stage"], approved_by=a["approved_by"],
-                         item_counts=dict(Counter(i["status"] for i in items)))
+def _summary(a: sqlite3.Row, items: list[sqlite3.Row], db: sqlite3.Connection | None = None) -> ActionSummary:
+    counts = dict(Counter(i["status"] for i in items))
+    if db is not None and a["action_type"] == "recovery_link":  # what the links did so far, from the recovery offers
+        counts |= recovery.outcome(db, a["incident_id"])
+    return ActionSummary(id=a["id"], incident_id=a["incident_id"], action_type=a["action_type"], status=a["status"], stage=a["stage"], approved_by=a["approved_by"], item_counts=counts)
 
 
 def get(db: sqlite3.Connection, action_id: str) -> Action:
     a = _action(db, action_id)
     items = _items(db, action_id)
     nxt = _next_stage(a)
-    return Action(**_summary(a, items).model_dump(), params=json.loads(a["params_json"] or "{}"), next_stage=nxt, blocked_reason=_blocked(db, a) if nxt else None,
+    return Action(**_summary(a, items, db).model_dump(), params=json.loads(a["params_json"] or "{}"), next_stage=nxt, blocked_reason=_blocked(db, a) if nxt else None,
                   items=[ActionItem(payment_id=i["payment_id"], status=i["status"], idempotency_key=i["idempotency_key"]) for i in items])
 
 
 def summaries(db: sqlite3.Connection, incident_id: str) -> list[ActionSummary]:
-    return [_summary(a, _items(db, a["id"])) for a in db.execute("SELECT * FROM actions WHERE incident_id = ? ORDER BY created_at, id", (incident_id,))]
+    return [_summary(a, _items(db, a["id"]), db) for a in db.execute("SELECT * FROM actions WHERE incident_id = ? ORDER BY created_at, id", (incident_id,))]
 
 
 def message_previews(db: sqlite3.Connection, action_id: str | None) -> list[MessagePreview]:
     a = _action(db, action_id) if action_id else db.execute("SELECT * FROM actions WHERE action_type = 'message' ORDER BY created_at DESC LIMIT 1").fetchone()
+    if a and a["action_type"] == "recovery_link":
+        params, pp, groups = json.loads(a["params_json"]), {p.customer_id: p for p in recovery.people(db, a["incident_id"])}, {}
+        for it in _items(db, a["id"]):
+            if it["payment_id"] not in params["holdout"]:
+                sl = recovery.slots(db, pp[it["payment_id"]], params["valid_hours"])
+                groups.setdefault(sl["_lang"] if params["language"] == "auto" else params["language"], []).append(sl)
+        return [MessagePreview(template_id="T-Z1R", language=lang, category=TEMPLATES["T-Z1R"]["category"], sender=messages.sender(rows[0]), body=messages.render("T-Z1R", lang, rows[0]),
+                               recipients=len(rows), holdout_allowed=True) for lang, rows in sorted(groups.items())]
     if not a or a["action_type"] != "message":
         return []
     complained = {r["payment_id"] for r in db.execute("SELECT payment_id FROM incident_members WHERE incident_id = ? AND complained = 1", (a["incident_id"],))}
@@ -93,6 +108,8 @@ def message_previews(db: sqlite3.Connection, action_id: str | None) -> list[Mess
 
 # ---------- plan ----------
 def _plan_payments(db: sqlite3.Connection, incident_id: str, action_type: str) -> list[str]:
+    if action_type == "recovery_link":  # customers who could not pay and may be messaged right now. The id column holds the customer, there is no payment
+        return [p.customer_id for p in recovery.people(db, incident_id) if p.state == "ready"]
     if action_type == "grant":  # Exact tier only, customers who complained first so the first 5 are the ones the founder has heard of
         return [r["payment_id"] for r in db.execute("""SELECT im.payment_id FROM incident_members im JOIN payments p ON p.id = im.payment_id
                                                      WHERE im.incident_id = ? AND im.tier = 'exact' ORDER BY im.complained DESC, p.captured_at, p.id""", (incident_id,))]
@@ -111,7 +128,12 @@ def create(db: sqlite3.Connection, incident_id: str, action_type: str, params: d
             raise ActError(422, "Only the Exact group is switched on automatically. Likely and Check manually need your own review.")
         if action_type == "message" and params.get("language", "auto") not in ("auto", *messages.LANGS):
             raise ActError(422, "Language must be auto, en or hi_latn.")
+        if action_type == "recovery_link" and db.execute("SELECT zone FROM incidents WHERE id = ?", (incident_id,)).fetchone()["zone"] != "before":
+            raise ActError(422, "Recovery links are for incidents where customers could not get as far as paying.")
         params = {"tier": "exact"} if action_type == "grant" else {"language": params.get("language", "auto")}
+        if action_type == "recovery_link":
+            who = _plan_payments(db, incident_id, action_type)
+            params |= {"valid_hours": recovery.LINK_HOURS, "holdout_percent": autonomy.read(db).holdout_percent, "holdout": recovery.holdout_ids(who, incident_id, autonomy.read(db).holdout_percent)}
         aid = f"act_{incident_id.removeprefix('INC-')}_{action_type}"
         row = db.execute("SELECT * FROM actions WHERE id = ?", (aid,)).fetchone()
         if row and row["status"] != "reverted":
@@ -121,7 +143,7 @@ def create(db: sqlite3.Connection, incident_id: str, action_type: str, params: d
         pids = _plan_payments(db, incident_id, action_type)
         if not pids:
             raise ActError(409, "Nothing to do yet. Restore access first: a message says access is on, so it only goes to customers whose access is confirmed."
-                           if action_type == "message" else "No Exact-tier customers in this incident.")
+                           if action_type == "message" else _nobody(db, incident_id) if action_type == "recovery_link" else "No Exact-tier customers in this incident.")
         if row:  # undone earlier: arm the same plan again, same keys
             db.execute("UPDATE actions SET status = 'drafted', stage = 'dry_run', params_json = ?, approved_by = NULL, approved_at = NULL WHERE id = ?", (json.dumps(params), aid))
             db.execute("UPDATE action_items SET status = 'pending', prior_state_json = NULL, result_json = NULL, executed_at = NULL, verified_at = NULL WHERE action_id = ?", (aid,))
@@ -134,6 +156,12 @@ def create(db: sqlite3.Connection, incident_id: str, action_type: str, params: d
         audit.log(db, actor, "action", aid, f"Planned {action_type} for {len(pids)} customers. Nothing has run yet.", incident_id=incident_id)
         _auto(db, aid, autonomy.read(db).autonomy)
     return aid
+
+
+def _nobody(db: sqlite3.Connection, incident_id: str) -> str:
+    why = Counter(p.reason for p in recovery.people(db, incident_id) if p.state == "not_reachable")
+    paid = sum(1 for p in recovery.people(db, incident_id) if p.state in ("paid_since", "recovered", "link_sent", "held_back"))
+    return "Nobody can be sent a link right now." + (f" {sum(why.values())} cannot be reached: {why.most_common(1)[0][0]}" if why else "") + (f" {paid} are already paid or already have a link." if paid else "")
 
 
 # ---------- run ----------
@@ -151,12 +179,36 @@ def _do_message(db, a, item, approver):
     return None, {"message_id": mid}
 
 
+def _do_recovery(db, a, item, approver):
+    """A recovery link for one customer who could not pay. A held-back customer is recorded and not messaged. Everyone else goes through the policy engine."""
+    params = json.loads(a["params_json"])
+    cid = item["payment_id"]
+    person = next(p for p in recovery.people(db, a["incident_id"]) if p.customer_id == cid)
+    held = cid in params["holdout"]
+    oid = recovery.offer_id(a["incident_id"], cid)
+    result = {"offer_id": oid, "held_back": held}
+    if not held:
+        sl = recovery.slots(db, person, params["valid_hours"])
+        result["message_id"] = policy.send(db, action_id=a["id"], payment_id=cid, customer_id=cid, template_id="T-Z1R", language=sl["_lang"] if params["language"] == "auto" else params["language"],
+                                           slots=sl, approved_by=approver, block=person.reason if person.state != "ready" else None)
+    link = f"https://rzp.io/l/{hashlib.sha256(oid.encode()).hexdigest()[:8]}"  # a mock of Razorpay's payment link API
+    db.execute("INSERT OR REPLACE INTO recovery_offers (id, incident_id, thread_id, order_id, link_ref, amount_paise, holdout, sent_at, paid_at) VALUES (?,?,?,?,?,?,?,?,NULL)",
+               (oid, a["incident_id"], None, None, link, person.amount_paise, int(held), clock.now().isoformat()))
+    return None, result
+
+
+def _check_recovery(db, item, result):
+    if not db.execute("SELECT 1 FROM recovery_offers WHERE id = ?", (result["offer_id"],)).fetchone():
+        return False
+    return result["held_back"] or (db.execute("SELECT status FROM messages WHERE id = ?", (result["message_id"],)).fetchone() or {"status": ""})["status"] == "sent"
+
+
 def _check_grant(db, item, result): return merchant_mock.check(db, item["payment_id"])["has_access"]
 def _check_message(db, item, result): return (db.execute("SELECT status FROM messages WHERE id = ?", (result["message_id"],)).fetchone() or {"status": ""})["status"] == "sent"
 
 
-_DO = {"grant": _do_grant, "message": _do_message}
-_CHECK = {"grant": _check_grant, "message": _check_message}
+_DO = {"grant": _do_grant, "message": _do_message, "recovery_link": _do_recovery}
+_CHECK = {"grant": _check_grant, "message": _check_message, "recovery_link": _check_recovery}
 
 
 def _exec_item(db: sqlite3.Connection, a: sqlite3.Row, item: sqlite3.Row, approver: str) -> bool:
@@ -231,7 +283,7 @@ def approve(db: sqlite3.Connection, action_id: str, stage: str, approver: str) -
 def revert(db: sqlite3.Connection, action_id: str, actor: str = FOUNDER) -> Action:
     with _write(db):
         a = _action(db, action_id)
-        if a["action_type"] == "message":
+        if a["action_type"] in ("message", "recovery_link"):
             raise ActError(409, "Messages cannot be unsent.")
         if a["status"] == "reverted":
             return get(db, action_id)
@@ -262,6 +314,8 @@ def verify(db: sqlite3.Connection, incident_id: str, actor: str = "system") -> V
     with _write(db):
         if not db.execute("SELECT 1 FROM incidents WHERE id = ?", (incident_id,)).fetchone():
             raise ActError(404, f"Incident {incident_id} not found.")
+        if db.execute("SELECT zone FROM incidents WHERE id = ?", (incident_id,)).fetchone()["zone"] == "before":
+            return z1.verify(db, incident_id, actor)
         h = merchant_mock.health(db)
         g = db.execute("SELECT * FROM actions WHERE incident_id = ? AND action_type = 'grant' AND status != 'reverted'", (incident_id,)).fetchone()
         if not g:

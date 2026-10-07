@@ -22,7 +22,7 @@ MATRIX = {
     "recovery_link": {"suggest": "founder", "assist": "founder", "autopilot_reversible": "founder"},
     "refund": {"suggest": "per_row_web", "assist": "per_row_web", "autopilot_reversible": "per_row_web"},
 }
-ACTION_CLASS = {"grant": "grant_exact", "message": "incident_message"}  # the types R2 can execute
+ACTION_CLASS = {"grant": "grant_exact", "message": "incident_message", "recovery_link": "recovery_link"}  # the types that can execute: R2 grants and messages, R4 recovery links
 
 DEFAULTS = {"daily_refund_cap_paise": 500_000, "max_bulk_customers": 100, "messaging_enabled": False, "holdout_percent": 10, "autonomy": "suggest"}
 

@@ -16,7 +16,18 @@ type Demo = {
     hook_broken: Frame; hook_ok: Frame; hook_ok24: Frame; revert_first_5: Frame<Action>; revert_rest: Frame<Action>; settings: Schemas['Settings']
   }
   chat: Record<string, Scenario>
+  zone1: {
+    probe: Record<'broken' | 'ok', Frame>
+    health: Record<'broken' | 'ok0' | 'ok1' | 'ok2', Frame>
+    plan: Record<'on' | 'off', Record<'broken' | 'ok0' | 'ok1' | 'ok2', Frame<Action>>>
+    previews: unknown
+    stages: Record<'dry_run' | 'first_5' | 'rest' | 'rest0' | 'rest24' | 'rest48', Frame<Action>>
+    members: Record<Phase, Frame<Schemas['Member'][]>>
+    detail: Record<Phase, Frame<Schemas['IncidentDetail']>>
+    verify: Record<'broken' | 'wait0' | 'wait1' | 'closed_none' | 'running' | 'closed_rest0' | 'closed_rest24' | 'closed_rest48', Frame>
+  }
 }
+type Phase = 'base' | 'first5' | 'rest0' | 'rest24' | 'rest48'
 
 const STAGES = ['dry_run', 'first_5', 'rest'] as const
 const NEXT: Record<string, string | undefined> = { drafted: 'dry_run', dry_run: 'first_5', first_5: 'rest' }
@@ -30,6 +41,22 @@ const st = {
   revert: undefined as Frame<Action> | undefined,
   audit: [] as Audit[], nextId: 1,
   threads: {} as Record<string, Detail>, order: [] as string[], byThread: {} as Record<string, string>,
+}
+
+// Hero B (INC-4) has its own clock, because the demo user moves it from that page. mode: the pay page. r: how far the recovery links got.
+const z = {
+  mode: '404' as '404' | 'ok', fixAt: 0, hours: 0, r: 'none' as 'none' | 'drafted' | 'dry_run' | 'first_5' | 'rest', sentAt: 0, status: 'open' as 'open' | 'verifying' | 'closed',
+}
+const ZID = 'act_4_recovery_link'
+const pageKey = () => (z.mode === '404' ? 'broken' : z.hours - z.fixAt < 1 ? 'ok0' : z.hours - z.fixAt < 2 ? 'ok1' : 'ok2') as 'broken' | 'ok0' | 'ok1' | 'ok2'
+const since = () => z.hours - z.sentAt
+const phase = (): Phase => (z.r === 'rest' ? (since() < 24 ? 'rest0' : since() < 48 ? 'rest24' : 'rest48') : z.r === 'first_5' ? 'first5' : 'base')
+const zAction = (d: Demo): Frame<Action> | undefined => {
+  const f = d.zone1
+  if (z.r === 'none') return undefined
+  if (z.r === 'drafted') return f.plan[st.messagingOn ? 'on' : 'off'][pageKey()]
+  if (z.r === 'rest') return f.stages[phase() as 'rest0' | 'rest24' | 'rest48']
+  return f.stages[z.r]
 }
 
 let loaded: Promise<Demo> | undefined
@@ -78,13 +105,27 @@ export async function demoGet(path: string): Promise<unknown | undefined> {
     if (st.mode !== 'ok') return d.fix.hook_broken.data
     return st.hours >= 24 ? d.fix.hook_ok24.data : { ...(d.fix.hook_ok.data as object), healthy_hours: st.hours }
   }
+  if (p === '/merchant-mock/page-health') return d.zone1.health[pageKey()].data
   if (p === '/api/settings') return settings(d)
+  if (p === `/api/actions/${ZID}`) {
+    const f = zAction(d)
+    if (!f) throw new Error('404 action')
+    return f.data
+  }
+  if (p === '/api/incidents/INC-4') {
+    const f = d.zone1.detail[phase()].data
+    return { ...f, status: z.status, actions: [zAction(d)?.data].filter(Boolean) }
+  }
+  if (p === '/api/incidents/INC-4/members') {
+    const tier = new URLSearchParams(q).get('tier')
+    return d.zone1.members[phase()].data.filter((m) => !tier || m.tier === tier)
+  }
   if (p.startsWith('/api/actions/')) {
     const f = p.endsWith('_message') ? msgFrame(d) : grantFrame(d)
     if (!f) throw new Error('404 action')
     return f.data
   }
-  if (p === '/api/messages/preview') return d.fix.messages.previews[st.lang]
+  if (p === '/api/messages/preview') return q.includes(ZID) ? d.zone1.previews : d.fix.messages.previews[st.lang]
   if (p === '/api/incidents/INC-1') return incident(d)
   if (p === '/api/incidents/INC-1/members') {
     const tier = new URLSearchParams(q).get('tier')
@@ -99,6 +140,41 @@ export async function demoGet(path: string): Promise<unknown | undefined> {
 export async function demoSend(method: string, path: string, body: Record<string, unknown> = {}): Promise<unknown> {
   const d = await demo()
   const f = d.fix
+  const zt = d.zone1
+  if (path === '/api/probes/run') return (z.mode === '404' ? zt.probe.broken : zt.probe.ok).data
+  if (path === '/merchant-mock/page-mode') {
+    z.mode = 'ok'
+    z.fixAt = z.hours
+    return zt.health.ok0.data
+  }
+  if (path === '/api/incidents/INC-4/actions') {
+    if (z.r === 'none') {
+      z.r = 'drafted'
+      add(zt.plan.off.broken.audit)
+    }
+    return zAction(d)!.data
+  }
+  if (path === `/api/actions/${ZID}/approve`) {
+    const stage = body.stage as string
+    if (!st.messagingOn) throw new Error('Messaging is switched off. Turn it on in settings, then approve.')
+    const gate = zt.plan.on[pageKey()].data.blocked_reason
+    if (gate) throw new Error(gate)
+    const next = NEXT[z.r === 'rest' ? 'rest' : z.r]
+    if (!next || STAGES.indexOf(stage as (typeof STAGES)[number]) < STAGES.indexOf(next as (typeof STAGES)[number])) return zAction(d)!.data
+    if (stage !== next) throw new Error(`Approve '${label(next)}' next, not '${label(stage)}'.`)
+    z.r = stage as typeof z.r
+    if (stage === 'rest') z.sentAt = z.hours
+    add(zt.stages[stage as 'dry_run' | 'first_5' | 'rest'].audit)
+    return zAction(d)!.data
+  }
+  if (path === '/api/incidents/INC-4/verify') {
+    const k = z.mode === '404' ? 'broken' : pageKey() === 'ok0' ? 'wait0' : pageKey() === 'ok1' ? 'wait1'
+      : z.r === 'first_5' ? 'running' : z.r === 'rest' ? (`closed_${phase()}` as 'closed_rest0') : 'closed_none'
+    const fr = zt.verify[k]
+    z.status = k.startsWith('closed') ? 'closed' : k === 'broken' ? 'open' : 'verifying'
+    if (k.startsWith('closed')) add(fr.audit)
+    return fr.data
+  }
   if (path === '/api/incidents/INC-1/actions') {
     if (body.action_type === 'grant') {
       if (st.g === 'none' || st.g === 'reverted') {
@@ -160,7 +236,8 @@ export async function demoSend(method: string, path: string, body: Record<string
     return f.hook_ok.data
   }
   if (path === '/api/clock/advance') {
-    st.hours += Number(body.hours)
+    if (/^INC-[45]$/.test(String(body.incident ?? ''))) z.hours += Number(body.hours)
+    else st.hours += Number(body.hours)
     st.audit.push({ id: st.nextId++, at: clockNow(), actor: 'system', kind: 'action', ref_id: null, summary: `Demo clock moved forward ${body.hours} hours.` } as Audit)
     return { now: clockNow() }
   }

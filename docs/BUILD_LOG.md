@@ -148,3 +148,33 @@ Changed: top bar says Razorpay (Blindspot is the "BLINDSPOT" section of the side
 Branches: `blindspot` merged into `main`, which is now the only long-lived branch. Checks: typecheck, lint, 13 snapshot browser tests pass.
 
 After the merge (PR #6): deleted `blindspot` and the merged `claude/*` branches on GitHub, then `claude/docs-review-build-d91b5a` (duplicate R2, last commit `d96b591`) at Eshan's request. Eshan's main folder moved to `main`. Worktree rules are in `docs/HANDOFF.md` section 3b.
+
+## 7 Oct 2026, R4 first slice: Hero B without a model (integrator)
+
+Goal: build the "customer cannot reach the pay page" story end to end with rules and SQL only: detect it, say it is inferred, show the evidence, offer recovery links with a holdout, verify, close. The investigation agent, the three-way eval, escalation to Razorpay, duplicates and refunds are not in this slice.
+
+Built:
+- World (`synth/zone1.py`, applied after the Hero A world with its own random stream, so no Hero A number moved): INC-4 (ad links return 404 after a route rename, still broken at the snapshot, 10 orders never created, 14 customers wrote in), INC-5 (key rotated, checkout will not open, 12 orders nobody could pay for), five look-alikes that must not alert (N1 quiet night, N2 ordinary dip, N3 course questions, N4 bank outage with real failed payments, N5 a sale), a pay-page check every 5 minutes with a rare single failure, and simulated customer behaviour after a link (labelled synthetic).
+- Monitors: pay-URL probe (two failed checks in a row), order-attempt gap, order volume dip, complaint spike with the "has this person any payment of their own" test that routes a cluster to Zone 1, the bank or the customers.
+- Inference with the SPEC weights and confidence, a rule-based verdict and trace, attribution rows 81 to 83, incidents INC-4 (high, merchant code) and INC-5 (medium, merchant setup).
+- Recovery link action: founder approves every stage at every level, blocked until the fix has held for 2 hours and messaging is on, only to customers who can be messaged now (WhatsApp inside 24 hours, email, not Instagram, not people who never wrote), 10 percent held back by a hash, one link per customer, cannot be unsent.
+- Live conversation: a customer who writes "page not found" while the incident is open is told it is the merchant's side and joins the incident, without being asked for a payment that does not exist.
+- Web: Hero B incident page (evidence with points, orders chart against normal, who can be messaged and why not, fix steps, results), the RAY page gets both heroes, and the hosted demo plays the whole of Hero B from frames recorded from the engine.
+
+Decisions and deviations from SPEC 13 and 6.2 (each one stated so a reader can check it):
+- INC-4 is on Thu 1 Oct 20:08 and still broken at the snapshot, not Thu 24 Sep to 22:05. Recovery needs the customer's WhatsApp window open, and a week-old incident would have none.
+- The SPEC thresholds assume about 10 orders an hour. This merchant gets 1.5 to 4.5. Order gap: 90 minute window, at least 5 orders, p below 0.001 (stricter than SPEC). Volume dip: 150 minute window. A baseline needs 6 comparable days.
+- Incident ids: Zone 1 starts at INC-4, the one with more evidence first.
+- No model. Everything on the page is a count from SQL or Python.
+
+What the tests and eval caught, which a read-through had not:
+- First version of the order gap found nothing: 8 orders in 90 minutes cannot make two consecutive qualifying checks at 1.5 orders an hour. The ad campaign in the world now sends 11 extra orders.
+- With 4 comparable days the volume baseline was noisy enough to flag an ordinary Friday evening as a dip. Six days fixes it.
+- Walking back to find where unpaid orders began stopped at the window edge, so INC-5's onset was 48 minutes late. It now walks the whole order history (4 minutes off).
+- Eval gates for exact-key matching counted complaints with no payment at all. They now count only complaints about a payment.
+- `main.py` already had a function named `recovery`, which hid the module; a database backup of a connection with an unsaved change never finishes; five older tests assumed every complaint was Hero A's.
+
+Metrics (one seed, so rough): INC-4 and INC-5 found, onset error 4.5 minutes at worst, cause and owner right, 0 of 5 look-alikes raised an incident, 0 false incidents, precision 1.0 and recall 1.0 (K6 needs 0.8), lost-order estimate worst error 0.30, INC-4 flagged 5 minutes after the deploy with the pay-page check on. Recovery on simulated customers: 4 of 7 paid within 48 hours, about ₹3,096 (not a result). Tests: 296 backend and synth, 29 browser tests, 64 eval checks (55 gates pass, 9 are reported figures).
+
+Deferred: investigation agent and three-way eval, escalation to Razorpay (no Razorpay-owned incident exists here), duplicates, refunds, Instagram, a live recipient list for customers who write in after the incident was opened, a recovery holdout big enough to measure (8 customers cannot), any real traffic.
+

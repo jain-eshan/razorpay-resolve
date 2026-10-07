@@ -1,0 +1,23 @@
+{
+  "customer": [
+    {
+      "at": "2026-10-02T06:38:05+05:30",
+      "text": "Ad link for Premium Annual says page not found. I wanted to pay Rs 2499, please fix it",
+      "source_ref": "cmp_Q02tukBwmy"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-10-02T06:38:05+05:30",
+      "text": "No payment attempt from this customer in the 6 hours before they wrote",
+      "source_ref": "cmp_Q02tukBwmy"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-10-02T06:35:00+05:30",
+      "text": "Pay page check: HTTP 404, no checkout script",
+      "source_ref": "probe_202610020635"
+    }
+  ]
+}

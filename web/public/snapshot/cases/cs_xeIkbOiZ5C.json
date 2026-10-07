@@ -1,0 +1,54 @@
+{
+  "id": "cs_xeIkbOiZ5C",
+  "complaint_id": "cmp_xeIkbOiZ5C",
+  "channel": "whatsapp_payments",
+  "match_status": "not_payment",
+  "mismatch_type": null,
+  "owner": null,
+  "incident_id": null,
+  "received_at": "2026-09-23T19:21:55+05:30",
+  "extraction": {
+    "topic": "other",
+    "is_payment_related": false,
+    "language": "hi_latn",
+    "claim": "other",
+    "amount_paise": null,
+    "amount_count": null,
+    "stated_time_text": "aaj",
+    "method": "unknown",
+    "app_or_bank_name": null,
+    "ids": {
+      "payment_id": null,
+      "order_id": null,
+      "rrn": null,
+      "email": null,
+      "phone": null,
+      "vpa": null,
+      "card4": null
+    },
+    "product_or_plan": null,
+    "customer_wants": "unknown",
+    "sentiment": "calm",
+    "injection_suspected": false,
+    "window": {
+      "start": "2026-09-23T00:00:00+05:30",
+      "end": "2026-09-23T19:21:55+05:30",
+      "resolved": true
+    }
+  },
+  "candidates": [],
+  "lanes": {
+    "customer": [
+      {
+        "at": "2026-09-23T19:21:55+05:30",
+        "text": "doubt session kab hai aaj?",
+        "source_ref": "cmp_xeIkbOiZ5C"
+      }
+    ],
+    "razorpay": [],
+    "merchant": []
+  },
+  "state_line": "Not about a payment. Nothing is kept.",
+  "reply_draft": null,
+  "injection_suspected": false
+}

@@ -1,4 +1,4 @@
-# Handoff: where Blindspot stands (7 Oct 2026, R0 to R3, guided demo and UX review all on `main`)
+# Handoff: where Blindspot stands (7 Oct 2026, R0 to R3, guided demo and UX review on `main`; R4 first slice, Hero B, on branch `claude/r4-hero-b-zone1`)
 
 Read this first in a new chat, then `docs/PRD.md`. Everything below is true as of the last commit on `main`.
 
@@ -26,7 +26,8 @@ Blindspot (working name) is Eshan Jain's entry for the Razorpay x ISB AI PM Buil
 | Guided demo (hosted site plays the whole journey with no server) | Done. Merged as PR #4. |
 | Dashboard-aligned frontend (Blade TopNav and SideNav, header-band panels, sticky timeline) | Done. Merged as PR #5. |
 | UX review and one-branch cleanup (7 Oct, section 2b) | Done. Merged as PR #6. `main` is now the only branch. |
-| R4 Zone 1 (cannot reach the pay page), investigation agent, three-way eval | Not started |
+| R4 first slice: Zone 1, Hero B (cannot reach the pay page), no model | Done on `claude/r4-hero-b-zone1`, contracts v0.5, not pushed. Section 2c. |
+| R4 rest: investigation agent, three-way eval, escalation to Razorpay, duplicates, refunds | Not started |
 | R5 learning loop, handovers | Not started |
 | R6 real rails (stretch) | Not started |
 | R7 submission kit | Not started |
@@ -74,6 +75,16 @@ The hosted site (Vercel, Root Directory `web`, no env vars) runs the whole journ
 - **The conversation dial is per channel** (Channels screen). The Settings dial is global and governs grants and incident messages.
 - The first read of `/api/channels` seeds the channel and consent rows (a read that writes). Fine for the prototype.
 
+### R4 first slice: Hero B, 7 Oct 2026 (section 2c)
+Branch `claude/r4-hero-b-zone1`, local only until Eshan says push. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.5).
+- **What it does:** finds customers who could not reach the pay page, says plainly that it is inferred (Razorpay saw nothing), shows the evidence with points, estimates lost orders, and offers recovery links in stages. INC-4 (pay page 404 after a route rename, still broken at the snapshot) and INC-5 (key rotated, checkout will not open). Five look-alikes (quiet night, ordinary dip, course questions, bank outage, a sale) raise nothing.
+- **Code:** `backend/app/zone1/` (baselines, volume dip, inference, verdict, recovery, read layer), `backend/app/detect/` (probe, order gap, complaint spike), `synth/zone1.py`, executor action `recovery_link`, attribution rows 81 to 83, merchant mock pay page (`/merchant-mock/page-mode`), live routing of a "page not found" message to the open incident. Web: `routes/Zone1View.tsx`, `components/Zone1Fix.tsx`, `components/OrdersChart.tsx`, both heroes on the RAY page. Demo frames: `scripts/demo_script.py` (`record_zone1`) and `web/src/lib/demo.ts`.
+- **Recovery rules:** the founder approves every stage at every autonomy level. Blocked until the pay page has answered normally for 2 hours (checkout incidents: 3 orders with payment attempts since) and messaging is on. Only customers who can be messaged now: WhatsApp inside 24 hours, email; not Instagram (no adapter), not people who never wrote. 10 percent held back by a hash. One link each. Cannot be unsent. Inferred incidents never move money or access.
+- **Results (one seed):** both incidents found, onset within 4.5 minutes, 0 of 5 look-alikes raised, precision and recall 1.0, INC-4 flagged 5 minutes after the deploy with the pay-page check on, lost-order estimate within 30 percent. Simulated recovery: 4 of 7 paid within 48 hours (not a result).
+- **Deviations from the spec, on purpose:** INC-4 is Thu 1 Oct and still broken (so WhatsApp windows are open), monitors scaled to 1.5 to 4.5 orders an hour, Zone 1 ids start at INC-4.
+- **Limits:** the monitors' windows were set after looking at this world. Eight customers cannot measure what a link adds. A customer who writes in live joins the incident but not the recovery list. INC-5 has no interactive demo (read-only in the hosted demo). The probe cannot see a checkout that will not open, which is why the order gap monitor exists. No model.
+- **Tests:** 296 backend and synth, 29 browser tests, 64 eval checks (55 gates pass, 9 reported figures).
+
 ### UX review, 7 Oct 2026 (PR #6)
 Eshan asked for a designer's review of the whole web app. Method: Playwright with the installed Chrome at 1440 and 390 wide (full-resolution screenshots, computed styles, overflow, text size and contrast checks on 13 routes), because the in-app browser shrinks screenshots.
 
@@ -103,7 +114,8 @@ backend/app/ schemas.py (models)  fixtures.py (placeholders)  main.py (API)  ser
              ingest/ (redact, timeparse, extract)  match/ (keys, lookup)
              act/ (executor, autonomy, messages)  merchant_mock.py  audit.py
              channels/ (base, policy, sim)  conversation/ (machine, lint, templates)
-synth/       config.yaml  world.py  generate.py  messages.py  threads.py (40 scripted threads)
+             zone1/ (baselines, volume, inference, verdict, recovery, read, build)  detect/ (webhook, access, probe, order_gap, complaint_spike)
+synth/       config.yaml  world.py  zone1.py (INC-4, INC-5, five look-alikes)  generate.py  messages.py  threads.py (40 scripted threads)
 eval/        run_eval.py  calibrate.py  conversation.py
 web/         the RazorSense starter, moved here with history. Read web/CLAUDE.md and web/DESIGN.md.
              src/lib/ (api.ts, demo.ts replay layer, live.ts polling)  src/routes/  src/components/  e2e/ (smoke, talk, fix, demo)
@@ -191,7 +203,7 @@ Needs the next session:
 Eshan chose to continue in a new chat. Suggested order:
 1. **Check `razorsense-starter.vercel.app` end to end** (RAY, incident, fix, undo, messages, verify, close, audit, chat, help button, email). Vercel deploys `main`, and PR #6 changed the shell, so look at the top bar, nav and avatar on the live site, and on a phone.
 2. **Polish the user journey** before more backend depth: a guided path through the demo (what to click first), the RAY alert leading into the incident, mobile layout, and the copy. The journey, not the engine, is what a judge will see.
-3. **R4 Zone 1 and depth** (`docs/BUILD_PLAN.md` section 5): cannot-reach-the-pay-page inference (Hero B, with the "Inferred" label), the pay-URL probe, the investigation agent, the three-way eval. Hero B is placeholder data today.
+3. **R4 rest** (`docs/BUILD_PLAN.md` section 5): Hero B is built without a model (section 2c). Left: the investigation agent and the three-way eval (needs an open model or a key with a cap, see section 4), escalation to Razorpay, duplicate monitor and guarded refund, renewal anomaly. Then push the branch and open the PR for the first slice.
 4. **R5** learning loop and handovers, **R7** submission kit (note, video script, evidence section). Cut order if short on time is in `docs/BUILD_PLAN.md` section 10.
 5. **Validation track runs alongside:** the founder calls, the Razorpay questions, the 7 Oct webhook observation, the PRD 16.3 verify list.
 
@@ -213,5 +225,5 @@ Eshan chose to continue in a new chat. Suggested order:
 - The demo clock and the merchant's webhook fix are simulated and live in process memory and two `settings` keys. Restarting the API (`make run-api`) gives a fresh world; running only `make pipeline` on a world that already has grants does not reset them.
 - `make e2e` now starts the API on port 8000 (fresh world) and a live web on 5174, so both ports must be free.
 - Refunds, recovery links and event re-sending are in the autonomy matrix but have no executor yet.
-- Fixture incident INC-4 (cannot-reach-the-page) exists only as placeholder data and is not served in pipeline mode.
+- Zone 1 incidents are INC-4 and INC-5 in pipeline mode. INC-2 and INC-3 are reserved for after-the-payment incidents of the spec that are not built.
 - The parallel R2 branch (`claude/docs-review-build-d91b5a`) was deleted on 7 Oct 2026 at Eshan's request. It duplicated PR #2. Last commit `d96b591`.

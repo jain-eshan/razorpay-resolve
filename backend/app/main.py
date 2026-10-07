@@ -58,6 +58,8 @@ from .schemas import (
     Tier,
     VerifyResult,
 )
+from .zone1 import read as z1
+from .zone1 import recovery as z1recovery
 
 
 def _live() -> bool:
@@ -175,6 +177,8 @@ def advance_clock(body: ClockAdvance):
         now = clock.advance(body.hours)
         service.log_clock(db, body.hours, now)
         machine.nudge_silent(db, now)
+        z1recovery.settle(db, now)
+        db.commit()
     return ClockState(now=now)
 @api.get("/messages/preview", response_model=list[MessagePreview])
 def message_preview(action_id: str | None = None): return _real(executor.message_previews, action_id) if _live() else fx.PREVIEWS
@@ -221,9 +225,9 @@ def handover(body: HandoverRequest): return fx.HANDOVER
 
 # ---------- zone 1, escalation, learning ----------
 @api.post("/probes/run", response_model=ProbeResult)
-def run_probe(): return fx.PROBE
+def run_probe(): return _real(lambda db: _commit(db, z1.run_probe(db))) if _live() else fx.PROBE
 @api.get("/clusters", response_model=list[Cluster])
-def clusters(window: str | None = None): return [fx.CLUSTER]
+def clusters(window: str | None = None): return _real(z1.clusters) if _live() else [fx.CLUSTER]
 @api.post("/escalations", response_model=Escalation)
 def create_escalation(body: EscalationRequest): return fx.ESC1
 @api.get("/escalations/{escalation_id}", response_model=Escalation)

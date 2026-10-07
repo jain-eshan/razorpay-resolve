@@ -11,7 +11,8 @@ from pydantic import BaseModel
 from .redact import Redacted
 from .timeparse import Window, resolve
 
-Claim = Literal["debited_no_access", "debited_no_order", "charged_twice", "refund_not_received", "charged_after_cancel", "renewal_failed", "payment_failed", "other"]
+Claim = Literal["debited_no_access", "debited_no_order", "charged_twice", "refund_not_received", "charged_after_cancel", "renewal_failed", "payment_failed",
+                "page_error", "checkout_not_opening", "other"]
 Triage = Literal["payment", "access", "refund", "subscription", "other"]
 
 
@@ -70,6 +71,15 @@ def _language(text: str) -> str:
     return "hi_latn" if sum(w in HINGLISH for w in words) >= 2 else "en"
 
 
+PAGE_WORDS = r"(?:page|link|site|website|url)"
+# Before the payment (Zone 1): the customer never paid, so no debit words. A page that will not load, or a checkout that will not open.
+PAGE_ERROR = re.compile(rf"\b404\b|not found|{PAGE_WORDS}[^.]{{0,30}}?(?:khul|open|load|work|chal|kaam)[^.]{{0,12}}?(?:nahi|nhi|not)"
+                        rf"|{PAGE_WORDS}[^.]{{0,30}}?(?:nahi|nhi|not|won.?t|doesn.?t|isn.?t)[^.]{{0,12}}?(?:khul|open|load|work|chal|kaam)")
+CHECKOUT = r"(?:checkout|payment (?:window|popup|screen|page)|pay (?:window|button|screen))"
+CHECKOUT_NOT_OPENING = re.compile(rf"{CHECKOUT}[^.]{{0,40}}?(?:(?:not|nahi|nhi|won.?t|doesn.?t|isn.?t|can.?t)\s*(?:be\s*)?(?:open|opening|khul|load|show|work)|(?:open|khul|load)\s*(?:nahi|nhi|not))"
+                                  rf"|(?:nothing happens|kuch nahi hota)[^.]{{0,30}}\bpay\b|\bpay\b[^.]{{0,30}}(?:nothing happens|kuch nahi hota)")
+
+
 def _claim(low: str, known_payment: bool = False) -> Claim:
     debited = known_payment or re.search(r"debit|deduct|\bkat\b|\bkata\b|kat gaya|kat gaye|charged|paid|paise gaye|money (?:gone|cut)|payment (?:done|kiya|ho gaya|hua)", low)
     if re.search(r"twice|two times|2 times|double|\b2 baar|do baar|dobara|duplicate|\b(?:2|two) payments", low):
@@ -80,6 +90,10 @@ def _claim(low: str, known_payment: bool = False) -> Claim:
         return "charged_after_cancel"
     if re.search(r"renew|auto.?pay|mandate|subscription", low) and re.search(r"fail|not|nahi|nhi|stopped|cut|expired", low):
         return "renewal_failed"
+    if not debited and CHECKOUT_NOT_OPENING.search(low):
+        return "checkout_not_opening"
+    if not debited and PAGE_ERROR.search(low):
+        return "page_error"
     if debited and re.search(r"no order|order (?:not|nahi|nhi)|not placed|order missing|booking (?:not|nahi)", low):
         return "debited_no_order"
     if debited and re.search(r"not (?:active|activated|received|working|showing|unlocked)|activate nahi|nahi mila|nahi chal|nhi mila|no access|still (?:shows?|showing)|free plan|can.?t access|cannot access|locked|nahi dikh|"
@@ -93,7 +107,8 @@ def _claim(low: str, known_payment: bool = False) -> Claim:
 
 
 TOPIC: dict[str, Triage] = {"debited_no_access": "access", "debited_no_order": "payment", "charged_twice": "payment", "refund_not_received": "refund",
-                            "charged_after_cancel": "subscription", "renewal_failed": "subscription", "payment_failed": "payment", "other": "other"}
+                            "charged_after_cancel": "subscription", "renewal_failed": "subscription", "payment_failed": "payment", "page_error": "payment",
+                            "checkout_not_opening": "payment", "other": "other"}
 
 
 def extract(red: Redacted, received_at: datetime, known_payment: bool = False) -> Extraction:
