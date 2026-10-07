@@ -354,3 +354,12 @@ Checks: 363 backend and synth tests (was 334), 46 snapshot browser tests (was 43
 
 Design review: the `design-reviewer` agent could not be started as an agent in this session, so I ran its checks by hand. Mechanical: types, lint, no hex colours, no inline styles, no raw tags, no `repeat(N, 1fr)`, fixed widths only on an icon tile and legend swatches, no em dashes, INC-3 added to the layout test (375, 768 and 1440 px, no sideways overflow). Looked at: INC-3 at 1440 and 375 px, the fix panel after working through it at 1440 and 375 px, the RAY home at 1440 px. Found and fixed: the language control at 375 px. Not looked at by eye: INC-3 at 768 px (the layout test passes), dark mode, the RAY WhatsApp section (asserted by the browser test, not seen), the Incidents list row for INC-3. Found and not fixed: at 375 px opened directly, no button on the incident pages (Hero A, Hero B, INC-3) is exposed to the accessibility tree; handed off as a separate task.
 
+## 7 Oct 2026, 24-hour webhook experiment (integrator)
+
+Closed the experiment that had been open since 6 Oct. Eshan checked the Razorpay test dashboard at 9:12 PM IST: webhook A (the Supabase sink) was still "Enabled", with no banner, warning, failure count or delivery log on the list or the details panel. I read the sink's own log with SQL (read-only): 30 deliveries, two events, 15 attempts each, from 18:41:03 IST on 6 Oct to 17:27:07 IST on 7 Oct (22.8 hours). Each gap was about double the last. The next gap would have been about 23 hours, past the 24-hour limit, and no further attempt came. The sink was still in `401` mode throughout, so the failure never stopped.
+
+Changed: `docs/PRD.md` (4.1 retry schedule and dashboard rows, 16.3 item 1), `docs/HANDOFF.md` (experiment marked done, pending item removed), `docs/SUBMISSION.md` (verify-list row 1 and the to-do list).
+
+What this does and does not show: in a test-mode account, Razorpay stopped retrying and did not disable the webhook, and the dashboard said nothing. It does not show what a live-mode account does, and it does not show whether an email was sent (no alert email was set on the webhook). The note and video must not say "Razorpay disables the webhook after 24 hours" as something we saw. `docs/SPEC.md` INC-1 (a simulated incident that says "disabled after 24 hours") follows the docs claim and was left alone; it is a scenario, not a claim about what we observed.
+
+Not done: the inbox check for a Razorpay email. Nothing in `web/` changed, so no design review was needed.
