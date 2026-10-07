@@ -361,3 +361,40 @@ def test_http_probe_clusters_and_incident_views(api):
         assert api.get(f"/api/incidents/INC-4{path}").status_code == 200, path
     r = api.post("/api/incidents/INC-4/actions", json={"action_type": "recovery_link", "params": {}})
     assert r.status_code == 200 and r.json()["action_type"] == "recovery_link"
+
+
+# ---------- a customer who writes in live while the pay page is broken ----------
+def _inbound(db, text, channel="whatsapp_payments", who="+919800077001"):
+    from app.conversation import machine as m
+
+    return m.step(db, m.handle_inbound(db, channel, who, text, {}, None, False))
+
+
+def test_a_live_customer_who_cannot_open_the_page_is_told_it_is_the_merchants_side_and_joins_the_incident(fresh):
+    step = _inbound(fresh, "The ad link for Test Series says page not found. I wanted to pay Rs 599")
+    t = step.thread
+    assert t.state == "wait_for_fix" and t.zone == "before" and t.incident_id == "INC-4" and t.question_count == 0
+    assert "no money should have left your account" in step.drafted_reply or any("no money should have left" in m.body for m in t.messages)
+    assert t.case.mismatch_type == "Z1" and "UPI ref" not in step.drafted_reply.split("If it did")[0]
+
+
+def test_a_checkout_complaint_joins_the_checkout_incident_only_while_it_is_recent(fresh):
+    clock.advance(24 * 3)  # INC-5 ended days ago, so a new complaint is not about it
+    t = _inbound(fresh, "checkout open nahi ho raha, Test Series 599 ka lena tha, kuch nahi hota", who="+919800077002").thread
+    assert t.incident_id is None and t.state == "identify"
+
+
+def test_closing_a_before_payment_incident_resolves_its_threads_without_a_message(fresh):
+    t = _inbound(fresh, "The Test Series page shows 404 not found, I cannot buy it. Rs 599", who="+919800077003").thread
+    merchant_mock.set_page_mode(fresh, "ok")
+    clock.advance(2)
+    assert executor.verify(fresh, "INC-4").closeable
+    from app.conversation import machine as m
+
+    assert m.get_thread(fresh, t.id).state == "resolved"
+
+
+def test_a_customer_who_adds_the_upi_ref_is_looked_up_not_told_it_is_the_page(fresh):
+    v = fresh.execute("SELECT p.rrn FROM incident_members im JOIN payments p ON p.id = im.payment_id WHERE im.incident_id = 'INC-1' LIMIT 1").fetchone()[0]
+    t = _inbound(fresh, f"page not found aa raha hai but paisa kat gaya, UPI ref {v}", who="+919800077004").thread
+    assert t.zone != "before"

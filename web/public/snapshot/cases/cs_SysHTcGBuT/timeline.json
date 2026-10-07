@@ -1,0 +1,23 @@
+{
+  "customer": [
+    {
+      "at": "2026-09-28T12:07:49+05:30",
+      "text": "checkout open nahi ho raha, Test Series 599 ka lena tha, kuch nahi hota",
+      "source_ref": "cmp_SysHTcGBuT"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-09-28T12:07:49+05:30",
+      "text": "No payment attempt from this customer in the 6 hours before they wrote",
+      "source_ref": "cmp_SysHTcGBuT"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-09-28T12:07:49+05:30",
+      "text": "Pay page check passed: the page loads. Checkout is where it stopped.",
+      "source_ref": null
+    }
+  ]
+}

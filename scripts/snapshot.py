@@ -31,6 +31,14 @@ for e in json.loads((ROOT / "contracts" / "snapshot_manifest.json").read_text())
     f.parent.mkdir(parents=True, exist_ok=True)
     f.write_text(json.dumps(r.json(), indent=2) + "\n")
     n += 1
+if live:  # the manifest names INC-1 and INC-4 only. Write every real incident's pages, so INC-5 and any later incident work without a server.
+    for i in client.get("/api/incidents").json():
+        for suffix in ("", "/members", "/sample", "/trace", "/ray_card", "/evidence_pack", "/replay"):
+            f = out / f"incidents/{i['id']}{suffix}.json"
+            if not f.exists():
+                f.parent.mkdir(parents=True, exist_ok=True)
+                f.write_text(json.dumps(client.get(f"/api/incidents/{i['id']}{suffix}").json(), indent=2) + "\n")
+                n += 1
 if live:  # the manifest has one placeholder case. Write every real case too, so the case screen works without a server.
     for c in client.get("/api/cases").json():
         for path, name in ((f"/api/cases/{c['id']}", f"cases/{c['id']}.json"), (f"/api/cases/{c['id']}/timeline", f"cases/{c['id']}/timeline.json")):

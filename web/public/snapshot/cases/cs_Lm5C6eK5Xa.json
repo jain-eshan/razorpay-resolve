@@ -1,0 +1,108 @@
+{
+  "id": "cs_Lm5C6eK5Xa",
+  "complaint_id": "cmp_Lm5C6eK5Xa",
+  "channel": "whatsapp_payments",
+  "match_status": "no_payment_found",
+  "mismatch_type": "Z1",
+  "owner": "merchant_code",
+  "incident_id": "INC-4",
+  "received_at": "2026-10-01T21:26:45+05:30",
+  "extraction": {
+    "topic": "payment",
+    "is_payment_related": true,
+    "language": "hi_latn",
+    "claim": "page_error",
+    "amount_paise": 249900,
+    "amount_count": null,
+    "stated_time_text": null,
+    "method": "unknown",
+    "app_or_bank_name": null,
+    "ids": {
+      "payment_id": null,
+      "order_id": null,
+      "rrn": null,
+      "email": null,
+      "phone": null,
+      "vpa": null,
+      "card4": null
+    },
+    "product_or_plan": "Premium Annual",
+    "customer_wants": "unknown",
+    "sentiment": "calm",
+    "injection_suspected": false,
+    "window": null
+  },
+  "candidates": [
+    {
+      "payment_id": "pay_RdykLdTVuKzsPJ",
+      "method": "fuzzy",
+      "calibrated_score": 0.17189819043851795,
+      "features": {
+        "amount": 1.0,
+        "time": 0.3,
+        "method": 0.5,
+        "bank_app": 0.5,
+        "contact_partial": 0.0,
+        "card_last4": 0.0,
+        "vpa_suffix": 0.0,
+        "crowding": 0.0
+      }
+    },
+    {
+      "payment_id": "pay_Z3c0gJ4j2peYwM",
+      "method": "fuzzy",
+      "calibrated_score": 0.17189819043851795,
+      "features": {
+        "amount": 1.0,
+        "time": 0.3,
+        "method": 0.5,
+        "bank_app": 0.5,
+        "contact_partial": 0.0,
+        "card_last4": 0.0,
+        "vpa_suffix": 0.0,
+        "crowding": 0.0
+      }
+    },
+    {
+      "payment_id": "pay_FPeMl0dcDEejkx",
+      "method": "fuzzy",
+      "calibrated_score": 0.17189819043851795,
+      "features": {
+        "amount": 1.0,
+        "time": 0.3,
+        "method": 0.5,
+        "bank_app": 0.5,
+        "contact_partial": 0.0,
+        "card_last4": 0.0,
+        "vpa_suffix": 0.0,
+        "crowding": 0.0
+      }
+    }
+  ],
+  "lanes": {
+    "customer": [
+      {
+        "at": "2026-10-01T21:26:45+05:30",
+        "text": "bhai Premium Annual ka page khul nahi raha, 404 aa raha hai. 2499 ka lena tha",
+        "source_ref": "cmp_Lm5C6eK5Xa"
+      }
+    ],
+    "razorpay": [
+      {
+        "at": "2026-10-01T21:26:45+05:30",
+        "text": "No payment attempt from this customer in the 6 hours before they wrote",
+        "source_ref": "cmp_Lm5C6eK5Xa"
+      }
+    ],
+    "merchant": [
+      {
+        "at": "2026-10-01T21:25:00+05:30",
+        "text": "Pay page check: HTTP 404, no checkout script",
+        "source_ref": "probe_202610012125"
+      }
+    ]
+  },
+  "state_line": "Part of INC-4, inferred: this customer could not get as far as paying, so no payment exists. YOUR SIDE \u00b7 Code.",
+  "reply_draft": null,
+  "injection_suspected": false
+}

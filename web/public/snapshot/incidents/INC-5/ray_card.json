@@ -1,0 +1,16 @@
+{
+  "incident_id": "INC-5",
+  "owner_chip": "INFERRED \u00b7 YOUR SIDE \u00b7 Setup",
+  "inferred": true,
+  "cause_line": "Checkout would not open from Mon 28 Sep 11:04. 12 orders were created and nobody could pay for them.",
+  "affected": 12,
+  "complained": 4,
+  "silent": 8,
+  "fixed": 2,
+  "at_risk_paise": 849000,
+  "language": "en",
+  "buttons": [
+    "View evidence",
+    "Send to dev"
+  ]
+}

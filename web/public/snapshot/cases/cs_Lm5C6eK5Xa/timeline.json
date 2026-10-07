@@ -1,0 +1,23 @@
+{
+  "customer": [
+    {
+      "at": "2026-10-01T21:26:45+05:30",
+      "text": "bhai Premium Annual ka page khul nahi raha, 404 aa raha hai. 2499 ka lena tha",
+      "source_ref": "cmp_Lm5C6eK5Xa"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-10-01T21:26:45+05:30",
+      "text": "No payment attempt from this customer in the 6 hours before they wrote",
+      "source_ref": "cmp_Lm5C6eK5Xa"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-10-01T21:25:00+05:30",
+      "text": "Pay page check: HTTP 404, no checkout script",
+      "source_ref": "probe_202610012125"
+    }
+  ]
+}

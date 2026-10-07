@@ -41,9 +41,9 @@ def minutes(a: str, b: str) -> float:
     return abs((datetime.fromisoformat(a) - datetime.fromisoformat(b)).total_seconds()) / 60
 
 
-incidents = world.execute("SELECT * FROM incidents ORDER BY onset_at").fetchall()
+incidents = world.execute("SELECT * FROM incidents WHERE zone = 'after' ORDER BY onset_at").fetchall()
 t_inc = truth.execute("SELECT * FROM truth_incidents").fetchall()
-add("incidents_found_minus_true", len(incidents) - len(t_inc), "0 (no missed, no false incident)", len(incidents) == len(t_inc))
+add("incidents_found_minus_true", len(incidents) - len(t_inc), "0 (no missed, no false incident after the payment)", len(incidents) == len(t_inc))
 
 if incidents and t_inc:
     inc, ti = incidents[0], t_inc[0]
@@ -177,7 +177,7 @@ for name, value, target, ok in run_conversation(world, truth):
 
 # ---- R3: understanding. Extraction and matching on the world's complaints, scored against hidden ground truth. ----
 tc = {r["complaint_id"]: dict(r) for r in truth.execute("SELECT * FROM truth_complaints")}
-n = amt = rrn_n = rrn_ok = lang = hi = hi_ok = topic = exact_n = exact_ok = 0
+n = amt = rrn_n = rrn_ok = lang = hi = hi_ok = topic = exact_n = exact_ok = keyed = 0
 for c in world.execute("SELECT * FROM complaints").fetchall():
     t = tc[c["id"]]
     when = datetime.fromisoformat(c["received_at"])
@@ -193,27 +193,144 @@ for c in world.execute("SELECT * FROM complaints").fetchall():
     if x.ids.rrn:
         rrn_n += 1
         rrn_ok += red.value(x.ids.rrn) == t["rrn"]
-    res = mt.lookup(world, red, x, when)
-    if res.status == "matched":
-        exact_n += 1
-        exact_ok += [e.payment_id for e in res.exact] == json.loads(t["payment_ids"])
+    if json.loads(t["payment_ids"]):  # only complaints about a real payment can be matched by an exact key. Before-the-payment complaints have none.
+        keyed += 1
+        res = mt.lookup(world, red, x, when)
+        if res.status == "matched":
+            exact_n += 1
+            exact_ok += [e.payment_id for e in res.exact] == json.loads(t["payment_ids"])
 if n:
     add("complaint_triage_accuracy", topic / n, ">= 0.95", topic / n >= 0.95)
     add("extraction_amount_exact", amt / n, ">= 0.95", amt / n >= 0.95)
     add("extraction_rrn_exact", rrn_ok / rrn_n if rrn_n else 1.0, ">= 0.95", (rrn_ok / rrn_n if rrn_n else 1.0) >= 0.95)
     add("language_accuracy", lang / n, "reported (hi_latn subset below)", None)
     add("language_accuracy_hinglish", hi_ok / hi if hi else 1.0, ">= 0.90", (hi_ok / hi if hi else 1.0) >= 0.90)
-    add("exact_key_match_share", exact_n / n, ">= 0.70 (kill criterion if lower)", exact_n / n >= 0.70)
+    add("exact_key_match_share", exact_n / keyed, ">= 0.70 (kill criterion if lower)", exact_n / keyed >= 0.70)
     add("exact_key_match_precision", exact_ok / exact_n if exact_n else 1.0, ">= 0.99", (exact_ok / exact_n if exact_n else 1.0) >= 0.99)
 fz = fit(world)
 add("fuzzy_top1_recall_suggestions_only", fz["test"]["top1"], "reported", None)
 add("fuzzy_top3_recall_suggestions_only", fz["test"]["top3"], ">= 0.60 (regression guard)", fz["test"]["top3"] >= 0.60)
 add("fuzzy_operating_threshold", fz["t_auto"], "reported (>= 1 means fuzzy never auto-matches)", None)
 
+
+# ---- R4: before the payment (Zone 1). Two incidents to find, five look-alikes that must not alert, and recovery links. ----
+from datetime import timedelta  # noqa: E402
+
+from app.zone1 import recovery as z1_recovery  # noqa: E402
+from app.zone1 import volume as z1_volume  # noqa: E402
+from app.zone1.baselines import Orders  # noqa: E402
+
+OWNER_OF = {"ROUTE_NOT_FOUND_AFTER_DEPLOY": "merchant_code", "CHECKOUT_KEY_MISMATCH": "merchant_config"}
+zrows = [dict(r) for r in truth.execute("SELECT * FROM truth_zone1")]
+pos, neg = [r for r in zrows if r["kind"] == "positive"], [r for r in zrows if r["kind"] == "negative"]
+found = [dict(r) for r in world.execute("SELECT * FROM incidents WHERE zone = 'before' ORDER BY id")]
+BUCKET = 30  # minutes. Detection must land within two buckets of the true onset (SPEC 14).
+match: dict[str, dict] = {}
+for t in pos:
+    near = [f for f in found if minutes(f["onset_at"], t["onset_at"]) <= 2 * BUCKET and f["id"] not in {m["id"] for m in match.values()}]
+    if near:
+        match[t["incident_id"]] = min(near, key=lambda f: minutes(f["onset_at"], t["onset_at"]))
+tp = len(match)
+fp = [f for f in found if f["id"] not in {m["id"] for m in match.values()}]
+add("zone1_positives_found", float(tp), f"= {len(pos)} (INC-4 and INC-5 within two buckets)", tp == len(pos))
+add("zone1_onset_error_minutes_max", max((minutes(match[t["incident_id"]]["onset_at"], t["onset_at"]) for t in pos if t["incident_id"] in match), default=999.0), "<= 60 (two half-hour buckets)",
+    all(minutes(match[t["incident_id"]]["onset_at"], t["onset_at"]) <= 2 * BUCKET for t in pos if t["incident_id"] in match) and tp == len(pos))
+right = sum(1 for t in pos if t["incident_id"] in match and match[t["incident_id"]]["cause_code"] == t["cause_code"] and match[t["incident_id"]]["owner"] == OWNER_OF[t["cause_code"]])
+add("zone1_cause_and_owner_correct", right / len(pos), "1.0", right == len(pos))
+in_neg: list[dict] = []
+for f in found:
+    for n in neg:
+        lo, hi = datetime.fromisoformat(n["onset_at"]) - timedelta(hours=2), datetime.fromisoformat(n["resolved_at"]) + timedelta(hours=2)
+        if lo <= datetime.fromisoformat(f["onset_at"]) <= hi:
+            in_neg.append(f)
+add("zone1_look_alikes_raising_an_incident", float(len(in_neg)), "0 (N1 to N5 must not alert)", not in_neg)
+add("zone1_incidents_not_in_ground_truth", float(len(fp)), "0 (false alarms over the whole fortnight)", not fp)
+prec = tp / (tp + len(fp)) if tp + len(fp) else 0.0
+add("zone1_precision", prec, ">= 0.80 (kill criterion K6)", prec >= 0.8)
+add("zone1_recall", tp / len(pos), "reported", None)
+spikes = [json.loads(r["details"]) | {"at": r["onset_at"]} for r in world.execute("SELECT details, onset_at FROM signals WHERE monitor = 'complaint_spike'")]
+n4 = next(n for n in neg if n["incident_id"] == "N4")
+bank = [s for s in spikes if s["routed"] == "bank" and abs(minutes(s["at"], n4["onset_at"])) <= 60]
+add("zone1_bank_outage_routed_to_the_bank", float(len(bank)), ">= 1 (N4 routes to attribution row 7, no Zone 1 incident)", len(bank) >= 1)
+n1 = next(n for n in neg if n["incident_id"] == "N1")
+q = z1_volume.check(Orders(world), datetime.fromisoformat(n1["resolved_at"]))
+add("zone1_quiet_night_is_insufficient_volume", float(q["status"] == "insufficient_volume"), "1.0 (never alert on a quiet hour)", q["status"] == "insufficient_volume")
+
+members_ok = 0
+for t in pos:
+    m = match.get(t["incident_id"])
+    if not m:
+        continue
+    want = {r["customer_id"]: r["role"] for r in truth.execute("SELECT * FROM truth_zone1_members WHERE incident_id = ?", (t["incident_id"],))}
+    got = {r["payment_id"]: r["tier"] for r in world.execute("SELECT * FROM incident_members WHERE incident_id = ?", (m["id"],))}
+    paid_since = {c for c, role in want.items() if role == "affected_paid_since"}
+    members_ok += set(got) == set(want) and {c for c, tier in got.items() if tier == "excluded"} >= paid_since
+add("zone1_members_match_ground_truth", members_ok / len(pos), "1.0 (who could not pay, and who got through anyway)", members_ok == len(pos))
+errs = []
+for t in pos:
+    m = match.get(t["incident_id"])
+    if m:
+        est = json.loads(m["verdict_json"])["cause_summary_slots"]["lost_orders"]
+        errs.append(abs(est - t["expected_lost_orders"]) / max(t["expected_lost_orders"], 1))
+add("zone1_lost_orders_estimate_error_worst", max(errs, default=1.0), "<= 0.50 (an estimate, labelled as one)", bool(errs) and max(errs) <= 0.5)
+inc4 = match.get("INC-4")
+if inc4:
+    alert = minutes(json.loads(inc4["signature"])["alert_at"], inc4["onset_at"])
+    add("zone1_inc4_minutes_from_start_to_alert", alert, "reported (needs the pay-URL check switched on)", None)
+
+# recovery links, on private copies of the world
+def zone1_scenario() -> sqlite3.Connection:
+    db = sqlite3.connect(":memory:")
+    db.row_factory = sqlite3.Row
+    world.backup(db)
+    clock.reset()
+    return db
+
+
+if inc4:
+    db = zone1_scenario()
+    before = ([tuple(r) for r in db.execute("SELECT * FROM entitlements ORDER BY id")], db.execute("SELECT COUNT(*) FROM refunds").fetchone()[0])
+    autonomy.write(db, autonomy.read(db).model_copy(update={"messaging_enabled": True}), "eval")
+    db.commit()
+    aid = executor.create(db, inc4["id"], "recovery_link", {})
+    early = executor.get(db, aid).blocked_reason is not None
+    merchant_mock.set_page_mode(db, "ok")
+    clock.advance(2)
+    for stage in ("dry_run", "first_5", "rest"):
+        executor.approve(db, aid, stage, "merchant:founder")
+    people = {p.customer_id: p for p in z1_recovery.people(db, inc4["id"])}
+    sent = db.execute("SELECT * FROM messages WHERE action_id = ? AND status = 'sent'", (aid,)).fetchall()
+    holdout = set(json.loads(db.execute("SELECT params_json FROM actions WHERE id = ?", (aid,)).fetchone()[0])["holdout"])
+    outside = 0
+    for m in sent:
+        p = people[m["customer_id"]]
+        outside += z1_recovery.contact_rule(p.channel, p.last_inbound_at, datetime.fromisoformat(m["created_at"])) is not None
+    add("zone1_links_blocked_until_the_fix_is_confirmed", float(early), "1.0", early)
+    add("zone1_links_sent_outside_the_channel_window_or_without_permission", float(outside), "0", outside == 0)
+    add("zone1_held_back_customers_messaged", float(sum(1 for m in sent if m["customer_id"] in holdout)), "0", not any(m["customer_id"] in holdout for m in sent))
+    twice = len(sent) - len({m["customer_id"] for m in sent})
+    add("zone1_customers_sent_two_links", float(twice), "0", twice == 0)
+    after = ([tuple(r) for r in db.execute("SELECT * FROM entitlements ORDER BY id")], db.execute("SELECT COUNT(*) FROM refunds").fetchone()[0])
+    add("zone1_money_or_access_changes_from_an_inferred_incident", float(after != before), "0 (inferred incidents never move money or access)", after == before)
+    clock.advance(48)
+    z1_recovery.settle(db)
+    o = z1_recovery.outcome(db, inc4["id"])
+    add("zone1_recovered_rupees_simulated_customers", o["recovered_paise"] / 100, "reported (synthetic customer behaviour, not a result)", None)
+    add("zone1_paid_with_link_of_sent", o["sent_paid"] / max(o["sent"], 1), "reported (n is small)", None)
+    add("zone1_paid_without_link_of_held_back", o["held_back_paid"] / max(o["held_back"], 1), "reported (n is 1: too few to estimate uplift)", None)
+    db = zone1_scenario()
+    merchant_mock.set_page_mode(db, "ok")
+    clock.advance(1)
+    too_early = executor.verify(db, inc4["id"]).closeable
+    clock.advance(1)
+    on_time = executor.verify(db, inc4["id"]).closeable
+    add("zone1_incident_closes_only_after_two_healthy_hours", float((not too_early) and on_time), "1.0", (not too_early) and on_time)
+    clock.reset()
+
 report = EvalReport(seed=cfg["seed"], generated_at=datetime.fromisoformat(cfg["snapshot_at"] + "+05:30"), metrics=metrics, arms=[])
 (Path(__file__).parent / "report.json").write_text(report.model_dump_json(indent=2) + "\n")
 lines = ["# Eval report", "", f"Synthetic world, seed {cfg['seed']}. Ground truth is never visible to the pipeline.", "",
-         "Caveat: this world is clean and the generator and detector share assumptions, so near-perfect scores are expected here. Harder negatives arrive in R3 and R4. The fuzzy matcher is scored on complaints generated from real payments and never decides anything: exact keys do.", "", "| Metric | Value | Target | Result |", "|---|---|---|---|"]
+         "Caveat: this world is clean and the generator and detector share assumptions, so near-perfect scores are expected here. The Zone 1 results rest on two incidents and five look-alikes in one seed, and the monitors' windows were set after looking at this world, so they show the monitors work as designed, not how often they would be wrong on real traffic. Recovery numbers come from simulated customers. The fuzzy matcher is scored on complaints generated from real payments and never decides anything: exact keys do.", "", "| Metric | Value | Target | Result |", "|---|---|---|---|"]
 lines += [f"| {m.name} | {m.value if m.value is not None else 'n/a'} | {m.target} | {m.status} |" for m in metrics]
 (Path(__file__).parent / "report.md").write_text("\n".join(lines) + "\n")
 print("\n".join(f"{m.status.upper():6} {m.name} = {m.value}  (target {m.target})" for m in metrics))

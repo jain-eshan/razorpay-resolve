@@ -1,0 +1,96 @@
+{
+  "id": "cs_zYFdsX5DlU",
+  "complaint_id": "cmp_zYFdsX5DlU",
+  "channel": "whatsapp_payments",
+  "match_status": "needs_detail",
+  "mismatch_type": null,
+  "owner": null,
+  "incident_id": null,
+  "received_at": "2026-09-27T19:23:17+05:30",
+  "extraction": {
+    "topic": "payment",
+    "is_payment_related": true,
+    "language": "en",
+    "claim": "payment_failed",
+    "amount_paise": 19900,
+    "amount_count": null,
+    "stated_time_text": null,
+    "method": "card",
+    "app_or_bank_name": null,
+    "ids": {
+      "payment_id": null,
+      "order_id": null,
+      "rrn": null,
+      "email": null,
+      "phone": null,
+      "vpa": null,
+      "card4": null
+    },
+    "product_or_plan": "Mock Test Pack",
+    "customer_wants": "unknown",
+    "sentiment": "calm",
+    "injection_suspected": false,
+    "window": null
+  },
+  "candidates": [
+    {
+      "payment_id": "pay_TFgrE1byBvOyeM",
+      "method": "fuzzy",
+      "calibrated_score": 0.36465350664657825,
+      "features": {
+        "amount": 1.0,
+        "time": 0.3,
+        "method": 1.0,
+        "bank_app": 0.5,
+        "contact_partial": 0.0,
+        "card_last4": 0.0,
+        "vpa_suffix": 0.0,
+        "crowding": 0.0
+      }
+    },
+    {
+      "payment_id": "pay_p18OOfSyOF5IDI",
+      "method": "fuzzy",
+      "calibrated_score": 0.36465350664657825,
+      "features": {
+        "amount": 1.0,
+        "time": 0.3,
+        "method": 1.0,
+        "bank_app": 0.5,
+        "contact_partial": 0.0,
+        "card_last4": 0.0,
+        "vpa_suffix": 0.0,
+        "crowding": 0.0
+      }
+    },
+    {
+      "payment_id": "pay_0nGgGj8RPqxAl6",
+      "method": "fuzzy",
+      "calibrated_score": 0.36465350664657825,
+      "features": {
+        "amount": 1.0,
+        "time": 0.3,
+        "method": 1.0,
+        "bank_app": 0.5,
+        "contact_partial": 0.0,
+        "card_last4": 0.0,
+        "vpa_suffix": 0.0,
+        "crowding": 0.0
+      }
+    }
+  ],
+  "lanes": {
+    "customer": [
+      {
+        "at": "2026-09-27T19:23:17+05:30",
+        "text": "payment failed again, card declined. Mock Test Pack Rs 199",
+        "source_ref": "cmp_zYFdsX5DlU"
+      }
+    ],
+    "razorpay": [],
+    "merchant": []
+  },
+  "state_line": "No payment found yet. Closest guesses are for the founder only.",
+  "reply_draft": null,
+  "injection_suspected": false
+}

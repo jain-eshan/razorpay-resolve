@@ -1,0 +1,23 @@
+{
+  "customer": [
+    {
+      "at": "2026-09-28T11:18:29+05:30",
+      "text": "Premium Annual ka pay button dabaya par payment window nahi khul rahi. 2499 ka hai",
+      "source_ref": "cmp_qOusTG1b2C"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-09-28T11:18:29+05:30",
+      "text": "No payment attempt from this customer in the 6 hours before they wrote",
+      "source_ref": "cmp_qOusTG1b2C"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-09-28T11:18:29+05:30",
+      "text": "Pay page check passed: the page loads. Checkout is where it stopped.",
+      "source_ref": null
+    }
+  ]
+}

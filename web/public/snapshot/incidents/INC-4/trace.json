@@ -1,0 +1,50 @@
+{
+  "id": "tr_INC-4",
+  "incident_id": "INC-4",
+  "steps": [
+    {
+      "tool": "get_complaint_cluster",
+      "input": {
+        "window": "21:01 to 22:42"
+      },
+      "output_summary": "8 complaints about paying, 8 from customers with no payment attempt of their own. Normally about 0.077 an hour"
+    },
+    {
+      "tool": "get_probe_results",
+      "input": {
+        "url": "https://kaksha.example/buy"
+      },
+      "output_summary": "175 failed checks in a row, status 404, still failing"
+    },
+    {
+      "tool": "get_order_attempts",
+      "input": {
+        "window": "Thu 20:10 onward"
+      },
+      "output_summary": "6 orders created against about 19 expected, 0 with no payment attempt (normally 21%)"
+    },
+    {
+      "tool": "list_events",
+      "input": {
+        "window": "60 minutes before onset"
+      },
+      "output_summary": "web v2.8.2: route rename /buy to /checkout"
+    },
+    {
+      "tool": "get_downtime_events",
+      "input": {
+        "window": "incident window"
+      },
+      "output_summary": "No bank outage covers the window"
+    },
+    {
+      "tool": "attribute",
+      "input": {},
+      "output_summary": "Rule 81: merchant_code. Your pay page failed its checks, or a change to your pages went live just before it started (inferred)"
+    }
+  ],
+  "budget_used": 6,
+  "budget_total": 8,
+  "model_id": null,
+  "rule_based": true
+}

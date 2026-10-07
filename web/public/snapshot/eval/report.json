@@ -5,7 +5,7 @@
     {
       "name": "incidents_found_minus_true",
       "value": 0.0,
-      "target": "0 (no missed, no false incident)",
+      "target": "0 (no missed, no false incident after the payment)",
       "status": "pass"
     },
     {
@@ -244,13 +244,13 @@
     },
     {
       "name": "fuzzy_top1_recall_suggestions_only",
-      "value": 0.45,
+      "value": 0.4,
       "target": "reported",
       "status": "report"
     },
     {
       "name": "fuzzy_top3_recall_suggestions_only",
-      "value": 0.715,
+      "value": 0.72,
       "target": ">= 0.60 (regression guard)",
       "status": "pass"
     },
@@ -259,6 +259,132 @@
       "value": 1.01,
       "target": "reported (>= 1 means fuzzy never auto-matches)",
       "status": "report"
+    },
+    {
+      "name": "zone1_positives_found",
+      "value": 2.0,
+      "target": "= 2 (INC-4 and INC-5 within two buckets)",
+      "status": "pass"
+    },
+    {
+      "name": "zone1_onset_error_minutes_max",
+      "value": 4.4833,
+      "target": "<= 60 (two half-hour buckets)",
+      "status": "pass"
+    },
+    {
+      "name": "zone1_cause_and_owner_correct",
+      "value": 1.0,
+      "target": "1.0",
+      "status": "pass"
+    },
+    {
+      "name": "zone1_look_alikes_raising_an_incident",
+      "value": 0.0,
+      "target": "0 (N1 to N5 must not alert)",
+      "status": "pass"
+    },
+    {
+      "name": "zone1_incidents_not_in_ground_truth",
+      "value": 0.0,
+      "target": "0 (false alarms over the whole fortnight)",
+      "status": "pass"
+    },
+    {
+      "name": "zone1_precision",
+      "value": 1.0,
+      "target": ">= 0.80 (kill criterion K6)",
+      "status": "pass"
+    },
+    {
+      "name": "zone1_recall",
+      "value": 1.0,
+      "target": "reported",
+      "status": "report"
+    },
+    {
+      "name": "zone1_bank_outage_routed_to_the_bank",
+      "value": 1.0,
+      "target": ">= 1 (N4 routes to attribution row 7, no Zone 1 incident)",
+      "status": "pass"
+    },
+    {
+      "name": "zone1_quiet_night_is_insufficient_volume",
+      "value": 1.0,
+      "target": "1.0 (never alert on a quiet hour)",
+      "status": "pass"
+    },
+    {
+      "name": "zone1_members_match_ground_truth",
+      "value": 1.0,
+      "target": "1.0 (who could not pay, and who got through anyway)",
+      "status": "pass"
+    },
+    {
+      "name": "zone1_lost_orders_estimate_error_worst",
+      "value": 0.3,
+      "target": "<= 0.50 (an estimate, labelled as one)",
+      "status": "pass"
+    },
+    {
+      "name": "zone1_inc4_minutes_from_start_to_alert",
+      "value": 5.0,
+      "target": "reported (needs the pay-URL check switched on)",
+      "status": "report"
+    },
+    {
+      "name": "zone1_links_blocked_until_the_fix_is_confirmed",
+      "value": 1.0,
+      "target": "1.0",
+      "status": "pass"
+    },
+    {
+      "name": "zone1_links_sent_outside_the_channel_window_or_without_permission",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "zone1_held_back_customers_messaged",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "zone1_customers_sent_two_links",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "zone1_money_or_access_changes_from_an_inferred_incident",
+      "value": 0.0,
+      "target": "0 (inferred incidents never move money or access)",
+      "status": "pass"
+    },
+    {
+      "name": "zone1_recovered_rupees_simulated_customers",
+      "value": 3096.0,
+      "target": "reported (synthetic customer behaviour, not a result)",
+      "status": "report"
+    },
+    {
+      "name": "zone1_paid_with_link_of_sent",
+      "value": 0.5714,
+      "target": "reported (n is small)",
+      "status": "report"
+    },
+    {
+      "name": "zone1_paid_without_link_of_held_back",
+      "value": 0.0,
+      "target": "reported (n is 1: too few to estimate uplift)",
+      "status": "report"
+    },
+    {
+      "name": "zone1_incident_closes_only_after_two_healthy_hours",
+      "value": 1.0,
+      "target": "1.0",
+      "status": "pass"
     }
   ],
   "arms": [],

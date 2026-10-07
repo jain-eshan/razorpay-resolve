@@ -607,22 +607,22 @@
       "dimension": "method",
       "value": "upi",
       "share_affected": 0.7647,
-      "share_baseline": 0.7202,
+      "share_baseline": 0.7127,
       "lift": 1.1
     },
     {
       "dimension": "method",
       "value": "card",
       "share_affected": 0.2118,
-      "share_baseline": 0.2387,
+      "share_baseline": 0.24,
       "lift": 0.9
     },
     {
       "dimension": "method",
       "value": "netbanking",
       "share_affected": 0.0235,
-      "share_baseline": 0.0412,
-      "lift": 0.6
+      "share_baseline": 0.0473,
+      "lift": 0.5
     },
     {
       "dimension": "app_version",
@@ -635,29 +635,29 @@
       "dimension": "app_version",
       "value": "android-3.4.0",
       "share_affected": 0.2824,
-      "share_baseline": 0.321,
+      "share_baseline": 0.3236,
       "lift": 0.9
     },
     {
       "dimension": "app_version",
       "value": "none",
       "share_affected": 0.0706,
-      "share_baseline": 0.1152,
-      "lift": 0.6
+      "share_baseline": 0.1018,
+      "lift": 0.7
     },
     {
       "dimension": "kind",
       "value": "one-time",
       "share_affected": 0.9294,
-      "share_baseline": 0.8848,
-      "lift": 1.1
+      "share_baseline": 0.8982,
+      "lift": 1.0
     },
     {
       "dimension": "kind",
       "value": "renewal",
       "share_affected": 0.0706,
-      "share_baseline": 0.1152,
-      "lift": 0.6
+      "share_baseline": 0.1018,
+      "lift": 0.7
     }
   ],
   "tier_counts": {

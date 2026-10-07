@@ -1,0 +1,16 @@
+{
+  "incident_id": "INC-4",
+  "owner_chip": "INFERRED \u00b7 YOUR SIDE \u00b7 Code",
+  "inferred": true,
+  "cause_line": "Your pay page returned 404 from Thu 01 Oct 20:10. 12 customers wrote in, and Razorpay saw no payment from them.",
+  "affected": 13,
+  "complained": 12,
+  "silent": 1,
+  "fixed": 1,
+  "at_risk_paise": 838900,
+  "language": "en",
+  "buttons": [
+    "View evidence",
+    "Send to dev"
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "id": "cs_ErbHITDLY8",
+  "complaint_id": "cmp_ErbHITDLY8",
+  "channel": "email",
+  "match_status": "no_payment_found",
+  "mismatch_type": "Z1",
+  "owner": "merchant_config",
+  "incident_id": "INC-5",
+  "received_at": "2026-09-28T12:12:07+05:30",
+  "extraction": {
+    "topic": "payment",
+    "is_payment_related": true,
+    "language": "hi_latn",
+    "claim": "checkout_not_opening",
+    "amount_paise": 59900,
+    "amount_count": null,
+    "stated_time_text": null,
+    "method": "unknown",
+    "app_or_bank_name": null,
+    "ids": {
+      "payment_id": null,
+      "order_id": null,
+      "rrn": null,
+      "email": null,
+      "phone": null,
+      "vpa": null,
+      "card4": null
+    },
+    "product_or_plan": "Test Series",
+    "customer_wants": "unknown",
+    "sentiment": "calm",
+    "injection_suspected": false,
+    "window": null
+  },
+  "candidates": [
+    {
+      "payment_id": "pay_eZ27XEEpJWTIQg",
+      "method": "fuzzy",
+      "calibrated_score": 0.17189819043851795,
+      "features": {
+        "amount": 1.0,
+        "time": 0.3,
+        "method": 0.5,
+        "bank_app": 0.5,
+        "contact_partial": 0.0,
+        "card_last4": 0.0,
+        "vpa_suffix": 0.0,
+        "crowding": 0.0
+      }
+    },
+    {
+      "payment_id": "pay_bezL9A0eBnxf1r",
+      "method": "fuzzy",
+      "calibrated_score": 0.17189819043851795,
+      "features": {
+        "amount": 1.0,
+        "time": 0.3,
+        "method": 0.5,
+        "bank_app": 0.5,
+        "contact_partial": 0.0,
+        "card_last4": 0.0,
+        "vpa_suffix": 0.0,
+        "crowding": 0.0
+      }
+    },
+    {
+      "payment_id": "pay_GKSotQpeEmVHI6",
+      "method": "fuzzy",
+      "calibrated_score": 0.17189819043851795,
+      "features": {
+        "amount": 1.0,
+        "time": 0.3,
+        "method": 0.5,
+        "bank_app": 0.5,
+        "contact_partial": 0.0,
+        "card_last4": 0.0,
+        "vpa_suffix": 0.0,
+        "crowding": 0.0
+      }
+    }
+  ],
+  "lanes": {
+    "customer": [
+      {
+        "at": "2026-09-28T12:12:07+05:30",
+        "text": "checkout open nahi ho raha, Test Series 599 ka lena tha, kuch nahi hota",
+        "source_ref": "cmp_ErbHITDLY8"
+      }
+    ],
+    "razorpay": [
+      {
+        "at": "2026-09-28T12:12:07+05:30",
+        "text": "No payment attempt from this customer in the 6 hours before they wrote",
+        "source_ref": "cmp_ErbHITDLY8"
+      }
+    ],
+    "merchant": [
+      {
+        "at": "2026-09-28T12:12:07+05:30",
+        "text": "Pay page check passed: the page loads. Checkout is where it stopped.",
+        "source_ref": null
+      }
+    ]
+  },
+  "state_line": "Part of INC-5, inferred: this customer could not get as far as paying, so no payment exists. YOUR SIDE \u00b7 Setup.",
+  "reply_draft": null,
+  "injection_suspected": false
+}

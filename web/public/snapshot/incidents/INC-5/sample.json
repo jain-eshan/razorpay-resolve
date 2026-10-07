@@ -1,0 +1,59 @@
+[
+  {
+    "payment_id": "cust_o0707",
+    "lanes": {
+      "customer": [
+        {
+          "at": "2026-09-28T11:18:29+05:30",
+          "text": "Premium Annual ka pay button dabaya par payment window nahi khul rahi. 2499 ka hai",
+          "source_ref": "cs_qOusTG1b2C"
+        }
+      ],
+      "razorpay": [
+        {
+          "at": "2026-09-28T11:18:29+05:30",
+          "text": "No payment attempt from this customer in the 6 hours before",
+          "source_ref": "cust_o0707"
+        }
+      ],
+      "merchant": [
+        {
+          "at": "2026-09-28T11:18:29+05:30",
+          "text": "Pay page check passed: the page loads. Checkout is where it stopped.",
+          "source_ref": null
+        }
+      ]
+    }
+  },
+  {
+    "payment_id": "cust_o0611",
+    "lanes": {
+      "customer": [
+        {
+          "at": "2026-09-28T11:05:02+05:30",
+          "text": "Opened checkout for Premium Annual and left",
+          "source_ref": "cust_o0611"
+        }
+      ],
+      "razorpay": [
+        {
+          "at": "2026-09-28T11:05:02+05:30",
+          "text": "Order created, no payment attempt",
+          "source_ref": "cust_o0611"
+        },
+        {
+          "at": "2026-10-02T10:40:00+05:30",
+          "text": "Paid later: paid since, Mon 20:30",
+          "source_ref": "cust_o0611"
+        }
+      ],
+      "merchant": [
+        {
+          "at": "2026-09-28T11:05:02+05:30",
+          "text": "Pay page check passed: the page loads. Checkout is where it stopped.",
+          "source_ref": null
+        }
+      ]
+    }
+  }
+]

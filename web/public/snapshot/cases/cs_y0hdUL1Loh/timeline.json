@@ -1,0 +1,11 @@
+{
+  "customer": [
+    {
+      "at": "2026-09-26T19:15:25+05:30",
+      "text": "My UPI payment keeps failing with a bank error, Rs 199 for Mock Test Pack",
+      "source_ref": "cmp_y0hdUL1Loh"
+    }
+  ],
+  "razorpay": [],
+  "merchant": []
+}

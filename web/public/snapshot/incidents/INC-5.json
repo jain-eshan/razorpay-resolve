@@ -1,0 +1,303 @@
+{
+  "id": "INC-5",
+  "title": "Checkout would not open after the Razorpay key changed",
+  "zone": "before",
+  "mismatch_type": "Z1",
+  "owner": "merchant_config",
+  "inferred": true,
+  "status": "open",
+  "opened_by": "signal",
+  "affected": 12,
+  "complained": 4,
+  "silent": 8,
+  "fixed": 2,
+  "at_risk_paise": 849000,
+  "onset_at": "2026-09-28T11:04:29+05:30",
+  "would_have_alerted_at": "2026-09-28T12:30:00+05:30",
+  "verdict": {
+    "incident_id": "INC-5",
+    "mismatch_type": "Z1",
+    "zone": "before",
+    "inferred": true,
+    "cause_code": "CHECKOUT_KEY_MISMATCH",
+    "cause_summary_slots": {
+      "change": "Razorpay key rotated, checkout still has the old key",
+      "deploy": "Razorpay key rotated, checkout still has the old key",
+      "title": "Checkout would not open after the Razorpay key changed",
+      "expected": 0,
+      "observed": 12,
+      "zero_attempts": 12,
+      "lost_orders": 10,
+      "avg_order_paise": 55905,
+      "lost_paise": 559050,
+      "status": 0
+    },
+    "owner": "merchant_config",
+    "owner_rule_id": 82,
+    "owner_evidence_ids": [
+      "sig_z04_complaint_spike",
+      "sig_z03_order_gap",
+      "me_key_rotate"
+    ],
+    "signature": {
+      "kind": "gap",
+      "onset": "2026-09-28T11:04:29+05:30",
+      "end": "2026-09-28T12:32:48+05:30",
+      "ongoing": false,
+      "signal_ids": [
+        "sig_z03_order_gap",
+        "sig_z04_complaint_spike"
+      ],
+      "event_id": "me_key_rotate",
+      "first_status": null,
+      "normal_zero_share": 0.19,
+      "pay_url": null,
+      "alert_at": "2026-09-28T12:30:00+05:30",
+      "weight": 3,
+      "event_at": "2026-09-28T10:58:00+05:30",
+      "hourly": [
+        {
+          "at": "2026-09-28T05:00:00+05:30",
+          "orders": 0,
+          "expected": 0,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 0,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-09-28T06:00:00+05:30",
+          "orders": 2,
+          "expected": 0,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 0,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-09-28T07:00:00+05:30",
+          "orders": 1,
+          "expected": 0,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 0,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-09-28T08:00:00+05:30",
+          "orders": 0,
+          "expected": 0,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 0,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-09-28T09:00:00+05:30",
+          "orders": 1,
+          "expected": 0,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 0,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-09-28T10:00:00+05:30",
+          "orders": 3,
+          "expected": 0,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 0,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-09-28T11:00:00+05:30",
+          "orders": 8,
+          "expected": 0,
+          "zero_attempts": 8,
+          "probe_checks": 12,
+          "probe_failed": 0,
+          "wrote_in": 1
+        },
+        {
+          "at": "2026-09-28T12:00:00+05:30",
+          "orders": 6,
+          "expected": 0,
+          "zero_attempts": 5,
+          "probe_checks": 12,
+          "probe_failed": 0,
+          "wrote_in": 3
+        },
+        {
+          "at": "2026-09-28T13:00:00+05:30",
+          "orders": 3,
+          "expected": 0,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 0,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-09-28T14:00:00+05:30",
+          "orders": 2,
+          "expected": 0,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 0,
+          "wrote_in": 0
+        },
+        {
+          "at": "2026-09-28T15:00:00+05:30",
+          "orders": 0,
+          "expected": 0,
+          "zero_attempts": 0,
+          "probe_checks": 12,
+          "probe_failed": 0,
+          "wrote_in": 0
+        }
+      ],
+      "lost_orders": 10
+    },
+    "onset_at": "2026-09-28T11:04:29+05:30",
+    "resolved_at": "2026-09-28T12:32:48+05:30",
+    "linked_event_id": "me_key_rotate",
+    "affected_count": 12,
+    "confidence": "medium",
+    "unexplained_case_ids": [],
+    "runner_up": null,
+    "evidence": [
+      {
+        "kind": "complaint_spike",
+        "weight": 1,
+        "ref": "sig_z04_complaint_spike"
+      },
+      {
+        "kind": "order_attempt_gap",
+        "weight": 1,
+        "ref": "sig_z03_order_gap"
+      },
+      {
+        "kind": "merchant_event",
+        "weight": 1,
+        "ref": "me_key_rotate"
+      }
+    ],
+    "what_we_cannot_see": [
+      "Why checkout would not open for these customers",
+      "Visitors who tapped pay, saw nothing, and never created an order",
+      "Whether the problem is the key, the page or the browser"
+    ]
+  },
+  "timeline": [
+    {
+      "bucket_start": "2026-09-28T05:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-28T06:00:00+05:30",
+      "ok": 2,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-28T07:00:00+05:30",
+      "ok": 1,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-28T08:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-28T09:00:00+05:30",
+      "ok": 1,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-28T10:00:00+05:30",
+      "ok": 3,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": [
+        "Razorpay key rotated, checkout still has the old key"
+      ]
+    },
+    {
+      "bucket_start": "2026-09-28T11:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 8,
+      "markers": [
+        "first order nobody could pay for"
+      ]
+    },
+    {
+      "bucket_start": "2026-09-28T12:00:00+05:30",
+      "ok": 1,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 5,
+      "markers": [
+        "alert would fire",
+        "works again"
+      ]
+    },
+    {
+      "bucket_start": "2026-09-28T13:00:00+05:30",
+      "ok": 3,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-28T14:00:00+05:30",
+      "ok": 2,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-28T15:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    }
+  ],
+  "lift": [],
+  "tier_counts": {
+    "exact": 3,
+    "likely": 0,
+    "check": 0,
+    "excluded": 9
+  },
+  "replay": {
+    "incident_id": "INC-5",
+    "replayable_by_support": 0,
+    "not_replayable_disabled_window": 0,
+    "too_old": 0,
+    "note": "Not applicable: nobody had paid, so there is nothing to replay."
+  },
+  "actions": []
+}

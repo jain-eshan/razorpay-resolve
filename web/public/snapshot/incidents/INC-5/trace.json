@@ -1,0 +1,50 @@
+{
+  "id": "tr_INC-5",
+  "incident_id": "INC-5",
+  "steps": [
+    {
+      "tool": "get_complaint_cluster",
+      "input": {
+        "window": "12:07 to 12:14"
+      },
+      "output_summary": "3 complaints about paying, 3 from customers with no payment attempt of their own. Normally about 0.054 an hour"
+    },
+    {
+      "tool": "get_probe_results",
+      "input": {
+        "url": "pay page"
+      },
+      "output_summary": "Every check passed, so the page itself loads"
+    },
+    {
+      "tool": "get_order_attempts",
+      "input": {
+        "window": "Mon 11:04 onward"
+      },
+      "output_summary": "12 orders created against about 0 expected, 12 with no payment attempt (normally 19%)"
+    },
+    {
+      "tool": "list_events",
+      "input": {
+        "window": "60 minutes before onset"
+      },
+      "output_summary": "Razorpay key rotated, checkout still has the old key"
+    },
+    {
+      "tool": "get_downtime_events",
+      "input": {
+        "window": "incident window"
+      },
+      "output_summary": "No bank outage covers the window"
+    },
+    {
+      "tool": "attribute",
+      "input": {},
+      "output_summary": "Rule 82: merchant_config. Orders were created and nobody could pay for them, while the page itself loads (inferred)"
+    }
+  ],
+  "budget_used": 6,
+  "budget_total": 8,
+  "model_id": null,
+  "rule_based": true
+}

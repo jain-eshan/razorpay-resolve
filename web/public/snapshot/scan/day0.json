@@ -1,9 +1,26 @@
 {
   "days": 30,
-  "headline": "I found 81 customers in the last 30 days who paid and have no access.",
+  "headline": "I found 81 customers in the last 30 days who paid and have no access. Before the payment, 2 more times customers could not pay, about 25 lost orders.",
   "leaked_customers": 81,
   "leaked_paise": 5631900,
   "incidents": [
+    {
+      "id": "INC-5",
+      "title": "Checkout would not open after the Razorpay key changed",
+      "zone": "before",
+      "mismatch_type": "Z1",
+      "owner": "merchant_config",
+      "inferred": true,
+      "status": "open",
+      "opened_by": "signal",
+      "affected": 12,
+      "complained": 4,
+      "silent": 8,
+      "fixed": 2,
+      "at_risk_paise": 849000,
+      "onset_at": "2026-09-28T11:04:29+05:30",
+      "would_have_alerted_at": "2026-09-28T12:30:00+05:30"
+    },
     {
       "id": "INC-1",
       "title": "Webhook returned 401 after web v2.8.0: auth middleware on /api/*",
@@ -20,6 +37,23 @@
       "at_risk_paise": 5631900,
       "onset_at": "2026-09-29T14:20:00+05:30",
       "would_have_alerted_at": "2026-09-29T15:15:24+05:30"
+    },
+    {
+      "id": "INC-4",
+      "title": "Pay page returned 404 after web v2.8.2",
+      "zone": "before",
+      "mismatch_type": "Z1",
+      "owner": "merchant_code",
+      "inferred": true,
+      "status": "open",
+      "opened_by": "signal",
+      "affected": 13,
+      "complained": 12,
+      "silent": 1,
+      "fixed": 1,
+      "at_risk_paise": 838900,
+      "onset_at": "2026-10-01T20:10:00+05:30",
+      "would_have_alerted_at": "2026-10-01T20:15:00+05:30"
     }
   ]
 }
