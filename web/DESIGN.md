@@ -1,5 +1,7 @@
 # RazorSense: Razorpay's design language
 
+> **Building anything in `web/`? Read section 20 (design philosophy) first, then sections 14 to 19.** They say how we decide, and they win over anything else in this file when two rules seem to disagree.
+
 The reference for everything we build in this project. Researched 2026-09-29 from the public RazorSense page, razorpay.com, and the source of Blade (Razorpay's open-source design system, `@razorpay/blade` v12.127.0, commit `2ad7317`).
 
 Confidence labels used below:
@@ -519,3 +521,43 @@ Run through this for every screen you add or change.
 8. Production items still inert, none removed, none made clickable?
 9. Looks right at 1440px and at a phone width (the side nav becomes a drawer, grids stack)?
 10. `npx tsc -b`, `npx oxlint` and the snapshot e2e tests pass?
+
+
+---
+
+## 20. Design philosophy
+
+How we decide when a rule does not cover the case. These came out of the first design pass (7 Oct 2026) and apply to every screen from here on. Eshan decides what we build and how it should feel; these are the habits that keep it consistent when he is not in the room.
+
+**1. Look like an addition, not a new product.**
+A merchant who sees Blindspot should think Razorpay shipped it. We earn trust by being recognisable: the same top bar, the same side nav, the same cards, buttons, tables and tone. When a screen from production already does the job, copy its structure. When we must invent, extend a pattern Razorpay already uses (Agent Studio is the precedent for a new product) and say which one in the pull request.
+
+**2. Copy production before you invent, and measure before you copy.**
+Take values from the live dashboard or from Blade's source, not from memory, a summary, or a screenshot's look. Order of trust: measured production, then Blade's installed source, then Figma, then any third-party summary. When two disagree, the higher one wins and the conflict goes into section 18.
+
+**3. Inert beats absent beats fake.**
+Production items we do not build stay visible and greyed, so the page still looks like the real dashboard. We never draw a control that pretends to work. Anything simulated is labelled simulated. This is also what keeps a demo honest in front of Razorpay's own PMs.
+
+**4. The agent proposes, the person approves, the thread remembers.**
+Every flow is a conversation: one recommended action per answer, one blue button, the founder's choice echoed as their own message, then the proof, then the next job. Nothing that moves money or messages customers happens without an explicit approve. The agent never asks for credentials.
+
+**5. Every number comes from the data, and leads the sentence.**
+Titles state the figure ("₹73,198 at risk across 3 incidents"). No model writes a number or a status. Rupees use Indian grouping. A line that says what was analysed sits under the title, so the founder can see how the answer was reached.
+
+**6. Tokens and Blade, always; wrappers only with a reason.**
+No hardcoded colour, spacing, radius or duration when a token exists. Use Blade components. If Blade cannot do something (an inert nav link, a tab strip that does not crash), write one small wrapper, put the reason in a comment, and note it in `web/CLAUDE.md`. Do not rebuild Blade components by hand.
+
+**7. Responsive by construction, full width by default.**
+Content fills the page container. Limit width only for the length of a line of text (about 720px) and for chat bubbles (a share of their column, never fixed pixels). Grids use `minmax(0, 1fr)`, tables get column minimums so they scroll instead of crushing, and two-column layouts become one column below `l`. Fixed-width phone mockups floating in the middle of a wide page are a defect.
+
+**8. Calm over lively.**
+Blue is for things the person does, green is for Ray and success. The living RazorSense surface is for a hero or a success moment, at most one per screen. While the agent works we show "Analyzing" with the Ray glyph, never a spinner and never a blank screen. Errors name the cause and the next step and never blame the merchant's customer or the merchant.
+
+**9. Plain words.**
+Sentence case, short sentences, the verb the merchant would use ("Grant the first 5", not "Initiate staged provisioning"). One action per message. No em dashes, no "Oops", no marketing adjectives in product copy. Every claim in a guide must be true of the product today.
+
+**10. Prove it, then say it is done.**
+A screen is not finished until it has been seen at 375, 768 and 1440px, the layout test covers it, types, lint and the browser tests pass, and the design review described in the root `CLAUDE.md` has been run. Say what was not checked.
+
+**When none of this covers the case**
+Find the closest Razorpay screen. Note what it does and why. Build that. Add a line to this section or to section 17 so the next person does not have to guess. If you cannot find a precedent, stop and ask Eshan, with two options and a recommendation.
