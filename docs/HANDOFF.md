@@ -1,4 +1,4 @@
-# Handoff: where Blindspot stands (6 Oct 2026, R0 to R3 merged, guided demo on PR)
+# Handoff: where Blindspot stands (7 Oct 2026, R0 to R3, guided demo and UX review all on `main`)
 
 Read this first in a new chat, then `docs/PRD.md`. Everything below is true as of the last commit on `main`.
 
@@ -7,8 +7,9 @@ Read this first in a new chat, then `docs/PRD.md`. Everything below is true as o
 1. Read this file, then `docs/BUILD_LOG.md` (what happened and what broke), then `docs/BUILD_PLAN.md` section 5 for the next release.
 2. `make setup` once. Then `make test`, `make eval`, `make e2e` should all pass on a clean checkout (about 3 minutes).
 3. Run it: `make run-api` (fresh synthetic world, API on 8000) and `make run-web` with `VITE_MODE=live`. Without `VITE_MODE=live` the web shows the guided demo from the committed snapshot.
-4. Eshan is non-technical. Explain plainly, ask before commit, push, delete or anything outward-facing, no em dashes. Work on a branch off the production branch, open a PR, and let him merge.
-5. Checks you can trust: every eval gate is in `eval/report.md`. Read the caveats there and in "R3 limits" below before quoting a number.
+4. Eshan is non-technical. Explain plainly, ask before commit, push, delete or anything outward-facing, no em dashes. Work on a short-lived branch cut from current `origin/main`, open a PR, and merge once CI passes (Eshan merged PR #6 himself; GitHub auto-merge is switched off for this repo, so merging is a manual click or `gh pr merge --merge`).
+5. Eshan uses git worktrees (one folder per chat). Read section 3b before you start, in particular: run `git fetch` first and cut your branch from `origin/main`, then `cd web && npm ci`.
+6. Checks you can trust: every eval gate is in `eval/report.md`. Read the caveats there and in "R3 limits" below before quoting a number.
 
 ## 1. What this is
 
@@ -20,9 +21,11 @@ Blindspot (working name) is Eshan Jain's entry for the Razorpay x ISB AI PM Buil
 |---|---|
 | R0 foundations (repo, frozen contracts, stub API, Blade shell) | Done, tag `contracts-v0.1` |
 | R1 detect, widen, attribute (Hero A on a synthetic world) | Done, contracts v0.2 |
-| R2 fix and verify (grant in stages, messages, undo, verify and close, audit, settings, autonomy dial) | Done, contracts v0.3. Merged to `blindspot` as PR #2, CI green. |
-| R3 channels and conversation (no model yet: rules and scripted threads) | Done, contracts v0.4. Merged to `blindspot` as PR #3. |
-| Guided demo (hosted site plays the whole journey with no server) | Done. On PR from `claude/guided-demo`. |
+| R2 fix and verify (grant in stages, messages, undo, verify and close, audit, settings, autonomy dial) | Done, contracts v0.3. Merged as PR #2, CI green. |
+| R3 channels and conversation (no model yet: rules and scripted threads) | Done, contracts v0.4. Merged as PR #3. |
+| Guided demo (hosted site plays the whole journey with no server) | Done. Merged as PR #4. |
+| Dashboard-aligned frontend (Blade TopNav and SideNav, header-band panels, sticky timeline) | Done. Merged as PR #5. |
+| UX review and one-branch cleanup (7 Oct, section 2b) | Done. Merged as PR #6. `main` is now the only branch. |
 | R4 Zone 1 (cannot reach the pay page), investigation agent, three-way eval | Not started |
 | R5 learning loop, handovers | Not started |
 | R6 real rails (stretch) | Not started |
@@ -71,6 +74,22 @@ The hosted site (Vercel, Root Directory `web`, no env vars) runs the whole journ
 - **The conversation dial is per channel** (Channels screen). The Settings dial is global and governs grants and incident messages.
 - The first read of `/api/channels` seeds the channel and consent rows (a read that writes). Fine for the prototype.
 
+### UX review, 7 Oct 2026 (PR #6)
+Eshan asked for a designer's review of the whole web app. Method: Playwright with the installed Chrome at 1440 and 390 wide (full-resolution screenshots, computed styles, overflow, text size and contrast checks on 13 routes), because the in-app browser shrinks screenshots.
+
+Fixed:
+- **Brand.** The top bar says Razorpay (mark and name, links home). Blindspot is the "BLINDSPOT" section of the side nav, like any Razorpay product. Blade has only the Razorpay mark, not the wordmark, so the name is plain text beside it.
+- **Top bar and avatar.** The app had no `box-sizing: border-box`, which Blade assumes. The top bar was 16px wider than the window, which clipped the avatar and scrolled the page sideways. Fixed once in `web/index.html`.
+- **Side nav.** Links were wrapped in `SideNavLevel` (adds a 56px left margin, so a 72px dead gutter) and the nav was `position: fixed` with `height: 100%` plus a 56px top offset, so it ran off the bottom and hid Settings. Now links sit directly in `SideNavBody` and the nav uses `position="relative"` beside the content.
+- **Panels.** The grey header band painted over Blade's inner card ring, so cards had no top edge. The band now has its own border.
+- **Smaller things.** Alerts full width and the synthetic-data notice is one slim grey line; badges 12px, not 10px; incident table cut to four columns; evidence labels readable and stacked on phones; stat cards 2 columns on phones; empty incident zones collapse; demo links are buttons; channel names read as names; read-only Settings shows values as text; no snake_case labels and no `make run-api` text in the UI; Channels has its own icon.
+
+Not changed, and why:
+- 32px page titles match what the real dashboard uses (`web/DESIGN.md` section 13). 11px timeline timestamps, heading levels (h3 straight to h6) and the React "Cannot update a component while rendering" warning from `Table` all come from Blade.
+- The live-API tests (`fix`, `talk`) were not run in this review. The live-mode branches of Settings and Channels are untested after the change. CI runs them.
+
+Open design questions for Eshan: RAY ("RAY on WhatsApp", a centred phone mock) is still the landing page and the only centred screen; Incidents may suit better. The avatar does nothing when clicked. Moving all five Razorpay "product tabs" into the top bar was considered and rejected, because fake tabs would be dead links.
+
 ### Results on the synthetic world
 1 incident found, 0 false. 85 affected: 17 complained, 68 silent (ratio 4.0; kill criterion K1 needs 2). 81 actionable, 2 fixed by hand, 2 refunded, 4 in the "server said OK but granted nothing" group (all found). Alert fires 55 minutes after the deploy with 1 customer affected. Replay: 38 events replayable by a support ticket one at a time, 43 not replayable at all. The scores are near perfect because the world is clean and generator and detector share assumptions. Harder negatives arrive in R3 and R4.
 
@@ -96,6 +115,20 @@ scripts/     gen_contracts.py  snapshot.py  demo_script.py  run_pipeline.py  sec
 Commands: `make setup | synth | pipeline | snapshot | eval | test | e2e | lint | contracts | run-web | run-api`. `make snapshot` rebuilds `web/public/snapshot/` (including `demo.json`); commit the result when the data or the engine changes, because Vercel has no Python.
 
 Branches: `main` is the one branch and holds the product (R0 to R3, the guided demo, the dashboard-aligned frontend, the UX review fixes). Each change is a short-lived branch merged by PR once CI passes. Vercel deploys `main`, so `razorsense-starter.vercel.app` always shows the latest merge. The starter's files moved into `web/` with `git mv`, so history is kept.
+
+## 3b. Branches and worktrees (decided 7 Oct 2026)
+
+**One long-lived branch: `main`.** There is no `blindspot` branch any more (merged and deleted on 7 Oct, along with the merged `claude/*` branches). The duplicate-R2 branch `claude/docs-review-build-d91b5a` was deleted at Eshan's request; its last commit was `d96b591` and can be recovered with `git branch recovered d96b591` while Git still has it.
+
+**Worktrees work fine with this.** A worktree is a second folder on disk with its own branch checked out, sharing the same repository. Git will not check one branch out in two folders, and the main folder (`/Users/eshan/Desktop/claude/razorsense-starter`) keeps `main`, so every other worktree must use its own short-lived branch. Rules:
+1. `git fetch origin` first, then cut the branch from `origin/main`. On 7 Oct a worktree was cut from a stale `main` (R1 only, because the product then lived on `blindspot`) and showed none of the side nav the work was about. With one branch that cannot happen again, as long as the branch comes from a fresh `origin/main`.
+2. A new worktree has no `node_modules` and no Python env. Run `make setup` and `cd web && npm ci`.
+3. Ports are shared across worktrees: web 5173 (dev) and 5174 (live e2e), API 8000. Two worktrees running the dev server or `make e2e` at the same time will collide.
+4. Git-ignored generated files are per folder, not shared (for example an old `web/public/snapshot/` left behind on a stale branch blocked a pull on 7 Oct; it is now committed on `main`).
+5. When the PR is merged, delete the remote branch, then remove the folder: `git worktree remove <folder>` and `git branch -d <branch>`. Do not leave old worktrees around.
+6. Still present on 7 Oct: this session's folder (`.claude/worktrees/blindspot-ux-review-4e2739`) and two older ones (`delete-blindspot-folder-723851` on `claude/guided-demo`, `docs-review-build-d91b5a` on `claude/dashboard-aligned-frontend`). All their work is merged. They can be removed once no chat is using them.
+
+**Tooling gotcha.** The Blade MCP docs tool (`get_blade_component_docs`) refuses to run until `create_blade_cursor_rules` has written Cursor rule files into the repo. Do not do that. Read the component source instead: `web/node_modules/@razorpay/blade/build/lib/web/development/components/<Name>/`.
 
 ## 4. Decisions made (full log: PRD section 2)
 
@@ -156,7 +189,7 @@ Needs the next session:
 ## 7. Next steps
 
 Eshan chose to continue in a new chat. Suggested order:
-1. **Check `razorsense-starter.vercel.app` end to end after the merge** (RAY, incident, fix, undo, messages, verify, close, audit, chat, help button, email).
+1. **Check `razorsense-starter.vercel.app` end to end** (RAY, incident, fix, undo, messages, verify, close, audit, chat, help button, email). Vercel deploys `main`, and PR #6 changed the shell, so look at the top bar, nav and avatar on the live site, and on a phone.
 2. **Polish the user journey** before more backend depth: a guided path through the demo (what to click first), the RAY alert leading into the incident, mobile layout, and the copy. The journey, not the engine, is what a judge will see.
 3. **R4 Zone 1 and depth** (`docs/BUILD_PLAN.md` section 5): cannot-reach-the-pay-page inference (Hero B, with the "Inferred" label), the pay-URL probe, the investigation agent, the three-way eval. Hero B is placeholder data today.
 4. **R5** learning loop and handovers, **R7** submission kit (note, video script, evidence section). Cut order if short on time is in `docs/BUILD_PLAN.md` section 10.
@@ -174,11 +207,11 @@ Eshan chose to continue in a new chat. Suggested order:
 
 - Web bundle is 1.2 MB (Blade). Code-split later.
 - Starlette prints a deprecation warning about `httpx` in tests.
-- `make e2e` needs Google Chrome installed (CI's ubuntu runner has it). CI runs `make test`, `make e2e`, `make eval` and `make lint`; PRs #1 to #3 passed.
+- `make e2e` needs Google Chrome installed (CI's ubuntu runner has it). CI runs `make test`, `make e2e`, `make eval` and `make lint`; PRs #1 to #6 passed.
 - Spec numbers such as "40 affected, 9 complained" in the PRD and RAY mockups are illustrative. The generator computes the real ones.
 - Guided demo: a full page reload starts it over; customers pick suggested messages; writing your own reply, taking a conversation over, channels and settings changes are live-only. If the engine or data changes, run `make snapshot` and commit `web/public/snapshot/`.
 - The demo clock and the merchant's webhook fix are simulated and live in process memory and two `settings` keys. Restarting the API (`make run-api`) gives a fresh world; running only `make pipeline` on a world that already has grants does not reset them.
 - `make e2e` now starts the API on port 8000 (fresh world) and a live web on 5174, so both ports must be free.
 - Refunds, recovery links and event re-sending are in the autonomy matrix but have no executor yet.
 - Fixture incident INC-4 (cannot-reach-the-page) exists only as placeholder data and is not served in pipeline mode.
-- A parallel R2 built from `main` before the R2 to R4 merges is kept for comparison on branch `claude/docs-review-build-d91b5a` (not merged, do not merge: it duplicates PR #2).
+- The parallel R2 branch (`claude/docs-review-build-d91b5a`) was deleted on 7 Oct 2026 at Eshan's request. It duplicated PR #2. Last commit `d96b591`.

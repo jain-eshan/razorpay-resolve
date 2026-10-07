@@ -146,3 +146,5 @@ Found by measuring the live pages (Playwright at 1440 and 390 wide, plus compute
 Changed: top bar says Razorpay (Blindspot is the "BLINDSPOT" section of the side nav); the fixes above; unique nav icons; empty incident zones collapse to a header; demo links are buttons; the read-only Settings shows values as text. Left alone because they come from Blade: 11px timeline timestamps, heading levels, the Table console warning.
 
 Branches: `blindspot` merged into `main`, which is now the only long-lived branch. Checks: typecheck, lint, 13 snapshot browser tests pass.
+
+After the merge (PR #6): deleted `blindspot` and the merged `claude/*` branches on GitHub, then `claude/docs-review-build-d91b5a` (duplicate R2, last commit `d96b591`) at Eshan's request. Eshan's main folder moved to `main`. Worktree rules are in `docs/HANDOFF.md` section 3b.

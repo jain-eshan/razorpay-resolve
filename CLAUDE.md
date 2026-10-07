@@ -11,6 +11,9 @@ Product monorepo (working name) for the Razorpay x ISB AI PM Build Challenge, Tr
 - No secrets in the repo. Razorpay keys are `rzp_test_` only, in `.env`.
 - No em dashes in code, copy or docs.
 
+## Branches and worktrees
+One long-lived branch, `main`. Eshan runs one Claude chat per git worktree, so each chat works on its own short-lived branch: `git fetch`, cut it from `origin/main`, then `make setup` and `cd web && npm ci` in the new folder. Merge by PR once CI passes, delete the branch, remove the worktree. Details and traps: `docs/HANDOFF.md` section 3b.
+
 ## Web
 Work in `web/`. Read `web/CLAUDE.md` and `web/DESIGN.md` first. Use Blade components and tokens only, and read a component's docs through the Blade MCP server (`.mcp.json`) before using one this repo has not used.
 
