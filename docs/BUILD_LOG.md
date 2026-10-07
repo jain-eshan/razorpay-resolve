@@ -315,3 +315,13 @@ What checking caught:
 - Verify item 9 (reversal timelines): template `T-B1` states a bank reversal date, but no code path sends it, so no date reaches a customer. Check the RBI timelines before it is wired.
 
 Not done: item 1 of the verify list (the 24-hour webhook disable, due about 18:41 IST on 7 Oct) needs Eshan to look at the dashboard. Nothing in `web/` changed, so no design review was needed. No recording was made.
+
+## 7 Oct 2026, 24-hour webhook experiment (integrator)
+
+Closed the experiment that had been open since 6 Oct. Eshan checked the Razorpay test dashboard at 9:12 PM IST: webhook A (the Supabase sink) was still "Enabled", with no banner, warning, failure count or delivery log on the list or the details panel. I read the sink's own log with SQL (read-only): 30 deliveries, two events, 15 attempts each, from 18:41:03 IST on 6 Oct to 17:27:07 IST on 7 Oct (22.8 hours). Each gap was about double the last. The next gap would have been about 23 hours, past the 24-hour limit, and no further attempt came. The sink was still in `401` mode throughout, so the failure never stopped.
+
+Changed: `docs/PRD.md` (4.1 retry schedule and dashboard rows, 16.3 item 1), `docs/HANDOFF.md` (experiment marked done, pending item removed), `docs/SUBMISSION.md` (verify-list row 1 and the to-do list).
+
+What this does and does not show: in a test-mode account, Razorpay stopped retrying and did not disable the webhook, and the dashboard said nothing. It does not show what a live-mode account does, and it does not show whether an email was sent (no alert email was set on the webhook). The note and video must not say "Razorpay disables the webhook after 24 hours" as something we saw. `docs/SPEC.md` INC-1 (a simulated incident that says "disabled after 24 hours") follows the docs claim and was left alone; it is a scenario, not a claim about what we observed.
+
+Not done: the inbox check for a Razorpay email. Nothing in `web/` changed, so no design review was needed.

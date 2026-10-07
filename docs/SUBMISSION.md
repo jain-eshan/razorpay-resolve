@@ -64,7 +64,7 @@ Status of each item as of 7 Oct 2026, and what the note does about it. None is s
 
 | # | Item | Status | What the note does |
 |---|---|---|---|
-| 1 | Does a delivery log exist anywhere in the dashboard | Not found on the webhook list or details screens after six failures (6 Oct, one test payment). The 24-hour auto-disable was due about 18:41 IST on 7 Oct and nobody has looked. | Says only what was seen in our test account. Update after the check below. |
+| 1 | Does a delivery log exist anywhere in the dashboard | Not found on the webhook list or details screens after six failures (6 Oct, one test payment). The 24-hour auto-disable was due about 18:41 IST on 7 Oct. At 9:12 PM IST the webhook was still "Enabled" with no banner, warning or log. Razorpay stopped retrying after 15 attempts (the last at 22.8 hours) and did not disable it. | Says only what was seen in our test account in test mode. Do not write that Razorpay disables the webhook after 24 hours as something we saw. Whether an email was sent is unchecked. |
 | 2 | Meta's WhatsApp rates and coexistence for India | Not re-checked on the raw page | No rate or eligibility claim |
 | 3 | RAY on WhatsApp accepts a forwarded screenshot | Not checkable, RAY is not in the test account | No claim |
 | 4 | Razorpay is a Meta Tech Provider, and how RAY's number is set up | Unknown | Not claimed; stays a question to Razorpay |
@@ -85,7 +85,7 @@ Kill criteria: K1 passes on the synthetic world (ratio 4.0). K4 passes on script
 ## 4. What Eshan has to do
 
 1. Click the three quote links once to make sure the posts are still up.
-2. Look at the Razorpay test dashboard for what happened to webhook A after the 24-hour disable (banner, warning or email) and tell the next session, so item 1 can be closed.
+2. Check the inbox of the Razorpay test account (including Promotions and Spam) for any "webhook failing" or "webhook disabled" email, and tell the next session. The dashboard check is done (nothing shown), so this is the last part of item 1.
 3. Ask Razorpay's contact the K2 question: does RAY or the agentic dashboard list every payment affected by one webhook failure?
 4. Record two takes from the script, from the hosted site, with the caption on.
 5. Run `make eval && make snapshot`, commit if anything moved, and check the hosted link in a clean browser window with no server running.
