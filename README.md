@@ -2,7 +2,7 @@
 
 Razorpay x ISB AI PM Build Challenge, Track 2. An agent for small Indian merchants that owns what happens before and after a payment, where Razorpay's own tools stop looking. It finds every customer a payment problem touched, talks to them to find the payment, says whose side the fault is on, and fixes it with the founder approving.
 
-Read `docs/PRD.md` first, then `docs/SPEC.md` and `docs/BUILD_PLAN.md`. `docs/V1_SPEC.md` applies where the v2 docs are silent. A new session starts at `docs/HANDOFF.md`. What broke and why is in `docs/BUILD_LOG.md`.
+Read `docs/PRD.md` first, then `docs/SPEC.md` and `docs/BUILD_PLAN.md`. `docs/V1_SPEC.md` applies where the v2 docs are silent. A new session starts at `docs/HANDOFF.md`. What broke and why is in `docs/BUILD_LOG.md`. The submission note and video script are in `docs/SUBMISSION.md`.
 
 ## Try it in two minutes
 
@@ -50,8 +50,9 @@ The web app has two modes. Without `VITE_MODE=live` it plays the demo from `web/
 | Guided demo, dashboard-aligned web shell, UX review | Done, on `main` |
 | R4 first slice: Hero B, customers who cannot reach the pay page (no model) | Done, on `main`. Contracts v0.5 |
 | R5 first slice: handovers (Instagram, Messenger, public posts) | Done, on `main`. Contracts v0.6 |
-| R5 second slice: learning loop, weekly card, Learning screen (no model) | Open as PR #14. Contracts v0.7 |
-| R4 rest (investigation agent, three-way eval, escalation, duplicates, refunds), R5 rest (renewal anomaly), R6, R7 | Not started |
+| R5 second slice: learning loop, weekly card, Learning screen (no model) | Done, on `main`. Contracts v0.7 |
+| R7 submission kit: one-page note, 90-second script, verify-list status (`docs/SUBMISSION.md`) | Drafted. Needs Eshan's checks and two recorded takes |
+| R4 rest (investigation agent, three-way eval, escalation, duplicates, refunds), R5 rest (renewal anomaly), R6 | Not started |
 
 Contract changes are logged in `docs/CONTRACT_CHANGES.md` (currently v0.7). The plan for every release is in `docs/BUILD_PLAN.md`.
 
