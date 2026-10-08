@@ -1,31 +1,25 @@
-import { Box, Text } from '@razorpay/blade/components'
+import { Box, ChartBar, ChartBarWrapper, ChartCartesianGrid, ChartLegend, ChartTooltip, ChartXAxis, ChartYAxis, Text } from '@razorpay/blade/components'
 import { hourLabel } from '../lib/format'
 import type { Schemas } from '../lib/api'
 
-const UNIT = 16 // px per event in an hour
-
-// One column per hour. Green: delivered. Red: your server answered with an error. Grey: nothing was sent because the webhook was off.
+// One bar per hour, stacked. Green: delivered. Red: your server answered with an error. Grey: nothing was sent because the webhook was off.
+// Hover a bar to read the hour and each count. The hours with something to say are listed under the chart.
 export function TimelineChart({ buckets }: { buckets: Schemas['TimelineBucket'][] }) {
   const marked = buckets.filter((b) => b.markers.length)
+  const data = buckets.map((b) => ({ hour: hourLabel(b.bucket_start), delivered: b.ok, errors: b.client_error + b.server_error, off: b.not_attempted }))
   return (
     <Box display="flex" flexDirection="column" gap="spacing.4">
-      <Box display="flex" alignItems="flex-end" gap="spacing.1" height="96px" aria-label="Webhook outcomes by hour">
-        {buckets.map((b) => {
-          const seg = (n: number): `${number}px` => `${Math.min(n * UNIT, 96)}px`
-          return (
-            <Box key={b.bucket_start} flex="1" display="flex" flexDirection="column" justifyContent="flex-end" minWidth="3px"
->
-              <Box height={seg(b.not_attempted)} backgroundColor="feedback.background.neutral.intense" />
-              <Box height={seg(b.client_error + b.server_error)} backgroundColor="feedback.background.negative.intense" />
-              <Box height={seg(b.ok)} backgroundColor="feedback.background.positive.intense" />
-            </Box>
-          )
-        })}
-      </Box>
-      <Box display="flex" gap="spacing.5" flexWrap="wrap">
-        <Text size="small" color="feedback.text.positive.intense">Delivered</Text>
-        <Text size="small" color="feedback.text.negative.intense">Your server returned an error</Text>
-        <Text size="small" color="surface.text.gray.muted">Nothing sent, webhook off</Text>
+      <Box height="280px" testID="timeline-chart">
+        <ChartBarWrapper data={data} height="100%">
+          <ChartCartesianGrid />
+          <ChartXAxis dataKey="hour" interval={Math.max(0, Math.floor(data.length / 6) - 1)} />
+          <ChartYAxis />
+          <ChartTooltip />
+          <ChartLegend />
+          <ChartBar dataKey="delivered" name="Delivered" color="data.background.categorical.green.intense" stackId="webhooks" />
+          <ChartBar dataKey="errors" name="Your server returned an error" color="data.background.categorical.red.intense" stackId="webhooks" />
+          <ChartBar dataKey="off" name="Nothing sent, webhook off" color="data.background.categorical.gray.intense" stackId="webhooks" />
+        </ChartBarWrapper>
       </Box>
       <Box display="flex" flexDirection="column" gap="spacing.2">
         {marked.map((b) => (

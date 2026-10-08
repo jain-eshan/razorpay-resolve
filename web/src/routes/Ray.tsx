@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom'
-import { Box, Button, Card, CardBody, Heading, RayIcon, Text } from '@razorpay/blade/components'
+import { Box, Heading, Text } from '@razorpay/blade/components'
+import { WhatsAppChat, type WaMessage } from '../components/WhatsAppChat'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { when } from '../lib/format'
+import { waTime } from '../lib/whatsapp'
 
 // Simulated WhatsApp. RAY is Razorpay's product; this shows what its message could carry.
 export default function Ray() {
@@ -17,6 +19,21 @@ export default function Ray() {
   const { data: members } = useGet<Schemas['Member'][]>(id ? `/api/incidents/${id}/members` : null)
   const atAlert = inc?.would_have_alerted_at && members ? members.filter((m) => m.captured_at <= inc.would_have_alerted_at!).length : null
 
+  const go = (c: Schemas['RayCard'], label: string) => nav(label === c.buttons[1] ? `/incidents/${c.incident_id}/dev` : `/incidents/${c.incident_id}`)
+  const chats: { key: string; caption: string; cardOf: Schemas['RayCard']; messages: WaMessage[] }[] = []
+  if (inc && card) chats.push({ key: 'A', caption: 'Paid, and no access', cardOf: card, messages: [
+    { from: 'business', day: when(inc.would_have_alerted_at!), time: waTime(inc.would_have_alerted_at!), text: `Heads up · ${card.owner_chip}\n\nYour webhook is failing. Your server is answering Razorpay with an error, so paid customers are not getting access.\n\n${atAlert} customer affected so far. I'll keep watching.` },
+    { from: 'business', day: 'Friday, after a complaint', text: `${card.owner_chip}\n\n${card.cause_line}\n\n${card.affected} customers paid and have no access. ${card.complained} complained, ${card.silent} did not. ${rupees(card.at_risk_paise)} at risk.`, buttons: card.buttons.slice(0, 2) },
+  ] })
+  if (incB && cardB) chats.push({ key: 'B', caption: 'Could not pay at all', cardOf: cardB, messages: [
+    { from: 'business', day: `${when(incB.would_have_alerted_at ?? incB.onset_at)}, minutes after a deploy`, time: waTime(incB.would_have_alerted_at ?? incB.onset_at), text: `Heads up · ${cardB.owner_chip}\n\nYour pay page is not answering. A change went live a few minutes before. Razorpay cannot see this, so I am telling you.\n\nI'll keep watching.` },
+    { from: 'business', day: 'The next morning', text: `${cardB.owner_chip}\n\n${cardB.cause_line}\n\n${cardB.affected} orders lost, about. ${cardB.at_risk_paise ? `${rupees(cardB.at_risk_paise)} from customers who can still be reached.` : ''}`, buttons: cardB.buttons.slice(0, 2) },
+  ] })
+  if (incC && cardC) chats.push({ key: 'C', caption: "Razorpay's side", cardOf: cardC, messages: [
+    { from: 'business', day: `${when(incC.would_have_alerted_at ?? incC.onset_at)}, before anyone wrote`, time: waTime(incC.would_have_alerted_at ?? incC.onset_at), text: `Heads up · ${cardC.owner_chip}\n\nCard renewals are failing with the same gateway error, while UPI AutoPay renewals go through. Nothing changed on your side, so this looks like Razorpay's.\n\nI'll keep watching.` },
+    { from: 'business', day: 'The picture so far', text: `${cardC.owner_chip}\n\n${cardC.cause_line}\n\n${cardC.affected} renewals failed. ${cardC.complained} customers wrote in, ${cardC.silent} did not. ${rupees(cardC.at_risk_paise)} still to collect.`, buttons: cardC.buttons.slice(0, 2) },
+  ] })
+
   return (
     <Box display="flex" flexDirection="column" gap="spacing.5">
       <Box display="flex" flexDirection="column" gap="spacing.2">
@@ -24,115 +41,14 @@ export default function Ray() {
         <Text color="surface.text.gray.muted">Simulated. Blindspot gives RAY something to say before the founder hears it from a customer.</Text>
       </Box>
       {error && <Text color="feedback.text.negative.intense">Could not load: {error}</Text>}
-      {inc && card && (
-        <Box width="100%" backgroundColor="surface.background.gray.subtle" borderRadius="xlarge" borderWidth="thin" borderColor="surface.border.gray.normal" padding="spacing.5" display="flex" flexDirection="column" gap="spacing.5">
-          <Box display="flex" alignItems="center" gap="spacing.3">
-            <RayIcon size="large" color="surface.icon.onSea.onSubtle" />
-            <Text weight="semibold">RAY</Text>
-            <Text size="small" color="surface.text.gray.muted">simulated</Text>
+      <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(min(100%, 280px), 1fr))" gap="spacing.6" justifyItems="center">
+        {chats.map((c) => (
+          <Box key={c.key} display="flex" flexDirection="column" gap="spacing.3" width="100%" alignItems="center">
+            <Text size="small" weight="semibold" color="surface.text.gray.muted">{c.caption}</Text>
+            <WhatsAppChat name="Ray by Razorpay" avatar="razorpay" compact messages={c.messages} notice={false} day="Today" onButton={(label) => go(c.cardOf, label)} />
           </Box>
-
-          <Box display="grid" gridTemplateColumns={{ base: '1fr', m: 'repeat(2, minmax(0, 1fr))' }} gap="spacing.5" alignItems="start">
-            <Box display="flex" flexDirection="column" gap="spacing.3">
-              <Text size="small" color="surface.text.gray.muted">{when(inc.would_have_alerted_at!)}</Text>
-              <Card>
-                <CardBody>
-                  <Box display="flex" flexDirection="column" gap="spacing.3">
-                    <Text size="small" weight="semibold" color="feedback.text.notice.intense">Heads up · {card.owner_chip}</Text>
-                    <Text>Your webhook is failing. Your server is answering Razorpay with an error, so paid customers are not getting access.</Text>
-                    <Text>{atAlert} customer affected so far. I'll keep watching.</Text>
-                  </Box>
-                </CardBody>
-              </Card>
-            </Box>
-
-            <Box display="flex" flexDirection="column" gap="spacing.3">
-              <Text size="small" color="surface.text.gray.muted">Friday, after a complaint</Text>
-              <Card>
-                <CardBody>
-                  <Box display="flex" flexDirection="column" gap="spacing.3">
-                    <Text size="small" weight="semibold" color="feedback.text.notice.intense">{card.owner_chip}</Text>
-                    <Text>{card.cause_line}</Text>
-                    <Text>
-                      {card.affected} customers paid and have no access. {card.complained} complained, {card.silent} did not. {rupees(card.at_risk_paise)} at risk.
-                    </Text>
-                    <Box display="flex" gap="spacing.3">
-                      <Button size="small" onClick={() => nav(`/incidents/${card.incident_id}`)}>{card.buttons[0]}</Button>
-                      <Button size="small" variant="secondary" onClick={() => nav(`/incidents/${card.incident_id}/dev`)}>{card.buttons[1]}</Button>
-                    </Box>
-                  </Box>
-                </CardBody>
-              </Card>
-            </Box>
-
-            {incB && cardB && (
-              <>
-                <Box display="flex" flexDirection="column" gap="spacing.3">
-                  <Text size="small" color="surface.text.gray.muted">{when(incB.would_have_alerted_at ?? incB.onset_at)}, minutes after a deploy</Text>
-                  <Card>
-                    <CardBody>
-                      <Box display="flex" flexDirection="column" gap="spacing.3">
-                        <Text size="small" weight="semibold" color="feedback.text.notice.intense">Heads up · {cardB.owner_chip}</Text>
-                        <Text>Your pay page is not answering. A change went live a few minutes before. Razorpay cannot see this, so I am telling you.</Text>
-                        <Text>I'll keep watching.</Text>
-                      </Box>
-                    </CardBody>
-                  </Card>
-                </Box>
-                <Box display="flex" flexDirection="column" gap="spacing.3">
-                  <Text size="small" color="surface.text.gray.muted">The next morning</Text>
-                  <Card>
-                    <CardBody>
-                      <Box display="flex" flexDirection="column" gap="spacing.3">
-                        <Text size="small" weight="semibold" color="feedback.text.notice.intense">{cardB.owner_chip}</Text>
-                        <Text>{cardB.cause_line}</Text>
-                        <Text>{cardB.affected} orders lost, about. {cardB.at_risk_paise ? `${rupees(cardB.at_risk_paise)} from customers who can still be reached.` : ''}</Text>
-                        <Box display="flex" gap="spacing.3">
-                          <Button size="small" onClick={() => nav(`/incidents/${cardB.incident_id}`)}>{cardB.buttons[0]}</Button>
-                          <Button size="small" variant="secondary" onClick={() => nav(`/incidents/${cardB.incident_id}/dev`)}>{cardB.buttons[1]}</Button>
-                        </Box>
-                      </Box>
-                    </CardBody>
-                  </Card>
-                </Box>
-              </>
-            )}
-
-            {incC && cardC && (
-              <>
-                <Box display="flex" flexDirection="column" gap="spacing.3">
-                  <Text size="small" color="surface.text.gray.muted">{when(incC.would_have_alerted_at ?? incC.onset_at)}, before anyone wrote</Text>
-                  <Card>
-                    <CardBody>
-                      <Box display="flex" flexDirection="column" gap="spacing.3">
-                        <Text size="small" weight="semibold" color="feedback.text.notice.intense">Heads up · {cardC.owner_chip}</Text>
-                        <Text>Card renewals are failing with the same gateway error, while UPI AutoPay renewals go through. Nothing changed on your side, so this looks like Razorpay's.</Text>
-                        <Text>I'll keep watching.</Text>
-                      </Box>
-                    </CardBody>
-                  </Card>
-                </Box>
-                <Box display="flex" flexDirection="column" gap="spacing.3">
-                  <Text size="small" color="surface.text.gray.muted">The picture so far</Text>
-                  <Card>
-                    <CardBody>
-                      <Box display="flex" flexDirection="column" gap="spacing.3">
-                        <Text size="small" weight="semibold" color="feedback.text.notice.intense">{cardC.owner_chip}</Text>
-                        <Text>{cardC.cause_line}</Text>
-                        <Text>{cardC.affected} renewals failed. {cardC.complained} customers wrote in, {cardC.silent} did not. {rupees(cardC.at_risk_paise)} still to collect.</Text>
-                        <Box display="flex" gap="spacing.3">
-                          <Button size="small" onClick={() => nav(`/incidents/${cardC.incident_id}`)}>{cardC.buttons[0]}</Button>
-                          <Button size="small" variant="secondary" onClick={() => nav(`/incidents/${cardC.incident_id}`)}>{cardC.buttons[1]}</Button>
-                        </Box>
-                      </Box>
-                    </CardBody>
-                  </Card>
-                </Box>
-              </>
-            )}
-          </Box>
-        </Box>
-      )}
+        ))}
+      </Box>
       {!inc && !error && <Text color="surface.text.gray.muted">Nothing to report. No mismatches found.</Text>}
     </Box>
   )

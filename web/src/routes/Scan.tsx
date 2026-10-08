@@ -1,45 +1,180 @@
+import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertTriangleIcon, Alert, Badge, Box, CheckCircleIcon, Link, RupeeIcon, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
-import { Panel } from '../components/Panel'
-import { Stat } from '../components/Stat'
-import { rupees, useGet, type Schemas } from '../lib/api'
+import { m } from 'framer-motion'
+import { ArrowRightIcon, Badge, BladeProvider, Box, Button, Card, CardBody, CheckIcon, Collapsible, CollapsibleBody, CollapsibleLink, Heading, ProgressBar, RayIcon, RefreshIcon, Text } from '@razorpay/blade/components'
+import { bladeTheme } from '@razorpay/blade/tokens'
+import { Accent } from '../components/Accent'
+import { useCountUp } from '../lib/useCountUp'
+import { Label } from '../components/AgentAnswer'
 import { PageHeader } from '../components/PageHeader'
+import { ScanScene } from '../components/IsoScenes'
+import { useHeroWash } from '../components/iso'
+import { rupees, useGet, type Schemas } from '../lib/api'
+import { OWNER } from '../lib/format'
+import { prefersReducedMotion } from '../razorsense'
 
-// Day 0: the first thing a merchant sees on connecting. It finds money that is already stuck.
+type Scan = Schemas['ScanResult']
+const STEP_MS = 520
+
+// What Ray did, as short lines in the order it did them. A count is shown only where the scan result holds one; nothing is typed in.
+const steps = (d: Scan): [string, string][] => [
+  ["Reading your payments from Razorpay's records", `${d.days} days`],
+  ['Reading your access records', ''],
+  ["Matching each payment to a customer's access", ''],
+  ['Looking for what broke: webhooks, pay pages, renewals', ''],
+  ['Grouping what I found into incidents', `${d.incidents.length} incidents`],
+  ['Counting who is still locked out', `${d.leaked_customers} customers`],
+]
+
+// Day 0: the first thing a merchant sees on connecting. It finds money that is already stuck. Every visit plays the scan as a checklist, like Razorpay Ads'
+// "Check your AI visibility", so anyone testing the demo sees how it works each time. The result is saved, so this is a replay, and it says so.
 export default function Scan() {
-  const nav = useNavigate()
-  const { data, error } = useGet<Schemas['ScanResult']>('/api/scan/day0')
+  const { data, error } = useGet<Scan>('/api/scan/day0')
+  const [step, setStep] = useState(prefersReducedMotion ? 99 : 0)
+  useEffect(() => {
+    if (!data || step >= steps(data).length) return
+    const t = setTimeout(() => setStep((n) => n + 1), STEP_MS)
+    return () => clearTimeout(t)
+  }, [data, step])
+
   if (error) return <Text color="feedback.text.negative.intense">Could not load the scan: {error}</Text>
   if (!data) return <Text color="surface.text.gray.muted">Scanning</Text>
+  const running = step < steps(data).length
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <PageHeader title="Day-0 scan" description="Here is what I found." guide="scan" />
-      <Alert isFullWidth color={data.leaked_customers ? 'notice' : 'positive'} isDismissible={false} title={data.headline} description="Checked against Razorpay's records and your access records. Nothing has been changed." />
-      <Box display="grid" gridTemplateColumns={{ base: '1fr', m: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
-        <Stat label="Customers without access" value={String(data.leaked_customers)} icon={AlertTriangleIcon} tone="notice" />
-        <Stat label="Paid and not restored" value={rupees(data.leaked_paise)} icon={RupeeIcon} />
-        <Stat label="Incidents" value={String(data.incidents.length)} icon={CheckCircleIcon} />
+      <PageHeader title="Day-0 scan" description="Here is what I found." guide="scan"
+        actions={!running && <Button variant="tertiary" size="medium" icon={RefreshIcon} onClick={() => setStep(0)}>Run it again</Button>} />
+      {running ? <Running data={data} step={step} /> : <Report data={data} />}
+    </Box>
+  )
+}
+
+function Hero({ eyebrow, title, children }: { eyebrow: string; title: ReactNode; children?: ReactNode }) {
+  const wash = useHeroWash()
+  return (
+    <Box position="relative" overflow="hidden" borderRadius="large" testID="scan-hero">
+      <div style={{ position: 'absolute', inset: 0, background: wash }} />
+      <Box position="relative" display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', xl: 'minmax(0, 3fr) minmax(0, 2fr)' }} alignItems="center" gap="spacing.5" padding={{ base: 'spacing.6', m: 'spacing.8' }}>
+        <Box display="flex" flexDirection="column" alignItems="flex-start" gap="spacing.5">
+          <Box display="flex" alignItems="center" gap="spacing.3"><RayIcon size="medium" color="surface.icon.onSea.onSubtle" /><Label>{eyebrow}</Label></Box>
+          <Heading size="2xlarge" weight="regular">{title}</Heading>
+          {children}
+        </Box>
+        <Box display={{ base: 'none', xl: 'block' }}><ScanScene /></Box>
       </Box>
-      <Panel title="Incidents behind it" pad={false}>
-        <Table data={{ nodes: data.incidents }} gridTemplateColumns="minmax(300px, 3fr) minmax(100px, 1fr) minmax(100px, 1fr)" isHeaderSticky={false}>
-          {(rows) => (
-            <>
-              <TableHeader>
-                <TableHeaderRow><TableHeaderCell>Incident</TableHeaderCell><TableHeaderCell>Affected</TableHeaderCell><TableHeaderCell>At risk</TableHeaderCell></TableHeaderRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((i) => (
-                  <TableRow key={i.id} item={i}>
-                    <TableCell><Box display="flex" flexDirection="column"><Link href={`/incidents/${i.id}`} onClick={(e) => { e.preventDefault(); nav(`/incidents/${i.id}`) }}>{i.title}</Link><Badge size="medium" color="notice">{i.id}</Badge></Box></TableCell>
-                    <TableCell><Text>{i.affected}</Text></TableCell>
-                    <TableCell><Text>{rupees(i.at_risk_paise)}</Text></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </>
-          )}
-        </Table>
-      </Panel>
+    </Box>
+  )
+}
+
+function Running({ data, step }: { data: Scan; step: number }) {
+  const list = steps(data)
+  return (
+    <Box display="flex" flexDirection="column" gap="spacing.6" testID="scan-running">
+      <Hero eyebrow="Scanning the last 30 days" title={<>Checking who paid and <Accent>never got in</Accent></>}>
+        <Text color="surface.text.gray.subtle">Ray is reading Razorpay's records and yours side by side. Nothing is changed.</Text>
+      </Hero>
+      <Card>
+        <CardBody>
+          <Box display="flex" flexDirection="column" gap="spacing.5">
+            <ProgressBar label="Scan progress" showPercentage={false} value={Math.round((Math.min(step, list.length) / list.length) * 100)} />
+            <Box display="flex" flexDirection="column" gap="spacing.4">
+              {list.map(([line, count], i) => {
+                const done = i < step
+                const active = i === step
+                return (
+                  <Box key={line} display="flex" alignItems="center" gap="spacing.4" opacity={done || active ? 1 : 0.5}>
+                    <Box width="24px" height="24px" flexShrink={0} borderRadius="max" display="flex" alignItems="center" justifyContent="center"
+                      backgroundColor={done ? 'feedback.background.positive.subtle' : 'surface.background.gray.moderate'}>
+                      {done ? <CheckIcon size="small" color="feedback.icon.positive.intense" /> : active
+                        ? <m.div animate={{ rotate: 90 }} transition={{ duration: 0.48, ease: [0.5, 0, 0, 1], repeat: Infinity, repeatDelay: 0.48 }} style={{ display: 'flex' }}><RayIcon size="small" color="surface.icon.onSea.onSubtle" /></m.div>
+                        : <Text size="xsmall" color="surface.text.gray.muted">{i + 1}</Text>}
+                    </Box>
+                    <Box flex="1" minWidth="0px"><Text color={active ? 'surface.text.gray.normal' : 'surface.text.gray.subtle'} weight={active ? 'semibold' : 'regular'}>{line}</Text></Box>
+                    {done && count && (
+                      <m.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}><Text size="small" color="surface.text.gray.muted">{count}</Text></m.div>
+                    )}
+                  </Box>
+                )
+              })}
+            </Box>
+            <Text size="small" color="surface.text.gray.muted">Replayed from the saved Day-0 result. Every number comes from your data.</Text>
+          </Box>
+        </CardBody>
+      </Card>
+    </Box>
+  )
+}
+
+function Figure({ label, value }: { label: string; value: string }) {
+  return <Box display="flex" flexDirection="column" gap="spacing.1"><Heading size="2xlarge">{value}</Heading><Label>{label}</Label></Box>
+}
+
+function Report({ data }: { data: Scan }) {
+  const nav = useNavigate()
+  const people = useCountUp(data.leaked_customers)
+  const sorted = [...data.incidents].sort((a, b) => b.affected - a.affected)
+  const top = sorted[0]
+  const fine = data.leaked_customers === 0
+  return (
+    <Box display="flex" flexDirection="column" gap="spacing.6" testID="scan-report">
+      <Hero eyebrow="Day-0 scan · last 30 days" title={fine ? <>Nobody paid and <Accent>missed out</Accent></> : <>{people} customers paid and <Accent>have no access</Accent></>}>
+        <Box display="flex" flexWrap="wrap" alignItems="center" gap={{ base: 'spacing.6', m: 'spacing.9' }}>
+          <Figure label="Paid and not restored" value={rupees(data.leaked_paise)} />
+          <Figure label="Incidents behind it" value={String(data.incidents.length)} />
+          <Badge size="large" color={fine ? 'positive' : 'negative'}>{fine ? 'All clear' : 'Needs urgent attention'}</Badge>
+        </Box>
+        <Text color="surface.text.gray.subtle">{data.headline} Checked against Razorpay's records and your access records. Nothing has been changed.</Text>
+      </Hero>
+
+      {sorted.length > 0 && (
+        <Box display="flex" flexDirection="column" gap="spacing.5">
+          <Heading size="medium">What to do next</Heading>
+          <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', m: 'repeat(2, minmax(0, 1fr))', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
+            {sorted.map((i, k) => (
+              <Card key={i.id} height="100%">
+                <CardBody>
+                  <Box display="flex" flexDirection="column" gap="spacing.4" height="100%">
+                    <Box display="flex" alignItems="center" gap="spacing.3">
+                      <Box width="24px" height="24px" borderRadius="max" backgroundColor="surface.background.gray.moderate" display="flex" alignItems="center" justifyContent="center"><Text size="small" weight="semibold">{k + 1}</Text></Box>
+                      <Badge size="medium" color="notice">{i.id}</Badge>
+                    </Box>
+                    <Heading size="small">{i.title}</Heading>
+                    <Box display="flex" flexDirection="column" gap="spacing.1">
+                      <Text size="small"><Text as="span" size="small" weight="semibold">Why this matters: </Text>{i.affected} customers, {rupees(i.at_risk_paise)} at risk.</Text>
+                      <Text size="small"><Text as="span" size="small" weight="semibold">Whose side: </Text>{OWNER[i.owner]}</Text>
+                    </Box>
+                    <Box marginTop="auto" paddingTop="spacing.3"><Button variant={k === 0 && fine ? 'primary' : 'secondary'} size="medium" iconPosition="right" icon={ArrowRightIcon} onClick={() => nav(`/incidents/${i.id}`)}>Open {i.id}</Button></Box>
+                  </Box>
+                </CardBody>
+              </Card>
+            ))}
+          </Box>
+        </Box>
+      )}
+
+      {top && !fine && (
+        <BladeProvider themeTokens={bladeTheme} colorScheme="dark">
+          <Box borderRadius="large" backgroundColor="surface.background.gray.intense" padding={{ base: 'spacing.6', m: 'spacing.8' }} display="flex" flexDirection={{ base: 'column', m: 'row' }} justifyContent="space-between" alignItems={{ base: 'flex-start', m: 'center' }} gap="spacing.5" testID="scan-cta">
+            <Box display="flex" flexDirection="column" gap="spacing.2" maxWidth="640px">
+              <Box display="flex" alignItems="center" gap="spacing.3"><RayIcon size="medium" color="surface.icon.onSea.onSubtle" /><Text size="small" weight="semibold" color="surface.text.gray.muted">START WITH THE BIGGEST</Text></Box>
+              <Heading size="large">{top.id}: {top.affected} customers, {rupees(top.at_risk_paise)}</Heading>
+              <Text color="surface.text.gray.subtle">I will show you who is affected and plan the fix. You approve every step.</Text>
+            </Box>
+            <Button variant="primary" size="large" iconPosition="right" icon={ArrowRightIcon} onClick={() => nav(`/incidents/${top.id}`)}>Fix it with Ray</Button>
+          </Box>
+        </BladeProvider>
+      )}
+
+      <Collapsible>
+        <CollapsibleLink>How this scan works</CollapsibleLink>
+        <CollapsibleBody>
+          <Box display="flex" flexDirection="column" gap="spacing.3" maxWidth="720px" testID="scan-how">
+            <Text>I read your payments and webhook deliveries from Razorpay for the last {data.days} days, and your own access records.</Text>
+            <Text>For every payment I check whether the customer got access. Payments that did not are grouped by what broke, and each group is one incident.</Text>
+            <Text>The scan only reads. Nothing is granted, sent or changed until you approve it.</Text>
+          </Box>
+        </CollapsibleBody>
+      </Collapsible>
     </Box>
   )
 }

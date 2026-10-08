@@ -3,6 +3,8 @@ import { Box, Button, RayIcon, Text, TextInput } from '@razorpay/blade/component
 import { isLive, send, type Schemas } from '../lib/api'
 import { demoSuggestions } from '../lib/demo'
 import { useLiveThread } from '../lib/live'
+import { waTime } from '../lib/whatsapp'
+import { WhatsAppChat } from './WhatsAppChat'
 
 // What the customer sees: their own messages and the agent's replies that were actually sent. Held drafts and the founder's brief never reach this view.
 export function CustomerChat({ channel, who, context, title, onThread, placeholder }: {
@@ -45,14 +47,24 @@ export function CustomerChat({ channel, who, context, title, onThread, placehold
         <RayIcon size="large" color="surface.icon.onSea.onSubtle" />
         <Box><Text weight="semibold">{title}</Text><Text size="small" color="surface.text.gray.muted">Simulated. You are the customer.</Text></Box>
       </Box>
-      <Box display="flex" flexDirection="column" gap="spacing.3" minHeight="220px">
-        {shown.length === 0 && <Text size="small" color="surface.text.gray.muted">{placeholder ?? 'Say what went wrong with your payment.'}</Text>}
-        {shown.map((m, i) => (
-          <Box key={m.id} alignSelf={m.direction === 'inbound' ? 'flex-end' : 'flex-start'} maxWidth="85%" backgroundColor="surface.background.gray.intense" borderRadius="large" padding="spacing.4">
-            <Text size="small">{m.direction === 'inbound' ? (typed[shown.slice(0, i).filter((x) => x.direction === 'inbound').length - (inbound - typed.length)] ?? m.body) : m.body}</Text>
+      {(() => {
+        const body = (m: (typeof shown)[number], i: number) => (m.direction === 'inbound' ? (typed[shown.slice(0, i).filter((x) => x.direction === 'inbound').length - (inbound - typed.length)] ?? m.body) : m.body)
+        return channel.startsWith('whatsapp') ? (
+          <Box display="flex" justifyContent="center">
+            <WhatsAppChat name={title} minHeight={220} messages={shown.map((m, i) => ({ from: m.direction === 'inbound' ? 'customer' : 'business', text: body(m, i), time: waTime(m.created_at), read: true }))} />
           </Box>
-        ))}
-      </Box>
+        ) : (
+          <Box display="flex" flexDirection="column" gap="spacing.3" minHeight="220px">
+            {shown.length === 0 && <Text size="small" color="surface.text.gray.muted">{placeholder ?? 'Say what went wrong with your payment.'}</Text>}
+            {shown.map((m, i) => (
+              <Box key={m.id} alignSelf={m.direction === 'inbound' ? 'flex-end' : 'flex-start'} maxWidth="85%" backgroundColor="surface.background.gray.intense" borderRadius="large" padding="spacing.4">
+                <Text size="small">{body(m, i)}</Text>
+              </Box>
+            ))}
+          </Box>
+        )
+      })()}
+      {channel.startsWith('whatsapp') && shown.length === 0 && <Text size="small" color="surface.text.gray.muted">{placeholder ?? 'Say what went wrong with your payment.'}</Text>}
       {error && <Text size="small" color="feedback.text.negative.intense">{error}</Text>}
       {isLive ? (
         <Box display="flex" gap="spacing.3" alignItems="flex-end">
