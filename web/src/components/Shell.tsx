@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useState, type ComponentProps, type ReactNode } 
 import { Link, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 import {
-  ActivityIcon, AtSignIcon, Avatar, Badge, BellIcon, Box, ChevronDownIcon, ClipboardIcon, CreditCardIcon, Drawer, DrawerBody, DrawerHeader, FileIcon, FileTextIcon, FlaskIcon, HomeIcon, IconButton, LinkIcon, MenuIcon, RadioIcon, RayIcon, RazorpayIcon, RepeatIcon, SearchIcon, SearchInput, SettingsIcon, SideNav, SideNavBody, SideNavFooter, SideNavLink, SideNavSection, Switch, TabNav, TabNavItem, TabNavItems, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent, TrendingUpIcon, UsersIcon, useTheme, WalletIcon,
+  ActivityIcon, AtSignIcon, Avatar, Badge, BellIcon, Box, ChevronDownIcon, ClipboardIcon, CreditCardIcon, Drawer, DrawerBody, DrawerHeader, FileIcon, FileTextIcon, FlaskIcon, HomeIcon, IconButton, LinkIcon, MenuIcon, RadioIcon, RayIcon, RepeatIcon, SearchIcon, SearchInput, SettingsIcon, SideNav, SideNavBody, SideNavFooter, SideNavLink, SideNavSection, Switch, TabNav, TabNavItem, TabNavItems, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent, TrendingUpIcon, UsersIcon, useTheme, WalletIcon,
   type IconComponent,
 } from '@razorpay/blade/components'
 
@@ -89,17 +89,19 @@ export function Shell({ children }: { children: ReactNode }) {
   return (
     <Box display="flex" flexDirection="column" height="100vh">
       <TopNav>
-        <TopNavBrand>
+        {/* Blade centres the brand with its own paddingY (16px) when the bar has no padding, and the bar adds 8px of padding below the m breakpoint, so the brand takes 8px there. */}
+        <TopNavBrand paddingY={{ base: 'spacing.3', m: 'spacing.5' }}>
           <Box display="flex" alignItems="center" gap="spacing.4">
             <Box display={{ base: 'block', m: 'none' }}><IconButton icon={MenuIcon} accessibilityLabel="Open menu" onClick={() => setOpen(true)} /></Box>
             <Link to="/" aria-label="Razorpay home" style={{ display: 'flex', alignItems: 'center', gap: 'inherit', textDecoration: 'none', color: 'inherit' }}>
-              <RazorpayIcon size="xlarge" />
-              <Text size="large" weight="semibold">Razorpay</Text>
+              {/* The official lockup, blue and white for the black bar, as the live dashboard shows it. A file, not Blade's single-colour glyph plus text: the real logo is one drawing with its own spacing. */}
+              <img src="/razorpay-logo.svg" alt="" width="112" height="24" style={{ display: 'block' }} />
             </Link>
           </Box>
         </TopNavBrand>
         <TopNavContent>
-          <Box display={{ base: 'none', m: 'flex' }} width="100%" minWidth="0px" overflow="hidden">
+          {/* Five tabs need about 570px beside the logo and the actions, so they show from l; at m the strip used to cut Payroll in half and hide More. */}
+          <Box display={{ base: 'none', l: 'flex' }} width="100%" minWidth="0px" overflow="hidden">
             {/* Blade's TabNav unmounts tabs that overflow, and crashes if their size updates are still queued. All five tabs are always rendered instead. */}
             <TabNav items={TABS}>
               {() => (
@@ -111,7 +113,8 @@ export function Shell({ children }: { children: ReactNode }) {
           </Box>
         </TopNavContent>
         <TopNavActions>
-          <Box display="flex" alignItems="center" gap="spacing.3">
+          {/* Blade top-aligns the actions and sizes them around the 36px search field, so without it (below xl) they sit off centre. From m up the height is the search field's. Below m the actions must not make the bar's row taller than the brand (that pushes the brand down), so they take a 22px box, the avatar overflows it evenly, and 1px nudges it to centre. */}
+          <Box display="flex" alignItems="center" gap="spacing.3" height={{ base: '22px', m: '36px' }} position="relative" top={{ base: '-1px', m: '0px' }}>
             <Box display={{ base: 'none', xl: 'block' }} width="360px"><SearchInput placeholder="Search payment products, settings, and more" accessibilityLabel="Search" isDisabled /></Box>
             <Box display={{ base: 'none', m: 'flex' }} gap="spacing.3">
               <IconButton icon={ActivityIcon} accessibilityLabel="Ecosystem health" isDisabled onClick={noop} />

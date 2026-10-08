@@ -55,7 +55,7 @@ export default function SettingsPage() {
 
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7" testID="settings">
-      <PageHeader title="Settings" description="How much Blindspot does without asking, and the limits it stays inside." />
+      <PageHeader guide="autonomy" title="Settings" description="How much Blindspot does without asking, and the limits it stays inside." />
       {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Read-only snapshot" description="Settings cannot be changed in this demo." />}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="Not saved" description={error} />}
 

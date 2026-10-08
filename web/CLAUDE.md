@@ -25,7 +25,8 @@ A starter for building Razorpay products in Razorpay's own design language, Razo
 - `src/components/PageHeader.tsx`: the title block every page starts with.
 - `src/components/AgentAnswer.tsx`, `RayAnswers.tsx`: how Ray answers, and the `Turn` pieces the fix flows use (DESIGN.md section 17).
 - `e2e/layout.spec.ts`: opens every route at 375, 768 and 1440px and fails on errors or sideways overflow. Add new routes to its list.
-- `src/lib/guides.ts`, `routes/GuidePage.tsx`, `routes/Setup.tsx`, `routes/Home.tsx`: product guides, first-run setup, the Ray home.
+- `src/lib/guides.ts`, `routes/GuidePage.tsx`, `routes/Setup.tsx`, `routes/Home.tsx`: product guides (three slides: what, why, how), first-run setup, the Ray home with its welcome card.
+- `src/components/GuideHero.tsx`, `IsoScenes.tsx`, `IsoHero.tsx`, `iso.tsx`, `src/lib/guideStats.ts`: the guide hero (a wash with an isometric scene, drawn in code with Blade tokens) and the figures on it, read from the data. `FlatArt.tsx` and `GuideArt.tsx`: the flat pictures on guide cards and in Setup, in the style of the dashboard home's illustrations, chosen by an `art` id.
 - `src/routes/RenewalView.tsx`, `components/RenewalFix.tsx`, `components/RenewalChart.tsx`: INC-3, the incident on Razorpay's side (card renewals failed in its gateway): evidence, the 3 day grace extension in stages, the customer message, and the evidence pack to Razorpay. `Incident.tsx` sends `mismatch_type: G` here, `zone: before` to `Zone1View`.
 - `src/routes/Reference.tsx`: the RazorSense reference screens (state switcher, voice examples, Ask Ray chat, success moment)
 
@@ -39,6 +40,7 @@ A starter for building Razorpay products in Razorpay's own design language, Razo
 7. Blade's MCP docs sometimes list a stale value (e.g. the border-radius scale) or accept a looser type than the installed version (e.g. `reasoningTraces` needs `{ label }` objects). The installed types win.
 
 ## Known quirks
+- Blade's `TopNavBrand` and `TopNavActions` do not centre their content on their own below `xl`. `Shell.tsx` passes `paddingY` to the brand and fixes the actions' height; `e2e/shell.spec.ts` guards it. The logo is `public/razorpay-logo.svg`, not Blade's `RazorpayIcon`.
 - `get_blade_component_docs` refuses to run until `create_blade_cursor_rules` has written files into the repo. Don't. Read the component source in `node_modules/@razorpay/blade/build/lib/web/development/components/<Name>/` instead.
 - Blade assumes `box-sizing: border-box` on everything. `index.html` sets it. Without it the top bar overflows the window and clips the avatar.
 - The top bar shows Razorpay, not the product name. Blindspot is one product tab beside Payments, and a section in the side nav. Everything Razorpay already ships is shown but inert (greyed, not clickable).

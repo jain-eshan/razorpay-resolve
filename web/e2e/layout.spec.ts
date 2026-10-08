@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 // Layout guard: every screen at phone, tablet and desktop width must render without errors, and its content must not spill sideways.
 // Tables scroll inside their own box and carousels slide, so they are not counted. A failure means a fixed width or an unwrapped row (web/DESIGN.md section 19).
 // One test per screen: it loads the screen once, then resizes through the three widths. A slow runner fails one screen, not all of them.
-const ROUTES = ['/', '/guides/blindspot', '/setup', '/incidents', '/incidents/INC-1', '/incidents/INC-3', '/incidents/INC-4', '/incidents/INC-5', '/incidents/INC-1/dev', '/threads', '/channels', '/scan', '/audit', '/how', '/learning', '/settings', '/chat-demo', '/help-demo/receipt', '/email-demo', '/ig-demo', '/public-demo', '/cases/first']
+const ROUTES = ['/', '/guides/blindspot', '/guides/incidents', '/guides/conversations', '/guides/channels', '/guides/scan', '/guides/autonomy', '/guides/learning', '/guides/how', '/setup', '/incidents', '/incidents/INC-1', '/incidents/INC-3', '/incidents/INC-4', '/incidents/INC-5', '/incidents/INC-1/dev', '/threads', '/channels', '/scan', '/audit', '/how', '/learning', '/settings', '/chat-demo', '/help-demo/receipt', '/email-demo', '/ig-demo', '/public-demo', '/cases/first']
 const WIDTHS = [375, 768, 1440]
 
 for (const route of ROUTES) {

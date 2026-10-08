@@ -52,7 +52,7 @@ export default function Learning() {
 
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <PageHeader title="Learning" description="What I changed about myself this week, and why. A setting moves one step at most, once a week, inside fixed limits. Every change is in the audit log."
+      <PageHeader guide="learning" title="Learning" description="What I changed about myself this week, and why. A setting moves one step at most, once a week, inside fixed limits. Every change is in the audit log."
         actions={<Button isLoading={busy === 'review'} isDisabled={!!busy} onClick={review}>Review this week now</Button>} />
       {(error || weekly.error) && <Text color="feedback.text.negative.intense">Could not do that: {error ?? weekly.error}</Text>}
 
