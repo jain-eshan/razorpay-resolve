@@ -30,13 +30,16 @@ test('S-03 incident page: numbers add up, tiers switch, replay limits shown', as
 
 test('S-17 day-0 scan plays its checklist, then states what it found', async ({ page }) => {
   await page.goto('/scan')
-  await expect(page.getByTestId('scan-running')).toBeVisible()  // the first visit in a session plays the scan
+  await expect(page.getByTestId('scan-running')).toBeVisible()  // every visit plays the scan
   await expect(page.getByText(/I found \d+ customers in the last 30 days who paid and have no access/)).toBeVisible({ timeout: 15_000 })
   await expect(page.getByRole('heading', { name: /customers paid and have no access/ })).toBeVisible()
+  await page.getByRole('button', { name: 'Run it again' }).click()
+  await expect(page.getByTestId('scan-running')).toBeVisible()  // it can be run again
+  await expect(page.getByText(/I found \d+ customers/)).toBeVisible({ timeout: 15_000 })
   await page.getByRole('button', { name: /^Fix it with Ray/ }).click()
   await expect(page).toHaveURL(/\/incidents\/INC-\d+$/)
   await page.goto('/scan')
-  await expect(page.getByTestId('scan-report')).toBeVisible()  // a second visit skips the replay
+  await expect(page.getByTestId('scan-running')).toBeVisible()  // and a later visit plays it again too
 })
 
 test('S-10 how we know shows every gate passing', async ({ page }) => {
@@ -51,7 +54,10 @@ test('S-12 channels shows consent and who the agent speaks as, read-only in the 
   await expect(page.getByText('WhatsApp payments number')).toBeVisible()
   await expect(page.getByText('Speaks as: Kaksha payment help, powered by Razorpay').first()).toBeVisible()
   await expect(page.getByText('Read-only snapshot')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Disconnect' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Disconnect' }).first().click() // control is visible in the demo, and so is undo
+  await expect(page.getByText('Disconnected. Ray has stopped reading and replying here.')).toBeVisible()
+  await page.getByRole('button', { name: 'Undo, connect it again' }).click()
+  await expect(page.getByText('Disconnected. Ray has stopped')).toHaveCount(0)
 })
 
 test('S-04 a case opens from the snapshot without a server', async ({ page, request }) => {

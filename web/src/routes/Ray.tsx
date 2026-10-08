@@ -41,11 +41,11 @@ export default function Ray() {
         <Text color="surface.text.gray.muted">Simulated. Blindspot gives RAY something to say before the founder hears it from a customer.</Text>
       </Box>
       {error && <Text color="feedback.text.negative.intense">Could not load: {error}</Text>}
-      <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(min(100%, 300px), 1fr))" gap="spacing.6" justifyItems="center">
+      <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(min(100%, 280px), 1fr))" gap="spacing.6" justifyItems="center">
         {chats.map((c) => (
           <Box key={c.key} display="flex" flexDirection="column" gap="spacing.3" width="100%" alignItems="center">
             <Text size="small" weight="semibold" color="surface.text.gray.muted">{c.caption}</Text>
-            <WhatsAppChat name="Ray by Razorpay" messages={c.messages} notice={false} day="Today" onButton={(label) => go(c.cardOf, label)} />
+            <WhatsAppChat name="Ray by Razorpay" avatar="razorpay" compact messages={c.messages} notice={false} day="Today" onButton={(label) => go(c.cardOf, label)} />
           </Box>
         ))}
       </Box>

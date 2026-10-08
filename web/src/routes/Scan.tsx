@@ -14,7 +14,6 @@ import { OWNER } from '../lib/format'
 import { prefersReducedMotion } from '../razorsense'
 
 type Scan = Schemas['ScanResult']
-const SEEN = 'blindspot.scan.seen'
 const STEP_MS = 520
 
 // What Ray did, as short lines in the order it did them. A count is shown only where the scan result holds one; nothing is typed in.
@@ -27,20 +26,16 @@ const steps = (d: Scan): [string, string][] => [
   ['Counting who is still locked out', `${d.leaked_customers} customers`],
 ]
 
-const seen = () => { try { return sessionStorage.getItem(SEEN) === '1' } catch { return false } }
-const markSeen = () => { try { sessionStorage.setItem(SEEN, '1') } catch { /* private mode: the scan simply plays again */ } }
-
-// Day 0: the first thing a merchant sees on connecting. It finds money that is already stuck. The first visit in a session plays the scan as a checklist,
-// like Razorpay Ads' "Check your AI visibility"; later visits go straight to the result. The result is saved, so this is a replay, and it says so.
+// Day 0: the first thing a merchant sees on connecting. It finds money that is already stuck. Every visit plays the scan as a checklist, like Razorpay Ads'
+// "Check your AI visibility", so anyone testing the demo sees how it works each time. The result is saved, so this is a replay, and it says so.
 export default function Scan() {
   const { data, error } = useGet<Scan>('/api/scan/day0')
-  const [step, setStep] = useState(seen() || prefersReducedMotion ? 99 : 0)
+  const [step, setStep] = useState(prefersReducedMotion ? 99 : 0)
   useEffect(() => {
     if (!data || step >= steps(data).length) return
     const t = setTimeout(() => setStep((n) => n + 1), STEP_MS)
     return () => clearTimeout(t)
   }, [data, step])
-  useEffect(() => { if (data && step >= steps(data).length) markSeen() }, [data, step])
 
   if (error) return <Text color="feedback.text.negative.intense">Could not load the scan: {error}</Text>
   if (!data) return <Text color="surface.text.gray.muted">Scanning</Text>

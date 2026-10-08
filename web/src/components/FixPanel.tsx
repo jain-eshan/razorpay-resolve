@@ -180,7 +180,7 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
                     <Badge color="neutral">{p.category}</Badge>
                     <Text size="small" color="surface.text.gray.muted">From {p.sender} · to {p.recipients} customers ·{p.language === 'en' ? 'English' : 'Hinglish'}</Text>
                   </Box>
-                  <WhatsAppChat name={p.sender} messages={[{ from: 'business', text: p.body }]} />
+                  <WhatsAppChat name={p.sender} compact messages={[{ from: 'business', text: p.body }]} />
                 </Box>
               ))}
             </Box>

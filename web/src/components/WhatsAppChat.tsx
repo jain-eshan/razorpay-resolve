@@ -23,6 +23,16 @@ const ICON = {
 } as const
 
 // Two ticks, blue once the message is read.
+// WhatsApp's wallpaper: the real doodle pattern (public/whatsapp-wallpaper.jpg, supplied by Eshan), multiplied over the beige so it takes WhatsApp's warm tint.
+const wallpaper = 'url(/whatsapp-wallpaper.jpg)'
+
+// The Razorpay mark (the slanted R) in its own colours, for chats that come from Razorpay. Paths are from public/razorpay-logo.svg.
+function RazorpayMark() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 25" aria-hidden="true"><path fill={WA.rzpBlue} d="M9.05494 7.84177L7.89197 12.1223L14.5486 7.8174L10.195 24.0606L14.6165 24.0643L21.048 0.0723572" /><path fill={WA.rzpNavy} d="M1.89031 17.2356L0.059082 24.0643H9.12142L12.8297 10.1729L1.89031 17.2356Z" /></svg>
+  )
+}
+
 function Ticks({ read }: { read?: boolean }) {
   const c = read ? WA.tick : WA.time
   return (
@@ -61,24 +71,26 @@ function Bubble({ m, onButton }: { m: WaMessage; onButton?: (label: string) => v
   )
 }
 
-export function WhatsAppChat({ name, subtitle = 'Business account', messages, notice = true, day = 'Today', minHeight = 0, testID, onButton }: {
-  name: string; subtitle?: string; messages: WaMessage[]; notice?: boolean; day?: string; minHeight?: number; testID?: string; onButton?: (label: string) => void
+// `compact` shows only what matters in a preview: a slim header and the messages, on the wallpaper. No call icons, no input bar, no notice.
+// `avatar="razorpay"` puts the Razorpay mark in the profile picture, for chats that come from Razorpay itself.
+export function WhatsAppChat({ name, subtitle = 'Business account', messages, notice = true, day = 'Today', minHeight = 0, testID, onButton, compact = false, avatar = 'initial' }: {
+  name: string; subtitle?: string; messages: WaMessage[]; notice?: boolean; day?: string; minHeight?: number; testID?: string; onButton?: (label: string) => void; compact?: boolean; avatar?: 'initial' | 'razorpay'
 }) {
   return (
     <div data-testid={testID} role="group" aria-label={`WhatsApp chat with ${name}. ${messages.length} message${messages.length === 1 ? '' : 's'}.`}
-      style={{ width: '100%', maxWidth: 400, borderRadius: 16, overflow: 'hidden', border: `1px solid ${WA.chip}`, boxShadow: '0 2px 12px rgba(11, 20, 26, 0.12)', fontFamily: WA.font, background: WA.wallpaper }}>
-      <div style={{ background: WA.header, color: WA.headerText, display: 'flex', alignItems: 'center', gap: 8, padding: '10px 10px 10px 6px' }}>
-        {svg(ICON.back)}
-        <div style={{ width: 36, height: 36, borderRadius: '50%', background: WA.bubbleIn, color: WA.header, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 16, flexShrink: 0 }}>{name.slice(0, 1).toUpperCase()}</div>
+      style={{ width: '100%', maxWidth: compact ? 340 : 400, borderRadius: compact ? 12 : 16, overflow: 'hidden', border: `1px solid ${WA.chip}`, boxShadow: '0 2px 12px rgba(11, 20, 26, 0.12)', fontFamily: WA.font, background: WA.wallpaper, backgroundImage: wallpaper, backgroundBlendMode: 'multiply', backgroundSize: '640px auto' }}>
+      <div style={{ background: WA.header, color: WA.headerText, display: 'flex', alignItems: 'center', gap: 8, padding: compact ? '8px 10px' : '10px 10px 10px 6px' }}>
+        {!compact && svg(ICON.back)}
+        <div style={{ width: 36, height: 36, borderRadius: '50%', background: WA.bubbleIn, color: WA.header, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 16, flexShrink: 0 }}>{avatar === 'razorpay' ? <RazorpayMark /> : name.slice(0, 1).toUpperCase()}</div>
         <div style={{ flex: 1, minWidth: 0, lineHeight: '18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 16, fontWeight: 500 }}><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span><Verified /></div>
           <div style={{ fontSize: 12, opacity: 0.85 }}>{subtitle}</div>
         </div>
-        {svg(ICON.video)}{svg(ICON.call)}{svg(ICON.more)}
+        {!compact && <>{svg(ICON.video)}{svg(ICON.call)}{svg(ICON.more)}</>}
       </div>
       <div style={{ padding: '10px 10px 12px', display: 'flex', flexDirection: 'column', gap: 6, minHeight }}>
         {!messages[0]?.day && <DayChip>{day}</DayChip>}
-        {notice && (
+        {notice && !compact && (
           <div style={{ alignSelf: 'center', background: WA.notice, color: WA.noticeText, fontSize: 12, lineHeight: '16px', padding: '6px 10px', borderRadius: 7, textAlign: 'center', display: 'flex', gap: 6, alignItems: 'flex-start', margin: '2px 6px 4px' }}>
             <span style={{ flexShrink: 0, marginTop: 1 }}>{svg(ICON.lock, 12, WA.noticeText)}</span>
             <span>This business uses a secure service from Meta to manage this chat. Tap to learn more.</span>
@@ -86,12 +98,12 @@ export function WhatsAppChat({ name, subtitle = 'Business account', messages, no
         )}
         {messages.map((m, i) => <Fragment key={i}>{m.day && <DayChip>{m.day}</DayChip>}<Bubble m={m} onButton={onButton} /></Fragment>)}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 8px 10px' }} aria-hidden="true">
+      {!compact && <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 8px 10px' }} aria-hidden="true">
         <div style={{ flex: 1, background: WA.chip, borderRadius: 24, display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', color: WA.time, fontSize: 15 }}>
           {svg(ICON.smile, 22, WA.time)}<span style={{ flex: 1 }}>Message</span>{svg(ICON.clip, 21, WA.time)}{svg(ICON.camera, 21, WA.time)}
         </div>
         <div style={{ width: 44, height: 44, borderRadius: '50%', background: WA.send, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{svg(ICON.mic, 21)}</div>
-      </div>
+      </div>}
     </div>
   )
 }

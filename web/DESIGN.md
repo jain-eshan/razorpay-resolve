@@ -589,7 +589,7 @@ Added 8 Oct 2026 after Eshan shared the launch recording of Razorpay Engage (ads
 
 **Rules**
 1. The italic accent goes on one phrase in a hero or launch heading. Never in tables, labels, buttons or body text. Never two in a view.
-2. The Day-0 scan replays as a checklist on the first visit in a browser session and goes straight to the result after that (`sessionStorage`). It says it is a replay of the saved result. Every count on it is read from the scan data; a line with no count in the data shows none. People who ask for less motion get the result at once.
+2. The Day-0 scan replays as a checklist on every visit, and again on "Run it again", so anyone testing the demo sees how it works each time (Eshan's call). It says it is a replay of the saved result. Every count on it is read from the scan data; a line with no count in the data shows none. People who ask for less motion get the result at once.
 3. One blue primary button per view still holds. On the scan result the blue button is the dark banner's.
 4. The dark banner is drawn in a nested `BladeProvider colorScheme="dark"`, so every colour in it is a Blade token.
 5. Figures may count up on first show (`lib/useCountUp.ts`), always ending on the data's number, even when animation frames are paused.
@@ -597,5 +597,10 @@ Added 8 Oct 2026 after Eshan shared the launch recording of Razorpay Engage (ads
 
 **Messages are drawn as the app they are sent in.** When Blindspot shows a message a customer will receive, it draws that app, not a card: `components/WhatsAppChat.tsx` is WhatsApp for Android (green header with the business name and verified tick, wallpaper, date chip, the Meta business notice, bubbles with a tail and a time, ticks on what the customer sent, quick-reply buttons, input bar). It is used for the fix flow's "Send this to N customers" step, Ray's alerts to the founder, and the customer side of the WhatsApp demo.
 - This is the one place that is allowed raw elements, inline styles and hex colours, because it copies Meta's look, not Razorpay's. The colours live in `lib/whatsapp.ts` (a `.ts` file, so the hex grep in section 19 stays clean). Do not use them anywhere else.
-- Show at most two phones side by side; list the other templates as text underneath.
+- Show only what matters. Previews use `compact` (slim header and the messages on the wallpaper, no call icons, notice or input bar); the full phone with input bar stays only for the interactive customer demo. Show at most two previews side by side; list the other templates as text underneath.
+- The wallpaper is the real WhatsApp doodle image (`public/whatsapp-wallpaper.jpg`, supplied by Eshan), multiplied over the beige. Chats that come from Razorpay (Ray's alerts) use the Razorpay mark as the profile picture (`avatar="razorpay"`).
 - The same rule applies to email and Instagram when they get a preview: copy the real app first, then build. Email and Instagram previews are not built yet; `EmailDemo` and `IgDemo` still use plain cards.
+
+**Charts** use Blade's chart components (`ChartBarWrapper`, `ChartBar`, axes, legend, tooltip), never hand-drawn bars: a chart needs axis labels and a tooltip on hover. First one: `components/TimelineChart.tsx` (webhook outcomes by hour). `OrdersChart` and `RenewalChart` are still hand-drawn and should follow.
+
+**Control must be visible in the demo.** Where the real product lets you switch something off, the demo shows it working and shows the undo, with the change held in the browser tab only. First one: Channels (Disconnect, then "Undo, connect it again").

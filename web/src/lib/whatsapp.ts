@@ -17,6 +17,8 @@ export const WA = {
   send: '#00A884',
   verified: '#1DA1F2',
   shadow: '0 1px 0.5px rgba(11, 20, 26, 0.13)',
+  rzpBlue: '#3395FF',
+  rzpNavy: '#072654',
   font: "'Segoe UI', Helvetica Neue, Helvetica, Arial, sans-serif",
 } as const
 
