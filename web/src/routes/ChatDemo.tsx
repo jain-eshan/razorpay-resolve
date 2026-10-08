@@ -17,7 +17,7 @@ export default function ChatDemo() {
       <PageHeader title="WhatsApp, both sides" description="Write as a customer. Try a message with no reference first, then give one. Try an unrelated message, or one that tries to give the agent instructions." />
       {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Pick a message below. The founder's view on the right is the same screen the live version uses.`} />}
       {(
-        <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(320px, 400px) minmax(0, 1fr)' }} gap="spacing.7" alignItems="start">
+        <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'minmax(320px, 400px) minmax(0, 1fr)' }} gap="spacing.7" alignItems="start">
           <CustomerChat channel="whatsapp_payments" who="+919800012345" title="Kaksha payment help" onThread={setTid} />
           <Box minWidth="0px">
             {t ? <ThreadView thread={t} onChanged={() => setV((n) => n + 1)} /> : <Text color="surface.text.gray.muted">The founder's view appears when the customer writes.</Text>}

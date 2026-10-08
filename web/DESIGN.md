@@ -149,6 +149,7 @@ Merchant white-labelling: Blade's `createTheme({ brandColor })` generates an 11-
 
 - Weights: 400, 500, 600 (headings default to semibold 600), 700.
 - Letter spacing: body −1.3%; body large −3.3%; display −1.3% when medium/regular weight.
+- Hero headings may carry one italic serif phrase (section 21).
 - The RazorSense page itself sets huge headlines in TASA Orbiter **regular 400 at −4% tracking** (88px / −3.52px; 48px / −1.92px) in near-black `#131313` [observed]. That's the "expressive" register: light weight, tight, large. Product UI stays at semibold, 0 tracking.
 
 ---
@@ -567,3 +568,34 @@ A screen is not finished until it has been seen at 375, 768 and 1440px, the layo
 
 **When none of this covers the case**
 Find the closest Razorpay screen. Note what it does and why. Build that. Add a line to this section or to section 17 so the next person does not have to guess. If you cannot find a precedent, stop and ask Eshan, with two options and a recommendation.
+
+
+---
+
+## 21. The playful layer
+
+Added 8 Oct 2026 after Eshan shared the launch recording of Razorpay Engage (ads inside ChatGPT, a product launched that week). Blindspot is a new product inside the dashboard, so it may be a little more playful than a settings page, as long as it still reads as the same Razorpay. This section says how far.
+
+**What Engage does that we took**
+- One idea per screen, led by a big plain sentence. A hero on a soft wash with one thing to do.
+- A scan that shows its work: a checklist whose lines tick one by one, real counts appearing beside them, then the result. Lines are written the way a person doing the job would say them ("Matching each payment to a customer's access").
+- Italic serif accent on one phrase of a heading ("Checking who paid and *never got in*"). Component: `components/Accent.tsx` (Instrument Serif italic, loaded in `index.html`, falls back to Georgia italic).
+- The result as numbered cards with "Why this matters" and "Whose side" (Engage says "Owner").
+- One dark banner with the next step, once per page.
+- The button turns into a green tick when it has done its job (`Approved` in `components/AgentAnswer.tsx`). It is not a button, so it cannot be pressed twice.
+- A preview of the thing exactly as the other person will see it, before you approve it.
+
+**What we did not take**: Engage's own page chrome (we keep the dashboard shell), a score out of 100 (it would be a number no data produces), confetti, anything that moves while the person is reading.
+
+**Rules**
+1. The italic accent goes on one phrase in a hero or launch heading. Never in tables, labels, buttons or body text. Never two in a view.
+2. The Day-0 scan replays as a checklist on the first visit in a browser session and goes straight to the result after that (`sessionStorage`). It says it is a replay of the saved result. Every count on it is read from the scan data; a line with no count in the data shows none. People who ask for less motion get the result at once.
+3. One blue primary button per view still holds. On the scan result the blue button is the dark banner's.
+4. The dark banner is drawn in a nested `BladeProvider colorScheme="dark"`, so every colour in it is a Blade token.
+5. Figures may count up on first show (`lib/useCountUp.ts`), always ending on the data's number, even when animation frames are paused.
+6. Motion stays inside section 8. Green is still only Ray and success.
+
+**Messages are drawn as the app they are sent in.** When Blindspot shows a message a customer will receive, it draws that app, not a card: `components/WhatsAppChat.tsx` is WhatsApp for Android (green header with the business name and verified tick, wallpaper, date chip, the Meta business notice, bubbles with a tail and a time, ticks on what the customer sent, quick-reply buttons, input bar). It is used for the fix flow's "Send this to N customers" step, Ray's alerts to the founder, and the customer side of the WhatsApp demo.
+- This is the one place that is allowed raw elements, inline styles and hex colours, because it copies Meta's look, not Razorpay's. The colours live in `lib/whatsapp.ts` (a `.ts` file, so the hex grep in section 19 stays clean). Do not use them anywhere else.
+- Show at most two phones side by side; list the other templates as text underneath.
+- The same rule applies to email and Instagram when they get a preview: copy the real app first, then build. Email and Instagram previews are not built yet; `EmailDemo` and `IgDemo` still use plain cards.

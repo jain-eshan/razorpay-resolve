@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Badge, Box, Button, Card, CardBody, Heading, RayIcon, Text } from '@razorpay/blade/components'
+import { Badge, Box, Button, Card, CardBody, CheckIcon, Heading, RayIcon, Text } from '@razorpay/blade/components'
 
 // How Razorpay's agents answer (Payout, Receivables, Bookkeeping agents; web/DESIGN.md section 17): a bold title that leads with the number,
 // one muted line saying what was analysed, the evidence as cards, then "How can I help you next?" with numbered next steps.
@@ -74,6 +74,16 @@ export function Turn({ n, title, badge, you, analyzing, children }: { n: number;
         </Box>
         <Card><CardBody><Box display="flex" flexDirection="column" gap="spacing.4">{children}</Box></CardBody></Card>
       </Box>
+    </Box>
+  )
+}
+
+// What a button becomes once it has been pressed and done its job: a solid green pill with a tick, in the place the button was. It is not a button.
+export function Approved({ children }: { children: ReactNode }) {
+  return (
+    <Box alignSelf="flex-start" display="inline-flex" alignItems="center" gap="spacing.3" height="36px" paddingX="spacing.5" borderRadius="medium" backgroundColor="feedback.background.positive.intense" testID="approved">
+      <CheckIcon size="small" color="surface.icon.staticWhite.normal" />
+      <Text size="medium" weight="semibold" color="surface.text.staticWhite.normal">{children}</Text>
     </Box>
   )
 }

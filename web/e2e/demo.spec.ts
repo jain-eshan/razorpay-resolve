@@ -33,6 +33,7 @@ test('Hero A plays end to end with no server: fix in stages, undo, message, veri
 
   await btn(page, 'Preview the message').click()
   await expect(panel(page).getByText(/From Kaksha payment help, powered by Razorpay/).first()).toBeVisible()
+  await expect(panel(page).getByRole('group', { name: /^WhatsApp chat with Kaksha payment help/ }).first()).toBeVisible() // the message is shown as the customer will see it
   await panel(page).getByText('Hinglish', { exact: true }).click()
   await expect(panel(page).getByText(/chalu/).first()).toBeVisible()
   await expect(panel(page).getByText(/Messaging is switched off/)).toBeVisible()
@@ -41,6 +42,7 @@ test('Hero A plays end to end with no server: fix in stages, undo, message, veri
   await btn(page, 'Grant the first 5').click()
   await btn(page, /^Grant the rest/).click()
   await expect(panel(page).getByText('Sent', { exact: true })).toBeVisible()
+  await expect(panel(page).getByTestId('approved').filter({ hasText: /^Sent to \d+ customers/ })).toBeVisible() // the button became a green tick
   await expect(page.getByText('Undo these changes')).toHaveCount(0) // customers were told
 
   await btn(page, 'Verify and close').click()

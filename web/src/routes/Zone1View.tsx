@@ -82,7 +82,7 @@ export default function Zone1View({ id }: { id: string }) {
         </CardBody>
       </Card>
 
-      <Alert isFullWidth color="information" isDismissible={false} title="Razorpay did not see this" description="This happened before any payment existed, so there is nothing in Razorpay to look at. Blindspot inferred it from your orders, your pay page and what customers wrote, and shows its evidence below." />
+      <Alert isFullWidth color="information" isDismissible={false} title="Razorpay did not see this" description="It happened before any payment existed. Blindspot inferred it from your orders, your pay page and what customers wrote." />
 
       <Box display="grid" gridTemplateColumns={{ base: 'repeat(2, minmax(0, 1fr))', l: 'repeat(4, minmax(0, 1fr))' }} gap="spacing.5">
         <Stat label="Orders lost" value={`about ${s.lost_orders}`} hint={`${rupees(Number(s.lost_paise))} · an estimate`} icon={AlertTriangleIcon} tone="notice" />

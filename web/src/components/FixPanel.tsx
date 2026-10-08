@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Alert, Badge, Box, Button, Card, CardBody, Heading, ProgressBar, SegmentedControl, SegmentedControlItem, Text } from '@razorpay/blade/components'
 import { SuccessMoment } from './SuccessMoment'
-import { NextSteps, Turn } from './AgentAnswer'
+import { Approved, Label, NextSteps, Turn } from './AgentAnswer'
+import { Accent } from './Accent'
+import { WhatsAppChat } from './WhatsAppChat'
 import { demoNote } from '../lib/demo'
 import { get, isLive, rupees, send, type Schemas } from '../lib/api'
 
@@ -124,7 +126,7 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
               <Text key={m.payment_id} size="small">{m.customer_masked} · {m.plan} · {rupees(m.amount_paise)}{grant.status === 'drafted' ? ` · your records: ${m.merchant_state}` : ''}{m.complained ? ' · complained' : ''}</Text>
             ))}
             {total > 5 && <Text size="small" color="surface.text.gray.muted">and {total - 5} more</Text>}
-            {grant.status === 'drafted' && stageButton(grant, setGrant)}
+            {grant.status === 'drafted' ? stageButton(grant, setGrant) : <Approved>Dry run approved</Approved>}
           </Box>
         )}
       </Turn>
@@ -139,6 +141,7 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
             <ProgressBar label="Confirmed by your records" value={total ? Math.round((done / total) * 100) : 0} />
             <Text size="small">{done} of {total} confirmed active by your records after each change.</Text>
             {stageButton(grant, setGrant)}
+            {grant.status === 'done' && <Approved>{`Access on for ${total}`}</Approved>}
             {canUndo && (
               <Box>
                 <Button variant="tertiary" size="small" isDisabled={!!busy} onClick={() => run('undo', async () => { setGrant(await send<Action>('POST', `/api/actions/${grant.id}/revert`)); setResult(undefined); onChanged() })}>
@@ -168,22 +171,34 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
                 <SegmentedControlItem value="hi_latn">Hinglish</SegmentedControlItem>
               </SegmentedControl>
             )}
-            {previews.map((p) => (
-              <Box key={p.template_id + p.language} backgroundColor="surface.background.gray.subtle" borderRadius="medium" padding="spacing.5" display="flex" flexDirection="column" gap="spacing.3">
-                <Box display="flex" gap="spacing.3" alignItems="center" flexWrap="wrap">
-                  <Badge color="neutral">{p.category}</Badge>
-                  <Text size="small" color="surface.text.gray.muted">From {p.sender} · to {p.recipients} customers · {p.language === 'en' ? 'English' : 'Hinglish'}</Text>
+            <Label>Nothing is sent without your approval</Label>
+            <Heading size="medium">Send this to {msg.items.length} customers on <Accent>WhatsApp</Accent>?</Heading>
+            <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(min(100%, 280px), 1fr))" gap="spacing.5" justifyItems="center">
+              {previews.slice(0, 2).map((p) => (
+                <Box key={p.template_id + p.language} display="flex" flexDirection="column" gap="spacing.3" width="100%" alignItems="center">
+                  <Box display="flex" gap="spacing.3" alignItems="center" flexWrap="wrap" justifyContent="center">
+                    <Badge color="neutral">{p.category}</Badge>
+                    <Text size="small" color="surface.text.gray.muted">From {p.sender} · to {p.recipients} customers ·{p.language === 'en' ? 'English' : 'Hinglish'}</Text>
+                  </Box>
+                  <WhatsAppChat name={p.sender} messages={[{ from: 'business', text: p.body }]} />
                 </Box>
-                <Text>{p.body}</Text>
+              ))}
+            </Box>
+            {previews.slice(2).map((p) => (
+              <Box key={p.template_id + p.language} display="flex" flexDirection="column" gap="spacing.1">
+                <Text size="small" color="surface.text.gray.muted">Also: {p.category} · to {p.recipients} customers · {p.language === 'en' ? 'English' : 'Hinglish'}</Text>
+                <Text size="small">{p.body}</Text>
               </Box>
             ))}
-            <Text size="small" color="surface.text.gray.muted">Written from a template. Amounts, dates and references come from each customer's own payment. No link, no discount. Messages cannot be unsent, and once they go out the grants can no longer be undone.</Text>
+            <Alert isFullWidth color="positive" isDismissible={false} title="Written from an approved template" description="Amounts, dates and references come from each customer's own payment. No link, no discount." />
+            <Text size="small" color="surface.text.gray.muted">Written from a template. Messages cannot be unsent, and once they go out the grants can no longer be undone.</Text>
             {msg.blocked_reason?.startsWith('Messaging') && (
               <Button variant="secondary" isDisabled={!!busy} onClick={() => run('msgon', async () => { const s = await get<Schemas['Settings']>('/api/settings'); await send('PUT', '/api/settings', { ...s, messaging_enabled: true }); setMsg(await get<Action>(`/api/actions/${msg.id}`)) })}>
                 Switch messaging on
               </Button>
             )}
             {stageButton(msg, setMsg)}
+            {msg.status === 'done' && <Approved>{`Sent to ${msg.items.length} customers`}</Approved>}
           </Box>
         )}
       </Turn>
