@@ -308,9 +308,22 @@ test('INC-3 plays end to end with no server: why it is Razorpay\'s, access kept 
   await expect(panel(page).getByText(/Sent to Razorpay \(simulated\) as MG-INC-3-/)).toBeVisible()
   await expect(panel(page).getByText(/Already tried: Kept access on for 24 customers/)).toBeVisible()
 
+  // the renewal link the message promised: for the customers who were told, 2 held back on purpose, in stages, then what the simulated customers did
+  await btn(page, 'Plan the links').click()
+  await expect(panel(page).getByText(/^24 customers, 2 of them held back on purpose/)).toBeVisible()
+  await expect(panel(page).getByText(/payment network issue is fixed/).first()).toBeVisible()
+  await btn(page, 'Looks right, continue').click()
+  await btn(page, 'Send the first 5').click()
+  await btn(page, /^Send the rest/).click()
+  await expect(panel(page).getByText(/^0 of 22 customers with a link have renewed/)).toBeVisible()
+  await btn(page, 'Move the demo clock forward 48 hours').click()
+  await expect(panel(page).getByText(/^12 of 22 customers with a link have renewed, ₹3,588 collected/)).toBeVisible()
+  await expect(panel(page).getByText(/Too few customers to say what the link adds/)).toBeVisible()
+
   await btn(page, 'Verify and close').click()
   await expect(page.getByTestId('success-moment')).toBeVisible()
   await expect(panel(page).getByText(/24 of 24 confirmed to have access by your records/).first()).toBeVisible()
+  await expect(panel(page).getByText(/Renewed since: 12 of 24 customers/).first()).toBeVisible()
 
   await page.getByRole('link', { name: 'Audit' }).click()
   await expect(page.getByText(/Sent the evidence pack MG-INC-3-.* to Razorpay \(mock\) for 27 payments/).first()).toBeVisible()

@@ -128,6 +128,15 @@ def apply(cfg: dict, world: sqlite3.Connection, truth: sqlite3.Connection, out: 
                           redacted_text=raw.replace(v["id"], "<REF_1>"), attachment_path=None, data_role="merchant_data_processor", thread_id=None,
                           customer_ref="tok_" + hashlib.sha1(c["phone"].encode()).hexdigest()[:8], _payment=v["id"], _language=c["language_pref"]))
 
+    # ---- simulated behaviour after a renewal link (labelled synthetic). Drawn last, so nothing above moves. Merged into what Zone 1 wrote: customer ids never overlap. ----
+    sim = z["recovery"]
+    row = world.execute("SELECT value FROM settings WHERE key = 'sim.recovery'").fetchone()
+    behaviour = json.loads(row["value"]) if row else {"label": "synthetic", "link": {}, "organic": {}}
+    for cid in [v["customer_id"] for v in victims if "_paid_since" not in v] + [r["customer_id"] for r in converted]:
+        for key, p in (("link", sim["pay_with_link"]), ("organic", sim["pay_without_link"])):
+            behaviour[key][cid] = round(rng.uniform(1, sim["max_delay_hours"]), 1) if rng.random() < p else None
+    world.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('sim.recovery', ?)", (json.dumps(behaviour),))
+
     def ins(db: sqlite3.Connection, table: str, rows: list[dict]) -> None:
         rows = [{k: v for k, v in r.items() if not k.startswith("_")} for r in rows]
         if rows:

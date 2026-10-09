@@ -99,6 +99,10 @@ inc3:
   card_ok_after: 6              # card renewals that work once it clears
   upi_ok_during: 10             # UPI AutoPay renewals in the same hours, which go through
   complaints: 3
+  recovery:                     # how simulated customers behave once their renewal link arrives (synthetic, labelled; contracts-v0.10, additive)
+    pay_with_link: 0.60
+    pay_without_link: 0.15
+    max_delay_hours: 36
   error: {code: GATEWAY_ERROR, description: "Payment processing failed due to error at bank or wallet gateway", source: gateway, step: payment_authorization, reason: gateway_technical_error}
 # ---- INC-2, customers charged twice after an Android release (contracts-v0.9, additive). Times avoid the INC-1 outage and every Zone 1 window, and stay in the early afternoon so INC-4's and INC-5's baselines do not move. ----
 inc2:

@@ -1,4 +1,4 @@
-# Handoff: where Blindspot stands (9 Oct 2026: R0 to R5 on `main` except the items marked "not started" below; R7 submission kit and INC-3 merged as PRs #16 and #19; INC-2 with the guarded refund is built on a branch and in review)
+# Handoff: where Blindspot stands (9 Oct 2026: R0 to R5 on `main` except the items marked "not started" below; R7 submission kit, INC-3 and INC-2 with the guarded refund merged; the INC-3 renewal link is on a branch, in review)
 
 Read this first in a new chat, then `docs/PRD.md`. Everything below is true as of the last commit on `main`.
 
@@ -30,7 +30,8 @@ Blindspot (working name) is Eshan Jain's entry for the Razorpay x ISB AI PM Buil
 | R4 first slice: Zone 1, Hero B (cannot reach the pay page), no model | Done, contracts v0.5. Merged as PR #8. Section 2c. |
 | R4 rest: escalation to Razorpay | Done with INC-3, contracts v0.8. Merged as PR #19. Section 2f. |
 | R4 rest: investigation agent, three-way eval (need a model) | Not started |
-| R4 rest: duplicate-charge monitor and guarded refund (INC-2, F-03, F-39) | Built, contracts v0.9. On a branch, in review. Section 2g. |
+| R4 rest: duplicate-charge monitor and guarded refund (INC-2, F-03, F-39) | Done, contracts v0.9. Merged as PR #25. Section 2g. |
+| R4 rest: renewal link for INC-3 | Built, contracts v0.10. On a branch, in review. Section 2h. |
 | R5 first slice: handovers (Instagram and Messenger control passing, public posts to private) | Done, contracts v0.6. Merged as PR #9. Section 2d. |
 | R5 second slice: learning loop, weekly card, screen S-18 (no model) | Done, contracts v0.7. Merged as PR #15. Section 2e. |
 | R5 rest: renewal anomaly (F-08, INC-3) | Done, contracts v0.8. Merged as PR #19. Section 2f. |
@@ -67,7 +68,7 @@ Plan, sizing and kickoff prompts for every stream: `docs/BUILD_PLAN.md`.
 - Bugs the eval and e2e caught that unit tests did not: token vault key collided across complaints (identification fell to 31 percent); the extractor re-used an old identifier after a correction; a time phrase in the middle of a sentence was never read; the nudge treated a same-instant reply as an answer; the per-channel dial did nothing until the policy engine read it.
 
 ### Guided demo (hosted site, no server)
-The hosted site (Vercel, Root Directory `web`, no env vars) runs the whole journey in the browser. `scripts/demo_script.py` records frames from the real engine on a copy of the synthetic world (grant stages, undo from two points, messages in both languages, verify, close, five conversations) into `web/public/snapshot/demo.json`. `web/src/lib/demo.ts` replays them: it only picks the next frame, and adds no text of its own except error messages that mirror the server's. Customers pick suggested messages instead of typing, because nothing can read free text without a server. A full page reload starts the demo over. `make snapshot` rebuilds it, and the snapshot is committed (`web/public/snapshot/`) because Vercel has no Python. `web/vercel.json` rewrites deep links to `index.html`. Tests: `web/e2e/demo.spec.ts` (6, no server) and `backend/tests/test_demo.py` (7).
+The hosted site (https://razorpay-blindspot.vercel.app/, on Vercel, Root Directory `web`, no env vars) runs the whole journey in the browser. `scripts/demo_script.py` records frames from the real engine on a copy of the synthetic world (grant stages, undo from two points, messages in both languages, verify, close, five conversations) into `web/public/snapshot/demo.json`. `web/src/lib/demo.ts` replays them: it only picks the next frame, and adds no text of its own except error messages that mirror the server's. Customers pick suggested messages instead of typing, because nothing can read free text without a server. A full page reload starts the demo over. `make snapshot` rebuilds it, and the snapshot is committed (`web/public/snapshot/`) because Vercel has no Python. `web/vercel.json` rewrites deep links to `index.html`. Tests: `web/e2e/demo.spec.ts` (6, no server) and `backend/tests/test_demo.py` (7).
 
 ### R3 limits (read before quoting any R3 number)
 - **No model is used yet.** Triage and extraction are rules. They read English and Hinglish in Latin script. Devanagari is only recognised as a language, so the rules call it "other" and a person sees it. A model-based extractor goes behind `extract()` with the same output shape. Needs an Anthropic key with a spend cap, and then the three-arm comparison (rules, agent, no signal) that the eval report does not have yet.
@@ -114,7 +115,7 @@ Merged as PR #19. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/C
 - **Open, found on the way:** at 375px opened directly, no button on the incident pages is exposed to the accessibility tree (Hero A, Hero B and INC-3 alike). A separate task chip was raised. Hero A's fix panel has the language control overflow at 375px that INC-3's panel no longer has.
 
 ### INC-2, customers charged twice, and the guarded refund, 9 Oct 2026 (section 2g)
-On a branch (`claude/docs-roadmap-build-a68fdb`), in review. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.9).
+Merged as PR #25. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.9).
 - **What it does:** finds customers who were charged twice for the same plan seconds apart, all from one Android release (android-3.4.1, Sat 26 Sep 10:00), says it is the merchant's app and not the webhook (both charges reached the server and both orders got access), leaves out look-alikes with the reason, and lets the founder refund each second charge to the original payment method. Result in the world: 15 double charges (Rs 4,985), 4 complaints, 3 two-seat purchases and 2 failed second attempts left out.
 - **The refund rules, each with a test and an eval gate (`backend/app/act/refund.py`, `act/executor.py`):** only a confirmed duplicate in the Exact tier, in full, to the original method (the `refunds` table has no destination column); a person approves every refund, one customer at a time (the whole-list stages are refused, a non-person approver gets 403, the autonomy setting never runs one); a daily limit (`daily_refund_cap_paise`, default Rs 5,000, resets with the demo day) refuses the refund that would pass it; one refund per payment (executor check, engine check and the table's primary key); no undo. The bank reference (RRN for UPI and netbanking, ARN for cards) appears when the demo clock passes 2, 24 or 72 hours after the refund. A customer is told (`T-E1`) only once it exists, and customers whose reference arrives later are added with one more approval.
 - **Code:** `synth/duplicates.py`, `backend/app/detect/duplicate.py`, `backend/app/duplicates/` (build, read), `backend/app/act/refund.py`, `merchant_mock` app controls, executor `approve_row`, `messages` refund slots. Web: `routes/DuplicateView.tsx`, `components/DuplicateFix.tsx`, `components/DuplicateChart.tsx`, a fourth chat on the RAY page. Demo frames: `record_duplicates` in `scripts/demo_script.py` and the `dp` state in `web/src/lib/demo.ts`.
@@ -122,6 +123,14 @@ On a branch (`claude/docs-roadmap-build-a68fdb`), in review. Full account in `do
 - **Results (invented data, one seed):** 15 of 15 found, 0 look-alikes in the refund list, 4 of 4 complaints joined (whether they name the first or the second charge), alert after the 3rd double charge. 25 new eval gates, 123 pass, none fail. Six guardrails were broken on purpose and each was caught. Quote as "works as designed on a simulation".
 - **Limits:** the hosted demo refunds in the order shown (a frame per combination would not fit) and moves the clock only after all 15 are refunded; the live version has neither limit. A two-seat purchase for the same person would be treated as a duplicate (Blindspot cannot ask the app). Only the first run of a duplicate pattern becomes INC-2. Refund processing times are invented. No real Razorpay refund call exists: it is a mock (R6).
 - **World changes to know about:** INC-2 adds 40 orders and relabels 83 existing android orders to the new version. Its times are kept to 13:00 to 17:00 and away from every other incident, because INC-4's and INC-5's baselines are measured over evening and overnight hours: with other hours INC-4's lost-order estimate moved from 13 to 14 and, with orders inside its outage, from 13 to 8. INC-1's "what they have in common" shares and INC-4's average order value moved slightly. The amount reader learned "599 do baar kat gaye".
+
+### The renewal link for INC-3, 9 Oct 2026 (section 2h)
+On a branch, in review. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.10).
+- **What it does:** `T-G1` promised each of the 24 customers one renewal link once it is fixed. `recovery_link` now runs on INC-3: one link (`T-G2`) each to customers who were sent `T-G1` and have not paid since, only after card renewals work again, 10 percent held back by a hash (2 of 24) to measure what the link adds, every stage approved by the founder at every autonomy level, never unsent. Verify reports who renewed against the held-back group; a half-sent run keeps the incident open.
+- **Code:** `act/executor.py` (`_do_renewal_link`, `_record_offer`, `_nobody_renewal`), `renewal/read.py` (`link_candidates`, `recovery_block`, `told`, `paid_since`, verify line), `synth/renewals.py` (simulated behaviour), `eval/run_eval.py` (7 gates, 3 reported figures). Web: two steps in `components/RenewalFix.tsx`. Demo frames: `record_renewal` in `scripts/demo_script.py`, `c3.l` and `c3.lh` in `web/src/lib/demo.ts`.
+- **Results (invented data):** 22 links, 12 of 22 renewed after 48 demo hours (Rs 3,588), 0 of 2 held back. Too few customers to say what the link adds. Eval 130 pass, 0 fail.
+- **Limits:** simulated customers, no real payment link (a mock, R6). Hosted demo sends links once everyone has been told and moves the clock only after. Customers who never got `T-G1` get no link. Not built: the "failed but access still on" report (J6).
+- **Trap:** never run `eval.run_eval` twice on the same database before `make snapshot`. The match calibration shifts and 26 unrelated case files change. Use `make snapshot` (it rebuilds first).
 
 ### UX review, 7 Oct 2026 (PR #6)
 Eshan asked for a designer's review of the whole web app. Method: Playwright with the installed Chrome at 1440 and 390 wide (full-resolution screenshots, computed styles, overflow, text size and contrast checks on 13 routes), because the in-app browser shrinks screenshots.
@@ -165,7 +174,7 @@ scripts/     gen_contracts.py  snapshot.py  demo_script.py  run_pipeline.py  sec
 
 Commands: `make setup | synth | pipeline | snapshot | eval | test | e2e | lint | contracts | run-web | run-api`. `make snapshot` rebuilds `web/public/snapshot/` (including `demo.json`); commit the result when the data or the engine changes, because Vercel has no Python.
 
-Branches: `main` is the one branch and holds the product (R0 to R3, the guided demo, the dashboard-aligned frontend, the UX review fixes). Each change is a short-lived branch merged by PR once CI passes. Vercel deploys `main`, so `razorsense-starter.vercel.app` always shows the latest merge. The starter's files moved into `web/` with `git mv`, so history is kept.
+Branches: `main` is the one branch and holds the product (R0 to R3, the guided demo, the dashboard-aligned frontend, the UX review fixes). Each change is a short-lived branch merged by PR once CI passes. Vercel deploys `main`, so https://razorpay-blindspot.vercel.app/ always shows the latest merge. The address was `razorsense-starter.vercel.app` until 9 Oct 2026 and now returns 404. The starter's files moved into `web/` with `git mv`, so history is kept.
 
 ## 3b. Branches and worktrees (decided 7 Oct 2026)
 
@@ -234,7 +243,7 @@ Needs Eshan:
 - **Test account cleanup (V5):** the disabled `httpbin` webhook and the ₹10 payment link are still there. Nothing is deleted until Eshan says so. The Supabase sink is still in `401` mode.
 - **A free model, if the investigation agent is wanted:** his Claude plan has no API, so Ollama locally or Groq's free tier (needs him to make a free account and key).
 - **Two UX questions:** is RAY (the WhatsApp page) still the right landing page, and should the avatar do something when clicked.
-- **Vercel:** live at razorsense-starter.vercel.app (Root Directory `web`, no env vars). Check that the production branch is `main`.
+- **Vercel:** live at https://razorpay-blindspot.vercel.app/ (renamed from razorsense-starter.vercel.app on 9 Oct 2026, which no longer answers). Root Directory `web`, no env vars. Check that the production branch is `main`. Deep links such as `/incidents/INC-3` work (`web/vercel.json` rewrites them).
 
 Needs the next session:
 - **Contract tags:** only `contracts-v0.1` is tagged. v0.2 to v0.9 are not. Tag after Eshan agrees.
@@ -242,7 +251,7 @@ Needs the next session:
 - **Deferred from R1:** the 24 synthetic screenshots (R3 simulated screenshot text instead; real images need a vision model).
 - **Demo state is in memory** (clock offset, webhook fix). A restart gives a fresh world.
 - **Bundle is 1.3 MB** (Blade). Code-split later.
-- **Not built from the roadmap:** the investigation agent and three-way eval, the recovery link for failed renewals, the "failed but access still on" report (J6), R6.
+- **Not built from the roadmap:** the investigation agent and three-way eval, the "failed but access still on" report (J6), R6.
 
 ## 7. Next steps
 
@@ -251,7 +260,7 @@ Order of work, with what each needs:
 2. **Pick the next slice** (one PR per slice):
    - **INC-2 is built** (section 2g). Left over from it: refunds that the bank rejects (`failed`) have no path yet, the refund-not-received conversation (`T-F1`) is not wired to a real refund record, and a real Razorpay test-mode refund waits for R6 (`RZP_REFUNDS_TEST_MODE` is still off).
    - **The investigation agent and the three-way eval (rules, agent, no signal).** Needs the model decision above. Goes behind the existing interfaces (`ingest/extract.py` for reading messy text, `investigate/` for causes nobody listed, a response-body reader for free-text server errors). `AgentTrace` already has `model_id` and `rule_based`. Cache every model output for tests (BUILD_PLAN section 10). The hosted demo stays on recorded frames.
-   - **Recovery link for failed renewals** once Razorpay says it is fixed, with the 10% holdout (V1_SPEC J5): a small follow-up to INC-3 that reuses the Zone 1 recovery code. Needs a way for Razorpay to "mark it resolved", which today has no source.
+   - **The "failed but access still on" report (V1_SPEC J6):** UPI renewals that failed for insufficient funds while access stayed on past the merchant's grace rule. Report only, no revoke. Needs a new world block, a monitor and a read-only screen.
 3. **Finish R7.** Decide whether the note and the video should mention INC-3 (the note is 545 words of a 450 to 550 limit, so something has to go), then the items in `docs/SUBMISSION.md` section 4.
 4. **Validation track runs alongside:** founder calls, Razorpay questions, the webhook decision above, the PRD 16.3 verify list (statuses are in `docs/SUBMISSION.md` section 3).
 
@@ -267,7 +276,7 @@ Order of work, with what each needs:
 
 ## 8. Working agreements
 
-- Contracts are frozen. Change them only via `make contracts` plus an entry in `docs/CONTRACT_CHANGES.md` (currently v0.9).
+- Contracts are frozen. Change them only via `make contracts` plus an entry in `docs/CONTRACT_CHANGES.md` (currently v0.10).
 - Every number on screen comes from SQL or Python. The pipeline must never read `truth.db` (a test enforces it).
 - Ask Eshan before: commit, push, delete, create accounts, send anything outward, or change his Razorpay account beyond test objects he has allowed.
 - Keys go in `.env` only. Razorpay keys must be `rzp_test_`.

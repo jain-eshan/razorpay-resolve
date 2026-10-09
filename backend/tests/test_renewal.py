@@ -305,3 +305,204 @@ def test_the_grace_flow_over_http(api):
     assert a["status"] == "done" and a["item_counts"] == {"verified": 24}
     v = api.post("/api/incidents/INC-3/verify").json()
     assert v["closeable"] and v["verified"] == 24
+
+
+# ---------------- the renewal link, once Razorpay has fixed it ----------------
+def told_everyone(db, upto=("dry_run", "first_5", "rest")):
+    """Grace for all 24, messaging on, and the T-G1 message (the one that promises a link) sent through the given stages."""
+    messaging_on(db)
+    run_all(db)
+    mid = executor.create(db, "INC-3", "message", {"language": "auto"})
+    for stage in upto:
+        executor.approve(db, mid, stage, FOUNDER)
+
+
+def link_plan(db, language="auto"):
+    return executor.create(db, "INC-3", "recovery_link", {"language": language})
+
+
+def sent_links(db):
+    return db.execute("SELECT * FROM messages WHERE template_id = 'T-G2' AND status = 'sent' ORDER BY rowid").fetchall()
+
+
+def test_no_link_is_planned_before_anyone_has_been_told_one_is_coming(fresh):
+    messaging_on(fresh)
+    run_all(fresh)
+    with pytest.raises(executor.ActError, match="Tell the customers first") as e:
+        link_plan(fresh)
+    assert e.value.status == 409
+
+
+def test_the_link_goes_only_to_customers_who_were_told_one_was_coming(fresh):
+    told_everyone(fresh, upto=("dry_run", "first_5"))  # only the first 5 have the T-G1 message
+    a = executor.get(fresh, link_plan(fresh))
+    told = {r[0] for r in fresh.execute("SELECT payment_id FROM messages WHERE template_id = 'T-G1' AND status = 'sent'")}
+    assert len(told) == 5 and {i.payment_id for i in a.items} == told
+
+
+def test_a_customer_told_twice_still_gets_one_link(fresh):
+    told_everyone(fresh)
+    pid = fresh.execute("SELECT payment_id FROM messages WHERE template_id = 'T-G1' AND status = 'sent' ORDER BY rowid LIMIT 1").fetchone()[0]
+    fresh.execute("INSERT INTO messages (id, action_id, payment_id, customer_id, template_id, language, category, sender, body, holdout, status, created_at) "
+                  "SELECT 'msg_again', action_id, payment_id, customer_id, template_id, language, category, sender, body, holdout, status, created_at FROM messages WHERE payment_id = ? AND template_id = 'T-G1'", (pid,))
+    ids = [i.payment_id for i in executor.get(fresh, link_plan(fresh)).items]
+    assert len(ids) == 24 and ids.count(pid) == 1
+
+
+def test_nothing_goes_out_until_card_renewals_work_again(fresh):
+    told_everyone(fresh)
+    sig = json.loads(fresh.execute("SELECT signature FROM incidents WHERE id = 'INC-3'").fetchone()[0])
+    fresh.execute("UPDATE payments SET status = 'failed', error_code = 'GATEWAY_ERROR', captured_at = NULL WHERE is_renewal = 1 AND method = 'card' AND created_at > ?", (sig["last_failure_at"],))
+    aid = link_plan(fresh)
+    a = executor.get(fresh, aid)
+    assert a.blocked_reason and "Links go out only after card renewals work again" in a.blocked_reason
+    with pytest.raises(executor.ActError, match="card renewals work again"):
+        executor.approve(fresh, aid, "dry_run", FOUNDER)
+    assert not sent_links(fresh)
+
+
+def test_links_run_in_stages_one_each_with_ten_percent_held_back(fresh):
+    told_everyone(fresh)
+    aid = link_plan(fresh)
+    a = executor.get(fresh, aid)
+    held = a.params["holdout"]
+    assert len(a.items) == 24 and len(held) == 2 and a.params["valid_hours"] == 48 and a.next_stage == "dry_run"
+    assert not sent_links(fresh)  # planning sends nothing
+    executor.approve(fresh, aid, "dry_run", FOUNDER)
+    assert not sent_links(fresh)  # nor does the dry run
+    executor.approve(fresh, aid, "first_5", FOUNDER)
+    assert executor.get(fresh, aid).item_counts["verified"] == 5
+    for _ in range(2):  # a second click on the last stage changes nothing
+        a = executor.approve(fresh, aid, "rest", FOUNDER)
+    sent = sent_links(fresh)
+    assert a.status == "done" and a.item_counts["verified"] == 24 and len(sent) == 22
+    assert not {m["payment_id"] for m in sent} & set(held)
+    assert len({m["customer_id"] for m in sent}) == 22  # one link each
+    offers = fresh.execute("SELECT * FROM recovery_offers WHERE incident_id = 'INC-3'").fetchall()
+    assert len(offers) == 24 and sum(o["holdout"] for o in offers) == 2
+
+
+def test_the_link_message_is_a_template_with_the_amount_and_the_hours_from_the_record(fresh):
+    told_everyone(fresh)
+    previews = executor.message_previews(fresh, link_plan(fresh))
+    assert {p.template_id for p in previews} == {"T-G2"} and sum(p.recipients for p in previews) == 22 and all(p.holdout_allowed for p in previews)
+    for p in previews:
+        assert "₹299" in p.body and "48" in p.body and p.sender.endswith("powered by Razorpay")
+    assert any("payment network issue is fixed" in p.body for p in previews if p.language == "en")
+
+
+def test_someone_who_paid_again_in_the_meantime_is_not_sent_a_link(fresh):
+    told_everyone(fresh)
+    aid = link_plan(fresh)
+    plan_a = executor.get(fresh, aid)
+    pid = next(i.payment_id for i in plan_a.items if i.payment_id not in plan_a.params["holdout"])  # a held-back customer is not messaged, so there is nothing to refuse
+    cust, plan = fresh.execute("SELECT customer_id, subscription_id FROM payments WHERE id = ?", (pid,)).fetchone()
+    executor.approve(fresh, aid, "dry_run", FOUNDER)
+    fresh.execute("""INSERT INTO payments (id, merchant_id, subscription_id, customer_id, amount_paise, currency, method, status, is_renewal, created_at, captured_at)
+                     VALUES ('pay_again', 'acc_KAKSHA001', ?, ?, 29900, 'INR', 'card', 'captured', 1, ?, ?)""", (plan, cust, clock.now().isoformat(), clock.now().isoformat()))
+    a = executor.approve(fresh, aid, "first_5", FOUNDER)
+    assert a.status == "failed" and {i.payment_id: i.status for i in a.items}[pid] == "failed" and not any(m["payment_id"] == pid for m in sent_links(fresh))
+    blocked = fresh.execute("SELECT status FROM messages WHERE payment_id = ? AND template_id = 'T-G2'", (pid,)).fetchone()
+    assert blocked["status"] == "blocked"
+    # and a plan drawn now leaves that customer out
+    fresh.execute("DELETE FROM action_items WHERE action_id = ?", (aid,))
+    fresh.execute("DELETE FROM actions WHERE id = ?", (aid,))
+    assert pid not in {i.payment_id for i in executor.get(fresh, link_plan(fresh)).items}
+
+
+def test_links_wait_for_messaging_to_be_switched_on(fresh):
+    told_everyone(fresh)
+    autonomy.write(fresh, autonomy.read(fresh).model_copy(update={"messaging_enabled": False}), FOUNDER)
+    aid = link_plan(fresh)
+    assert "Messaging is switched off" in executor.get(fresh, aid).blocked_reason
+    with pytest.raises(executor.ActError, match="Messaging is switched off"):
+        executor.approve(fresh, aid, "dry_run", FOUNDER)
+
+
+def test_a_link_is_never_run_by_the_autonomy_setting(fresh):
+    told_everyone(fresh)
+    autonomy.write(fresh, autonomy.read(fresh).model_copy(update={"autonomy": "autopilot_reversible"}), FOUNDER)
+    a = executor.get(fresh, link_plan(fresh))
+    assert a.status == "drafted" and not sent_links(fresh)
+
+
+def test_links_cannot_be_unsent(fresh):
+    told_everyone(fresh)
+    aid = link_plan(fresh)
+    executor.approve(fresh, aid, "dry_run", FOUNDER)
+    with pytest.raises(executor.ActError, match="cannot be unsent"):
+        executor.revert(fresh, aid)
+
+
+def test_verify_reports_what_the_links_did_against_the_customers_held_back(fresh):
+    told_everyone(fresh)
+    aid = run_links(fresh)
+    soon = executor.verify(fresh, "INC-3")
+    assert soon.closeable and "Renewed since: 0 of 24 customers" in soon.line and "Held back on purpose: 0 of 2" in soon.line and "Too few customers to say what the link adds" in soon.line
+    clock.advance(48)
+    from app.zone1 import recovery
+
+    recovery.settle(fresh)
+    out = recovery.outcome(fresh, "INC-3")
+    sim = json.loads(fresh.execute("SELECT value FROM settings WHERE key = 'sim.recovery'").fetchone()[0])
+    cust = lambda o: o["id"].split(":", 2)[2]
+    offers = fresh.execute("SELECT * FROM recovery_offers WHERE incident_id = 'INC-3'").fetchall()
+    want_sent = sum(1 for o in offers if not o["holdout"] and sim["link"][cust(o)] is not None)
+    want_held = sum(1 for o in offers if o["holdout"] and sim["organic"][cust(o)] is not None)
+    assert (out["sent"], out["held_back"], out["sent_paid"], out["held_back_paid"]) == (22, 2, want_sent, want_held) and want_sent > 0
+    line = executor.verify(fresh, "INC-3").line
+    assert f"Renewed since: {want_sent + want_held} of 24 customers" in line and f"{want_held} of 2 paid on their own" in line
+    assert aid == "act_3_recovery_link"
+
+
+def run_links(db):
+    aid = link_plan(db)
+    for stage in ("dry_run", "first_5", "rest"):
+        executor.approve(db, aid, stage, FOUNDER)
+    return aid
+
+
+def test_a_link_send_that_is_half_done_keeps_the_incident_open(fresh):
+    told_everyone(fresh)
+    aid = link_plan(fresh)
+    for stage in ("dry_run", "first_5"):
+        executor.approve(fresh, aid, stage, FOUNDER)
+    v = executor.verify(fresh, "INC-3")
+    assert not v.closeable and "half done" in v.line and fresh.execute("SELECT status FROM incidents WHERE id = 'INC-3'").fetchone()[0] != "closed"
+    executor.approve(fresh, aid, "rest", FOUNDER)
+    assert executor.verify(fresh, "INC-3").closeable
+
+
+def test_an_incident_closed_without_links_says_so_and_still_closes(fresh):
+    run_all(fresh)
+    v = executor.verify(fresh, "INC-3")
+    assert v.closeable and "Their renewals still have to be collected" in v.line
+
+
+def test_links_stay_off_the_other_incidents(fresh):
+    for iid in ("INC-1", "INC-2"):
+        with pytest.raises(executor.ActError, match="Recovery links are for incidents"):
+            executor.create(fresh, iid, "recovery_link", {})
+
+
+def test_renewal_links_over_http(api):
+    def post(path, **body):
+        r = api.post(path, json=body)
+        assert r.status_code == 200, r.text
+        return r.json()
+
+    api.put("/api/settings", json={**api.get("/api/settings").json(), "messaging_enabled": True})
+    g = post("/api/incidents/INC-3/actions", action_type="grant", params={})["id"]
+    for stage in ("dry_run", "first_5", "rest"):
+        post(f"/api/actions/{g}/approve", stage=stage, approver="founder")
+    early = api.post("/api/incidents/INC-3/actions", json={"action_type": "recovery_link", "params": {}})
+    assert early.status_code == 409 and "Tell the customers first" in early.json()["detail"]
+    m = post("/api/incidents/INC-3/actions", action_type="message", params={"language": "auto"})["id"]
+    for stage in ("dry_run", "first_5", "rest"):
+        post(f"/api/actions/{m}/approve", stage=stage, approver="founder")
+    r = post("/api/incidents/INC-3/actions", action_type="recovery_link", params={"language": "auto"})["id"]
+    assert {p["template_id"] for p in api.get(f"/api/messages/preview?action_id={r}").json()} == {"T-G2"}
+    for stage in ("dry_run", "first_5", "rest"):
+        a = post(f"/api/actions/{r}/approve", stage=stage, approver="founder")
+    assert a["status"] == "done" and a["item_counts"]["sent"] == 22 and a["item_counts"]["held_back"] == 2
+    assert "Renewed since" in post("/api/incidents/INC-3/verify")["line"]

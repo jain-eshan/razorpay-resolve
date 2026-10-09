@@ -27,6 +27,7 @@ from ..schemas import (
     VerifyResult,
 )
 from ..widen.silent import mask
+from ..zone1 import recovery
 
 HEALTHY_RENEWALS = 3  # card renewals that must have gone through since it cleared before the incident can close
 FIX = "Nothing on your side caused this. Keep access on for these customers until Razorpay confirms it is fixed, and send Razorpay the evidence pack."
@@ -180,6 +181,52 @@ def gateway_health(db: sqlite3.Connection, row: sqlite3.Row) -> dict:
     return {"healthy": ok, "n": since["n"], "since": since["first"]}
 
 
+# ---------- the renewal link, sent once card renewals work again to the customers who were promised one ----------
+def recovery_block(db: sqlite3.Connection, row: sqlite3.Row) -> str | None:
+    """Why renewal links cannot go out right now, or None. They go out only after card renewals have worked again, so the link does not fail the same way."""
+    h = gateway_health(db, row)
+    return None if h["healthy"] else f"Links go out only after card renewals work again. {h['n']} of {HEALTHY_RENEWALS} have gone through since the last failure."
+
+
+def told(db: sqlite3.Connection, incident_id: str) -> bool:
+    """Has anyone been sent the message that promised a link (T-G1)."""
+    return db.execute("""SELECT 1 FROM messages m JOIN incident_members im ON im.payment_id = m.payment_id
+                         WHERE im.incident_id = ? AND m.template_id = 'T-G1' AND m.status = 'sent' LIMIT 1""", (incident_id,)).fetchone() is not None
+
+
+def paid_since(db: sqlite3.Connection, payment_id: str) -> bool:
+    """Has this customer paid a renewal since the one that failed."""
+    return db.execute("""SELECT 1 FROM payments f JOIN payments q ON q.customer_id = f.customer_id AND q.status = 'captured' AND q.created_at > f.created_at
+                         WHERE f.id = ? LIMIT 1""", (payment_id,)).fetchone() is not None
+
+
+def link_candidates(db: sqlite3.Connection, incident_id: str) -> list[str]:
+    """Failed payment ids to send a link for: customers who were told one was coming and have not paid since, one payment each. Their order is the order they were told."""
+    told_ids = [r["payment_id"] for r in db.execute("""SELECT m.payment_id FROM messages m JOIN incident_members im ON im.payment_id = m.payment_id
+                                                       WHERE im.incident_id = ? AND m.template_id = 'T-G1' AND m.status = 'sent' ORDER BY m.rowid""", (incident_id,))]
+    out, seen = [], set()
+    for pid in told_ids:
+        cust = db.execute("SELECT customer_id FROM payments WHERE id = ?", (pid,)).fetchone()["customer_id"]
+        if cust not in seen and not paid_since(db, pid):
+            seen.add(cust)
+            out.append(pid)
+    return out
+
+
+def link_slots(db: sqlite3.Connection, payment_id: str, hours: int) -> dict:
+    return messages.slots_for(db, payment_id) | {"hours": hours}
+
+
+def _outcome_line(out: dict) -> str:
+    total, paid = out["sent"] + out["held_back"], out["sent_paid"] + out["held_back_paid"]
+    if not total:
+        return ""
+    line = f" Renewed since: {paid} of {total} customers, ₹{messages.inr(out['recovered_paise'] + out['paid_anyway_paise'])} in all."
+    if out["held_back"]:
+        line += f" Held back on purpose: {out['held_back_paid']} of {out['held_back']} paid on their own." + (" Too few customers to say what the link adds." if out["held_back"] < 20 else "")
+    return line
+
+
 def verify(db: sqlite3.Connection, incident_id: str, actor: str = "system") -> VerifyResult:
     from ..act import executor
 
@@ -194,10 +241,16 @@ def verify(db: sqlite3.Connection, incident_id: str, actor: str = "system") -> V
             db.execute("UPDATE action_items SET status = ?, verified_at = ? WHERE id = ?", ("verified" if executor._check_grant(db, it, {}) else "verify_failed", now, it["id"]))
     items = executor._items(db, g["id"])
     verified = sum(1 for i in items if i["status"] == "verified")
-    closeable = verified == len(items) and h["healthy"]
+    recovery.settle(db)
+    out = recovery.outcome(db, incident_id)
+    running = db.execute("SELECT 1 FROM actions WHERE incident_id = ? AND action_type = 'recovery_link' AND status IN ('approved','failed')", (incident_id,)).fetchone() is not None
+    closeable = verified == len(items) and h["healthy"] and not running
     line = f"{verified} of {len(items)} confirmed to have access by your records."
-    if closeable:
-        line += f" Card renewals have gone through again since {datetime.fromisoformat(h['since']):%a %H:%M} ({h['n']} so far). Their renewals still have to be collected."
+    if running:
+        line += " A renewal link send that is half done keeps the incident open." + _outcome_line(out)
+    elif closeable:
+        line += f" Card renewals have gone through again since {datetime.fromisoformat(h['since']):%a %H:%M} ({h['n']} so far)."
+        line += _outcome_line(out) or " Their renewals still have to be collected."
     elif not h["healthy"]:
         line += f" Card renewals have gone through {h['n']} of {HEALTHY_RENEWALS} times needed since the last failure. Verify again later."
     else:

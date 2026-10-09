@@ -72,6 +72,13 @@ TEMPLATES: dict[str, Template] = {'T-A1': {'use': 'Silent victim, access fixed',
           'hi_latn': 'Hi {first_name}, {date} ko aapka {plan} renew nahi hua, payment network mein dikkat '
                      'thi, aapke card mein nahi. Humne aapka access {grace_until} tak chalu rakha hai. Theek '
                      'hote hi ek renewal link bhejenge.'},
+ 'T-G2': {'use': 'Renewal link after Razorpay fixed the card problem',
+          'category': 'service_promotional',
+          'slots': ['amount', 'first_name', 'hours', 'plan'],
+          'en': 'Hi {first_name}, the payment network issue is fixed. Here is your link to renew your {plan} '
+                'for ₹{amount}. It is valid for {hours} hours.',
+          'hi_latn': 'Hi {first_name}, payment network ki dikkat theek ho gayi hai. Yeh raha aapke {plan} ke '
+                     '₹{amount} ke renewal ka link. Yeh {hours} ghante tak valid hai.'},
  'T-ND': {'use': 'Needs one more detail',
           'category': 'utility',
           'slots': ['first_name'],

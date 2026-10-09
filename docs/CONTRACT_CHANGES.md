@@ -4,6 +4,13 @@ A change to anything under `contracts/`, to `backend/app/schemas.py`, `backend/a
 `backend/app/conversation/templates.py`, the capability flags in `backend/app/config.py` or `synth/config.yaml` needs a pull request that
 updates `contracts/` (run `make contracts`), bumps the version below and adds an entry here. Streams do not edit these files directly.
 
+## contracts-v0.10 (9 Oct 2026, during R4, the renewal link for INC-3)
+
+Additive only. No path, model or field changed, and `make contracts` produces no diff in `contracts/`.
+- New template `T-G2` (category `service_promotional`, slots `amount`, `first_name`, `hours`, `plan`, English and Hinglish): the renewal link, sent after Razorpay has fixed the card problem. It is the link `T-G1` promised.
+- `synth/config.yaml` gains `inc3.recovery` (`pay_with_link` 0.60, `pay_without_link` 0.15, `max_delay_hours` 36): how simulated customers behave after a link, written into the existing `sim.recovery` setting. Nothing in the generated world moved (every table compared before and after, except that setting).
+- `recovery_link` can now be planned on INC-3 (a `G` incident) as well as on Zone 1 incidents. The action type, routes and `ActionSummary` counts are the same. For INC-3 an item is the failed payment id (like grants and messages), and the offer is keyed by the customer.
+
 ## contracts-v0.9 (9 Oct 2026, during R4, INC-2 and the guarded refund)
 
 Additive only. Existing paths and models are unchanged. The headline numbers of Hero A, Hero B, INC-3 and the conversation gates are unchanged (checked against the eval before and after); the shares and averages that are measured against a baseline of ordinary orders moved slightly, because INC-2 adds 40 ordinary-looking orders to the world.

@@ -112,6 +112,31 @@ test('INC-3 live: grace in stages, the pack waits for the founder, and it closes
   await expect(panel(page).getByText(/24 of 24 confirmed to have access by your records/).first()).toBeVisible()
 })
 
+// INC-3 renewal links against the real engine: the link follows the message that promised it, goes out in stages with 2 customers held back, and verify counts who renewed.
+test('INC-3 live: the renewal link follows the message, goes out in stages, and verify counts who renewed', async ({ page }) => {
+  await page.goto('/incidents/INC-3')
+  await expect(btn(page, 'Plan the links')).toHaveCount(0) // nobody has been told a link is coming yet
+  await btn(page, 'Preview the message').click()
+  const on = btn(page, 'Switch messaging on')
+  if (await on.count()) await on.click()
+  await btn(page, 'Looks right, continue').click()
+  await btn(page, 'Send the first 5').click()
+  await btn(page, 'Send the rest').click()
+  await expect(panel(page).getByText('Sent', { exact: true })).toBeVisible()
+
+  await btn(page, 'Plan the links').click()
+  await expect(panel(page).getByText(/^24 customers, 2 of them held back on purpose/)).toBeVisible()
+  await expect(panel(page).getByText(/payment network issue is fixed/).first()).toBeVisible()
+  await btn(page, 'Looks right, continue').click()
+  await btn(page, 'Send the first 5').click()
+  await btn(page, /^Send the rest/).click()
+  await expect(panel(page).getByText(/^0 of 22 customers with a link have renewed/)).toBeVisible()
+  await btn(page, 'Move the demo clock forward 48 hours').click()
+  await expect(panel(page).getByText(/^12 of 22 customers with a link have renewed, ₹3,588 collected/)).toBeVisible()
+  await btn(page, 'Verify and close').click()
+  await expect(panel(page).getByText(/Renewed since: 12 of 24 customers/).first()).toBeVisible()
+})
+
 // INC-2 against the real engine: the list waits for approval, each refund is one click on one customer, the daily limit stops the one that would pass it, and the incident closes.
 test('INC-2 live: refunds one customer at a time, the daily limit holds, and it closes', async ({ page, request }) => {
   const api = 'http://localhost:8000'
