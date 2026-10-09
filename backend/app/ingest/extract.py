@@ -57,7 +57,7 @@ UPSET = re.compile(r"worst|useless|pathetic|bakwas|bekar|harass|!!|angry|disgust
 
 def _amount(text: str) -> int | None:
     pats = (r"(?:rs\.?|₹|inr|rupees?)\s*(\d[\d,]*(?:\.\d{1,2})?)", r"(\d[\d,]*(?:\.\d{1,2})?)\s*(?:rs\b|rupees?|rupaye|rupay|/-|₹)",
-            r"(?<![\w\[.,])(\d{2,6})(?:\s*(?:ka|ke|ki|deduct|debit|kat|kata|cut|charged|paid)\b)", r"(?:paid|debited|deducted|charged|paisa kat gaya|kat gaya)\s+(?:of\s+)?(\d[\d,]*(?:\.\d{1,2})?)")
+            r"(?<![\w\[.,])(\d{2,6})(?:\s*(?:ka|ke|ki|deduct|debit|kat|kata|cut|charged|paid|(?:do|2|two)\s+(?:baar|times))\b)", r"(?:paid|debited|deducted|charged|paisa kat gaya|kat gaya)\s+(?:of\s+)?(\d[\d,]*(?:\.\d{1,2})?)")
     for p in pats:
         if m := re.search(p, text, re.IGNORECASE):
             return round(float(m.group(1).replace(",", "")) * 100)

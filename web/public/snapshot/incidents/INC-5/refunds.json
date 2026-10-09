@@ -1,0 +1,8 @@
+{
+  "incident_id": "INC-5",
+  "cap_paise": 500000,
+  "spent_today_paise": 0,
+  "owed_paise": 0,
+  "refunded_paise": 0,
+  "rows": []
+}

@@ -21,6 +21,8 @@ GRANT_SOURCE = "make_good_grant"
 PLAN_DAYS = {"monthly": 30, "annual": 365}
 GRACE_DAYS = 3  # a grace extension for a renewal that failed on Razorpay's side: access on for this long from now (proposed to the merchant, never a revoke)
 PAGE_MODES = ("ok", "404", "key_mismatch")  # the pay page: fine, route not found, or the page loads and checkout will not open
+APP_MODES = ("broken", "fixed")  # the Android app: still lets the Pay button be tapped twice, or a release with an idempotency key and a disabled button is out
+APP_HEALTHY_HOURS = 24  # no new double charge for this long after the fix ships before the incident can close
 PAGE_HEALTHY_HOURS = 2  # the pay page must answer normally this long before recovery links go out and the incident can close
 
 
@@ -112,6 +114,24 @@ def health(db: sqlite3.Connection) -> dict:
             "signal_healthy": mode == "ok" and hours >= HEALTHY_HOURS}
 
 
+# ---------- the merchant's Android app (INC-2) ----------
+def set_app_mode(db: sqlite3.Connection, mode: str) -> dict:
+    """Demo control: the merchant's developer ships the fix for the double tap (or it is undone). Records when the fixed release went out."""
+    if mode not in APP_MODES:
+        raise MockError(f"Unknown mode {mode}. Use one of {', '.join(APP_MODES)}.")
+    since = clock.now().isoformat() if mode == "fixed" and _setting(db, "mock.app_mode") != "fixed" else _setting(db, "mock.app_fixed_since")
+    db.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('mock.app_mode', ?)", (mode,))
+    db.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('mock.app_fixed_since', ?)", (since if mode == "fixed" else "",))
+    return app_health(db)
+
+
+def app_health(db: sqlite3.Connection) -> dict:
+    mode = _setting(db, "mock.app_mode") or "broken"  # the INC-2 world starts broken
+    since = _setting(db, "mock.app_fixed_since") or None
+    hours = (clock.now() - datetime.fromisoformat(since)).total_seconds() / 3600 if mode == "fixed" and since else 0.0
+    return {"app_mode": mode, "app_fixed_since": since if mode == "fixed" else None, "healthy_hours": round(max(hours, 0.0), 1), "signal_healthy": mode == "fixed" and hours >= APP_HEALTHY_HOURS}
+
+
 # ---------- the merchant's pay page (Zone 1, R4) ----------
 def pay_page(db: sqlite3.Connection) -> dict:
     """What a visitor, or the pay-URL probe, gets from the merchant's pay page right now."""
@@ -172,6 +192,10 @@ def get_check(payment_id: str): return _run(check, payment_id)
 def post_grant(body: GrantBody): return {"prior": _run(grant, body.razorpay_payment_id)}
 @app.post("/webhook-mode")
 def post_mode(body: ModeBody): return _run(set_webhook_mode, body.mode)
+@app.get("/app-health")
+def get_app_health(): return _run(app_health)
+@app.post("/app-mode")
+def post_app_mode(body: ModeBody): return _run(set_app_mode, body.mode)
 @app.get("/pay-page")
 def get_pay_page():
     """The probe target. Answers the way the pay page mode says."""

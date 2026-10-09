@@ -27,6 +27,15 @@ type Demo = {
     messages: { blocked: Record<string, Frame<Action>>; ready: Record<string, Frame<Action>>; previews: Record<string, unknown>; stages: Record<string, Frame<Action>> }
     revert: Record<'first_5' | 'rest', Frame<Action>>
   }
+  duplicate: {
+    none: Frame; plan: Frame<Action>; dry: Frame<Action>
+    k: (DupView & { action: Frame<Action>; verify: Frame })[]
+    t: Record<'3' | '24' | '72', DupView>
+    closed: DupView
+    sent: { board: Schemas['RefundBoard'] }
+    messages: { blocked: Record<string, Frame<Action>>; ready: Record<string, Frame<Action>>; previews: Record<string, unknown>; stages: Record<string, Frame<Action>> }
+    verify: Record<'soon' | 'closed', Frame>
+  }
   zone1: {
     probe: Record<'broken' | 'ok', Frame>
     health: Record<'broken' | 'ok0' | 'ok1' | 'ok2', Frame>
@@ -39,6 +48,7 @@ type Demo = {
   }
 }
 type Phase = 'base' | 'first5' | 'rest0' | 'rest24' | 'rest48'
+type DupView = { board: Schemas['RefundBoard']; members: Schemas['Member'][]; overlay: { status: Schemas['IncidentDetail']['status']; fixed: number; at_risk_paise: number } }
 
 const STAGES = ['dry_run', 'first_5', 'rest'] as const
 const NEXT: Record<string, string | undefined> = { drafted: 'dry_run', dry_run: 'first_5', first_5: 'rest' }
@@ -87,6 +97,24 @@ const c3Msg = (d: Demo): Frame<Action> | undefined => {
 const c3Phase = () => (c3.closed ? 'closed' : c3.g === 'first_5' ? 'first5' : c3.g === 'rest' ? 'rest' : 'base') as 'base' | 'first5' | 'rest' | 'closed'
 const c3Esc = (d: Demo) => (c3.esc === 'none' ? undefined : c3.esc === 'drafted' ? d.renewal.escalation.drafted : c3.graced ? d.renewal.escalation.sent_graced : d.renewal.escalation.sent_plain)
 
+// INC-2 (charged twice). k: how many customers have been refunded, in the order of the plan. h: hours the demo user has moved the clock since all were refunded
+// (the bank processes UPI refunds after 2 hours, netbanking after 24, cards after 72; frames were recorded at 3, 24 and 72). fixAt: the hour the developer shipped the fix.
+const dp = { plan: 'none' as 'none' | 'drafted' | 'approved', k: 0, h: 0, fixAt: -1, m: 'none' as 'none' | 'drafted' | 'dry_run' | 'first_5' | 'rest', lang: 'auto', closed: false }
+const DID = 'act_2_refund'
+const DMID = 'act_2_message'
+const dpTime = () => (dp.h >= 72 ? '72' : dp.h >= 24 ? '24' : dp.h >= 3 ? '3' : null) as '3' | '24' | '72' | null
+const dpView = (d: Demo): DupView => {
+  const dd = d.duplicate
+  const v = dp.k === 15 && dpTime() ? dd.t[dpTime()!] : dd.k[dp.k]
+  return { board: dp.m === 'rest' ? dd.sent.board : v.board, members: v.members, overlay: dp.closed ? dd.closed.overlay : v.overlay }
+}
+const dpRefund = (d: Demo) => (dp.plan === 'none' ? undefined : dp.plan === 'drafted' ? d.duplicate.plan : d.duplicate.k[dp.k].action)
+const dpMsg = (d: Demo): Frame<Action> | undefined => {
+  if (dp.m === 'none') return undefined
+  const f = dp.m === 'drafted' ? (st.messagingOn ? d.duplicate.messages.ready : d.duplicate.messages.blocked)[dp.lang] : d.duplicate.messages.stages[dp.m]
+  return { ...f, data: { ...f.data, params: { ...f.data.params, language: dp.lang } } }
+}
+
 let loaded: Promise<Demo> | undefined
 const demo = () => (loaded ??= fetch('/snapshot/demo.json').then((r) => r.json() as Promise<Demo>))
 const cache: Record<string, Promise<unknown>> = {}
@@ -134,6 +162,25 @@ export async function demoGet(path: string): Promise<unknown | undefined> {
     return st.hours >= 24 ? d.fix.hook_ok24.data : { ...(d.fix.hook_ok.data as object), healthy_hours: st.hours }
   }
   if (p === '/merchant-mock/page-health') return d.zone1.health[pageKey()].data
+  if (p === '/merchant-mock/app-health') {
+    const fixed = dp.fixAt >= 0
+    return { app_mode: fixed ? 'fixed' : 'broken', app_fixed_since: null, healthy_hours: fixed ? dp.h - dp.fixAt : 0, signal_healthy: fixed && dp.h - dp.fixAt >= 24 }
+  }
+  if (p === '/api/incidents/INC-2') {
+    const base = await stat<Schemas['IncidentDetail']>('incidents/INC-2')
+    return { ...base, ...dpView(d).overlay, actions: [dpRefund(d), dpMsg(d)].filter((f): f is Frame<Action> => !!f).map((f) => f.data) }
+  }
+  if (p === '/api/incidents/INC-2/members') {
+    const tier = new URLSearchParams(q).get('tier')
+    return dpView(d).members.filter((m) => !tier || m.tier === tier)
+  }
+  if (p === '/api/incidents/INC-2/refunds') return dpView(d).board
+  if (p === `/api/actions/${DID}` || p === `/api/actions/${DMID}`) {
+    const f = p === `/api/actions/${DMID}` ? dpMsg(d) : dpRefund(d)
+    if (!f) throw new Error('404 action')
+    return f.data
+  }
+  if (p === '/api/messages/preview' && q.includes(DMID)) return d.duplicate.messages.previews[dp.lang]
   if (p === '/api/settings') return settings(d)
   if (p === '/api/incidents/INC-3') return { ...d.renewal.detail[c3Phase()].data, actions: [c3Grant(d), c3Msg(d)].filter((f): f is Frame<Action> => !!f).map((f) => f.data) }
   if (p === '/api/incidents/INC-3/members') {
@@ -239,6 +286,70 @@ export async function demoSend(method: string, path: string, body: Record<string
     z.status = k.startsWith('closed') ? 'closed' : k === 'broken' ? 'open' : 'verifying'
     if (k.startsWith('closed')) add(fr.audit)
     return fr.data
+  }
+  if (path === '/merchant-mock/app-mode') {
+    if (dp.fixAt < 0) dp.fixAt = dp.h
+    return demoGet('/merchant-mock/app-health')
+  }
+  if (path === '/api/incidents/INC-2/actions') {
+    const dd = d.duplicate
+    if (body.action_type === 'refund') {
+      if (dp.plan === 'none') {
+        dp.plan = 'drafted'
+        add(dd.plan.audit)
+      }
+      return dpRefund(d)!.data
+    }
+    if (dp.k < 15 || dpTime() !== '72') throw new Error('In the hosted demo, tell the customers once every refund has its bank reference: refund all of them, then move the clock forward 72 hours. The live version can do it in steps.')
+    dp.lang = (body.params as { language?: string } | undefined)?.language ?? 'auto'
+    if (dp.m === 'none') {
+      dp.m = 'drafted'
+      add(dd.messages.blocked.auto.audit)
+    }
+    return dpMsg(d)!.data
+  }
+  if (path === `/api/actions/${DID}/approve`) {
+    if (body.stage !== 'dry_run') throw new Error("Refunds are approved one customer at a time. Use the Refund button on a customer's row.")
+    if (dp.plan === 'drafted') {
+      dp.plan = 'approved'
+      add(d.duplicate.dry.audit)
+    }
+    return dpRefund(d)!.data
+  }
+  const one = path.match(/^\/api\/actions\/act_2_refund\/items\/([^/]+)\/approve$/)
+  if (one) {
+    const dd = d.duplicate
+    if (dp.plan !== 'approved') throw new Error('Review the list first: approve the dry run, then refund customers one by one.')
+    const i = dd.k[0].board.rows.findIndex((r) => r.payment_id === one[1])
+    if (i < 0) throw new Error(`${one[1]} is not in this plan.`)
+    if (i < dp.k) return dpRefund(d)!.data   // a repeat click: already refunded, nothing changes
+    if (i > dp.k) throw new Error('In the hosted demo, refund the customers in the order shown. The live version lets you pick anyone.')
+    dp.k += 1
+    add(dd.k[dp.k].action.audit)
+    return dpRefund(d)!.data
+  }
+  if (path === `/api/actions/${DID}/revert`) throw new Error("A refund cannot be undone. The money has gone back to the customer's original payment method.")
+  if (path === `/api/actions/${DMID}/revert`) throw new Error('Messages cannot be unsent.')
+  if (path === `/api/actions/${DMID}/approve`) {
+    const stage = body.stage as string
+    if (!st.messagingOn) throw new Error('Messaging is switched off. Turn it on in settings, then approve.')
+    const next = NEXT[dp.m]
+    if (!next || STAGES.indexOf(stage as (typeof STAGES)[number]) < STAGES.indexOf(next as (typeof STAGES)[number])) return dpMsg(d)!.data
+    if (stage !== next) throw new Error(`Approve '${label(next)}' next, not '${label(stage)}'.`)
+    dp.m = stage as typeof dp.m
+    add(d.duplicate.messages.stages[stage].audit)
+    return dpMsg(d)!.data
+  }
+  if (path === '/api/incidents/INC-2/verify') {
+    const dd = d.duplicate
+    if (dp.plan === 'none') return dd.none.data
+    if (dp.k < 15 || dp.fixAt < 0) return dd.k[dp.k].verify.data
+    if (dp.h - dp.fixAt < 24) return dd.verify.soon.data
+    if (!dp.closed) {
+      dp.closed = true
+      add(dd.verify.closed.audit)
+    }
+    return dd.verify.closed.data
   }
   if (path === '/api/incidents/INC-3/actions') {
     const r3 = d.renewal
@@ -377,7 +488,10 @@ export async function demoSend(method: string, path: string, body: Record<string
     return f.hook_ok.data
   }
   if (path === '/api/clock/advance') {
-    if (/^INC-[45]$/.test(String(body.incident ?? ''))) z.hours += Number(body.hours)
+    if (body.incident === 'INC-2') {
+      if (dp.k < 15) throw new Error('In the hosted demo, refund all the customers first, then move the clock. The live version lets you move it any time.')
+      dp.h += Number(body.hours)
+    } else if (/^INC-[45]$/.test(String(body.incident ?? ''))) z.hours += Number(body.hours)
     else st.hours += Number(body.hours)
     st.audit.push({ id: st.nextId++, at: clockNow(), actor: 'system', kind: 'action', ref_id: null, summary: `Demo clock moved forward ${body.hours} hours.` } as Audit)
     return { now: clockNow() }

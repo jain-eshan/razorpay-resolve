@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
 from app import clock, merchant_mock, service
-from app.act import autonomy, escalate, executor
+from app.act import autonomy, escalate, executor, refund
 from app.conversation import machine
 from app.learning import loop as learning
 from app.main import _feedback, _review
@@ -181,6 +181,73 @@ def record_renewal(src: sqlite3.Connection) -> dict:
     return out
 
 
+def _plain(model) -> object:
+    return [m.model_dump(mode="json") for m in model] if isinstance(model, list) else model.model_dump(mode="json")
+
+
+def _verify_frame(d: sqlite3.Connection, iid: str) -> dict:
+    """What verify says now, on a copy, with only the audit rows that verify itself adds."""
+    c = _clone(d)
+    rr = Rec(c)
+    rr.last = max([e.id for e in service.audit_entries(c)] or [0])
+    return rr.pack(executor.verify(c, iid))
+
+
+def record_duplicates(src: sqlite3.Connection) -> dict:
+    """INC-2 (charged twice): the refund plan, 15 refunds one customer at a time in the plan's order, the bank processing them over 3, 24 and 72 hours, the customers told,
+    the developer's fix, verify and close. The hosted demo refunds in the order recorded here, because a frame per combination of customers would not fit."""
+    iid, aid = "INC-2", "act_2_refund"
+    out: dict = {"k": [], "t": {}, "messages": {"blocked": {}, "ready": {}, "previews": {}}, "verify": {}}
+    d = _fresh(src)
+    r = Rec(d)
+    out["none"] = r.pack(executor.verify(d, iid))
+    out["plan"] = r.pack(executor.get(d, executor.create(d, iid, "refund", {})))
+    out["dry"] = r.pack(executor.approve(d, aid, "dry_run", FOUNDER))
+
+    def snap(db: sqlite3.Connection) -> dict:
+        detail = service.detail(db, iid)
+        return {"board": _plain(service.refund_board(db, iid)), "members": _plain(service.members(db, iid)),
+                "overlay": {"status": detail.status, "fixed": detail.fixed, "at_risk_paise": detail.at_risk_paise}}
+
+    out["k"].append({"action": out["dry"], **snap(d), "verify": _verify_frame(d, iid)})
+    for it in executor.get(d, aid).items:
+        act = r.pack(executor.approve_row(d, aid, it.payment_id, FOUNDER))
+        out["k"].append({"action": act, **snap(d), "verify": _verify_frame(d, iid)})
+    for hours, key in ((3, "3"), (21, "24"), (48, "72")):  # the bank takes its time: 3 hours after the last refund, then a day, then three days
+        clock.advance(hours)
+        refund.settle(d, clock.now())
+        out["t"][key] = snap(d)
+    base = _clone(d)
+
+    merchant_mock.set_app_mode(d, "fixed")
+    clock.advance(1)
+    out["verify"]["soon"] = _verify_frame(d, iid)
+    clock.advance(24)
+    closed = _clone(d)
+    rr = Rec(closed)
+    rr.last = max([e.id for e in service.audit_entries(closed)] or [0])
+    out["verify"]["closed"] = rr.pack(executor.verify(closed, iid))
+    out["closed"] = snap(closed)
+
+    # telling the customers: only once every refund has its bank reference, so from the 72 hour state
+    dm = _clone(base)
+    clock.reset()
+    clock.advance(3 + 21 + 48)
+    rm = Rec(dm)
+    rm.last = max([e.id for e in service.audit_entries(dm)] or [0])
+    for lang in ("auto", "en", "hi_latn"):
+        mid = executor.create(dm, iid, "message", {"language": lang})
+        out["messages"]["blocked"][lang] = rm.pack(executor.get(dm, mid))
+        out["messages"]["previews"][lang] = _plain(executor.message_previews(dm, mid))
+    _levels(dm, messaging_enabled=True)
+    for lang in ("auto", "en", "hi_latn"):
+        out["messages"]["ready"][lang] = rm.pack(executor.get(dm, executor.create(dm, iid, "message", {"language": lang})))
+    out["messages"]["stages"] = {st: rm.pack(executor.approve(dm, mid, st, FOUNDER)) for st in STAGES}
+    out["sent"] = {"board": _plain(service.refund_board(dm, iid))}
+    clock.reset()
+    return out
+
+
 def record_learning(src: sqlite3.Connection) -> dict:
     """The learning screen: the founder calls an incident a false alarm, then runs the weekly review. One recording per incident, because what changes depends on
     which monitors raised it. Frames: the card before anything, after the feedback, and after the review, plus the settings in force."""
@@ -205,6 +272,7 @@ def record(world_path: Path) -> dict:
     out: dict = {"note": "Replayed from a real run of the engine on the synthetic world. Nothing here is live.", "fix": {}, "chat": {}}
     out["zone1"] = record_zone1(src)
     out["renewal"] = record_renewal(src)
+    out["duplicate"] = record_duplicates(src)
     out["learning"] = record_learning(src)
 
     # ---- the fix: dry run, first 5, the rest, then messages, then verify and close ----

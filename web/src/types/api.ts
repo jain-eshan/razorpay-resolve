@@ -38,6 +38,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/actions/{action_id}/items/{payment_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Item */
+        post: operations["approve_item_api_actions__action_id__items__payment_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/actions/{action_id}/recovery": {
         parameters: {
             query?: never;
@@ -516,6 +533,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/incidents/{incident_id}/refunds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Refunds */
+        get: operations["get_refunds_api_incidents__incident_id__refunds_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/incidents/{incident_id}/replay": {
         parameters: {
             query?: never;
@@ -960,6 +994,11 @@ export interface components {
              * @enum {string}
              */
             stage: "dry_run" | "first_5" | "rest";
+        };
+        /** ApproveRowRequest */
+        ApproveRowRequest: {
+            /** Approver */
+            approver: string;
         };
         /** ArmRow */
         ArmRow: {
@@ -1706,6 +1745,66 @@ export interface components {
             /** Thread Ids */
             thread_ids: string[];
         };
+        /** RefundBoard */
+        RefundBoard: {
+            /** Cap Paise */
+            cap_paise: number;
+            /** Incident Id */
+            incident_id: string;
+            /** Owed Paise */
+            owed_paise: number;
+            /** Refunded Paise */
+            refunded_paise: number;
+            /** Rows */
+            rows: components["schemas"]["RefundRow"][];
+            /** Spent Today Paise */
+            spent_today_paise: number;
+        };
+        /**
+         * RefundRow
+         * @description One customer charged twice, as the refund screen shows them.
+         */
+        RefundRow: {
+            /** Amount Paise */
+            amount_paise: number;
+            /**
+             * Charged At
+             * Format: date-time
+             */
+            charged_at: string;
+            /** Complained */
+            complained: boolean;
+            /** Customer Masked */
+            customer_masked: string;
+            /** First Payment Id */
+            first_payment_id: string;
+            /** Gap Seconds */
+            gap_seconds: number;
+            /**
+             * Messaged
+             * @default false
+             */
+            messaged: boolean;
+            /** Method */
+            method: string;
+            /** Payment Id */
+            payment_id: string;
+            /** Processed At */
+            processed_at?: string | null;
+            /** Ref */
+            ref?: string | null;
+            /** Ref Format */
+            ref_format?: string | null;
+            /** Refund Id */
+            refund_id?: string | null;
+            /** Refunded At */
+            refunded_at?: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "ready" | "pending" | "processed";
+        };
         /** ReplayRow */
         ReplayRow: {
             /**
@@ -2118,6 +2217,42 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ApproveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Action"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_item_api_actions__action_id__items__payment_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                action_id: string;
+                payment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApproveRowRequest"];
             };
         };
         responses: {
@@ -3015,6 +3150,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RayCard"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_refunds_api_incidents__incident_id__refunds_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incident_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefundBoard"];
                 };
             };
             /** @description Validation Error */

@@ -33,7 +33,7 @@ for e in json.loads((ROOT / "contracts" / "snapshot_manifest.json").read_text())
     n += 1
 if live:  # the manifest names INC-1 and INC-4 only. Write every real incident's pages, so INC-5 and any later incident work without a server.
     for i in client.get("/api/incidents").json():
-        for suffix in ("", "/members", "/sample", "/trace", "/ray_card", "/evidence_pack", "/replay"):
+        for suffix in ("", "/members", "/sample", "/trace", "/ray_card", "/evidence_pack", "/replay", "/refunds"):
             f = out / f"incidents/{i['id']}{suffix}.json"
             if not f.exists():
                 f.parent.mkdir(parents=True, exist_ok=True)

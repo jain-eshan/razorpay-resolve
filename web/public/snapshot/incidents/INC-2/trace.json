@@ -1,0 +1,50 @@
+{
+  "id": "tr_INC-2",
+  "incident_id": "INC-2",
+  "steps": [
+    {
+      "tool": "find_duplicate_captures",
+      "input": {
+        "gap_under_seconds": 120
+      },
+      "output_summary": "15 pairs with the same contact and amount, same person and plan, captured seconds apart"
+    },
+    {
+      "tool": "classify_look_alikes",
+      "input": {
+        "pairs": 20
+      },
+      "output_summary": "5 left out: two seats for two people, failed second attempts, charges already refunded"
+    },
+    {
+      "tool": "group_by_app_version",
+      "input": {
+        "min_pairs": 3
+      },
+      "output_summary": "All 15 on android-3.4.1; 0 on any other version"
+    },
+    {
+      "tool": "list_events",
+      "input": {
+        "before": "Sat 14:04"
+      },
+      "output_summary": "app_release android-3.4.1 at Sat 26 Sep 10:00"
+    },
+    {
+      "tool": "check_webhook",
+      "input": {
+        "payments": 30
+      },
+      "output_summary": "Both charges delivered and both orders granted, so this is not a webhook problem"
+    },
+    {
+      "tool": "attribute",
+      "input": {},
+      "output_summary": "Rule 6: merchant_code. Duplicate captures began after an app release with no duplicate guard"
+    }
+  ],
+  "budget_used": 6,
+  "budget_total": 8,
+  "model_id": null,
+  "rule_based": true
+}

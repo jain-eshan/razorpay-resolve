@@ -271,7 +271,7 @@ def test_settings_are_validated_and_every_change_is_audited(fresh):
 # ---------- there is no revoke ----------
 def test_no_revoke_in_the_action_catalogue():
     assert not any("revoke" in a for a in get_args(ActionType))
-    assert set(autonomy.ACTION_CLASS) == {"grant", "message", "recovery_link"}
+    assert set(autonomy.ACTION_CLASS) == {"grant", "message", "recovery_link", "refund"}
     for p in (ROOT / "backend" / "app").rglob("*.py"):
         assert not re.search(r"def\s+revoke|/revoke", p.read_text()), p
 

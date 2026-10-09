@@ -9,6 +9,7 @@ from datetime import datetime
 from ..conversation.templates import TEMPLATES
 from ..learning import params
 from ..schemas import MessagePreview
+from . import refund
 
 LANGS = ("en", "hi_latn")
 
@@ -30,6 +31,8 @@ def slots_for(db: sqlite3.Connection, payment_id: str) -> dict:
     d = datetime.fromisoformat(r["captured_at"] or r["created_at"])
     slots = {"first_name": r["name"].split()[0], "merchant": r["merchant"].split(" (")[0], "amount": inr(r["amount_paise"]), "date": f"{d.day} {d:%b}",
              "plan": r["plan"], "rrn": r["rrn"] or "", "_lang": r["language_pref"] if r["language_pref"] in LANGS else params.get(db, "message_variant")}
+    if ref := refund.reference(db, payment_id):  # a duplicate that was refunded and has its bank reference: the customer is told the refund id and the reference
+        slots |= {"refund_id": ref["refund_id"], "ref": ref["ref"], "ref_format": ref["ref_format"], "refund_date": f"{ref['refund_date'].day} {ref['refund_date']:%b}", "window": ref["window"]}
     if failed:
         until = datetime.fromisoformat(db.execute("SELECT e.access_until FROM entitlements e JOIN payments p ON p.subscription_id = e.subscription_id WHERE p.id = ?", (payment_id,)).fetchone()[0])
         slots["grace_until"] = f"{until.day} {until:%b}"
@@ -38,7 +41,7 @@ def slots_for(db: sqlite3.Connection, payment_id: str) -> dict:
 
 def pick(complained: bool, slots: dict, language: str) -> tuple[str, str]:
     """Template id and language for one customer. 'auto' follows the customer's own language."""
-    return ("T-G1" if "grace_until" in slots else "T-A2" if complained else "T-A1"), (slots["_lang"] if language == "auto" else language)
+    return ("T-E1" if "refund_id" in slots else "T-G1" if "grace_until" in slots else "T-A2" if complained else "T-A1"), (slots["_lang"] if language == "auto" else language)
 
 
 def render(template_id: str, language: str, slots: dict) -> str:

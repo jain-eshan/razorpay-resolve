@@ -54,9 +54,10 @@ The web app has two modes. Without `VITE_MODE=live` it plays the demo from `web/
 | R5 second slice: learning loop, weekly card, Learning screen (no model) | Done, on `main`. Contracts v0.7 |
 | R7 submission kit: one-page note, 90-second script, verify-list status (`docs/SUBMISSION.md`) | Merged (PR #16). Needs Eshan's checks and two recorded takes |
 | R4 and R5 rest, INC-3: card renewals that failed in Razorpay's gateway, and the evidence pack to Razorpay (no model) | Done, on `main` (PR #19). Contracts v0.8 |
-| R4 rest: investigation agent and three-way eval (need a model), duplicate charges and the guarded refund (INC-2), R6 | Not started |
+| R4 rest, INC-2: customers charged twice after an app release, and the guarded refund (one customer at a time, original method only, daily limit, no undo) (no model) | Built on a branch, in review. Contracts v0.9 |
+| R4 rest: investigation agent and three-way eval (need a model), R6 | Not started |
 
-Contract changes are logged in `docs/CONTRACT_CHANGES.md` (currently v0.8). The plan for every release is in `docs/BUILD_PLAN.md`.
+Contract changes are logged in `docs/CONTRACT_CHANGES.md` (currently v0.9). The plan for every release is in `docs/BUILD_PLAN.md`.
 
 ## What is real and what is simulated
 

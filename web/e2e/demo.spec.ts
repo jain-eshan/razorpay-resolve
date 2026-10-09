@@ -328,3 +328,70 @@ test('INC-3: the extension can be undone before the customers are told, and plan
   await expect(panel(page).getByText('Waiting for you')).toBeVisible()
 })
 
+
+// ---------- INC-2: customers charged twice. On the merchant's side (the app), the second charge is refunded one customer at a time, and a refund cannot be undone ----------
+test('INC-2 plays end to end with no server: why, who was left out, refunds one by one, the bank, customers told, the fix, closed', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByText(/Customers are being charged twice for the same plan/)).toBeVisible()
+  await page.getByRole('button', { name: 'See who was charged twice' }).click()
+  await expect(page).toHaveURL(/\/incidents\/INC-2$/)
+  await expect(page.getByText('Your webhook was fine. The second charge is the problem')).toBeVisible()
+  await expect(page.getByText(/On your side: 6 pieces of evidence, 11 points/)).toBeVisible()
+  await expect(page.getByText(/We cannot see: Whether the customer meant to buy twice/)).toBeVisible()
+  await expect(page.getByTestId('duplicate-chart')).toBeVisible()
+  await page.getByText(/^Left out \(5\)/).click()
+  await expect(page.getByText(/Two seats for two people/).first()).toBeVisible() // the look-alikes are listed, with the reason, and not touched
+  await expect(page.getByText(/second attempt failed/i).first()).toBeVisible()
+
+  await btn(page, 'Plan the refunds').click()
+  await expect(panel(page).getByText(/^15 customers, ₹4,985 to go back/)).toBeVisible()
+  await expect(btn(page, /^Refund ₹/).first()).toBeDisabled() // nothing can be refunded before the list is approved
+  await btn(page, 'Looks right, continue').click()
+  await expect(panel(page).getByText('Dry run approved')).toBeVisible()
+  await expect(btn(page, /^Refund ₹/).nth(1)).toBeDisabled() // the hosted demo goes in the order shown
+  for (let i = 1; i <= 15; i++) {
+    await btn(page, /^Refund ₹/).first().click()
+    await expect(panel(page).getByText('Pending', { exact: true })).toHaveCount(i)
+  }
+  await expect(panel(page).getByText('15 refunds started')).toBeVisible()
+  await expect(btn(page, /^Refund ₹/)).toHaveCount(0)
+  await expect(btn(page, /undo/i)).toHaveCount(0) // a refund cannot be undone, so there is no button for it
+
+  await btn(page, 'Verify and close').click()
+  await expect(panel(page).getByText(/The app still lets the Pay button be tapped twice/)).toBeVisible()
+  await btn(page, 'Preview the message').click()
+  await expect(panel(page).getByText(/hosted demo, tell the customers once every refund has its bank reference/)).toBeVisible()
+  await btn(page, 'Move the clock forward 72 hours').click()
+  await expect(panel(page).getByText('Processed', { exact: true })).toHaveCount(15)
+  await expect(panel(page).getByText(/^(RRN \d{12}|ARN \d{23})$/).first()).toBeVisible()
+
+  await btn(page, 'Preview the message').click()
+  await expect(panel(page).getByText(/Refund ID: rfnd_/).first()).toBeVisible()
+  await btn(page, 'Switch messaging on').click()
+  await btn(page, 'Looks right, continue').click()
+  await btn(page, 'Send the first 5').click()
+  await btn(page, /^Send the rest/).click()
+  await expect(panel(page).getByText('Sent to 15 customers')).toBeVisible()
+
+  await btn(page, 'Your developer ships the fix').click()
+  await btn(page, 'Verify and close').click()
+  await expect(panel(page).getByText(/Verify again later/)).toBeVisible()
+  await expect(page.getByText('Still open')).toBeVisible()
+  await btn(page, 'Move the clock forward 24 hours').click()
+  await btn(page, 'Verify and close').click()
+  await expect(page.getByTestId('success-moment')).toBeVisible()
+  await expect(panel(page).getByText(/₹4,985 returned/).first()).toBeVisible()
+
+  await page.getByRole('link', { name: 'Audit' }).click()
+  await expect(page.getByText(/Refunded ₹599 to the original upi method\. Refund rfnd_.* This cannot be undone/).first()).toBeVisible()
+  await expect(page.getByText(/Approved the refund for pay_.* 15 of 15 refunded/).first()).toBeVisible()
+})
+
+test('INC-2: the hosted demo takes the clock only after the refunds, and refunds go in the order shown', async ({ page }) => {
+  await page.goto('/incidents/INC-2')
+  await btn(page, 'Plan the refunds').click()
+  await btn(page, 'Looks right, continue').click()
+  await btn(page, /^Refund ₹/).first().click()
+  await btn(page, 'Move the clock forward 3 hours').click()
+  await expect(panel(page).getByText(/hosted demo, refund all the customers first/)).toBeVisible()
+})

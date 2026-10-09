@@ -100,6 +100,7 @@ MESSAGES = [
     ("paisa kat gaya 599 ka, Test Series nahi mila. UPI ref 161387611923", "access", "debited_no_access", 599, "hi_latn", False),
     ("kal raat 499 kata premium nahi mila", "access", "debited_no_access", 499, "hi_latn", False),
     ("2 baar paise kat gaye 299 ke", "payment", "charged_twice", 299, "hi_latn", False),
+    ("bhai 599 do baar kat gaye kal raat ko, Test Series ek hi baar liya tha. ref 596257074513", "payment", "charged_twice", 599, "hi_latn", False),
     ("I was charged twice for Rs 599 yesterday", "payment", "charged_twice", 599, "en", False),
     ("charged double for the test series!! Rs 599 two times", "payment", "charged_twice", 599, "en", False),
     ("my refund of Rs 599 has not come yet, it's been 7 days", "refund", "refund_not_received", 599, "en", False),
@@ -174,10 +175,11 @@ def test_extraction_sees_only_tokens_never_the_identifiers():
 
 
 def hero_a_complaints(db):
-    """The complaints about a payment that went through and has no access. Before-the-payment complaints (R4) carry no reference, and INC-3's name a failed renewal."""
+    """The complaints about a payment that went through and has no access. Before-the-payment complaints (R4) carry no reference, INC-3's name a failed renewal, and INC-2's are about a second charge."""
+    twice = {r[0] for r in db.execute("SELECT complaint_id FROM cases WHERE incident_id = 'INC-2'")}
     failed = {r[0] for r in db.execute("SELECT id FROM payments WHERE status = 'failed'")}
     return [c for c in db.execute("SELECT * FROM complaints ORDER BY received_at").fetchall()
-            if any(extract_keys(c["raw_text"]).values()) and not set(extract_keys(c["raw_text"])["payment_id"]) & failed]
+            if any(extract_keys(c["raw_text"]).values()) and not set(extract_keys(c["raw_text"])["payment_id"]) & failed and c["id"] not in twice]
 
 
 def test_the_world_complaints_all_extract_as_paid_but_no_access(world):

@@ -28,8 +28,8 @@
       "observed": 12,
       "zero_attempts": 12,
       "lost_orders": 10,
-      "avg_order_paise": 55905,
-      "lost_paise": 559050,
+      "avg_order_paise": 55066,
+      "lost_paise": 550660,
       "status": 0
     },
     "owner": "merchant_config",
@@ -50,7 +50,7 @@
       ],
       "event_id": "me_key_rotate",
       "first_status": null,
-      "normal_zero_share": 0.19,
+      "normal_zero_share": 0.18,
       "pay_url": null,
       "alert_at": "2026-09-28T12:30:00+05:30",
       "weight": 3,
@@ -130,7 +130,7 @@
         },
         {
           "at": "2026-09-28T13:00:00+05:30",
-          "orders": 3,
+          "orders": 7,
           "expected": 0,
           "zero_attempts": 0,
           "probe_checks": 12,
@@ -148,7 +148,7 @@
         },
         {
           "at": "2026-09-28T15:00:00+05:30",
-          "orders": 0,
+          "orders": 2,
           "expected": 0,
           "zero_attempts": 0,
           "probe_checks": 12,
@@ -262,7 +262,7 @@
     },
     {
       "bucket_start": "2026-09-28T13:00:00+05:30",
-      "ok": 3,
+      "ok": 7,
       "client_error": 0,
       "server_error": 0,
       "not_attempted": 0,
@@ -278,7 +278,7 @@
     },
     {
       "bucket_start": "2026-09-28T15:00:00+05:30",
-      "ok": 0,
+      "ok": 2,
       "client_error": 0,
       "server_error": 0,
       "not_attempted": 0,

@@ -1,0 +1,29 @@
+{
+  "incident_id": "INC-2",
+  "ref": "MG-INC-2-BF6B",
+  "endpoint": null,
+  "first_failure_at": "2026-09-26T14:04:36+05:30",
+  "last_failure_at": "2026-10-01T16:59:24+05:30",
+  "linked_change": "app_release android-3.4.1",
+  "response_excerpt": "15 customers placed two orders for the same plan 36 seconds apart on average, all from android-3.4.1. Other versions: 0.",
+  "affected_events": 15,
+  "affected_payment_ids": [
+    "pay_RDyO0J2v7VCxbS",
+    "pay_s6ibZVNS6c8YYL",
+    "pay_VON6RVASv0z6E4",
+    "pay_y0tqUkX78ZPoDp",
+    "pay_2wnUTUbK2unewc",
+    "pay_kSwWMJd2wglKgX",
+    "pay_VwYJqOd6510TEJ",
+    "pay_HjkCWgxRxU2rSg",
+    "pay_ELqey2V0gGjKqn",
+    "pay_hFAipQMmx81ZXt",
+    "pay_dZLVf3wzwJK4Ru",
+    "pay_Soxxzr9EVmm3k9",
+    "pay_WrGO0Ua9WXNgp4",
+    "pay_rlNIU8Y4UCVIgK",
+    "pay_1W2KvL6jmqPuN5"
+  ],
+  "suggested_fix": "Add an idempotency key to order creation, so a second tap returns the first order, and disable the Pay button after the first tap. Ship it in a new Android release.",
+  "for_razorpay": false
+}

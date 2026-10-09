@@ -1,0 +1,74 @@
+{
+  "id": "cs_QiRdEOHOxX",
+  "complaint_id": "cmp_QiRdEOHOxX",
+  "channel": "whatsapp_payments",
+  "match_status": "matched",
+  "mismatch_type": "E",
+  "owner": "merchant_code",
+  "incident_id": "INC-2",
+  "received_at": "2026-09-29T16:21:57+05:30",
+  "extraction": {
+    "topic": "payment",
+    "is_payment_related": true,
+    "language": "en",
+    "claim": "charged_twice",
+    "amount_paise": 19900,
+    "amount_count": 2,
+    "stated_time_text": null,
+    "method": "upi",
+    "app_or_bank_name": null,
+    "ids": {
+      "payment_id": null,
+      "order_id": null,
+      "rrn": "[RRN_1]",
+      "email": null,
+      "phone": null,
+      "vpa": null,
+      "card4": null
+    },
+    "product_or_plan": "Mock Test Pack",
+    "customer_wants": "refund",
+    "sentiment": "calm",
+    "injection_suspected": false,
+    "window": null
+  },
+  "candidates": [
+    {
+      "payment_id": "pay_GrRxaM6RM6x8bS",
+      "method": "exact_rrn",
+      "calibrated_score": 0.97,
+      "features": {}
+    }
+  ],
+  "lanes": {
+    "customer": [
+      {
+        "at": "2026-09-29T16:21:57+05:30",
+        "text": "Money debited twice (Rs 199 two times) for Mock Test Pack, I only wanted to buy it once. Ref 499129016816. Please refund the extra",
+        "source_ref": "cmp_QiRdEOHOxX"
+      }
+    ],
+    "razorpay": [
+      {
+        "at": "2026-09-29T13:20:19+05:30",
+        "text": "Payment of \u20b9199 captured",
+        "source_ref": "pay_GrRxaM6RM6x8bS"
+      },
+      {
+        "at": "2026-09-29T13:20:19+05:30",
+        "text": "2 webhook attempts, first answered 200",
+        "source_ref": "pay_GrRxaM6RM6x8bS"
+      }
+    ],
+    "merchant": [
+      {
+        "at": "2026-10-02T10:40:00+05:30",
+        "text": "Access record: active",
+        "source_ref": "pay_GrRxaM6RM6x8bS"
+      }
+    ]
+  },
+  "state_line": "Matched to pay_GrRxaM6RM6x8bS by an exact identifier. Part of INC-2: YOUR SIDE \u00b7 Code.",
+  "reply_draft": null,
+  "injection_suspected": false
+}

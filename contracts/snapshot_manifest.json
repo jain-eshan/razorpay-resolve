@@ -100,6 +100,16 @@
     "operation": "get_ray_card_api_incidents__incident_id__ray_card_get"
   },
   {
+    "path": "/api/incidents/INC-1/refunds",
+    "file": "incidents/INC-1/refunds.json",
+    "operation": "get_refunds_api_incidents__incident_id__refunds_get"
+  },
+  {
+    "path": "/api/incidents/INC-4/refunds",
+    "file": "incidents/INC-4/refunds.json",
+    "operation": "get_refunds_api_incidents__incident_id__refunds_get"
+  },
+  {
     "path": "/api/incidents/INC-1/replay",
     "file": "incidents/INC-1/replay.json",
     "operation": "get_replay_api_incidents__incident_id__replay_get"

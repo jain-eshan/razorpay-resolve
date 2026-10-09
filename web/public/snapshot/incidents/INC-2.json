@@ -1,0 +1,274 @@
+{
+  "id": "INC-2",
+  "title": "Customers charged twice after android-3.4.1",
+  "zone": "after",
+  "mismatch_type": "E",
+  "owner": "merchant_code",
+  "inferred": false,
+  "status": "open",
+  "opened_by": "signal",
+  "affected": 15,
+  "complained": 4,
+  "silent": 11,
+  "fixed": 0,
+  "at_risk_paise": 498500,
+  "onset_at": "2026-09-26T14:04:36+05:30",
+  "would_have_alerted_at": "2026-09-26T16:30:38+05:30",
+  "verdict": {
+    "incident_id": "INC-2",
+    "mismatch_type": "E",
+    "zone": "after",
+    "inferred": false,
+    "cause_code": "DOUBLE_SUBMIT_AFTER_APP_RELEASE",
+    "cause_summary_slots": {
+      "title": "Customers charged twice after android-3.4.1",
+      "pairs": 15,
+      "left_out": 5,
+      "version": "android-3.4.1",
+      "release": "2026-09-26T10:00:00+05:30",
+      "median_gap": 36,
+      "to_refund_paise": 498500,
+      "orders_on_version": 117
+    },
+    "owner": "merchant_code",
+    "owner_rule_id": 6,
+    "owner_evidence_ids": [
+      "15 customers were charged twice for the same plan, 36 seconds apart on average, since Sat 26 Sep 14:04",
+      "All 15 came from android-3.4.1. Other app versions and the web: 0 in 232 orders",
+      "android-3.4.1 was released on Sat 26 Sep 10:00. The first double charge came 4 hours later",
+      "15 of 117 android-3.4.1 orders since the release were followed by a second one",
+      "5 look-alikes left out: 3 two seats for two people, 2 a failed second attempt the bank reverses",
+      "Your webhook answered 200 for both charges and both orders got access, so only the second charge is wrong"
+    ],
+    "signature": {
+      "kind": "duplicate",
+      "app_version": "android-3.4.1",
+      "release_id": "me_app_341",
+      "release_at": "2026-09-26T10:00:00+05:30",
+      "first_at": "2026-09-26T14:04:36+05:30",
+      "last_at": "2026-10-01T16:59:24+05:30",
+      "alert_at": "2026-09-26T16:30:38+05:30",
+      "resolved_at": null,
+      "pairs": 15,
+      "median_gap": 36,
+      "orders_on_version": 117,
+      "other_version_pairs": 0,
+      "other_version_orders": 232,
+      "daily": [
+        {
+          "at": "2026-09-25T00:00:00+05:30",
+          "version_orders": 0,
+          "doubled": 0,
+          "other_orders": 41
+        },
+        {
+          "at": "2026-09-26T00:00:00+05:30",
+          "version_orders": 24,
+          "doubled": 3,
+          "other_orders": 64
+        },
+        {
+          "at": "2026-09-27T00:00:00+05:30",
+          "version_orders": 21,
+          "doubled": 3,
+          "other_orders": 32
+        },
+        {
+          "at": "2026-09-28T00:00:00+05:30",
+          "version_orders": 23,
+          "doubled": 2,
+          "other_orders": 41
+        },
+        {
+          "at": "2026-09-29T00:00:00+05:30",
+          "version_orders": 18,
+          "doubled": 1,
+          "other_orders": 35
+        },
+        {
+          "at": "2026-09-30T00:00:00+05:30",
+          "version_orders": 9,
+          "doubled": 0,
+          "other_orders": 43
+        },
+        {
+          "at": "2026-10-01T00:00:00+05:30",
+          "version_orders": 20,
+          "doubled": 6,
+          "other_orders": 23
+        },
+        {
+          "at": "2026-10-02T00:00:00+05:30",
+          "version_orders": 2,
+          "doubled": 0,
+          "other_orders": 0
+        }
+      ]
+    },
+    "onset_at": "2026-09-26T14:04:36+05:30",
+    "resolved_at": null,
+    "linked_event_id": "me_app_341",
+    "affected_count": 15,
+    "confidence": "high",
+    "unexplained_case_ids": [],
+    "runner_up": null,
+    "evidence": [
+      {
+        "kind": "duplicate_pairs",
+        "weight": 3,
+        "ref": "15 customers were charged twice for the same plan, 36 seconds apart on average, since Sat 26 Sep 14:04"
+      },
+      {
+        "kind": "one_app_version",
+        "weight": 3,
+        "ref": "All 15 came from android-3.4.1. Other app versions and the web: 0 in 232 orders"
+      },
+      {
+        "kind": "after_release",
+        "weight": 2,
+        "ref": "android-3.4.1 was released on Sat 26 Sep 10:00. The first double charge came 4 hours later"
+      },
+      {
+        "kind": "share_of_orders",
+        "weight": 1,
+        "ref": "15 of 117 android-3.4.1 orders since the release were followed by a second one"
+      },
+      {
+        "kind": "left_out",
+        "weight": 1,
+        "ref": "5 look-alikes left out: 3 two seats for two people, 2 a failed second attempt the bank reverses"
+      },
+      {
+        "kind": "webhook_healthy",
+        "weight": 1,
+        "ref": "Your webhook answered 200 for both charges and both orders got access, so only the second charge is wrong"
+      }
+    ],
+    "what_we_cannot_see": [
+      "Whether the customer meant to buy twice. Two orders for the same person and plan seconds apart are almost always a double tap, but Blindspot cannot ask the app",
+      "Whether the bank has already reversed a failed second attempt",
+      "Whether the customer saw an error and tapped again, which a fixed app would also stop"
+    ]
+  },
+  "timeline": [
+    {
+      "bucket_start": "2026-09-25T00:00:00+05:30",
+      "ok": 0,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-26T00:00:00+05:30",
+      "ok": 21,
+      "client_error": 0,
+      "server_error": 3,
+      "not_attempted": 0,
+      "markers": [
+        "android-3.4.1 released",
+        "first double charge",
+        "alert would fire"
+      ]
+    },
+    {
+      "bucket_start": "2026-09-27T00:00:00+05:30",
+      "ok": 18,
+      "client_error": 0,
+      "server_error": 3,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-28T00:00:00+05:30",
+      "ok": 21,
+      "client_error": 0,
+      "server_error": 2,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-29T00:00:00+05:30",
+      "ok": 17,
+      "client_error": 0,
+      "server_error": 1,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-09-30T00:00:00+05:30",
+      "ok": 9,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-01T00:00:00+05:30",
+      "ok": 14,
+      "client_error": 0,
+      "server_error": 6,
+      "not_attempted": 0,
+      "markers": []
+    },
+    {
+      "bucket_start": "2026-10-02T00:00:00+05:30",
+      "ok": 2,
+      "client_error": 0,
+      "server_error": 0,
+      "not_attempted": 0,
+      "markers": []
+    }
+  ],
+  "lift": [
+    {
+      "dimension": "app_version",
+      "value": "android-3.4.1",
+      "share_affected": 1.0,
+      "share_baseline": 0.0,
+      "lift": 1000.0
+    },
+    {
+      "dimension": "method",
+      "value": "upi",
+      "share_affected": 0.6667,
+      "share_baseline": 0.7352,
+      "lift": 0.9
+    },
+    {
+      "dimension": "method",
+      "value": "card",
+      "share_affected": 0.3333,
+      "share_baseline": 0.2332,
+      "lift": 1.4
+    },
+    {
+      "dimension": "plan",
+      "value": "plan_mock_199",
+      "share_affected": 0.6667,
+      "share_baseline": 0.2964,
+      "lift": 2.2
+    },
+    {
+      "dimension": "plan",
+      "value": "plan_series_599",
+      "share_affected": 0.3333,
+      "share_baseline": 0.2885,
+      "lift": 1.2
+    }
+  ],
+  "tier_counts": {
+    "exact": 15,
+    "likely": 0,
+    "check": 0,
+    "excluded": 5
+  },
+  "replay": {
+    "incident_id": "INC-2",
+    "replayable_by_support": 0,
+    "not_replayable_disabled_window": 0,
+    "too_old": 0,
+    "note": "Nothing to replay. Your webhook answered 200 for both charges and both orders got access. The only problem is the second charge."
+  },
+  "actions": []
+}

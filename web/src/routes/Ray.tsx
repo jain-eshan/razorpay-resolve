@@ -9,13 +9,15 @@ import { waTime } from '../lib/whatsapp'
 export default function Ray() {
   const nav = useNavigate()
   const { data: incs, error } = useGet<Schemas['IncidentSummary'][]>('/api/incidents')
-  const inc = incs?.find((i) => i.id === 'INC-1') ?? incs?.find((i) => i.zone === 'after' && i.mismatch_type !== 'G')    // Hero A: paid, and no access
+  const inc = incs?.find((i) => i.id === 'INC-1') ?? incs?.find((i) => i.zone === 'after' && i.mismatch_type !== 'G' && i.mismatch_type !== 'E')    // Hero A: paid, and no access
   const incB = incs?.find((i) => i.zone === 'before' && i.id === 'INC-4') ?? incs?.find((i) => i.zone === 'before')   // Hero B: could not pay at all
   const incC = incs?.find((i) => i.mismatch_type === 'G')    // Razorpay's side: card renewals failed in its gateway
+  const incD = incs?.find((i) => i.mismatch_type === 'E')    // Charged twice: the second charge is the problem
   const id = inc?.id
   const { data: card } = useGet<Schemas['RayCard']>(id ? `/api/incidents/${id}/ray_card` : null)
   const { data: cardB } = useGet<Schemas['RayCard']>(incB ? `/api/incidents/${incB.id}/ray_card` : null)
   const { data: cardC } = useGet<Schemas['RayCard']>(incC ? `/api/incidents/${incC.id}/ray_card` : null)
+  const { data: cardD } = useGet<Schemas['RayCard']>(incD ? `/api/incidents/${incD.id}/ray_card` : null)
   const { data: members } = useGet<Schemas['Member'][]>(id ? `/api/incidents/${id}/members` : null)
   const atAlert = inc?.would_have_alerted_at && members ? members.filter((m) => m.captured_at <= inc.would_have_alerted_at!).length : null
 
@@ -33,6 +35,10 @@ export default function Ray() {
     { from: 'business', day: `${when(incC.would_have_alerted_at ?? incC.onset_at)}, before anyone wrote`, time: waTime(incC.would_have_alerted_at ?? incC.onset_at), text: `Heads up · ${cardC.owner_chip}\n\nCard renewals are failing with the same gateway error, while UPI AutoPay renewals go through. Nothing changed on your side, so this looks like Razorpay's.\n\nI'll keep watching.` },
     { from: 'business', day: 'The picture so far', text: `${cardC.owner_chip}\n\n${cardC.cause_line}\n\n${cardC.affected} renewals failed. ${cardC.complained} customers wrote in, ${cardC.silent} did not. ${rupees(cardC.at_risk_paise)} still to collect.`, buttons: cardC.buttons.slice(0, 2) },
   ] })
+  if (incD && cardD) chats.push({ key: 'D', caption: 'Charged twice', cardOf: cardD, messages: [
+    { from: 'business', day: `${when(incD.would_have_alerted_at ?? incD.onset_at)}, before anyone wrote`, time: waTime(incD.would_have_alerted_at ?? incD.onset_at), text: `Heads up · ${cardD.owner_chip}\n\nCustomers are being charged twice for the same plan, seconds apart, all from the same Android release. Your webhook is fine. The second charge is the problem.\n\nI'll keep watching.` },
+    { from: 'business', day: 'The picture so far', text: `${cardD.owner_chip}\n\n${cardD.affected} customers charged twice. ${cardD.complained} wrote in, ${cardD.silent} did not. ${rupees(cardD.at_risk_paise)} to refund, one customer at a time.`, buttons: cardD.buttons.slice(0, 2) },
+  ] })
 
   return (
     <Box display="flex" flexDirection="column" gap="spacing.5">
@@ -41,7 +47,7 @@ export default function Ray() {
         <Text color="surface.text.gray.muted">Simulated. Blindspot gives RAY something to say before the founder hears it from a customer.</Text>
       </Box>
       {error && <Text color="feedback.text.negative.intense">Could not load: {error}</Text>}
-      <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(min(100%, 280px), 1fr))" gap="spacing.6" justifyItems="center">
+      <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(min(100%, 240px), 1fr))" gap="spacing.6" justifyItems="center">
         {chats.map((c) => (
           <Box key={c.key} display="flex" flexDirection="column" gap="spacing.3" width="100%" alignItems="center">
             <Text size="small" weight="semibold" color="surface.text.gray.muted">{c.caption}</Text>

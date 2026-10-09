@@ -100,3 +100,16 @@ inc3:
   upi_ok_during: 10             # UPI AutoPay renewals in the same hours, which go through
   complaints: 3
   error: {code: GATEWAY_ERROR, description: "Payment processing failed due to error at bank or wallet gateway", source: gateway, step: payment_authorization, reason: gateway_technical_error}
+# ---- INC-2, customers charged twice after an Android release (contracts-v0.9, additive). Times avoid the INC-1 outage and every Zone 1 window, and stay in the early afternoon so INC-4's and INC-5's baselines do not move. ----
+inc2:
+  release: {id: me_app_341, label: "android-3.4.1", at: "2026-09-26T10:00:00"}
+  windows:                         # when double taps happen: the days after the release, away from the INC-1 outage (Tue 14:20 to Thu 13:00) and before the INC-4 pay page outage (Thu 20:08 on), which must keep its own story
+    - ["2026-09-26T10:30:00", "2026-09-29T14:00:00"]
+    - ["2026-10-01T13:00:00", "2026-10-01T20:00:00"]
+  duplicates: {plan_mock_199: 10, plan_series_599: 5}   # 15 pairs. Rs 4,985 to refund, just under the default daily cap of Rs 5,000
+  legit_two_seat: 3                # a second seat for a friend: two orders, two people, both fulfilled
+  reversing: 2                     # the second attempt failed after the bank debited it, so the bank reverses it by itself
+  adoption: 0.7                    # share of Android orders after the release that come from the new version. Existing orders are relabelled, none are added
+  complaints: 4
+  gap_seconds: [3, 90]
+  reversal_error: {code: GATEWAY_ERROR, description: "Payment failed after the bank debited the account. The bank reverses it automatically", source: bank, step: payment_authorization, reason: debit_reversal_pending}
