@@ -112,6 +112,48 @@ test('INC-3 live: grace in stages, the pack waits for the founder, and it closes
   await expect(panel(page).getByText(/24 of 24 confirmed to have access by your records/).first()).toBeVisible()
 })
 
+// INC-2 against the real engine: the list waits for approval, each refund is one click on one customer, the daily limit stops the one that would pass it, and the incident closes.
+test('INC-2 live: refunds one customer at a time, the daily limit holds, and it closes', async ({ page, request }) => {
+  const api = 'http://localhost:8000'
+  const settings = await (await request.get(`${api}/api/settings`)).json()
+  await page.goto('/incidents/INC-2')
+  await expect(page.getByText('Your webhook was fine. The second charge is the problem')).toBeVisible()
+  await btn(page, 'Plan the refunds').click()
+  await expect(panel(page).getByText(/^15 customers, ₹4,985 to go back/)).toBeVisible()
+  await expect(btn(page, /^Refund ₹/).first()).toBeDisabled()
+  await btn(page, 'Looks right, continue').click()
+
+  await request.put(`${api}/api/settings`, { data: { ...settings, daily_refund_cap_paise: 100_000 } }) // Rs 1,000 a day
+  await page.goto('/incidents/INC-2')
+  let made = 0
+  for (let i = 1; i <= 15; i++) {
+    await btn(page, /^Refund ₹/).first().click()
+    const stopped = panel(page).getByText(/refund limit is ₹1,000/)
+    await expect(stopped.or(panel(page).getByText('Pending', { exact: true }).nth(i - 1))).toBeVisible() // either the refund went through or the limit said no
+    if (await stopped.isVisible()) break
+    made = i
+  }
+  expect(made, 'the limit must stop it before the 15th').toBeLessThan(15)
+  expect(made).toBeGreaterThan(0)
+  await expect(panel(page).getByText(/waits for tomorrow or a higher limit/)).toBeVisible()
+
+  await request.put(`${api}/api/settings`, { data: { ...settings, daily_refund_cap_paise: 500_000 } })
+  await page.goto('/incidents/INC-2')
+  await expect(btn(page, /^Refund ₹/).first()).toBeVisible() // the list has loaded
+  while ((await btn(page, /^Refund ₹/).count()) > 0) {
+    const left = await btn(page, /^Refund ₹/).count()
+    await btn(page, /^Refund ₹/).first().click()
+    await expect(btn(page, /^Refund ₹/)).toHaveCount(left - 1)
+  }
+  await expect(panel(page).getByText('15 refunds started')).toBeVisible()
+  await btn(page, 'Your developer ships the fix').click()
+  for (const h of [72, 24]) await btn(page, `Move the clock forward ${h} hours`).click()
+  await expect(panel(page).getByText('Processed', { exact: true })).toHaveCount(15)
+  await btn(page, 'Verify and close').click()
+  await expect(page.getByTestId('success-moment')).toBeVisible()
+  await expect(panel(page).getByText(/₹4,985 returned/).first()).toBeVisible()
+})
+
 test('S-11 autonomy dial and limits are saved', async ({ page }) => {
   await page.goto('/settings')
   await expect(page.getByText('You approve every step: the dry run, the first 5, the rest, and every message.')).toBeVisible()

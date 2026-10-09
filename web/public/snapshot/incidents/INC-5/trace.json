@@ -21,7 +21,7 @@
       "input": {
         "window": "Mon 11:04 onward"
       },
-      "output_summary": "12 orders created against about 0 expected, 12 with no payment attempt (normally 19%)"
+      "output_summary": "12 orders created against about 0 expected, 12 with no payment attempt (normally 18%)"
     },
     {
       "tool": "list_events",

@@ -274,6 +274,38 @@ class ApproveRequest(BaseModel):
     approver: str
 
 
+class ApproveRowRequest(BaseModel):
+    approver: str
+
+
+class RefundRow(BaseModel):
+    """One customer charged twice, as the refund screen shows them."""
+    payment_id: str                  # the second charge, the one to refund
+    first_payment_id: str            # the charge the customer owes
+    customer_masked: str
+    amount_paise: int
+    method: str
+    charged_at: datetime
+    gap_seconds: int
+    complained: bool
+    state: Literal["ready", "pending", "processed"]
+    refund_id: str | None = None
+    ref: str | None = None           # the bank reference, once the refund is processed
+    ref_format: str | None = None    # RRN for UPI and netbanking, ARN for cards
+    refunded_at: datetime | None = None
+    processed_at: datetime | None = None
+    messaged: bool = False
+
+
+class RefundBoard(BaseModel):
+    incident_id: str
+    cap_paise: int                   # the daily limit on refunds (a setting)
+    spent_today_paise: int
+    owed_paise: int                  # still to refund
+    refunded_paise: int
+    rows: list[RefundRow]
+
+
 class MessagePreview(BaseModel):
     template_id: str
     language: Language

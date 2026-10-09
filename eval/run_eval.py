@@ -444,6 +444,162 @@ if ti3 and inc3:
     clock.reset()
 
 
+# ---- R4: INC-2, customers charged twice after an app release, and the guarded refund. Scored against hidden truth. ----
+ti2 = truth.execute("SELECT * FROM truth_incidents WHERE incident_id = 'INC-2'").fetchone()
+inc2 = world.execute("SELECT * FROM incidents WHERE id = 'INC-2'").fetchone()
+if ti2:
+    add("duplicate_incident_found", float(inc2 is not None), "1.0 (INC-2 within an hour of the first double charge)", inc2 is not None and minutes(inc2["onset_at"], ti2["onset_at"]) <= 60)
+if ti2 and inc2:
+    sig2 = json.loads(inc2["signature"])
+    add("duplicate_cause_owner_and_release_correct", float(inc2["cause_code"] == ti2["cause_code"] and inc2["owner"] == ti2["owner"] and sig2["release_id"] == ti2["linked_event_id"]), "1.0 (cause, owner, and the app release it began at)",
+        inc2["cause_code"] == ti2["cause_code"] and inc2["owner"] == ti2["owner"] and sig2["release_id"] == ti2["linked_event_id"])
+    seconds2 = [r["at"] for r in world.execute("SELECT COALESCE(p.captured_at, p.created_at) AS at FROM incident_members im JOIN payments p ON p.id = im.payment_id WHERE im.incident_id = 'INC-2' AND im.tier = 'exact'")]
+    add("duplicate_charges_when_alert_fires", float(sum(1 for t in seconds2 if t <= sig2["alert_at"])), "reported (it needs 3 double charges from one app version)", None)
+    add("duplicate_minutes_from_first_double_charge_to_alert", minutes(sig2["alert_at"], ti2["onset_at"]), "reported", None)
+    false2 = [i for i in world.execute("SELECT id FROM incidents WHERE mismatch_type = 'E'") if i["id"] != "INC-2"]
+    add("duplicate_incidents_not_in_ground_truth", float(len(false2)), "0 (no false double-charge alarm over the fortnight)", not false2)
+    m2 = {r["payment_id"]: r["tier"] for r in world.execute("SELECT payment_id, tier FROM incident_members WHERE incident_id = 'INC-2'")}
+    t2 = {r["payment_id"]: dict(r) for r in truth.execute("SELECT * FROM truth_payments WHERE incident_id = 'INC-2'")}
+    owed2 = {p for p, t in t2.items() if t["should_fix"]}
+    ex2 = {p for p, tier in m2.items() if tier == "exact"}
+    add("duplicate_pairs_precision", len(ex2 & owed2) / len(ex2) if ex2 else 0.0, ">= 0.98", bool(ex2) and len(ex2 & owed2) / len(ex2) >= 0.98)
+    add("duplicate_pairs_recall", len(ex2 & owed2) / len(owed2) if owed2 else 1.0, ">= 0.98", (len(ex2 & owed2) / len(owed2) if owed2 else 1.0) >= 0.98)
+    look = {p for p, t in t2.items() if t["exclusion_reason"] in ("legit_second_purchase", "second_attempt_failed")}
+    add("duplicate_look_alikes_in_the_refund_list", float(len(look & ex2)), "0 (two seats for two people and failed second attempts are left out)", not look & ex2)
+    add("duplicate_look_alikes_left_out_with_a_reason", float(len(look & {p for p, tier in m2.items() if tier == "excluded"})), f"= {len(look)} (shown as left-out rows)", look <= {p for p, tier in m2.items() if tier == "excluded"})
+    add("duplicate_members_not_in_ground_truth", float(len(set(m2) - set(t2))), "0", not set(m2) - set(t2))
+    tc2 = {r["complaint_id"] for r in truth.execute("SELECT complaint_id FROM truth_complaints WHERE mismatch_type = 'E'")}
+    joined2 = {r["complaint_id"] for r in world.execute("SELECT complaint_id FROM cases WHERE incident_id = 'INC-2'")}
+    add("duplicate_complaints_joined_to_the_incident", len(tc2 & joined2) / len(tc2) if tc2 else 1.0, "1.0 (whether the customer names the first or the second charge)", tc2 <= joined2)
+    said2 = sum(r[0] for r in world.execute("SELECT complained FROM incident_members WHERE incident_id = 'INC-2' AND tier = 'exact'"))
+    add("double_charge_silent_vs_wrote_in_ratio", (len(ex2) - said2) / said2 if said2 else float("inf"), "reported (customers who were charged twice and have not written in)", None)
+
+    from app.act import refund as refunds
+
+    def dup_scenario() -> sqlite3.Connection:
+        db = sqlite3.connect(":memory:")
+        db.row_factory = sqlite3.Row
+        world.backup(db)
+        clock.reset()
+        return db
+
+    def refund_all(db: sqlite3.Connection) -> str:
+        aid = executor.create(db, "INC-2", "refund", {})
+        executor.approve(db, aid, "dry_run", "merchant:founder")
+        for it in executor.get(db, aid).items:
+            try:
+                executor.approve_row(db, aid, it.payment_id, "merchant:founder")
+            except executor.ActError:
+                pass
+        return aid
+
+    pays_before = {r["id"]: r["status"] for r in world.execute("SELECT id, status FROM payments")}
+    db = dup_scenario()
+    aid = refund_all(db)
+    refunded2 = {r["payment_id"] for r in db.execute("SELECT payment_id FROM refunds WHERE source = 'make_good'")}
+    add("refunds_that_ground_truth_says_were_not_owed", float(len(refunded2 - owed2)), "0", not refunded2 - owed2)
+    add("duplicates_refunded_within_the_daily_limit", len(refunded2 & owed2) / len(owed2) if owed2 else 1.0, ">= 0.98 (the default limit of Rs 5,000 covers the Rs 4,985 owed)", (len(refunded2 & owed2) / len(owed2) if owed2 else 1.0) >= 0.98)
+    add("refunded_customers_without_a_refund_record", float(len([p for p in refunded2 if not refunds.check(db, p)])), "0", all(refunds.check(db, p) for p in refunded2))
+    other = sum(1 for r in db.execute("SELECT id, status FROM payments") if r["status"] != pays_before[r["id"]] and r["id"] not in refunded2)
+    add("payments_changed_other_than_the_refunded_ones", float(other), "0", other == 0)
+    cols = {r["name"] for r in db.execute("PRAGMA table_info(refunds)")}
+    add("refund_columns_that_could_hold_another_destination", float(len(cols & {"destination", "account", "vpa", "iban", "to_account", "method"})), "0 (original method only: there is nowhere to put another)", not cols & {"destination", "account", "vpa", "iban", "to_account", "method"})
+    done = db.execute("SELECT COUNT(*), MAX(c) FROM (SELECT COUNT(*) AS c FROM refunds WHERE source = 'make_good' GROUP BY payment_id)").fetchone()
+    autonomy.write(db, autonomy.read(db).model_copy(update={"daily_refund_cap_paise": 10_000_000}), "eval")  # lift the daily limit so only the one-refund-per-payment rule is being tested
+    db.commit()
+    for _ in range(2):  # every repeat click, and a fresh plan request
+        for it in executor.get(db, aid).items:
+            try:
+                executor.approve_row(db, aid, it.payment_id, "merchant:founder")
+            except executor.ActError:
+                pass
+        executor.create(db, "INC-2", "refund", {})
+    after = db.execute("SELECT COUNT(*), MAX(c) FROM (SELECT COUNT(*) AS c FROM refunds WHERE source = 'make_good' GROUP BY payment_id)").fetchone()
+    add("second_refunds_after_repeat_approvals", float(after[0] - done[0] + (after[1] - 1)), "0 (idempotency: one refund per payment)", after[0] == done[0] and after[1] == 1)
+    try:
+        executor.revert(db, aid)
+        undone = 1
+    except executor.ActError:
+        undone = 0
+    add("refunds_that_could_be_undone", float(undone), "0 (a refund cannot be taken back, and the screen says so)", undone == 0)
+
+    db = dup_scenario()
+    aid = executor.create(db, "INC-2", "refund", {})
+    on = lambda **c: (autonomy.write(db, autonomy.read(db).model_copy(update=c), "eval"), db.commit())
+    on(autonomy="autopilot_reversible")
+    executor.create(db, "INC-2", "refund", {})
+    n_auto = db.execute("SELECT COUNT(*) FROM refunds").fetchone()[0] - len([1 for r in world.execute("SELECT 1 FROM refunds")])
+    add("refunds_made_by_the_autonomy_setting", float(n_auto), "0 (even on Autopilot a person approves every refund)", n_auto == 0)
+    executor.approve(db, aid, "dry_run", "merchant:founder")
+    refused = 0
+    for stage in ("first_5", "rest"):
+        try:
+            executor.approve(db, aid, stage, "merchant:founder")
+        except executor.ActError:
+            refused += 1
+    try:
+        executor.approve_row(db, aid, next(iter(owed2)), "auto:autopilot_reversible")
+    except executor.ActError:
+        refused += 1
+    n_bulk = db.execute("SELECT COUNT(*) FROM refunds").fetchone()[0] - len([1 for r in world.execute("SELECT 1 FROM refunds")])
+    add("refunds_made_in_bulk_or_by_a_script", float(n_bulk), "0 (whole-list stages and non-person approvers are refused)", n_bulk == 0 and refused == 3)
+    sneaky = 0
+    for pid in look:
+        try:
+            refunds.issue(db, pid, "merchant:founder", "INC-2")
+            sneaky += 1
+        except PermissionError:
+            pass
+    add("look_alikes_refunded_when_asked_directly", float(sneaky), "0 (a payment outside the Exact tier is refused by the refund engine itself)", sneaky == 0)
+
+    db = dup_scenario()
+    limit = 200_000
+    autonomy.write(db, autonomy.read(db).model_copy(update={"daily_refund_cap_paise": limit}), "eval")
+    db.commit()
+    refund_all(db)
+    spent = refunds.spent_today(db)
+    add("refunded_in_one_day_above_the_limit", float(max(spent - limit, 0)), "0 (the refund that would pass the daily limit is refused)", spent <= limit and spent > 0)
+    day1 = db.execute("SELECT COUNT(*) FROM refunds WHERE source = 'make_good'").fetchone()[0]
+    clock.advance(24)
+    refund_all(db)
+    day2 = db.execute("SELECT COUNT(*) FROM refunds WHERE source = 'make_good'").fetchone()[0] - day1
+    add("refunds_waiting_on_the_limit_go_out_the_next_day", float(day2), "> 0 and again within the limit (the limit is per day, not a total)", day2 > 0 and refunds.spent_today(db) <= limit)
+    clock.reset()
+
+    db = dup_scenario()
+    autonomy.write(db, autonomy.read(db).model_copy(update={"messaging_enabled": True}), "eval")
+    db.commit()
+    refund_all(db)
+    try:
+        executor.create(db, "INC-2", "message", {"language": "auto"})
+        early2 = 1
+    except executor.ActError:
+        early2 = 0
+    add("refund_messages_planned_before_the_bank_reference_exists", float(early2), "0 (a customer is told once the refund has a reference)", early2 == 0)
+    clock.advance(72)
+    refunds.settle(db, clock.now())
+    mid = executor.create(db, "INC-2", "message", {"language": "auto"})
+    for stage in ("dry_run", "first_5", "rest"):
+        executor.approve(db, mid, stage, "merchant:founder")
+    sent2 = db.execute("SELECT * FROM messages WHERE template_id = 'T-E1' AND status = 'sent'").fetchall()
+    bad2 = sum(not messages.numbers_ok(m["template_id"], m["language"], messages.slots_for(db, m["payment_id"]), m["body"]) for m in sent2)
+    wrong_ref = sum(1 for m in sent2 if not ((r := db.execute("SELECT * FROM refunds WHERE payment_id = ?", (m["payment_id"],)).fetchone()) and r["id"] in m["body"] and (r["arn"] or r["rrn"]) in m["body"]))
+    add("refund_messages_with_a_number_not_from_the_record", float(bad2 + wrong_ref), "0", bad2 == 0 and wrong_ref == 0 and len(sent2) == len(refunded2))
+    add("customers_messaged_twice_about_a_refund", float(len(sent2) - len({m["payment_id"] for m in sent2})), "0", len(sent2) == len({m["payment_id"] for m in sent2}))
+
+    db = dup_scenario()
+    refund_all(db)
+    clock.advance(72)
+    refunds.settle(db, clock.now())
+    before_fix = executor.verify(db, "INC-2").closeable
+    merchant_mock.set_app_mode(db, "fixed")
+    clock.advance(1)
+    too_soon = executor.verify(db, "INC-2").closeable
+    clock.advance(24)
+    closed = executor.verify(db, "INC-2").closeable
+    add("incident_closes_only_after_the_fix_has_held_24h", float(not before_fix and not too_soon and closed), "1.0 (refunds are not enough: the app must stop doubling first)", not before_fix and not too_soon and closed)
+    clock.reset()
+
 report = EvalReport(seed=cfg["seed"], generated_at=datetime.fromisoformat(cfg["snapshot_at"] + "+05:30"), metrics=metrics, arms=[])
 (Path(__file__).parent / "report.json").write_text(report.model_dump_json(indent=2) + "\n")
 lines = ["# Eval report", "", f"Synthetic world, seed {cfg['seed']}. Ground truth is never visible to the pipeline.", "",

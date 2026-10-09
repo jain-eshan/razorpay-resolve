@@ -21,7 +21,7 @@ Every number below is read from `eval/` output or `web/public/snapshot/`. Rerun 
 
 **Where AI is and is not.** The prototype uses no language model. Triage, extraction, detection and attribution are rules and SQL; every number comes from SQL or Python. A model is designed in at three points behind the same interfaces (messy text, free-text server errors, unlisted causes), not built or measured.
 
-**Proof, on a synthetic merchant with hidden ground truth.** 98 eval gates pass.
+**Proof, on a synthetic merchant with hidden ground truth.** 123 eval gates pass.
 - Hero A: 85 customers paid and had no access; 17 complained, 68 never did (ratio 4.0, our kill line was 2). The alert fires 55 minutes after the deploy, with one customer affected.
 - 40 scripted threads: every cooperative customer identified within three questions, no credential requests, 2 of 2 prompt injections ignored.
 - Hero B: the pay-page outage found, 0 false alarms on 5 look-alike days.

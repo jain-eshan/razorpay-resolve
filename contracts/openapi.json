@@ -367,6 +367,19 @@
         "title": "ApproveRequest",
         "type": "object"
       },
+      "ApproveRowRequest": {
+        "properties": {
+          "approver": {
+            "title": "Approver",
+            "type": "string"
+          }
+        },
+        "required": [
+          "approver"
+        ],
+        "title": "ApproveRowRequest",
+        "type": "object"
+      },
       "ArmRow": {
         "properties": {
           "agent": {
@@ -2368,6 +2381,169 @@
         "title": "RecoveryRequest",
         "type": "object"
       },
+      "RefundBoard": {
+        "properties": {
+          "cap_paise": {
+            "title": "Cap Paise",
+            "type": "integer"
+          },
+          "incident_id": {
+            "title": "Incident Id",
+            "type": "string"
+          },
+          "owed_paise": {
+            "title": "Owed Paise",
+            "type": "integer"
+          },
+          "refunded_paise": {
+            "title": "Refunded Paise",
+            "type": "integer"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/RefundRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "spent_today_paise": {
+            "title": "Spent Today Paise",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "incident_id",
+          "cap_paise",
+          "spent_today_paise",
+          "owed_paise",
+          "refunded_paise",
+          "rows"
+        ],
+        "title": "RefundBoard",
+        "type": "object"
+      },
+      "RefundRow": {
+        "description": "One customer charged twice, as the refund screen shows them.",
+        "properties": {
+          "amount_paise": {
+            "title": "Amount Paise",
+            "type": "integer"
+          },
+          "charged_at": {
+            "format": "date-time",
+            "title": "Charged At",
+            "type": "string"
+          },
+          "complained": {
+            "title": "Complained",
+            "type": "boolean"
+          },
+          "customer_masked": {
+            "title": "Customer Masked",
+            "type": "string"
+          },
+          "first_payment_id": {
+            "title": "First Payment Id",
+            "type": "string"
+          },
+          "gap_seconds": {
+            "title": "Gap Seconds",
+            "type": "integer"
+          },
+          "messaged": {
+            "default": false,
+            "title": "Messaged",
+            "type": "boolean"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "payment_id": {
+            "title": "Payment Id",
+            "type": "string"
+          },
+          "processed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processed At"
+          },
+          "ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ref"
+          },
+          "ref_format": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ref Format"
+          },
+          "refund_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refund Id"
+          },
+          "refunded_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refunded At"
+          },
+          "state": {
+            "enum": [
+              "ready",
+              "pending",
+              "processed"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "payment_id",
+          "first_payment_id",
+          "customer_masked",
+          "amount_paise",
+          "method",
+          "charged_at",
+          "gap_seconds",
+          "complained",
+          "state"
+        ],
+        "title": "RefundRow",
+        "type": "object"
+      },
       "ReplayRow": {
         "properties": {
           "arm": {
@@ -3442,6 +3618,64 @@
           }
         },
         "summary": "Approve Action"
+      }
+    },
+    "/api/actions/{action_id}/items/{payment_id}/approve": {
+      "post": {
+        "operationId": "approve_item_api_actions__action_id__items__payment_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "action_id",
+            "required": true,
+            "schema": {
+              "title": "Action Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "payment_id",
+            "required": true,
+            "schema": {
+              "title": "Payment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveRowRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Action"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve Item"
       }
     },
     "/api/actions/{action_id}/recovery": {
@@ -4598,6 +4832,45 @@
           }
         },
         "summary": "Get Ray Card"
+      }
+    },
+    "/api/incidents/{incident_id}/refunds": {
+      "get": {
+        "operationId": "get_refunds_api_incidents__incident_id__refunds_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "incident_id",
+            "required": true,
+            "schema": {
+              "title": "Incident Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefundBoard"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Refunds"
       }
     },
     "/api/incidents/{incident_id}/replay": {

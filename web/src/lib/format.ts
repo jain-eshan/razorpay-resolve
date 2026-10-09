@@ -29,3 +29,6 @@ export const OWNER: Record<string, string> = {
 }
 
 export const ZONE: Record<string, string> = { before: 'Before Razorpay', during: 'Inside the payment', after: 'After the payment' }
+
+export const dayLabel = (iso: string) =>
+  new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: '2-digit', month: 'short', timeZone: IST }).format(new Date(iso)).replace(',', '').replace('Sept', 'Sep')

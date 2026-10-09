@@ -275,8 +275,9 @@ def test_links_cannot_be_unsent_and_there_is_no_money_action(fresh):
     aid = run_recovery(fresh)
     with pytest.raises(executor.ActError, match="cannot be unsent"):
         executor.revert(fresh, aid)
-    assert not {"refund", "revoke"} & set(autonomy.ACTION_CLASS)
-    with pytest.raises(executor.ActError, match="grant|something Blindspot can do"):
+    assert "revoke" not in autonomy.ACTION_CLASS
+    assert set(autonomy.MATRIX["refund"].values()) == {"per_row_web"}  # the one money action is approved a customer at a time at every level
+    with pytest.raises(executor.ActError, match="charged twice|something Blindspot can do"):
         executor.create(fresh, "INC-4", "refund", {})
 
 
@@ -356,7 +357,7 @@ def test_http_probe_clusters_and_incident_views(api):
     assert api.post("/merchant-mock/page-mode", json={"mode": "ok"}).json()["page_mode"] == "ok"
     assert api.get("/merchant-mock/pay-page").status_code == 200
     ids = {i["id"] for i in api.get("/api/incidents").json()}
-    assert ids == {"INC-1", "INC-3", "INC-4", "INC-5"}
+    assert ids == {"INC-1", "INC-2", "INC-3", "INC-4", "INC-5"}
     for path in ("", "/members", "/sample", "/trace", "/ray_card", "/evidence_pack", "/replay"):
         assert api.get(f"/api/incidents/INC-4{path}").status_code == 200, path
     r = api.post("/api/incidents/INC-4/actions", json={"action_type": "recovery_link", "params": {}})

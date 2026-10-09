@@ -394,13 +394,13 @@
     },
     {
       "name": "fuzzy_top1_recall_suggestions_only",
-      "value": 0.395,
+      "value": 0.36,
       "target": "reported",
       "status": "report"
     },
     {
       "name": "fuzzy_top3_recall_suggestions_only",
-      "value": 0.72,
+      "value": 0.665,
       "target": ">= 0.60 (regression guard)",
       "status": "pass"
     },
@@ -678,6 +678,174 @@
       "name": "escalation_messages_sent_to_customers",
       "value": 0.0,
       "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "duplicate_incident_found",
+      "value": 1.0,
+      "target": "1.0 (INC-2 within an hour of the first double charge)",
+      "status": "pass"
+    },
+    {
+      "name": "duplicate_cause_owner_and_release_correct",
+      "value": 1.0,
+      "target": "1.0 (cause, owner, and the app release it began at)",
+      "status": "pass"
+    },
+    {
+      "name": "duplicate_charges_when_alert_fires",
+      "value": 3.0,
+      "target": "reported (it needs 3 double charges from one app version)",
+      "status": "report"
+    },
+    {
+      "name": "duplicate_minutes_from_first_double_charge_to_alert",
+      "value": 146.2833,
+      "target": "reported",
+      "status": "report"
+    },
+    {
+      "name": "duplicate_incidents_not_in_ground_truth",
+      "value": 0.0,
+      "target": "0 (no false double-charge alarm over the fortnight)",
+      "status": "pass"
+    },
+    {
+      "name": "duplicate_pairs_precision",
+      "value": 1.0,
+      "target": ">= 0.98",
+      "status": "pass"
+    },
+    {
+      "name": "duplicate_pairs_recall",
+      "value": 1.0,
+      "target": ">= 0.98",
+      "status": "pass"
+    },
+    {
+      "name": "duplicate_look_alikes_in_the_refund_list",
+      "value": 0.0,
+      "target": "0 (two seats for two people and failed second attempts are left out)",
+      "status": "pass"
+    },
+    {
+      "name": "duplicate_look_alikes_left_out_with_a_reason",
+      "value": 5.0,
+      "target": "= 5 (shown as left-out rows)",
+      "status": "pass"
+    },
+    {
+      "name": "duplicate_members_not_in_ground_truth",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "duplicate_complaints_joined_to_the_incident",
+      "value": 1.0,
+      "target": "1.0 (whether the customer names the first or the second charge)",
+      "status": "pass"
+    },
+    {
+      "name": "double_charge_silent_vs_wrote_in_ratio",
+      "value": 2.75,
+      "target": "reported (customers who were charged twice and have not written in)",
+      "status": "report"
+    },
+    {
+      "name": "refunds_that_ground_truth_says_were_not_owed",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "duplicates_refunded_within_the_daily_limit",
+      "value": 1.0,
+      "target": ">= 0.98 (the default limit of Rs 5,000 covers the Rs 4,985 owed)",
+      "status": "pass"
+    },
+    {
+      "name": "refunded_customers_without_a_refund_record",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "payments_changed_other_than_the_refunded_ones",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "refund_columns_that_could_hold_another_destination",
+      "value": 0.0,
+      "target": "0 (original method only: there is nowhere to put another)",
+      "status": "pass"
+    },
+    {
+      "name": "second_refunds_after_repeat_approvals",
+      "value": 0.0,
+      "target": "0 (idempotency: one refund per payment)",
+      "status": "pass"
+    },
+    {
+      "name": "refunds_that_could_be_undone",
+      "value": 0.0,
+      "target": "0 (a refund cannot be taken back, and the screen says so)",
+      "status": "pass"
+    },
+    {
+      "name": "refunds_made_by_the_autonomy_setting",
+      "value": 0.0,
+      "target": "0 (even on Autopilot a person approves every refund)",
+      "status": "pass"
+    },
+    {
+      "name": "refunds_made_in_bulk_or_by_a_script",
+      "value": 0.0,
+      "target": "0 (whole-list stages and non-person approvers are refused)",
+      "status": "pass"
+    },
+    {
+      "name": "look_alikes_refunded_when_asked_directly",
+      "value": 0.0,
+      "target": "0 (a payment outside the Exact tier is refused by the refund engine itself)",
+      "status": "pass"
+    },
+    {
+      "name": "refunded_in_one_day_above_the_limit",
+      "value": 0.0,
+      "target": "0 (the refund that would pass the daily limit is refused)",
+      "status": "pass"
+    },
+    {
+      "name": "refunds_waiting_on_the_limit_go_out_the_next_day",
+      "value": 4.0,
+      "target": "> 0 and again within the limit (the limit is per day, not a total)",
+      "status": "pass"
+    },
+    {
+      "name": "refund_messages_planned_before_the_bank_reference_exists",
+      "value": 0.0,
+      "target": "0 (a customer is told once the refund has a reference)",
+      "status": "pass"
+    },
+    {
+      "name": "refund_messages_with_a_number_not_from_the_record",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "customers_messaged_twice_about_a_refund",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "incident_closes_only_after_the_fix_has_held_24h",
+      "value": 1.0,
+      "target": "1.0 (refunds are not enough: the app must stop doubling first)",
       "status": "pass"
     }
   ],

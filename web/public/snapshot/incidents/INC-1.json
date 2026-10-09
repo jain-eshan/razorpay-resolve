@@ -171,7 +171,7 @@
     },
     {
       "bucket_start": "2026-09-29T13:00:00+05:30",
-      "ok": 2,
+      "ok": 4,
       "client_error": 0,
       "server_error": 0,
       "not_attempted": 0,
@@ -564,7 +564,7 @@
     },
     {
       "bucket_start": "2026-10-01T13:00:00+05:30",
-      "ok": 0,
+      "ok": 6,
       "client_error": 0,
       "server_error": 0,
       "not_attempted": 0,
@@ -580,7 +580,7 @@
     },
     {
       "bucket_start": "2026-10-01T15:00:00+05:30",
-      "ok": 0,
+      "ok": 2,
       "client_error": 0,
       "server_error": 0,
       "not_attempted": 0,
@@ -588,7 +588,7 @@
     },
     {
       "bucket_start": "2026-10-01T16:00:00+05:30",
-      "ok": 0,
+      "ok": 4,
       "client_error": 0,
       "server_error": 0,
       "not_attempted": 0,
@@ -607,21 +607,21 @@
       "dimension": "method",
       "value": "upi",
       "share_affected": 0.7647,
-      "share_baseline": 0.7031,
+      "share_baseline": 0.7147,
       "lift": 1.1
     },
     {
       "dimension": "method",
       "value": "card",
       "share_affected": 0.2118,
-      "share_baseline": 0.2526,
-      "lift": 0.8
+      "share_baseline": 0.2382,
+      "lift": 0.9
     },
     {
       "dimension": "method",
       "value": "netbanking",
       "share_affected": 0.0235,
-      "share_baseline": 0.0444,
+      "share_baseline": 0.047,
       "lift": 0.5
     },
     {
@@ -633,31 +633,31 @@
     },
     {
       "dimension": "app_version",
-      "value": "android-3.4.0",
-      "share_affected": 0.2824,
-      "share_baseline": 0.3038,
-      "lift": 0.9
+      "value": "android-3.4.1",
+      "share_affected": 0.2353,
+      "share_baseline": 0.1693,
+      "lift": 1.4
     },
     {
       "dimension": "app_version",
       "value": "none",
       "share_affected": 0.0706,
-      "share_baseline": 0.157,
-      "lift": 0.4
+      "share_baseline": 0.1442,
+      "lift": 0.5
     },
     {
       "dimension": "kind",
       "value": "one-time",
       "share_affected": 0.9294,
-      "share_baseline": 0.843,
+      "share_baseline": 0.8558,
       "lift": 1.1
     },
     {
       "dimension": "kind",
       "value": "renewal",
       "share_affected": 0.0706,
-      "share_baseline": 0.157,
-      "lift": 0.4
+      "share_baseline": 0.1442,
+      "lift": 0.5
     }
   ],
   "tier_counts": {

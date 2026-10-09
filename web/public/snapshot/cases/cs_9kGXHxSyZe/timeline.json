@@ -1,0 +1,28 @@
+{
+  "customer": [
+    {
+      "at": "2026-09-27T17:21:59+05:30",
+      "text": "Money debited twice (Rs 199 two times) for Mock Test Pack, I only wanted to buy it once. Ref 136168488810. Please refund the extra",
+      "source_ref": "cmp_9kGXHxSyZe"
+    }
+  ],
+  "razorpay": [
+    {
+      "at": "2026-09-27T15:12:02+05:30",
+      "text": "Payment of \u20b9199 captured",
+      "source_ref": "pay_7z0fQHpILwv7xN"
+    },
+    {
+      "at": "2026-09-27T15:12:02+05:30",
+      "text": "2 webhook attempts, first answered 200",
+      "source_ref": "pay_7z0fQHpILwv7xN"
+    }
+  ],
+  "merchant": [
+    {
+      "at": "2026-10-02T10:40:00+05:30",
+      "text": "Access record: active",
+      "source_ref": "pay_7z0fQHpILwv7xN"
+    }
+  ]
+}

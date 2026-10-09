@@ -1,4 +1,4 @@
-# Handoff: where Blindspot stands (7 Oct 2026: R0 to R5 on `main` except the items marked "not started" below; R7 submission kit and INC-3 with the escalation to Razorpay merged as PRs #16 and #19)
+# Handoff: where Blindspot stands (9 Oct 2026: R0 to R5 on `main` except the items marked "not started" below; R7 submission kit and INC-3 merged as PRs #16 and #19; INC-2 with the guarded refund is built on a branch and in review)
 
 Read this first in a new chat, then `docs/PRD.md`. Everything below is true as of the last commit on `main`.
 
@@ -30,7 +30,7 @@ Blindspot (working name) is Eshan Jain's entry for the Razorpay x ISB AI PM Buil
 | R4 first slice: Zone 1, Hero B (cannot reach the pay page), no model | Done, contracts v0.5. Merged as PR #8. Section 2c. |
 | R4 rest: escalation to Razorpay | Done with INC-3, contracts v0.8. Merged as PR #19. Section 2f. |
 | R4 rest: investigation agent, three-way eval (need a model) | Not started |
-| R4 rest: duplicate-charge monitor and guarded refund (INC-2, F-03, F-39) | Not started |
+| R4 rest: duplicate-charge monitor and guarded refund (INC-2, F-03, F-39) | Built, contracts v0.9. On a branch, in review. Section 2g. |
 | R5 first slice: handovers (Instagram and Messenger control passing, public posts to private) | Done, contracts v0.6. Merged as PR #9. Section 2d. |
 | R5 second slice: learning loop, weekly card, screen S-18 (no model) | Done, contracts v0.7. Merged as PR #15. Section 2e. |
 | R5 rest: renewal anomaly (F-08, INC-3) | Done, contracts v0.8. Merged as PR #19. Section 2f. |
@@ -112,6 +112,16 @@ Merged as PR #19. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/C
 - **Limits:** one seed, and the world was built with the monitor in view. Razorpay-side is by elimination (medium confidence). The escalation is a mock: nothing leaves and no reply comes. Not built: the recovery link for failed renewals once Razorpay says it is fixed (with the 10% holdout), collecting the renewals, the "failed but access still on" report. Only one renewal incident can exist (the id is reserved). The hosted demo tells customers only after access is on for all of them.
 - **Dates:** the window is Tue 29 Sep, not Thu 1 Oct as in SPEC 13.2, because Thu falls inside the INC-1 outage.
 - **Open, found on the way:** at 375px opened directly, no button on the incident pages is exposed to the accessibility tree (Hero A, Hero B and INC-3 alike). A separate task chip was raised. Hero A's fix panel has the language control overflow at 375px that INC-3's panel no longer has.
+
+### INC-2, customers charged twice, and the guarded refund, 9 Oct 2026 (section 2g)
+On a branch (`claude/docs-roadmap-build-a68fdb`), in review. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.9).
+- **What it does:** finds customers who were charged twice for the same plan seconds apart, all from one Android release (android-3.4.1, Sat 26 Sep 10:00), says it is the merchant's app and not the webhook (both charges reached the server and both orders got access), leaves out look-alikes with the reason, and lets the founder refund each second charge to the original payment method. Result in the world: 15 double charges (Rs 4,985), 4 complaints, 3 two-seat purchases and 2 failed second attempts left out.
+- **The refund rules, each with a test and an eval gate (`backend/app/act/refund.py`, `act/executor.py`):** only a confirmed duplicate in the Exact tier, in full, to the original method (the `refunds` table has no destination column); a person approves every refund, one customer at a time (the whole-list stages are refused, a non-person approver gets 403, the autonomy setting never runs one); a daily limit (`daily_refund_cap_paise`, default Rs 5,000, resets with the demo day) refuses the refund that would pass it; one refund per payment (executor check, engine check and the table's primary key); no undo. The bank reference (RRN for UPI and netbanking, ARN for cards) appears when the demo clock passes 2, 24 or 72 hours after the refund. A customer is told (`T-E1`) only once it exists, and customers whose reference arrives later are added with one more approval.
+- **Code:** `synth/duplicates.py`, `backend/app/detect/duplicate.py`, `backend/app/duplicates/` (build, read), `backend/app/act/refund.py`, `merchant_mock` app controls, executor `approve_row`, `messages` refund slots. Web: `routes/DuplicateView.tsx`, `components/DuplicateFix.tsx`, `components/DuplicateChart.tsx`, a fourth chat on the RAY page. Demo frames: `record_duplicates` in `scripts/demo_script.py` and the `dp` state in `web/src/lib/demo.ts`.
+- **Close:** every refund recorded and the developer's fixed release out for 24 demo hours (`/merchant-mock/app-mode`). Refunds alone do not close it.
+- **Results (invented data, one seed):** 15 of 15 found, 0 look-alikes in the refund list, 4 of 4 complaints joined (whether they name the first or the second charge), alert after the 3rd double charge. 25 new eval gates, 123 pass, none fail. Six guardrails were broken on purpose and each was caught. Quote as "works as designed on a simulation".
+- **Limits:** the hosted demo refunds in the order shown (a frame per combination would not fit) and moves the clock only after all 15 are refunded; the live version has neither limit. A two-seat purchase for the same person would be treated as a duplicate (Blindspot cannot ask the app). Only the first run of a duplicate pattern becomes INC-2. Refund processing times are invented. No real Razorpay refund call exists: it is a mock (R6).
+- **World changes to know about:** INC-2 adds 40 orders and relabels 83 existing android orders to the new version. Its times are kept to 13:00 to 17:00 and away from every other incident, because INC-4's and INC-5's baselines are measured over evening and overnight hours: with other hours INC-4's lost-order estimate moved from 13 to 14 and, with orders inside its outage, from 13 to 8. INC-1's "what they have in common" shares and INC-4's average order value moved slightly. The amount reader learned "599 do baar kat gaye".
 
 ### UX review, 7 Oct 2026 (PR #6)
 Eshan asked for a designer's review of the whole web app. Method: Playwright with the installed Chrome at 1440 and 390 wide (full-resolution screenshots, computed styles, overflow, text size and contrast checks on 13 routes), because the in-app browser shrinks screenshots.
@@ -227,19 +237,19 @@ Needs Eshan:
 - **Vercel:** live at razorsense-starter.vercel.app (Root Directory `web`, no env vars). Check that the production branch is `main`.
 
 Needs the next session:
-- **Contract tags:** only `contracts-v0.1` is tagged. v0.2 to v0.8 are not. Tag after Eshan agrees.
+- **Contract tags:** only `contracts-v0.1` is tagged. v0.2 to v0.9 are not. Tag after Eshan agrees.
 - **Hero A's language control overflows at 375px** (the label "Each customer's language" wraps out of its box in `components/FixPanel.tsx`). INC-3's panel uses "Auto" instead.
 - **Deferred from R1:** the 24 synthetic screenshots (R3 simulated screenshot text instead; real images need a vision model).
 - **Demo state is in memory** (clock offset, webhook fix). A restart gives a fresh world.
 - **Bundle is 1.3 MB** (Blade). Code-split later.
-- **Not built from the roadmap:** INC-2 and the guarded refund, the investigation agent and three-way eval, the recovery link for failed renewals, the "failed but access still on" report (J6), R6.
+- **Not built from the roadmap:** the investigation agent and three-way eval, the recovery link for failed renewals, the "failed but access still on" report (J6), R6.
 
 ## 7. Next steps
 
 Order of work, with what each needs:
 1. **Start clean.** Fix any `ci-failure` issue first (section 0), `git fetch`, cut a branch from `origin/main`, `make setup`, `cd web && npm ci`. The accessibility task from 6b may have opened its own PR; check `gh pr list`.
 2. **Pick the next slice** (one PR per slice):
-   - **INC-2, charged twice, with the guarded refund (F-03, F-39).** The first action that moves real money, so the riskiest. A duplicate-capture monitor (15 duplicate pairs within 120 seconds after an Android release, with legitimate two-seat buyers and auto-reversed pairs as look-alikes that must not be refunded: SPEC section 13 and V1_SPEC J2, FR-DG-3). Refund rules (V1_SPEC FR-AC-7): only Exact-tier duplicates, original method only (no destination field), per-merchant daily cap (`daily_refund_cap_paise` is already a setting), one customer at a time on the web, never from WhatsApp, status shows the refund id and later the ARN. Attribution row 6 exists. Matrix class `refund` is `per_row_web` at every level. The `refunds` table exists; the executor has no refund action type and `ActionType` already lists `refund`. Template `T-F1` (refund not received) exists. Eval needs: no refund outside ground truth, no second refund, cap respected, look-alikes untouched.
+   - **INC-2 is built** (section 2g). Left over from it: refunds that the bank rejects (`failed`) have no path yet, the refund-not-received conversation (`T-F1`) is not wired to a real refund record, and a real Razorpay test-mode refund waits for R6 (`RZP_REFUNDS_TEST_MODE` is still off).
    - **The investigation agent and the three-way eval (rules, agent, no signal).** Needs the model decision above. Goes behind the existing interfaces (`ingest/extract.py` for reading messy text, `investigate/` for causes nobody listed, a response-body reader for free-text server errors). `AgentTrace` already has `model_id` and `rule_based`. Cache every model output for tests (BUILD_PLAN section 10). The hosted demo stays on recorded frames.
    - **Recovery link for failed renewals** once Razorpay says it is fixed, with the 10% holdout (V1_SPEC J5): a small follow-up to INC-3 that reuses the Zone 1 recovery code. Needs a way for Razorpay to "mark it resolved", which today has no source.
 3. **Finish R7.** Decide whether the note and the video should mention INC-3 (the note is 545 words of a 450 to 550 limit, so something has to go), then the items in `docs/SUBMISSION.md` section 4.
@@ -247,7 +257,7 @@ Order of work, with what each needs:
 
 **Recipe for a new after-the-payment incident** (what INC-3 touched, in order). Follow it and the new incident cannot silently break the existing ones:
 1. World: a new `synth/<name>.py` with its own random stream (`seed + n`), applied last in `synth/generate.py`, a block in `synth/config.yaml`, truth rows in `truth.db`. Never change `synth/world.py`'s draws or earlier numbers move.
-2. Monitor in `backend/app/detect/`, incident build and read layer in a new `backend/app/<name>/` package, a call in `backend/app/pipeline.py` before Zone 1 (ids: INC-1 webhook, INC-2 reserved, INC-3 renewals, Zone 1 from INC-4).
+2. Monitor in `backend/app/detect/`, incident build and read layer in a new `backend/app/<name>/` package, a call in `backend/app/pipeline.py` before Zone 1 (ids: INC-1 webhook, INC-2 charged twice, INC-3 renewals, Zone 1 from INC-4).
 3. `backend/app/service.py` dispatches on `mismatch_type` (renewals are `G`, Zone 1 is `Z1`); `act/executor.py` dispatches verify the same way.
 4. **Everywhere that picks "the first incident of a zone" must be checked:** `eval/run_eval.py` (now picks INC-1 by name), `web/src/routes/Ray.tsx` (now picks INC-1 by name), and the tests that count incidents.
 5. Contracts: `make contracts` and an entry in `docs/CONTRACT_CHANGES.md`. A new GET route needs every parameter optional, or `scripts/snapshot.py` fails (it calls every GET route with no arguments).
@@ -257,7 +267,7 @@ Order of work, with what each needs:
 
 ## 8. Working agreements
 
-- Contracts are frozen. Change them only via `make contracts` plus an entry in `docs/CONTRACT_CHANGES.md` (currently v0.8).
+- Contracts are frozen. Change them only via `make contracts` plus an entry in `docs/CONTRACT_CHANGES.md` (currently v0.9).
 - Every number on screen comes from SQL or Python. The pipeline must never read `truth.db` (a test enforces it).
 - Ask Eshan before: commit, push, delete, create accounts, send anything outward, or change his Razorpay account beyond test objects he has allowed.
 - Keys go in `.env` only. Razorpay keys must be `rzp_test_`.
@@ -274,7 +284,7 @@ Order of work, with what each needs:
 - Guided demo: a full page reload starts it over; customers pick suggested messages; writing your own reply, taking a conversation over, channels and settings changes are live-only. If the engine or data changes, run `make snapshot` and commit `web/public/snapshot/`.
 - The demo clock and the merchant's webhook fix are simulated and live in process memory and two `settings` keys. Restarting the API (`make run-api`) gives a fresh world; running only `make pipeline` on a world that already has grants does not reset them.
 - `make e2e` now starts the API on port 8000 (fresh world) and a live web on 5174, so both ports must be free.
-- Refunds and event re-sending are in the autonomy matrix but have no executor yet. Recovery links (Zone 1) and grace extensions (INC-3) do.
-- Zone 1 incidents are INC-4 and INC-5 in pipeline mode. INC-3 is the Razorpay-side renewal incident (built). INC-2 (charged twice) is reserved and not built.
+- Event re-sending is in the autonomy matrix but has no executor yet. Recovery links (Zone 1), grace extensions (INC-3) and refunds (INC-2) do.
+- Zone 1 incidents are INC-4 and INC-5 in pipeline mode. INC-3 is the Razorpay-side renewal incident and INC-2 the charged-twice incident (both built).
 - The parallel R2 branch (`claude/docs-review-build-d91b5a`) was deleted on 7 Oct 2026 at Eshan's request. It duplicated PR #2. Last commit `d96b591`.
 - Traps hit while building INC-3: (1) port 5173 is shared by every chat, so run browser tests from a throwaway Playwright config on another port (write it, run it, delete it); (2) the live specs in `web/e2e/fix.spec.ts` share one world and run in order, and the autonomy test sets Autopilot for everything after it, so put new live tests before it; (3) `sed -i` on macOS needs an empty string argument, use Python for edits; (4) a shell variable holding several file names is not split in zsh, so list the files out; (5) Playwright's `getByRole` cannot find buttons at 375px opened directly (see 6b), load wide and resize; (6) `make run-api` rebuilds the world each start, so the live suites begin fresh, but `data/world.db` is changed by any test run against it.

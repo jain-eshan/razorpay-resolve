@@ -8,6 +8,7 @@ from . import audit, clock, merchant_mock
 from .act import executor, messages
 from .config import ENTITLEMENT_EXPORT_AT
 from .detect.webhook import HANDLER, Run, run_from_json
+from .duplicates import read as dp
 from .investigate.rules_fallback import build_pack
 from .match.keys import complaints_by_payment
 from .pipeline import pack_ref
@@ -25,6 +26,7 @@ from .schemas import (
     MatchCandidate,
     Member,
     RayCard,
+    RefundBoard,
     ReplaySummary,
     SampleTimeline,
     ScanResult,
@@ -47,6 +49,11 @@ def _fmt(d: datetime) -> str:
 def _renewal(row: sqlite3.Row) -> bool:
     """INC-3 and any like it: renewals that failed on Razorpay's side. They have no webhook run, so they read through their own module."""
     return row["mismatch_type"] == "G"
+
+
+def _dup(row: sqlite3.Row) -> bool:
+    """INC-2 and any like it: customers charged twice. Both charges reached the webhook, so there is no webhook run to read."""
+    return row["mismatch_type"] == "E"
 
 
 def _row(db: sqlite3.Connection, incident_id: str) -> sqlite3.Row | None:
@@ -76,6 +83,9 @@ def summaries(db: sqlite3.Connection) -> list[IncidentSummary]:
     for row in db.execute("SELECT * FROM incidents ORDER BY onset_at").fetchall():
         if row["zone"] == "before":
             out.append(z1.summary(db, row))
+            continue
+        if _dup(row):
+            out.append(dp.summary(db, row))
             continue
         if _renewal(row):
             out.append(rn.summary(db, row))
@@ -141,6 +151,8 @@ def detail(db: sqlite3.Connection, incident_id: str) -> IncidentDetail | None:
         return None
     if row["zone"] == "before":
         return z1.detail(db, row)
+    if _dup(row):
+        return dp.detail(db, row)
     if _renewal(row):
         return rn.detail(db, row)
     run, members, disabled = _cohort(db, row)
@@ -157,6 +169,8 @@ def members(db: sqlite3.Connection, incident_id: str, tier: str | None = None) -
         return None
     if row["zone"] == "before":
         return z1.members(db, row, tier)
+    if _dup(row):
+        return dp.members(db, row, tier)
     if _renewal(row):
         return rn.members(db, row, tier)
     _, cohort, _ = _cohort(db, row)
@@ -171,6 +185,8 @@ def sample(db: sqlite3.Connection, incident_id: str) -> list[SampleTimeline] | N
         return None
     if row["zone"] == "before":
         return z1.sample(db, row)
+    if _dup(row):
+        return dp.sample(db, row)
     if _renewal(row):
         return rn.sample(db, row)
     _, cohort, disabled = _cohort(db, row)
@@ -210,6 +226,8 @@ def ray_card(db: sqlite3.Connection, incident_id: str) -> RayCard | None:
     row = _row(db, incident_id)
     if row["zone"] == "before":
         return z1.ray_card(db, row)
+    if _dup(row):
+        return dp.ray_card(db, row)
     if _renewal(row):
         return rn.ray_card(db, row)
     run, _, disabled = _cohort(db, row)
@@ -227,6 +245,8 @@ def evidence_pack(db: sqlite3.Connection, incident_id: str) -> EvidencePack | No
         return None
     if row["zone"] == "before":
         return z1.evidence_pack(db, row, pack_ref(incident_id))
+    if _dup(row):
+        return dp.evidence_pack(db, row, pack_ref(incident_id))
     if _renewal(row):
         return rn.evidence_pack(db, row, pack_ref(incident_id))
     run, cohort, _ = _cohort(db, row)
@@ -239,6 +259,8 @@ def replay(db: sqlite3.Connection, incident_id: str) -> ReplaySummary | None:
         return None
     if row["zone"] == "before":
         return z1.detail(db, row).replay
+    if _dup(row):
+        return dp.replay(incident_id)
     if _renewal(row):
         return rn.replay(incident_id)
     return _replay(incident_id, _cohort(db, row)[1])
@@ -248,7 +270,7 @@ def scan_day0(db: sqlite3.Connection, days: int = 30) -> ScanResult:
     incs = summaries(db)
     customers, paise = 0, 0
     for i in incs:
-        if i.zone == "before" or i.mismatch_type == "G":  # customers who paid and have no access: renewals that never succeeded are a different count
+        if i.zone == "before" or i.mismatch_type in ("G", "E"):  # customers who paid and have no access: renewals that never succeeded and second charges are different counts
             continue
         cohort = _cohort(db, _row(db, i.id))[1]
         live = [m for m in cohort if m.tier != "excluded"]
@@ -258,10 +280,24 @@ def scan_day0(db: sqlite3.Connection, days: int = 30) -> ScanResult:
     before = [i for i in incs if i.zone == "before"]
     if before:
         head += f" Before the payment, {len(before)} more times customers could not pay, about {sum(i.affected for i in before)} lost orders."
+    twice = [i for i in incs if i.mismatch_type == "E"]
+    if twice:
+        head += f" {sum(i.affected for i in twice)} customers were charged twice after an app release."
     renewals = [i for i in incs if i.mismatch_type == "G"]
     if renewals:
         head += f" On Razorpay's side, {sum(i.affected for i in renewals)} card renewals failed with a gateway error."
     return ScanResult(days=days, headline=head, leaked_customers=customers, leaked_paise=paise, incidents=incs)
+
+
+def refund_board(db: sqlite3.Connection, incident_id: str) -> RefundBoard | None:
+    row = _row(db, incident_id)
+    if not row:
+        return None
+    if not _dup(row):  # no other incident has refunds. An empty board keeps the snapshot and the screen simple
+        from .act import autonomy, refund
+
+        return RefundBoard(incident_id=incident_id, cap_paise=autonomy.read(db).daily_refund_cap_paise, spent_today_paise=refund.spent_today(db), owed_paise=0, refunded_paise=0, rows=[])
+    return dp.board(db, row)
 
 
 def audit_entries(db: sqlite3.Connection, ref_id: str | None = None) -> list[AuditEntry]:

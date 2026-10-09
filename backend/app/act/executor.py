@@ -15,11 +15,12 @@ from .. import audit, clock, merchant_mock
 from ..channels import policy
 from ..conversation.templates import TEMPLATES
 from ..db import write_tx as _write
+from ..duplicates import read as dp
 from ..renewal import read as rn
 from ..schemas import Action, ActionItem, ActionSummary, MessagePreview, VerifyResult
 from ..zone1 import read as z1
 from ..zone1 import recovery
-from . import autonomy, messages
+from . import autonomy, messages, refund
 
 STAGES = autonomy.STAGES
 FIRST_BATCH = 5
@@ -51,13 +52,15 @@ def _items(db: sqlite3.Connection, action_id: str) -> list[sqlite3.Row]:
 
 def _next_stage(a: sqlite3.Row) -> str | None:
     s = a["status"]
+    if a["action_type"] == "refund" and s != "drafted":
+        return None  # after the dry run a refund has no stage: each customer is approved on their own
     return "dry_run" if s == "drafted" else ("first_5" if a["stage"] == "dry_run" else "rest") if s == "approved" else a["stage"] if s == "failed" else None
 
 
 def _blocked(db: sqlite3.Connection, a: sqlite3.Row) -> str | None:
     s = autonomy.read(db)
     n = len(_items(db, a["id"]))
-    if n > s.max_bulk_customers:
+    if a["action_type"] != "refund" and n > s.max_bulk_customers:
         return f"{n} customers is above your limit of {s.max_bulk_customers} per action. Raise the limit in settings, then approve."
     if a["action_type"] in ("message", "recovery_link") and not s.messaging_enabled:
         return "Messaging is switched off. Turn it on in settings, then approve."
@@ -114,8 +117,17 @@ def _plan_payments(db: sqlite3.Connection, incident_id: str, action_type: str) -
     if action_type == "grant":  # Exact tier only, customers who complained first so the first 5 are the ones the founder has heard of
         return [r["payment_id"] for r in db.execute("""SELECT im.payment_id FROM incident_members im JOIN payments p ON p.id = im.payment_id
                                                      WHERE im.incident_id = ? AND im.tier = 'exact' ORDER BY im.complained DESC, p.captured_at, p.id""", (incident_id,))]
-    g = db.execute("SELECT id FROM actions WHERE incident_id = ? AND action_type = 'grant' AND status != 'reverted'", (incident_id,)).fetchone()
+    if action_type == "refund":  # the second charge of each confirmed duplicate, customers who complained first
+        return [r["payment_id"] for r in db.execute("""SELECT im.payment_id FROM incident_members im JOIN payments p ON p.id = im.payment_id
+                                                     WHERE im.incident_id = ? AND im.tier = 'exact' ORDER BY im.complained DESC, p.captured_at, p.id""", (incident_id,))]
+    g = db.execute("SELECT id FROM actions WHERE incident_id = ? AND action_type = ? AND status != 'reverted'", (incident_id, "refund" if _is_dup(db, incident_id) else "grant")).fetchone()
+    if g and _is_dup(db, incident_id):  # a customer is told about a refund only once it has its bank reference
+        return [r["payment_id"] for r in db.execute("SELECT payment_id FROM action_items WHERE action_id = ? AND status = 'verified' ORDER BY rowid", (g["id"],)) if refund.reference(db, r["payment_id"])]
     return [r["payment_id"] for r in db.execute("SELECT payment_id FROM action_items WHERE action_id = ? AND status = 'verified' ORDER BY rowid", (g["id"],))] if g else []
+
+
+def _is_dup(db: sqlite3.Connection, incident_id: str) -> bool:
+    return db.execute("SELECT mismatch_type FROM incidents WHERE id = ?", (incident_id,)).fetchone()["mismatch_type"] == "E"
 
 
 def create(db: sqlite3.Connection, incident_id: str, action_type: str, params: dict, actor: str = FOUNDER) -> str:
@@ -125,13 +137,17 @@ def create(db: sqlite3.Connection, incident_id: str, action_type: str, params: d
             raise ActError(404, f"Incident {incident_id} not found.")
         if action_type not in autonomy.ACTION_CLASS:
             raise ActError(422, f"'{action_type}' is not something Blindspot can do yet.")
-        if action_type == "grant" and params.get("tier", "exact") != "exact":
+        if action_type == "refund" and not _is_dup(db, incident_id):
+            raise ActError(422, "Refunds are only for customers who were charged twice.")
+        if action_type == "grant" and _is_dup(db, incident_id):
+            raise ActError(422, "Nothing to restore. Both orders already have access. The second charge is what to refund.")
+        if action_type in ("grant", "refund") and params.get("tier", "exact") != "exact":
             raise ActError(422, "Only the Exact group is switched on automatically. Likely and Check manually need your own review.")
         if action_type == "message" and params.get("language", "auto") not in ("auto", *messages.LANGS):
             raise ActError(422, "Language must be auto, en or hi_latn.")
         if action_type == "recovery_link" and db.execute("SELECT zone FROM incidents WHERE id = ?", (incident_id,)).fetchone()["zone"] != "before":
             raise ActError(422, "Recovery links are for incidents where customers could not get as far as paying.")
-        params = {"tier": "exact"} if action_type == "grant" else {"language": params.get("language", "auto")}
+        params = {"tier": "exact"} if action_type in ("grant", "refund") else {"language": params.get("language", "auto")}
         if action_type == "recovery_link":
             who = _plan_payments(db, incident_id, action_type)
             params |= {"valid_hours": recovery.LINK_HOURS, "holdout_percent": autonomy.read(db).holdout_percent, "holdout": recovery.holdout_ids(who, incident_id, autonomy.read(db).holdout_percent)}
@@ -140,10 +156,20 @@ def create(db: sqlite3.Connection, incident_id: str, action_type: str, params: d
         if row and row["status"] != "reverted":
             if row["status"] == "drafted" and json.loads(row["params_json"]) != params:
                 db.execute("UPDATE actions SET params_json = ? WHERE id = ?", (json.dumps(params), aid))
+            if action_type == "message" and row["status"] == "done" and _is_dup(db, incident_id):  # more refunds have a bank reference now: tell those customers too, in one more approval
+                have = {i["payment_id"] for i in _items(db, aid)}
+                new = [p for p in _plan_payments(db, incident_id, action_type) if p not in have]
+                for pid in new:
+                    k = _key(incident_id, action_type, pid)
+                    db.execute("INSERT INTO action_items (id, action_id, payment_id, idempotency_key, status) VALUES (?,?,?,?,?)", (f"ai_{k[:16]}", aid, pid, k, "pending"))
+                if new:
+                    db.execute("UPDATE actions SET status = 'approved', stage = 'first_5' WHERE id = ?", (aid,))
+                    audit.log(db, actor, "action", aid, f"Added {len(new)} customers whose refund now has a bank reference. They are told after the next approval.", incident_id=incident_id)
             return aid
         pids = _plan_payments(db, incident_id, action_type)
         if not pids:
-            raise ActError(409, "Nothing to do yet. Restore access first: a message says access is on, so it only goes to customers whose access is confirmed."
+            raise ActError(409, ("Nothing to tell yet. A message about a refund goes only to customers whose refund has a bank reference. Refund them first, then move the clock forward until it is processed."
+                                 if _is_dup(db, incident_id) else "Nothing to do yet. Restore access first: a message says access is on, so it only goes to customers whose access is confirmed.")
                            if action_type == "message" else _nobody(db, incident_id) if action_type == "recovery_link" else "No Exact-tier customers in this incident.")
         if row:  # undone earlier: arm the same plan again, same keys
             db.execute("UPDATE actions SET status = 'drafted', stage = 'dry_run', params_json = ?, approved_by = NULL, approved_at = NULL WHERE id = ?", (json.dumps(params), aid))
@@ -206,12 +232,18 @@ def _check_recovery(db, item, result):
     return result["held_back"] or (db.execute("SELECT status FROM messages WHERE id = ?", (result["message_id"],)).fetchone() or {"status": ""})["status"] == "sent"
 
 
+def _do_refund(db, a, item, approver):
+    """Refund one customer's second charge to the original method. Not undoable, so no prior state."""
+    return None, refund.issue(db, item["payment_id"], approver, a["incident_id"])
+
+
+def _check_refund(db, item, result): return refund.check(db, item["payment_id"])
 def _check_grant(db, item, result): return merchant_mock.check(db, item["payment_id"])["has_access"]
 def _check_message(db, item, result): return (db.execute("SELECT status FROM messages WHERE id = ?", (result["message_id"],)).fetchone() or {"status": ""})["status"] == "sent"
 
 
-_DO = {"grant": _do_grant, "message": _do_message, "recovery_link": _do_recovery}
-_CHECK = {"grant": _check_grant, "message": _check_message, "recovery_link": _check_recovery}
+_DO = {"grant": _do_grant, "message": _do_message, "recovery_link": _do_recovery, "refund": _do_refund}
+_CHECK = {"grant": _check_grant, "message": _check_message, "recovery_link": _check_recovery, "refund": _check_refund}
 
 
 def _exec_item(db: sqlite3.Connection, a: sqlite3.Row, item: sqlite3.Row, approver: str) -> bool:
@@ -270,6 +302,8 @@ def approve(db: sqlite3.Connection, action_id: str, stage: str, approver: str) -
         if a["status"] == "reverted":
             raise ActError(409, "This plan was undone. Plan it again to run it.")
         nxt = _next_stage(a)
+        if a["action_type"] == "refund" and stage != "dry_run":
+            raise ActError(409, "Refunds are approved one customer at a time. Use the Refund button on a customer's row.")
         if nxt is None or STAGES.index(stage) < STAGES.index(nxt):  # a second click on a stage that already ran
             audit.log(db, approver, "approval", action_id, f"Ignored a repeat approval of {stage.replace('_', ' ')}. It already ran, so nothing changed.")
             return get(db, action_id)
@@ -282,10 +316,40 @@ def approve(db: sqlite3.Connection, action_id: str, stage: str, approver: str) -
     return get(db, action_id)
 
 
+def approve_row(db: sqlite3.Connection, action_id: str, payment_id: str, approver: str) -> Action:
+    """Approve and run one refund (FR-AC-7: per row, web only). Refused for anyone but a person, and when a rule such as the daily limit says no."""
+    with _write(db):
+        a = _action(db, action_id)
+        if a["action_type"] != "refund":
+            raise ActError(422, "Only refunds are approved one customer at a time.")
+        if not approver.startswith("merchant:"):
+            raise ActError(403, "A refund needs a person's approval, one customer at a time. It never runs on its own.")
+        if a["status"] == "drafted":
+            raise ActError(409, "Review the list first: approve the dry run, then refund customers one by one.")
+        if a["status"] == "reverted":
+            raise ActError(409, "This plan was undone. Plan it again to run it.")
+        it = next((i for i in _items(db, action_id) if i["payment_id"] == payment_id), None)
+        if it is None:
+            raise ActError(404, f"{payment_id} is not in this plan.")
+        if it["status"] == "verified":
+            audit.log(db, approver, "approval", action_id, f"Ignored a repeat approval of the refund for {payment_id}. It was already refunded, so nothing changed.")
+            return get(db, action_id)
+        if reason := refund.blocked(db, payment_id, a["incident_id"]):
+            raise ActError(409, reason)
+        _exec_item(db, a, it, approver)
+        left = sum(1 for i in _items(db, action_id) if i["status"] in RETRY)
+        db.execute("UPDATE actions SET status = ?, stage = 'rest' WHERE id = ?", ("done" if left == 0 else "approved", action_id))
+        _set_incident(db, a["incident_id"], "verifying" if left == 0 else "fixing")
+        audit.log(db, approver, "approval", action_id, f"Approved the refund for {payment_id}. {len(_items(db, action_id)) - left} of {len(_items(db, action_id))} refunded.", incident_id=a["incident_id"])
+    return get(db, action_id)
+
+
 # ---------- undo ----------
 def revert(db: sqlite3.Connection, action_id: str, actor: str = FOUNDER) -> Action:
     with _write(db):
         a = _action(db, action_id)
+        if a["action_type"] == "refund":
+            raise ActError(409, "A refund cannot be undone. The money has gone back to the customer's original payment method.")
         if a["action_type"] in ("message", "recovery_link"):
             raise ActError(409, "Messages cannot be unsent.")
         if a["status"] == "reverted":
@@ -322,6 +386,8 @@ def verify(db: sqlite3.Connection, incident_id: str, actor: str = "system") -> V
             return z1.verify(db, incident_id, actor)
         if inc["mismatch_type"] == "G":
             return rn.verify(db, incident_id, actor)
+        if inc["mismatch_type"] == "E":
+            return dp.verify(db, incident_id, actor)
         h = merchant_mock.health(db)
         g = db.execute("SELECT * FROM actions WHERE incident_id = ? AND action_type = 'grant' AND status != 'reverted'", (incident_id,)).fetchone()
         if not g:

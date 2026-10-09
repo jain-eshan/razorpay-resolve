@@ -7,6 +7,7 @@ from datetime import datetime
 from . import clock
 from .config import ENTITLEMENT_EXPORT_AT
 from .detect.webhook import find_runs, run_to_json
+from .duplicates import build as duplicates
 from .ingest.extract import extract
 from .ingest.redact import redact
 from .investigate.rules_fallback import build_trace, build_verdict
@@ -47,6 +48,7 @@ def run(db: sqlite3.Connection) -> list[str]:
                            [(iid, m.payment_id, m.tier, m.exclusion_reason, int(m.complained), None, m.amount_paise) for m in members])
             ids.append(iid)
     _cases(db)
+    ids += duplicates.run(db, now)  # INC-2 is reserved for it
     ids += renewal.run(db, now)  # INC-3 is reserved for it: it must exist before Zone 1 numbers start at INC-4
     ids += zone1.run(db, now)
     db.commit()

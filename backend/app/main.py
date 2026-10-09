@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from . import audit as audit_log
 from . import clock, merchant_mock, service
 from . import fixtures as fx
-from .act import autonomy, escalate, executor
+from .act import autonomy, escalate, executor, refund
 from .config import BS_NOW
 from .conversation import handover, machine
 from .db import ROOT, connect
@@ -20,6 +20,7 @@ from .schemas import (
     ActionCreate,
     AgentTrace,
     ApproveRequest,
+    ApproveRowRequest,
     AuditEntry,
     CaseDetail,
     CaseSummary,
@@ -49,6 +50,7 @@ from .schemas import (
     ProbeResult,
     RayCard,
     RecoveryRequest,
+    RefundBoard,
     ReplaySummary,
     ReplyRequest,
     SampleTimeline,
@@ -131,6 +133,12 @@ def get_sample(incident_id: str):
         return _real(service.sample, incident_id)
     _get(fx.DETAILS, incident_id)
     return fx.SAMPLE1 if incident_id == "INC-1" else []
+@api.get("/incidents/{incident_id}/refunds", response_model=RefundBoard)
+def get_refunds(incident_id: str):
+    if _live():
+        return _real(service.refund_board, incident_id)
+    _get(fx.DETAILS, incident_id)
+    return RefundBoard(incident_id=incident_id, cap_paise=fx.SETTINGS.daily_refund_cap_paise, spent_today_paise=0, owed_paise=0, refunded_paise=0, rows=[])
 @api.post("/incidents/{incident_id}/investigate", response_model=AgentTrace)
 def investigate(incident_id: str): return fx.TRACE1
 @api.get("/incidents/{incident_id}/trace", response_model=AgentTrace)
@@ -165,6 +173,9 @@ def get_action(action_id: str): return _real(executor.get, action_id) if _live()
 @api.post("/actions/{action_id}/approve", response_model=Action)
 def approve_action(action_id: str, body: ApproveRequest):
     return _real(executor.approve, action_id, body.stage, f"merchant:{body.approver}") if _live() else fx.ACTION1D
+@api.post("/actions/{action_id}/items/{payment_id}/approve", response_model=Action)
+def approve_item(action_id: str, payment_id: str, body: ApproveRowRequest):
+    return _real(executor.approve_row, action_id, payment_id, f"merchant:{body.approver}") if _live() else fx.ACTION1D
 @api.post("/actions/{action_id}/revert", response_model=Action)
 def revert_action(action_id: str): return _real(executor.revert, action_id) if _live() else fx.ACTION1D
 @api.post("/actions/{action_id}/recovery", response_model=Action)
@@ -182,6 +193,7 @@ def advance_clock(body: ClockAdvance):
         service.log_clock(db, body.hours, now)
         machine.nudge_silent(db, now)
         z1recovery.settle(db, now)
+        refund.settle(db, now)
         db.commit()
     return ClockState(now=now)
 @api.get("/messages/preview", response_model=list[MessagePreview])

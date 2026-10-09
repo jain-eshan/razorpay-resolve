@@ -68,7 +68,7 @@ def test_extract_keys():
 
 # ---- the pipeline on a freshly generated world ----
 def test_pipeline_finds_exactly_the_injected_incident(world):
-    rows = world.execute("SELECT * FROM incidents WHERE zone = 'after' AND mismatch_type != 'G'").fetchall()  # webhook incidents; INC-3 (renewals) has its own tests
+    rows = world.execute("SELECT * FROM incidents WHERE zone = 'after' AND mismatch_type NOT IN ('G', 'E')").fetchall()  # webhook incidents; INC-3 (renewals) and INC-2 (charged twice) have their own tests
     assert len(rows) == 1 and rows[0]["owner"] == "merchant_code" and rows[0]["owner_rule_id"] == 1
     assert rows[0]["cause_code"] == "WEBHOOK_ENDPOINT_401_AFTER_DEPLOY"
 
@@ -84,7 +84,7 @@ def test_alert_is_early_and_cohort_has_every_tier_and_reason(world):
 
 def test_hidden_2xx_group_is_found(world):
     n = world.execute("""SELECT count(*) FROM incident_members m JOIN webhook_events e ON e.payment_id = m.payment_id
-                         WHERE m.tier = 'exact' AND e.final_delivery_class = '2xx' AND e.event_type IN ('payment.captured','subscription.charged')""").fetchone()[0]
+                         WHERE m.incident_id = 'INC-1' AND m.tier = 'exact' AND e.final_delivery_class = '2xx' AND e.event_type IN ('payment.captured','subscription.charged')""").fetchone()[0]
     assert n == world.counts["hidden_2xx"]
 
 
@@ -93,7 +93,7 @@ def test_pipeline_is_idempotent(world):
 
     before = world.execute("SELECT count(*) FROM incident_members").fetchone()[0]
     pipeline.run(world)
-    assert world.execute("SELECT count(*) FROM incidents").fetchone()[0] == 4
+    assert world.execute("SELECT count(*) FROM incidents").fetchone()[0] == 5
     assert world.execute("SELECT count(*) FROM incident_members").fetchone()[0] == before
 
 

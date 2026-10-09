@@ -4,6 +4,19 @@ A change to anything under `contracts/`, to `backend/app/schemas.py`, `backend/a
 `backend/app/conversation/templates.py`, the capability flags in `backend/app/config.py` or `synth/config.yaml` needs a pull request that
 updates `contracts/` (run `make contracts`), bumps the version below and adds an entry here. Streams do not edit these files directly.
 
+## contracts-v0.9 (9 Oct 2026, during R4, INC-2 and the guarded refund)
+
+Additive only. Existing paths and models are unchanged. The headline numbers of Hero A, Hero B, INC-3 and the conversation gates are unchanged (checked against the eval before and after); the shares and averages that are measured against a baseline of ordinary orders moved slightly, because INC-2 adds 40 ordinary-looking orders to the world.
+- New routes: `GET /api/incidents/{incident_id}/refunds` (the refund screen: `RefundBoard` with `RefundRow`s, the daily limit and what is spent today; an empty board for any incident that has no refunds) and `POST /api/actions/{action_id}/items/{payment_id}/approve` (body `ApproveRowRequest { approver }`: approve and run one customer's refund). New models `RefundRow`, `RefundBoard`, `ApproveRowRequest`. The snapshot manifest gains `incidents/{id}/refunds.json`.
+- `ActionType` already listed `refund` and the matrix already had `refund: per_row_web` at every level. `ACTION_CLASS` now includes it, so a refund can be planned and run. `MismatchType` already had `E`: INC-2 is the first incident to use it.
+- The approval is per customer on purpose. The whole-list stages (`first_5`, `rest`) are refused for a refund with 409, an approver that is not a person is refused with 403, and the autonomy setting never runs a refund at any level.
+- Refunds go to the original payment method in full. The `refunds` table (v0.1) has no destination column and nothing adds one. A refund Blindspot makes is `source: make_good`. It cannot be undone: revert returns 409.
+- Template `T-E1` (in the contracts since v0.1, never sent) is now sent, with the refund id and the bank reference (RRN for UPI and netbanking, ARN for cards). A customer is told only once the refund has that reference.
+- `/merchant-mock/app-health` and `/merchant-mock/app-mode` (the developer ships the fix for the double tap) are mounted with the rest of the mock. Not part of `/api`, not in `openapi.json`. The mock keeps its state in two `settings` keys (`mock.app_mode`, `mock.app_fixed_since`).
+- `synth/config.yaml` gains an `inc2` block and the generator adds the app release `me_app_341` (android-3.4.1, Sat 26 Sep 10:00). It adds 40 orders (15 double taps, 3 two-seat purchases, 2 reversing pairs) and relabels 83 existing android orders to the new version. No earlier random draw changes.
+- No change to `contracts/schema.sql`.
+- Reading side: the amount reader now understands "599 do baar kat gaye" (a number followed by "twice"), which the new complaints use.
+
 ## contracts-v0.8 (7 Oct 2026, during R4 and R5, INC-3 and the escalation to Razorpay)
 
 Additive only. Existing paths and models are unchanged; every Hero A, Hero B and conversation number is unchanged (checked against the eval before and after).

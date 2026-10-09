@@ -1,0 +1,7 @@
+{
+  "incident_id": "INC-2",
+  "replayable_by_support": 0,
+  "not_replayable_disabled_window": 0,
+  "too_old": 0,
+  "note": "Nothing to replay. Your webhook answered 200 for both charges and both orders got access. The only problem is the second charge."
+}

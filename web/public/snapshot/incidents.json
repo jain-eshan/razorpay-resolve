@@ -1,5 +1,22 @@
 [
   {
+    "id": "INC-2",
+    "title": "Customers charged twice after android-3.4.1",
+    "zone": "after",
+    "mismatch_type": "E",
+    "owner": "merchant_code",
+    "inferred": false,
+    "status": "open",
+    "opened_by": "signal",
+    "affected": 15,
+    "complained": 4,
+    "silent": 11,
+    "fixed": 0,
+    "at_risk_paise": 498500,
+    "onset_at": "2026-09-26T14:04:36+05:30",
+    "would_have_alerted_at": "2026-09-26T16:30:38+05:30"
+  },
+  {
     "id": "INC-5",
     "title": "Checkout would not open after the Razorpay key changed",
     "zone": "before",

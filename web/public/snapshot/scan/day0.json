@@ -1,9 +1,26 @@
 {
   "days": 30,
-  "headline": "I found 81 customers in the last 30 days who paid and have no access. Before the payment, 2 more times customers could not pay, about 25 lost orders. On Razorpay's side, 27 card renewals failed with a gateway error.",
+  "headline": "I found 81 customers in the last 30 days who paid and have no access. Before the payment, 2 more times customers could not pay, about 25 lost orders. 15 customers were charged twice after an app release. On Razorpay's side, 27 card renewals failed with a gateway error.",
   "leaked_customers": 81,
   "leaked_paise": 5631900,
   "incidents": [
+    {
+      "id": "INC-2",
+      "title": "Customers charged twice after android-3.4.1",
+      "zone": "after",
+      "mismatch_type": "E",
+      "owner": "merchant_code",
+      "inferred": false,
+      "status": "open",
+      "opened_by": "signal",
+      "affected": 15,
+      "complained": 4,
+      "silent": 11,
+      "fixed": 0,
+      "at_risk_paise": 498500,
+      "onset_at": "2026-09-26T14:04:36+05:30",
+      "would_have_alerted_at": "2026-09-26T16:30:38+05:30"
+    },
     {
       "id": "INC-5",
       "title": "Checkout would not open after the Razorpay key changed",
