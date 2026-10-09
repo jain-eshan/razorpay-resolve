@@ -178,6 +178,32 @@ def record_renewal(src: sqlite3.Connection) -> dict:
     for lang in ("auto", "en", "hi_latn"):
         out["messages"]["ready"][lang] = r.pack(executor.get(d, executor.create(d, iid, "message", {"language": lang})))
     out["messages"]["stages"] = {st: r.pack(executor.approve(d, mid, st, FOUNDER)) for st in STAGES}
+
+    # ---- the renewal link, once Razorpay has fixed the card problem and the customers have been told one is coming ----
+    from app.zone1 import recovery
+
+    links: dict = {"stages": {}, "verify": {}}
+    d = _fresh(src)
+    r = Rec(d)
+    _levels(d, messaging_enabled=True)
+    for kind in ("grant", "message"):
+        aid = executor.create(d, iid, kind, {"language": "auto"})
+        for st in STAGES:
+            executor.approve(d, aid, st, FOUNDER)
+    r.last = max([e.id for e in service.audit_entries(d)] or [0])
+    lid = executor.create(d, iid, "recovery_link", {"language": "auto"})
+    links["plan"] = r.pack(executor.get(d, lid))
+    links["previews"] = [p.model_dump(mode="json") for p in executor.message_previews(d, lid)]
+    for st in STAGES:
+        links["stages"][st] = r.pack(executor.approve(d, lid, st, FOUNDER))
+        if st == "first_5":
+            links["verify"]["running"] = _verify_frame(d, iid)
+    links["verify"]["sent"] = _verify_frame(d, iid)
+    clock.advance(48)  # links are valid for 48 hours, and the simulated customers pay within 36
+    recovery.settle(d)
+    links["stages"]["rest_48"] = r.pack(executor.get(d, lid))
+    links["verify"]["paid"] = _verify_frame(d, iid)
+    out["links"] = links
     return out
 
 

@@ -651,6 +651,66 @@
       "status": "pass"
     },
     {
+      "name": "renewal_links_planned_before_customers_are_told",
+      "value": 0.0,
+      "target": "0 (the link follows the message that promised it)",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_links_sent_while_cards_still_fail",
+      "value": 0.0,
+      "target": "0 (nothing goes out until card renewals work again)",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_links_to_customers_not_owed",
+      "value": 0.0,
+      "target": "0 (only customers whose renewal failed on Razorpay's side)",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_links_to_customers_who_paid_again",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_customers_sent_two_links",
+      "value": 0.0,
+      "target": "0 (one link each)",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_held_back_customers_messaged",
+      "value": 0.0,
+      "target": "0 (the held-back group gets nothing)",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_customers_held_back",
+      "value": 2.0,
+      "target": "reported (24 planned, 10 percent held back by a hash so nobody chooses)",
+      "status": "report"
+    },
+    {
+      "name": "renewal_link_messages_with_a_number_not_from_the_record",
+      "value": 0.0,
+      "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "renewal_paid_after_a_link_simulated",
+      "value": 12.0,
+      "target": "reported, of 22 sent (simulated customers, not a result)",
+      "status": "report"
+    },
+    {
+      "name": "renewal_paid_without_a_link_simulated",
+      "value": 0.0,
+      "target": "reported, of 2 held back (too few to say what the link adds)",
+      "status": "report"
+    },
+    {
       "name": "escalation_sent_without_the_founders_approval",
       "value": 0.0,
       "target": "0 (drafted until the founder sends)",

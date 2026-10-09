@@ -500,3 +500,32 @@ Not built: refunds the bank rejects, the refund-not-received conversation wired 
 Checks: 397 backend tests (was 363), 83 browser tests (4 new: two hosted walkthroughs, one live flow with the daily limit, one layout route), lint, types, secret scan, no em dashes.
 
 Design review: the `design-reviewer` agent is not registered in this session, so its mechanical checks were run by hand (types, lint, no hex, no inline styles, no raw tags, no em dashes, grids use `minmax(0, 1fr)`, the one fixed width is the 56px icon tile) and an independent general-purpose agent did checks B to D from `.claude/agents/design-reviewer.md` in Chrome at 375, 768 and 1440px. Verdict: pass with notes, no blocker. Fixed from its report: the echo bubble said "Looks right, continue" before that was pressed (now echoes "Plan the refunds" first); "Refunded" and "15 refunds made" counted refunds still pending at the bank (now "Refunds started"); the line "Each Refund button sends that customer's refund now. It cannot be undone." now sits above the rows; two typed claims removed ("the first complaint came later", "gets one course"); the payment id was clipped in the first table column at 375px (wider minimum); the fourth RAY chat wrapped to a second row at 1440px (now one row of four). Not fixed, and why: the title breaks inside "android-3.4.1" at 375px and the chart's y-axis skips 18 at 375px (both cosmetic, both Blade's behaviour); the 2, 24 and 72 hour processing times and the 24 hour fix hold are typed in the screen copy and match `act/refund.py` and `merchant_mock.py` by hand; a second "are you sure" click on each Refund button was suggested and not built, because the list approval and the warning at the button already stand in front of it (Eshan's call). Not looked at by the reviewer or by me: dark mode, reduced motion, the evidence page for INC-2 (`/incidents/INC-2/dev`) by eye, the live Refund buttons in any order by eye (the live browser test covers them). After the fixes: INC-2 browser tests and the layout test for `/` and INC-2 re-run and pass; the full suite re-run below.
+
+## 9 Oct 2026, R4 rest: the renewal link for INC-3 (integrator)
+
+Goal: finish INC-3. `T-G1` tells 24 customers "we will send one renewal link once it is fixed". This sends it, once Razorpay's card renewals work again, and measures what it did. Eshan picked this slice from three options. No model, no new account.
+
+Built:
+- Template `T-G2` (contracts v0.10) and the INC-3 simulated customer behaviour (`synth/renewals.py`, drawn after every earlier draw in INC-3's own stream; the world was compared table by table before and after, only the `sim.recovery` setting differs).
+- Engine: `recovery_link` now plans and runs on INC-3 (`act/executor.py`, `renewal/read.py`). Who gets one: customers whose `T-G1` message was sent, who have not paid since, one each. Gate: card renewals have worked again (the same signal the incident already closes on). Held back: 10 percent by a hash (2 of 24). Goes through the policy engine like every other message; a customer who paid in the meantime is refused at send time. Verify counts who renewed and compares with the held-back group, and an incident with a half-sent link run stays open.
+- Hosted demo: frames recorded from the engine (`record_renewal`), replay in `web/src/lib/demo.ts`, two new steps on `RenewalFix` ("Send the renewal links, in stages", "What the customers did" with a button that moves the demo clock 48 hours).
+
+Result (invented data, one seed): 22 links sent, 2 held back, 12 of 22 simulated customers renewed after 48 demo hours (Rs 3,588), 0 of 2 held back. Too few to say what the link adds, and it says so. 7 new gates, whole eval 130 pass, 0 fail. Quote as "works as designed on a simulation".
+
+What the checks caught:
+- My first test for "paid again in the meantime" passed for the wrong reason: the customer it picked was one of the two held back, who are never messaged.
+- Of five rules broken on purpose, two mutations survived at first. One was written badly (it changed nothing). One guarded a case that cannot happen (a second link plan), so I replaced it with a real one: a customer listed twice would crash the plan on a duplicate key; now they appear once, with a test.
+- `tsc --noEmit` passed and `tsc -b` (what the build runs) did not: verify frames were typed `unknown`.
+- Running the eval twice on the same database changes the match calibration and rewrites 26 unrelated case snapshots. `make snapshot` end to end does not.
+
+Decisions and deviations:
+- The link goes only after `T-G1` was sent, so nobody gets a link without the explanation, and the promise in the message is kept for exactly the people it was made to.
+- No "Razorpay says it is fixed" button: the data already says it (3 card renewals since the last failure), so a mock button would have been a second source of truth.
+- Hosted demo limits: links go out after everyone has been told (the live version does it in steps), and the clock moves only after all links are sent.
+- The "failed but access still on" report (J6) is not built. It is a separate slice.
+
+Checks: 412 backend tests (was 397), 69 hosted-demo browser tests and 15 live ones pass, lint, `tsc -b`, `npm run build`, no em dashes in changed files.
+
+Design review: the `design-reviewer` agent is not offered in this session, so its checks were run by hand. Mechanical: `tsc -b`, oxlint, no hex colours, inline styles, raw tags, fixed widths or `repeat(N, 1fr)` in the diff, no em dashes. Looked at: the new steps at 375, 768 and 1440 px by screenshot, which were tall element captures with the sticky top bar over them, so layout was judged by the no-sideways-overflow check at all three widths and by reading the text. Not looked at by eye: 768 px, dark mode, the phone width after the clock moves.
+
+Address change (10 Oct 2026): Eshan renamed the Vercel domain. The hosted demo is now https://razorpay-blindspot.vercel.app/ and razorsense-starter.vercel.app returns 404. Checked: the new address and a deep link (`/incidents/INC-3`) answer 200. Updated in `README.md`, `docs/HANDOFF.md` (three places) and `docs/SUBMISSION.md` (two places). No code, CI file or config held the old address.

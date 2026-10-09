@@ -22,10 +22,11 @@ type Demo = {
     grant: Record<'drafted' | 'dry_run' | 'first_5' | 'rest', Frame<Action>>
     detail: Record<'base' | 'first5' | 'rest' | 'closed', Frame<Schemas['IncidentDetail']>>
     members: Record<'base' | 'first5' | 'rest' | 'closed', Frame<Schemas['Member'][]>>
-    verify: Record<'none' | 'dry_run' | 'first5' | 'rest' | 'closed', Frame>
+    verify: Record<'none' | 'dry_run' | 'first5' | 'rest' | 'closed', Frame<Schemas['VerifyResult']>>
     escalation: Record<'drafted' | 'sent_plain' | 'sent_graced', Frame<Schemas['Escalation']>>
     messages: { blocked: Record<string, Frame<Action>>; ready: Record<string, Frame<Action>>; previews: Record<string, unknown>; stages: Record<string, Frame<Action>> }
     revert: Record<'first_5' | 'rest', Frame<Action>>
+    links: { plan: Frame<Action>; previews: unknown; stages: Record<'dry_run' | 'first_5' | 'rest' | 'rest_48', Frame<Action>>; verify: Record<'running' | 'sent' | 'paid', Frame<Schemas['VerifyResult']>> }
   }
   duplicate: {
     none: Frame; plan: Frame<Action>; dry: Frame<Action>
@@ -87,13 +88,16 @@ const zAction = (d: Demo): Frame<Action> | undefined => {
 const c3 = {
   g: 'none' as 'none' | 'drafted' | 'dry_run' | 'first_5' | 'rest' | 'reverted', m: 'none' as 'none' | 'drafted' | 'dry_run' | 'first_5' | 'rest', lang: 'auto',
   esc: 'none' as 'none' | 'drafted' | 'sent', graced: false, closed: false, revert: undefined as Frame<Action> | undefined,
+  l: 'none' as 'none' | 'drafted' | 'dry_run' | 'first_5' | 'rest', lh: 0, // the renewal links, and the hours the clock has moved since they went out
 }
+const c3Seen = new Set<unknown>() // closing verify frames already shown, so each adds its audit lines once
 const c3Grant = (d: Demo) => (c3.g === 'none' ? undefined : c3.g === 'reverted' ? c3.revert : d.renewal.grant[c3.g])
 const c3Msg = (d: Demo): Frame<Action> | undefined => {
   if (c3.m === 'none') return undefined
   const f = c3.m === 'drafted' ? (st.messagingOn ? d.renewal.messages.ready : d.renewal.messages.blocked)[c3.lang] : d.renewal.messages.stages[c3.m]
   return { ...f, data: { ...f.data, params: { ...f.data.params, language: c3.lang } } }
 }
+const c3Link = (d: Demo): Frame<Action> | undefined => (c3.l === 'none' ? undefined : c3.l === 'drafted' ? d.renewal.links.plan : c3.l === 'rest' && c3.lh >= 48 ? d.renewal.links.stages.rest_48 : d.renewal.links.stages[c3.l])
 const c3Phase = () => (c3.closed ? 'closed' : c3.g === 'first_5' ? 'first5' : c3.g === 'rest' ? 'rest' : 'base') as 'base' | 'first5' | 'rest' | 'closed'
 const c3Esc = (d: Demo) => (c3.esc === 'none' ? undefined : c3.esc === 'drafted' ? d.renewal.escalation.drafted : c3.graced ? d.renewal.escalation.sent_graced : d.renewal.escalation.sent_plain)
 
@@ -182,7 +186,7 @@ export async function demoGet(path: string): Promise<unknown | undefined> {
   }
   if (p === '/api/messages/preview' && q.includes(DMID)) return d.duplicate.messages.previews[dp.lang]
   if (p === '/api/settings') return settings(d)
-  if (p === '/api/incidents/INC-3') return { ...d.renewal.detail[c3Phase()].data, actions: [c3Grant(d), c3Msg(d)].filter((f): f is Frame<Action> => !!f).map((f) => f.data) }
+  if (p === '/api/incidents/INC-3') return { ...d.renewal.detail[c3Phase()].data, actions: [c3Grant(d), c3Msg(d), c3Link(d)].filter((f): f is Frame<Action> => !!f).map((f) => f.data) }
   if (p === '/api/incidents/INC-3/members') {
     const tier = new URLSearchParams(q).get('tier')
     return d.renewal.members[c3Phase()].data.filter((m) => !tier || m.tier === tier)
@@ -193,6 +197,11 @@ export async function demoGet(path: string): Promise<unknown | undefined> {
     return f.data
   }
   if (p === '/api/messages/preview' && q.includes('act_3_message')) return d.renewal.messages.previews[c3.lang]
+  if (p === '/api/messages/preview' && q.includes('act_3_recovery_link')) return d.renewal.links.previews
+  if (p === '/api/actions/act_3_recovery_link') {
+    if (!c3Link(d)) throw new Error('404 action')
+    return c3Link(d)!.data
+  }
   if (p === '/api/escalations') return c3Esc(d) ? [c3Esc(d)!.data] : []
   if (p === '/api/escalations/esc_3_razorpay') {
     if (!c3Esc(d)) throw new Error('404 escalation')
@@ -360,6 +369,15 @@ export async function demoSend(method: string, path: string, body: Record<string
       }
       return c3Grant(d)!.data
     }
+    if (body.action_type === 'recovery_link') {
+      if (c3.m === 'none') throw new Error('Tell the customers first. The link follows the message that promised it, and goes only to customers who got that message.')
+      if (c3.m !== 'rest') throw new Error('In the hosted demo, send the links once everyone has been told. The live version can do it in steps.')
+      if (c3.l === 'none') {
+        c3.l = 'drafted'
+        add(r3.links.plan.audit)
+      }
+      return c3Link(d)!.data
+    }
     if (c3.g === 'none' || c3.g === 'drafted' || c3.g === 'dry_run' || c3.g === 'reverted') throw new Error('Nothing to do yet. Restore access first: a message says access is on, so it only goes to customers whose access is confirmed.')
     if (c3.g !== 'rest') throw new Error('In the hosted demo, tell the customers once access is on for all of them. The live version can do it in steps.')
     c3.lang = (body.params as { language?: string } | undefined)?.language ?? 'auto'
@@ -368,6 +386,17 @@ export async function demoSend(method: string, path: string, body: Record<string
       add(r3.messages.blocked.auto.audit)
     }
     return c3Msg(d)!.data
+  }
+  if (path === '/api/actions/act_3_recovery_link/revert') throw new Error('Messages cannot be unsent.')
+  if (path === '/api/actions/act_3_recovery_link/approve') {
+    if (!st.messagingOn) throw new Error('Messaging is switched off. Turn it on in settings, then approve.')
+    const stage = body.stage as string
+    const next = NEXT[c3.l]
+    if (!next || STAGES.indexOf(stage as (typeof STAGES)[number]) < STAGES.indexOf(next as (typeof STAGES)[number])) return c3Link(d)!.data
+    if (stage !== next) throw new Error(`Approve '${label(next)}' next, not '${label(stage)}'.`)
+    c3.l = stage as typeof c3.l
+    add(d.renewal.links.stages[stage as (typeof STAGES)[number]].audit)
+    return c3Link(d)!.data
   }
   const a3 = path.match(/^\/api\/actions\/act_3_(grant|message)\/(approve|revert)$/)
   if (a3) {
@@ -382,6 +411,7 @@ export async function demoSend(method: string, path: string, body: Record<string
       c3.g = 'reverted'
       c3.m = 'none'
       c3.closed = false
+      c3Seen.clear()
       return c3.revert.data
     }
     const stage = body.stage as string
@@ -403,8 +433,10 @@ export async function demoSend(method: string, path: string, body: Record<string
   }
   if (path === '/api/incidents/INC-3/verify') {
     const r3 = d.renewal
-    const fr = c3.g === 'none' || c3.g === 'reverted' ? r3.verify.none : c3.g === 'drafted' || c3.g === 'dry_run' ? r3.verify.dry_run : c3.g === 'first_5' ? r3.verify.first5 : r3.verify.closed
-    if (fr === r3.verify.closed && !c3.closed) {
+    const fr = c3.l === 'first_5' ? r3.links.verify.running : c3.l === 'rest' ? (c3.lh >= 48 ? r3.links.verify.paid : r3.links.verify.sent)
+      : c3.g === 'none' || c3.g === 'reverted' ? r3.verify.none : c3.g === 'drafted' || c3.g === 'dry_run' ? r3.verify.dry_run : c3.g === 'first_5' ? r3.verify.first5 : r3.verify.closed
+    if (fr.data.closeable && !c3Seen.has(fr)) {
+      c3Seen.add(fr)
       c3.closed = true
       add(fr.audit)
     }
@@ -491,6 +523,9 @@ export async function demoSend(method: string, path: string, body: Record<string
     if (body.incident === 'INC-2') {
       if (dp.k < 15) throw new Error('In the hosted demo, refund all the customers first, then move the clock. The live version lets you move it any time.')
       dp.h += Number(body.hours)
+    } else if (body.incident === 'INC-3') {
+      if (c3.l !== 'rest') throw new Error('In the hosted demo, send all the links first, then move the clock. The live version lets you move it any time.')
+      c3.lh += Number(body.hours)
     } else if (/^INC-[45]$/.test(String(body.incident ?? ''))) z.hours += Number(body.hours)
     else st.hours += Number(body.hours)
     st.audit.push({ id: st.nextId++, at: clockNow(), actor: 'system', kind: 'action', ref_id: null, summary: `Demo clock moved forward ${body.hours} hours.` } as Audit)

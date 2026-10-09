@@ -65,7 +65,8 @@ def _blocked(db: sqlite3.Connection, a: sqlite3.Row) -> str | None:
     if a["action_type"] in ("message", "recovery_link") and not s.messaging_enabled:
         return "Messaging is switched off. Turn it on in settings, then approve."
     if a["action_type"] == "recovery_link":
-        return z1.recovery_block(db, db.execute("SELECT * FROM incidents WHERE id = ?", (a["incident_id"],)).fetchone())
+        row = db.execute("SELECT * FROM incidents WHERE id = ?", (a["incident_id"],)).fetchone()
+        return rn.recovery_block(db, row) if row["mismatch_type"] == "G" else z1.recovery_block(db, row)
     return None
 
 
@@ -97,12 +98,14 @@ def summaries(db: sqlite3.Connection, incident_id: str) -> list[ActionSummary]:
 def message_previews(db: sqlite3.Connection, action_id: str | None) -> list[MessagePreview]:
     a = _action(db, action_id) if action_id else db.execute("SELECT * FROM actions WHERE action_type = 'message' ORDER BY created_at DESC LIMIT 1").fetchone()
     if a and a["action_type"] == "recovery_link":
-        params, pp, groups = json.loads(a["params_json"]), {p.customer_id: p for p in recovery.people(db, a["incident_id"])}, {}
+        params, groups, renewal = json.loads(a["params_json"]), {}, _is_renewal(db, a["incident_id"])
+        pp = {} if renewal else {p.customer_id: p for p in recovery.people(db, a["incident_id"])}
+        tid = "T-G2" if renewal else "T-Z1R"
         for it in _items(db, a["id"]):
             if it["payment_id"] not in params["holdout"]:
-                sl = recovery.slots(db, pp[it["payment_id"]], params["valid_hours"])
+                sl = rn.link_slots(db, it["payment_id"], params["valid_hours"]) if renewal else recovery.slots(db, pp[it["payment_id"]], params["valid_hours"])
                 groups.setdefault(sl["_lang"] if params["language"] == "auto" else params["language"], []).append(sl)
-        return [MessagePreview(template_id="T-Z1R", language=lang, category=TEMPLATES["T-Z1R"]["category"], sender=messages.sender(rows[0]), body=messages.render("T-Z1R", lang, rows[0]),
+        return [MessagePreview(template_id=tid, language=lang, category=TEMPLATES[tid]["category"], sender=messages.sender(rows[0]), body=messages.render(tid, lang, rows[0]),
                                recipients=len(rows), holdout_allowed=True) for lang, rows in sorted(groups.items())]
     if not a or a["action_type"] != "message":
         return []
@@ -112,6 +115,8 @@ def message_previews(db: sqlite3.Connection, action_id: str | None) -> list[Mess
 
 # ---------- plan ----------
 def _plan_payments(db: sqlite3.Connection, incident_id: str, action_type: str) -> list[str]:
+    if action_type == "recovery_link" and _is_renewal(db, incident_id):  # customers who were promised a link, as failed payment ids like the grants and messages
+        return rn.link_candidates(db, incident_id)
     if action_type == "recovery_link":  # customers who could not pay and may be messaged right now. The id column holds the customer, there is no payment
         return [p.customer_id for p in recovery.people(db, incident_id) if p.state == "ready"]
     if action_type == "grant":  # Exact tier only, customers who complained first so the first 5 are the ones the founder has heard of
@@ -130,6 +135,10 @@ def _is_dup(db: sqlite3.Connection, incident_id: str) -> bool:
     return db.execute("SELECT mismatch_type FROM incidents WHERE id = ?", (incident_id,)).fetchone()["mismatch_type"] == "E"
 
 
+def _is_renewal(db: sqlite3.Connection, incident_id: str) -> bool:
+    return db.execute("SELECT mismatch_type FROM incidents WHERE id = ?", (incident_id,)).fetchone()["mismatch_type"] == "G"
+
+
 def create(db: sqlite3.Connection, incident_id: str, action_type: str, params: dict, actor: str = FOUNDER) -> str:
     """One plan per incident and type. Asking again returns it (and updates a draft's settings), which is what makes a double click safe."""
     with _write(db):
@@ -145,8 +154,8 @@ def create(db: sqlite3.Connection, incident_id: str, action_type: str, params: d
             raise ActError(422, "Only the Exact group is switched on automatically. Likely and Check manually need your own review.")
         if action_type == "message" and params.get("language", "auto") not in ("auto", *messages.LANGS):
             raise ActError(422, "Language must be auto, en or hi_latn.")
-        if action_type == "recovery_link" and db.execute("SELECT zone FROM incidents WHERE id = ?", (incident_id,)).fetchone()["zone"] != "before":
-            raise ActError(422, "Recovery links are for incidents where customers could not get as far as paying.")
+        if action_type == "recovery_link" and db.execute("SELECT zone FROM incidents WHERE id = ?", (incident_id,)).fetchone()["zone"] != "before" and not _is_renewal(db, incident_id):
+            raise ActError(422, "Recovery links are for incidents where customers could not get as far as paying, or whose renewal failed on Razorpay's side.")
         params = {"tier": "exact"} if action_type in ("grant", "refund") else {"language": params.get("language", "auto")}
         if action_type == "recovery_link":
             who = _plan_payments(db, incident_id, action_type)
@@ -170,7 +179,7 @@ def create(db: sqlite3.Connection, incident_id: str, action_type: str, params: d
         if not pids:
             raise ActError(409, ("Nothing to tell yet. A message about a refund goes only to customers whose refund has a bank reference. Refund them first, then move the clock forward until it is processed."
                                  if _is_dup(db, incident_id) else "Nothing to do yet. Restore access first: a message says access is on, so it only goes to customers whose access is confirmed.")
-                           if action_type == "message" else _nobody(db, incident_id) if action_type == "recovery_link" else "No Exact-tier customers in this incident.")
+                           if action_type == "message" else _nobody_renewal(db, incident_id) if action_type == "recovery_link" and _is_renewal(db, incident_id) else _nobody(db, incident_id) if action_type == "recovery_link" else "No Exact-tier customers in this incident.")
         if row:  # undone earlier: arm the same plan again, same keys
             db.execute("UPDATE actions SET status = 'drafted', stage = 'dry_run', params_json = ?, approved_by = NULL, approved_at = NULL WHERE id = ?", (json.dumps(params), aid))
             db.execute("UPDATE action_items SET status = 'pending', prior_state_json = NULL, result_json = NULL, executed_at = NULL, verified_at = NULL WHERE action_id = ?", (aid,))
@@ -191,6 +200,12 @@ def _nobody(db: sqlite3.Connection, incident_id: str) -> str:
     return "Nobody can be sent a link right now." + (f" {sum(why.values())} cannot be reached: {why.most_common(1)[0][0]}" if why else "") + (f" {paid} are already paid or already have a link." if paid else "")
 
 
+def _nobody_renewal(db: sqlite3.Connection, incident_id: str) -> str:
+    if not rn.told(db, incident_id):
+        return "Tell the customers first. The link follows the message that promised it, and goes only to customers who got that message."
+    return "Nobody is left to send a link: every customer who was told has either paid again or already has one."
+
+
 # ---------- run ----------
 def _do_grant(db, a, item, approver):
     """Switch access on. For a renewal that failed on Razorpay's side the payment is a failed one, and what is switched on is a grace period."""
@@ -208,8 +223,31 @@ def _do_message(db, a, item, approver):
     return None, {"message_id": mid}
 
 
+def _record_offer(db, a, oid: str, amount_paise: int, held: bool) -> None:
+    link = f"https://rzp.io/l/{hashlib.sha256(oid.encode()).hexdigest()[:8]}"  # a mock of Razorpay's payment link API
+    db.execute("INSERT OR REPLACE INTO recovery_offers (id, incident_id, thread_id, order_id, link_ref, amount_paise, holdout, sent_at, paid_at) VALUES (?,?,?,?,?,?,?,?,NULL)",
+               (oid, a["incident_id"], None, None, link, amount_paise, int(held), clock.now().isoformat()))
+
+
+def _do_renewal_link(db, a, item, approver):
+    """A renewal link for one customer whose card renewal failed on Razorpay's side. A held-back customer is recorded and not messaged. Someone who paid again meanwhile is refused."""
+    params, pid = json.loads(a["params_json"]), item["payment_id"]
+    pay = db.execute("SELECT customer_id, amount_paise FROM payments WHERE id = ?", (pid,)).fetchone()
+    held = pid in params["holdout"]
+    oid = recovery.offer_id(a["incident_id"], pay["customer_id"])
+    result = {"offer_id": oid, "held_back": held}
+    if not held:
+        sl = rn.link_slots(db, pid, params["valid_hours"])
+        result["message_id"] = policy.send(db, action_id=a["id"], payment_id=pid, customer_id=pay["customer_id"], template_id="T-G2", language=sl["_lang"] if params["language"] == "auto" else params["language"],
+                                           slots=sl, approved_by=approver, block="They have already paid their renewal, so no link is sent." if rn.paid_since(db, pid) else None)
+    _record_offer(db, a, oid, pay["amount_paise"], held)
+    return None, result
+
+
 def _do_recovery(db, a, item, approver):
     """A recovery link for one customer who could not pay. A held-back customer is recorded and not messaged. Everyone else goes through the policy engine."""
+    if _is_renewal(db, a["incident_id"]):
+        return _do_renewal_link(db, a, item, approver)
     params = json.loads(a["params_json"])
     cid = item["payment_id"]
     person = next(p for p in recovery.people(db, a["incident_id"]) if p.customer_id == cid)
@@ -220,9 +258,7 @@ def _do_recovery(db, a, item, approver):
         sl = recovery.slots(db, person, params["valid_hours"])
         result["message_id"] = policy.send(db, action_id=a["id"], payment_id=cid, customer_id=cid, template_id="T-Z1R", language=sl["_lang"] if params["language"] == "auto" else params["language"],
                                            slots=sl, approved_by=approver, block=person.reason if person.state != "ready" else None)
-    link = f"https://rzp.io/l/{hashlib.sha256(oid.encode()).hexdigest()[:8]}"  # a mock of Razorpay's payment link API
-    db.execute("INSERT OR REPLACE INTO recovery_offers (id, incident_id, thread_id, order_id, link_ref, amount_paise, holdout, sent_at, paid_at) VALUES (?,?,?,?,?,?,?,?,NULL)",
-               (oid, a["incident_id"], None, None, link, person.amount_paise, int(held), clock.now().isoformat()))
+    _record_offer(db, a, oid, person.amount_paise, held)
     return None, result
 
 

@@ -6,6 +6,10 @@ Read `docs/PRD.md` first, then `docs/SPEC.md` and `docs/BUILD_PLAN.md`. `docs/V1
 
 ## Try it in two minutes
 
+Hosted demo, no install: https://razorpay-blindspot.vercel.app/
+
+Or run it yourself:
+
 ```
 make setup
 make run-web      # http://localhost:5173

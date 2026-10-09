@@ -14,12 +14,15 @@ const ACCESS: Record<string, string> = { dry_run: 'Looks right, continue', first
 const SEND: Record<string, string> = { dry_run: 'Looks right, continue', first_5: 'Send the first 5', rest: 'Send the rest' }
 
 // INC-3. The cause is Razorpay's, so what the merchant can do is two things: keep these customers' access on while it is open, and hand Razorpay the evidence.
-// Both wait for the founder. Nothing here moves money. Telling customers is a third step, and a message cannot be unsent.
+// Both wait for the founder. Nothing here moves money. Telling customers is a third step, and a message cannot be unsent. Once cards work again, each customer
+// who was told a link was coming gets one, with a few held back to measure what the link adds.
 export function RenewalFix({ inc, members, onChanged }: { inc: Schemas['IncidentDetail']; members: Schemas['Member'][]; onChanged: () => void }) {
   const nav = useNavigate()
   const [grant, setGrant] = useState<Action>()
   const [msg, setMsg] = useState<Action>()
+  const [rec, setRec] = useState<Action>()
   const [previews, setPreviews] = useState<Schemas['MessagePreview'][]>([])
+  const [linkPreviews, setLinkPreviews] = useState<Schemas['MessagePreview'][]>([])
   const [esc, setEsc] = useState<Escalation>()
   const [result, setResult] = useState<Schemas['VerifyResult']>()
   const [busy, setBusy] = useState<string>()
@@ -38,7 +41,7 @@ export function RenewalFix({ inc, members, onChanged }: { inc: Schemas['Incident
     }
   }, [])
 
-  const loadPreview = useCallback((a: Action) => get<Schemas['MessagePreview'][]>(`/api/messages/preview?action_id=${a.id}`).then(setPreviews), [])
+  const loadPreview = useCallback((a: Action) => get<Schemas['MessagePreview'][]>(`/api/messages/preview?action_id=${a.id}`).then(a.action_type === 'recovery_link' ? setLinkPreviews : setPreviews), [])
 
   useEffect(() => {
     for (const a of inc.actions) {
@@ -46,6 +49,10 @@ export function RenewalFix({ inc, members, onChanged }: { inc: Schemas['Incident
         if (full.action_type === 'grant') setGrant(full)
         if (full.action_type === 'message') {
           setMsg(full)
+          loadPreview(full).catch(() => undefined)
+        }
+        if (full.action_type === 'recovery_link') {
+          setRec(full)
           loadPreview(full).catch(() => undefined)
         }
       })
@@ -61,12 +68,18 @@ export function RenewalFix({ inc, members, onChanged }: { inc: Schemas['Incident
   const canUndo = !!grant && ['approved', 'done', 'failed'].includes(grant.status) && !messagesSent
   const pack = esc?.pack as unknown as Pack | undefined
   const language = (msg?.params as { language?: string } | undefined)?.language ?? 'auto'
+  const lc = rec?.item_counts ?? {}
+  const linkHeld = ((rec?.params as { holdout?: string[] } | undefined)?.holdout ?? []).length
+  const linkPlanned = rec?.items.length ?? 0
+  const linkSent = lc.sent ?? 0
+  const nLinks = 4
+  const nVerify = messagesSent ? 5 : done > 0 ? 4 : 3
 
   const approve = (a: Action, set: (x: Action) => void, stage: Action['stage']) =>
     run(`${a.id}:${stage}`, async () => {
       const next = await send<Action>('POST', `/api/actions/${a.id}/approve`, { stage, approver: 'founder' })
       set(next)
-      if (next.action_type === 'message') await loadPreview(next)
+      if (next.action_type === 'message' || next.action_type === 'recovery_link') await loadPreview(next)
       onChanged()
     })
 
@@ -85,7 +98,7 @@ export function RenewalFix({ inc, members, onChanged }: { inc: Schemas['Incident
       <Box display="flex" flexDirection="column" gap="spacing.2">
         <Heading size="medium">What you can do</Heading>
         <Text size="small" color="surface.text.gray.muted">
-          The cause is Razorpay's, so Blindspot cannot fix it. It can keep these customers' access on while Razorpay looks, and give Razorpay the evidence. Every step waits for your approval, at every autonomy level. <Link to="/settings">Settings</Link>
+          The cause is Razorpay's, so Blindspot cannot fix it. It can keep these customers' access on while Razorpay looks, give Razorpay the evidence, and send each customer a renewal link once cards work again. Every step waits for your approval, at every autonomy level. <Link to="/settings">Settings</Link>
         </Text>
       </Box>
 
@@ -193,9 +206,56 @@ export function RenewalFix({ inc, members, onChanged }: { inc: Schemas['Incident
         )}
       </Turn>
 
+      {messagesSent && (
+        <Turn n={nLinks} analyzing={busy === 'linkplan'} you={rec && rec.status !== 'drafted' ? 'Send the renewal links' : undefined} title="Send the renewal links, in stages"
+          badge={rec ? [rec.status === 'done' ? 'Sent' : rec.status === 'drafted' ? 'Draft' : rec.status === 'failed' ? 'Stopped' : `${linkSent} of ${linkPlanned - linkHeld}`, rec.status === 'done' ? 'positive' : rec.status === 'failed' ? 'negative' : 'neutral'] : undefined}>
+          {!rec ? (
+            <Box display="flex" flexDirection="column" gap="spacing.3" alignItems="flex-start">
+              <Text size="small">The message promised each customer one renewal link once this is fixed. This lists who gets it: customers who were told, and have not paid since. A few are held back on purpose. Changes nothing yet.</Text>
+              <Button variant="secondary" isLoading={busy === 'linkplan'} isDisabled={!!busy} onClick={() => run('linkplan', async () => { const a = await send<Action>('POST', `/api/incidents/${inc.id}/actions`, { action_type: 'recovery_link', params: { language: 'auto' } }); setRec(a); await loadPreview(a); onChanged() })}>
+                Plan the links
+              </Button>
+            </Box>
+          ) : (
+            <Box display="flex" flexDirection="column" gap="spacing.4">
+              <Text weight="semibold">{linkPlanned} customers, {linkHeld} of them held back on purpose.</Text>
+              <Text size="small" color="surface.text.gray.muted">The held-back customers get nothing. Comparing them with the rest is the only way to tell what the link adds. With so few customers the comparison is a rough guide at best.</Text>
+              {linkPreviews.map((p) => (
+                <Box key={p.template_id + p.language} backgroundColor="surface.background.gray.subtle" borderRadius="medium" padding="spacing.5" display="flex" flexDirection="column" gap="spacing.3">
+                  <Box display="flex" gap="spacing.3" alignItems="center" flexWrap="wrap">
+                    <Badge color="neutral">{p.category.replace('_', ' ')}</Badge>
+                    <Text size="small" color="surface.text.gray.muted">From {p.sender} · to {p.recipients} customers · {p.language === 'en' ? 'English' : 'Hinglish'}</Text>
+                  </Box>
+                  <Text>{p.body}</Text>
+                </Box>
+              ))}
+              <Text size="small" color="surface.text.gray.muted">Written from a template. The link is made through Razorpay's payment link API (simulated here), valid for {String((rec.params as { valid_hours?: number }).valid_hours ?? 48)} hours, no discount, one per customer. Messages cannot be unsent.</Text>
+              {rec.blocked_reason && <Alert isFullWidth color="notice" isDismissible={false} title="Not yet" description={rec.blocked_reason} />}
+              {rec.status === 'failed' && <Alert isFullWidth color="negative" isDismissible={false} title="Stopped" description="A message was refused, so nothing more went out. Check the audit log for the reason." />}
+              {stageButton(rec, setRec, SEND)}
+            </Box>
+          )}
+        </Turn>
+      )}
+
+      {linkSent > 0 && (
+        <Turn n={nLinks + 1} you="Show me what the customers did" title="What the customers did" badge={['Simulated customers', 'neutral']}>
+          <Box display="flex" flexDirection="column" gap="spacing.3">
+            <Text weight="semibold">{lc.sent_paid ?? 0} of {linkSent} customers with a link have renewed, {rupees(lc.recovered_paise ?? 0)} collected.</Text>
+            <Text size="small">Held back on purpose: {lc.held_back_paid ?? 0} of {lc.held_back ?? 0} renewed on their own. {(lc.held_back ?? 0) < 20 ? 'Too few customers to say what the link adds.' : ''}</Text>
+            <Text size="small" color="surface.text.gray.muted">The customers here are simulated, with behaviour set in the synthetic world. This is not a result. Links stay valid for 48 hours, so give it time.</Text>
+            <Box>
+              <Button variant="secondary" size="small" isDisabled={!!busy} onClick={() => run('clock', async () => { await send('POST', '/api/clock/advance', { hours: 48, incident: inc.id }); setRec(await get<Action>(`/api/actions/${rec!.id}`)); onChanged() })}>
+                Move the demo clock forward 48 hours
+              </Button>
+            </Box>
+          </Box>
+        </Turn>
+      )}
+
       {(done > 0 || inc.status === 'closed') && (
-        <Turn n={done > 0 ? 4 : 3} analyzing={busy === 'verify'} you={result ? 'Verify and close' : undefined} title="Verify and close" badge={inc.status === 'closed' ? ['Closed', 'positive'] : undefined}>
-          <Text size="small">Checks every customer against your records again, and that card renewals have gone through again since the last failure. Their renewals still have to be collected: that is not part of this step.</Text>
+        <Turn n={nVerify} analyzing={busy === 'verify'} you={result ? 'Verify and close' : undefined} title="Verify and close" badge={inc.status === 'closed' ? ['Closed', 'positive'] : undefined}>
+          <Text size="small">Checks every customer against your records again, and that card renewals have gone through again since the last failure. If renewal links went out, it also counts who renewed, and a link send that is half done keeps the incident open. Collecting the renewals of customers without a link is not part of this step.</Text>
           <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
             <Button variant="secondary" isLoading={busy === 'verify'} isDisabled={!grant || !!busy} onClick={() => run('verify', async () => { setResult(await send<Schemas['VerifyResult']>('POST', `/api/incidents/${inc.id}/verify`)); onChanged() })}>
               Verify and close

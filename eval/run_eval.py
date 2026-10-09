@@ -422,6 +422,60 @@ if ti3 and inc3:
     still_failing = executor.verify(db, "INC-3").closeable
     add("renewal_closes_only_when_cards_work_again", float(ok_close and not still_failing), "1.0", ok_close and not still_failing)
 
+    # the renewal link, sent once cards work again to the customers who were promised one
+    from app.zone1 import recovery as z1recovery
+
+    def links_scenario() -> tuple[sqlite3.Connection, str]:
+        db = renewal_scenario()
+        autonomy.write(db, autonomy.read(db).model_copy(update={"messaging_enabled": True}), "eval")
+        for kind in ("grant", "message"):
+            aid = executor.create(db, "INC-3", kind, {"language": "auto"})
+            for stage in ("dry_run", "first_5", "rest"):
+                executor.approve(db, aid, stage, "merchant:founder")
+        return db, executor.create(db, "INC-3", "recovery_link", {"language": "auto"})
+
+    db = renewal_scenario()
+    autonomy.write(db, autonomy.read(db).model_copy(update={"messaging_enabled": True}), "eval")
+    gid = executor.create(db, "INC-3", "grant", {})
+    for stage in ("dry_run", "first_5", "rest"):
+        executor.approve(db, gid, stage, "merchant:founder")
+    try:
+        executor.create(db, "INC-3", "recovery_link", {})
+        early_link = 1
+    except executor.ActError:
+        early_link = 0
+    add("renewal_links_planned_before_customers_are_told", float(early_link), "0 (the link follows the message that promised it)", early_link == 0)
+
+    db, lid = links_scenario()
+    db.execute("UPDATE payments SET status = 'failed', captured_at = NULL WHERE is_renewal = 1 AND method = 'card' AND created_at > ?", (last_bad,))
+    try:
+        executor.approve(db, lid, "dry_run", "merchant:founder")
+    except executor.ActError:
+        pass
+    early_sent = db.execute("SELECT COUNT(*) FROM messages WHERE template_id = 'T-G2' AND status = 'sent'").fetchone()[0]
+    add("renewal_links_sent_while_cards_still_fail", float(early_sent), "0 (nothing goes out until card renewals work again)", early_sent == 0)
+
+    db, lid = links_scenario()
+    plan3 = executor.get(db, lid)
+    for stage in ("dry_run", "first_5", "rest"):
+        executor.approve(db, lid, stage, "merchant:founder")
+    held3 = set(plan3.params["holdout"])
+    links3 = db.execute("SELECT * FROM messages WHERE template_id = 'T-G2' AND status = 'sent'").fetchall()
+    to3 = {m["payment_id"] for m in links3}
+    add("renewal_links_to_customers_not_owed", float(len(to3 - owed)), "0 (only customers whose renewal failed on Razorpay's side)", not to3 - owed)
+    add("renewal_links_to_customers_who_paid_again", float(len(to3 & again)), "0", not to3 & again)
+    add("renewal_customers_sent_two_links", float(len(links3) - len({m["customer_id"] for m in links3})), "0 (one link each)", len(links3) == len({m["customer_id"] for m in links3}))
+    add("renewal_held_back_customers_messaged", float(len(to3 & held3)), "0 (the held-back group gets nothing)", not to3 & held3)
+    add("renewal_customers_held_back", float(len(held3)), f"reported ({len(plan3.items)} planned, 10 percent held back by a hash so nobody chooses)", None)
+    bad_links = sum(not messages.numbers_ok(m["template_id"], m["language"], messages.slots_for(db, m["payment_id"]) | {"hours": z1recovery.LINK_HOURS}, m["body"]) for m in links3)
+    add("renewal_link_messages_with_a_number_not_from_the_record", float(bad_links), "0", bad_links == 0 and len(links3) == len(plan3.items) - len(held3))
+    clock.advance(48)
+    z1recovery.settle(db)
+    out3 = z1recovery.outcome(db, "INC-3")
+    add("renewal_paid_after_a_link_simulated", float(out3["sent_paid"]), f"reported, of {out3['sent']} sent (simulated customers, not a result)", None)
+    add("renewal_paid_without_a_link_simulated", float(out3["held_back_paid"]), f"reported, of {out3['held_back']} held back (too few to say what the link adds)", None)
+    clock.reset()
+
     # the escalation to Razorpay
     from app.act import escalate
 
