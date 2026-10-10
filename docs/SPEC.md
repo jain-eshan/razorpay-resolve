@@ -713,3 +713,29 @@ blindspot/
 | Snapshot | Two builds from the same seed are identical. |
 
 **Definition of done.** `make synth && make eval && make snapshot` run clean from a fresh clone. Hero A and Hero B run live in under 90 seconds of clicking. Every number in the video is in `eval/report.md` or derived from `world.db`. The README lists what is mocked and what is proposed.
+
+---
+
+## 21. Production mapping and tech calls (10 Oct 2026)
+
+Not a contract change. The prototype in this repo is the specification. Production would re-express it on Razorpay's own agent stack: skills, three tools (GraphQL, REST, workflow) and an orchestrator, with Blade for the interface (`docs/INTERVIEWS.md` S4; full text of the talk in `docs/RAZORPAY_TRANSCRIPTS.md`). Money and access changes are always deterministic workflow tools, never a model decision. This is the same rule as SPEC section 0.
+
+| Prototype part | Production form |
+|---|---|
+| `detect/` monitors, `zone1/` baselines | Scheduled grouped queries on data Razorpay already holds, one batch every 5 to 15 minutes, offered to the agent as a read-only GraphQL tool. Not a stream per merchant: that one choice can flip the business case (BUSINESS_CASE 4.1). |
+| `match/lookup.py` | A GraphQL tool. The fuzzy scorer stays suggestion-only. |
+| `ingest/extract.py` | Rules first. A small model sits behind the same function, redacted input only. |
+| `investigate/` (not built) | A skill with typed read-only tools and the 8-call budget. Built only if the pilot shows rules cannot explain more than about 15 to 20 percent of incidents. The cheap part to build first is the response-body reader. |
+| Attribution table (section 9.3) | Code, not prompt. The skill chooses a template and cannot change a count. |
+| `act/executor.py` (plan, dry run, first 5, rest, undo, verify) | Workflow tools, idempotent per customer, with the merchant confirming each stage. |
+| `act/refund.py` | Not rebuilt. Call the dashboard's refund tool and its explicit-confirm rule. Keep the daily cap and original-method rule as platform validation. |
+| Recovery links, renewal link | The Payment Links tool and the Cart Recovery and Subscription Recovery agents. Blindspot supplies the signal and the customer list. |
+| `channels/policy.py` | Razorpay's platform validation layer plus our lint: consent, 24-hour window, amounts from slots, never-ask, and no false urgency (new). |
+| `conversation/` | A skill on the WhatsApp, email and SMS connectors Agent Studio already enables. Same three-question cap. |
+| `merchant_mock.py` access check | Plugin merchants (Shopify, WooCommerce, Wix, Magento): nothing to connect. Custom merchants: a fulfilment acknowledgement they send when they grant access. Event tools they already run (Sentry alerts, analytics events) feed signals. A new connector takes about a week. |
+| `audit.py` | The Agent Studio audit trail. |
+| Web screens | Blade generative-UI blocks in the agentic dashboard: incident card, timeline table, fix stepper with confirm buttons. |
+
+**For the demo (to 13 Oct).** Nothing above changes the code. No model, as decided. The built refund, recovery-link and renewal-link flows stay and are described as flows that production hands to existing tools. One small item is queued, not started: a no-false-urgency rule in the template lint, beginning with `T-G2`, whose expiry slot must stay a real expiry. Full list: `docs/INTERVIEWS.md` section 9.
+
+**For production.** Detection is a platform feature (Watch, free). Fix and Guard are a first-party Agent Studio agent. Pricing, gates and the pilot are in `docs/BUSINESS_CASE.md`.
