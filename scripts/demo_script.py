@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
-from app import clock, merchant_mock, service
+from app import clock, guard, merchant_mock, service
 from app.act import autonomy, escalate, executor, refund
 from app.conversation import machine
 from app.learning import loop as learning
@@ -207,6 +207,19 @@ def record_renewal(src: sqlite3.Connection) -> dict:
     return out
 
 
+def record_guard(src: sqlite3.Connection) -> dict:
+    """Guard's release check in the four states the hosted demo can be in: the webhook broken (as the world starts) or fixed, and the pay page broken or fixed.
+    Each frame is the engine's own answer. The demo picks one by what the user has fixed so far."""
+    out: dict = {}
+    for wh in ("401", "ok"):
+        for pg in ("404", "ok"):
+            d = _fresh(src)
+            merchant_mock.set_webhook_mode(d, wh)
+            merchant_mock.set_page_mode(d, pg)
+            out[f"{'w1' if wh == 'ok' else 'w0'}_{'p1' if pg == 'ok' else 'p0'}"] = guard.release_check(d, clock.now()).model_dump(mode="json")
+    return out
+
+
 def _plain(model) -> object:
     return [m.model_dump(mode="json") for m in model] if isinstance(model, list) else model.model_dump(mode="json")
 
@@ -300,6 +313,7 @@ def record(world_path: Path) -> dict:
     out["renewal"] = record_renewal(src)
     out["duplicate"] = record_duplicates(src)
     out["learning"] = record_learning(src)
+    out["guard"] = record_guard(src)
 
     # ---- the fix: dry run, first 5, the rest, then messages, then verify and close ----
     db = _fresh(src)

@@ -95,3 +95,19 @@ test('incident list adds up the incidents and says why a zone is empty; an incid
   await page.getByRole('button', { name: 'Start the fix' }).click()
   await expect(page.getByRole('heading', { name: 'Fix it' })).toBeInViewport()
 })
+
+// Guard's release check. A report with one safe button (run it again): it never changes anything, and it names the step that failed, what that means, and what to do.
+test('S-20 release check: the starting world is on hold, each failed step says what to do, and it is reachable from the side nav', async ({ page }) => {
+  await page.goto('/release-check')
+  await expect(page.getByRole('heading', { name: 'Release check' })).toBeVisible()
+  await expect(page.getByText('Hold the release', { exact: true }).first()).toBeVisible()
+  await expect(page.getByText('1 of 5')).toBeVisible()  // only "your webhook answers" passes in the starting world
+  await expect(page.getByText('Failed', { exact: true })).toHaveCount(2)
+  await expect(page.getByText('Not tried', { exact: true })).toHaveCount(2)
+  await expect(page.getByText(/^Next: /)).toHaveCount(2)  // every failure ends in what to do
+  await expect(page.getByText(/release-check.*safe_to_release/)).toBeVisible()  // the line for a release script
+  await expect(page.getByText('What I cannot see')).toBeVisible()
+  await expect(page.getByRole('button', { name: /grant|refund|send|approve|fix|revoke|undo/i })).toHaveCount(0)  // nothing here changes anything
+  await expect(page.getByRole('button', { name: 'Run the check again' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Release check' }).first()).toBeVisible()
+})

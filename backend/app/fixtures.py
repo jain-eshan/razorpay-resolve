@@ -39,6 +39,8 @@ from .schemas import (
     MessagePreview,
     ProbeResult,
     RayCard,
+    ReleaseCheck,
+    ReleaseStep,
     ReplaySummary,
     SampleTimeline,
     ScanResult,
@@ -250,6 +252,9 @@ LEAKAGE = LeakageReport(
                      failed_at=NOW - timedelta(hours=78), rule_ends_at=NOW - timedelta(hours=30), hours_over_rule=30.0, access_until=NOW + timedelta(days=20))],
     inside_rule=[], left_out=[], funnel=[], cannot_see=[],
 )
+RELEASE = ReleaseCheck(checked_at=NOW, safe_to_release=True, headline="Safe to release. Your webhook acknowledges a test event and your pay page opens with checkout on it.", failed=0,
+                       steps=[ReleaseStep(key="answers", group="webhook", label="Your webhook answers", status="pass", saw="It answered 200.", meaning="", next_step="")],
+                       ci_call="curl -fsS \"$BLINDSPOT_API/api/guard/release-check\" | jq -e '.safe_to_release'", cannot_see=["Your code."])
 STEP = ThreadStep(thread=THR1, drafted_reply=None, auto_sent=True)
 
 # ids the snapshot build expands path parameters with

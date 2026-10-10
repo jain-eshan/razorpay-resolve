@@ -47,6 +47,8 @@ Evidence tags used throughout: **[dash]** observed in the Razorpay test dashboar
 | D17 | In production, refunds, recovery links and renewal links use Razorpay's existing tools and agents. Blindspot keeps detection, widening, attribution, the customer conversation and the access fix. The built demo keeps the flows it has. | 10 Oct |
 | D18 | Staffing is man-hours from existing teams, not a new team: about 26 person-months in year 1 and 12 a year after, at ISB AI PM and full-stack builder pay. | 10 Oct |
 | D19 | A 6-month pilot (about ₹0.8 cr) comes first. Two failed gates at month 6 means Watch only, about ₹0.46 cr a year. | 10 Oct |
+| D20 | No false urgency. Outgoing messages carry no pressure wording, and a validity line ("valid for 48 hours") is allowed only when its number is the link's real expiry. Agent Studio's certification screens for dark patterns, and MediaNama named them as an open concern at launch. Enforced in the policy engine and the eval, not left to template review. | 10 Oct |
+| D21 | In production, activation is the first build, and it rides Razorpay's own onboarding: the integration prompt that a merchant pastes into a coding agent carries the fulfilment acknowledgement call, and agent onboarding's website scan supplies the pay-page address for the probe. Not in the frozen base case, which keeps 8% connected. It is the main upside to test in the pilot. | 10 Oct |
 
 ---
 
@@ -364,10 +366,16 @@ IDs are used in the build plan. Release codes are defined in `Blindspot_v2_Build
 | F-52 | Learning loop and "what I learned" card | S | R5 |
 | F-53 | Eval harness and "How we know" page | M | R1 onward |
 | F-54 | Redaction, retention, suppression | M | R3 |
+| F-55 | No-false-urgency check on every outgoing message (D20) | S | R4 rest, built 10 Oct |
 | F-60 | RAY phone card (simulated) | M | R1 |
 | F-61 | Incident inbox and incident detail | M | R1 |
 | F-70 | Real Razorpay test-mode rails | C | R6 |
 | F-71 | One real WhatsApp conversation | C | R6 |
+| F-80 | Price card before connecting, fee preview before approving a fix, receipt after, monthly value ledger (BUSINESS_CASE 5.2) | P | Pilot |
+| F-81 | Guard test ping: a signed test event sent to the merchant's webhook endpoint that checks the handler answers, accepts it and sends a fulfilment acknowledgement | P | Pilot. Prototype built 10 Oct as the Release check screen (merchant simulated) |
+| F-82 | Guard pre-deploy check a merchant can call before a release: the test ping and a pay-page check (opens, and checkout opens) in one call that returns safe or hold | P | Pilot. Prototype built 10 Oct, same screen and `GET /api/guard/release-check` |
+
+Priority P means pilot build after submission (BUSINESS_CASE section 8). The prototype has F-81 and F-82 as one screen against a simulated merchant, and none of F-80. Guard has no edge over do-it-yourself tooling without F-81 and F-82, so they come first in the pilot (BUILD_PLAN section 13). Not in the prototype: a check against a real merchant endpoint, a trigger from a real release pipeline, and the check on event types other than a payment capture.
 
 ---
 
@@ -383,7 +391,7 @@ Never available at any setting: revoke access, refund to anywhere but the origin
 
 Other guardrails inherited from v1 section 12: staged execution (dry run, first 5, rest), idempotency keys, caps, per-row refund approval on the web only, number-from-tool only, prompt-injection controls, "Mock" and "Proposed API" tags.
 
-New guardrails: window and template enforcement per channel, disclosure on first message, suppression, retention and disconnect, "inferred" labelling that blocks money movement, holdout only on outreach and never on fixes.
+New guardrails: window and template enforcement per channel, disclosure on first message, suppression, retention and disconnect, "inferred" labelling that blocks money movement, holdout only on outreach and never on fixes, and no pressure wording or invented expiry on any outgoing message (D20).
 
 ---
 
@@ -540,3 +548,5 @@ A1 Razorpay logs per-attempt webhook outcomes internally (the dashboard shows a 
 Shadow onboarding for every new merchant, an entitlement connector library (Supabase, Firebase, Django, Laravel, WooCommerce), helpdesk sidebar apps, live replay with Razorpay, grievance matching and routing for Razorpay's own desk, cross-merchant early warning (k-anonymous, 5 or more merchants, never an automatic risk action), Vulcan baselines, live public-mention listening on licensed APIs, a consent bridge, more mismatch types, and a D2C extension. Details are in v1 section 24.
 
 **Production cuts and order** (from the Razorpay interviews, `docs/INTERVIEWS.md`): in production, refunds, recovery links and renewal links are handed to Razorpay's existing tools and agents, and the investigation agent waits until the pilot shows how many incidents the rules cannot explain. The order is activation first (the fulfilment acknowledgement, plugin signals, event-tool receivers), then Watch, then Fix, then Guard's prevention checks. Pilot and gates: `docs/BUSINESS_CASE.md` section 8.
+
+**Activation rides Razorpay's own onboarding** (D21, from the full transcripts, `docs/INTERVIEWS.md` section 10). Razorpay now onboards by agent (a website scan fills the KYC form, about 3 minutes against 30) and integrates by prompt (a prompt pasted into a coding agent replaces the docs and the code snippet). Both are the cheapest place to attach Blindspot: the prompt can include the fulfilment acknowledgement call, and the scanned website gives the pay-page address the probe needs. A merchant who integrates by prompt has a handler an agent wrote, and coding agents raise how often merchants deploy, which is the input behind the incident rate (our inference from the transcripts, not a Razorpay figure). Neither is in the frozen base case.

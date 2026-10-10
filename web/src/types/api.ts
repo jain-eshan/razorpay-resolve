@@ -380,6 +380,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/guard/release-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Guard Release Check */
+        get: operations["guard_release_check_api_guard_release_check_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/handovers": {
         parameters: {
             query?: never;
@@ -1896,6 +1913,49 @@ export interface components {
              */
             state: "ready" | "pending" | "processed";
         };
+        /** ReleaseCheck */
+        ReleaseCheck: {
+            /** Cannot See */
+            cannot_see: string[];
+            /**
+             * Checked At
+             * Format: date-time
+             */
+            checked_at: string;
+            /** Ci Call */
+            ci_call: string;
+            /** Failed */
+            failed: number;
+            /** Headline */
+            headline: string;
+            /** Safe To Release */
+            safe_to_release: boolean;
+            /** Steps */
+            steps: components["schemas"]["ReleaseStep"][];
+        };
+        /** ReleaseStep */
+        ReleaseStep: {
+            /**
+             * Group
+             * @enum {string}
+             */
+            group: "webhook" | "pay_page";
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Meaning */
+            meaning: string;
+            /** Next Step */
+            next_step: string;
+            /** Saw */
+            saw: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pass" | "fail" | "skipped";
+        };
         /** ReplayRow */
         ReplayRow: {
             /**
@@ -2968,6 +3028,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    guard_release_check_api_guard_release_check_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReleaseCheck"];
                 };
             };
         };

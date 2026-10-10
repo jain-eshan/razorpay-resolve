@@ -214,3 +214,15 @@ def test_the_hinglish_public_reply_says_it_is_an_ai_and_the_founder_can_approve_
     draft = next(x for x in m.get_thread(fresh, tid).messages if x.sender_role == "agent")
     assert "Main ek AI" in draft.body
     assert [x.policy["status"] for x in m.reply(fresh, tid, None, None, "founder").thread.messages if x.sender_role == "agent"] == ["sent"]
+
+
+def test_a_free_text_reply_that_pressures_or_invents_an_expiry_is_held_as_a_draft(fresh):
+    tid = inbound(fresh, "paisa kat gaya 299 ka")
+    th = fresh.execute("SELECT * FROM threads WHERE id = ?", (tid,)).fetchone()
+
+    def decide(body):
+        return policy.check_thread(fresh, th, "ig_dm", body=body, template_id=None, language="en", slots=None, message_class="status_reply", approved_by="merchant:founder", now=m.clock.now())
+    assert decide("Hi, I am an AI. Please send the UPI ref.").allowed
+    for body in ("Hi, I am an AI. Hurry, send the UPI ref.", "Hi, I am an AI. Send the UPI ref within 2 hours."):
+        d = decide(body)
+        assert not d.allowed and any("not real" in r for r in d.reasons), body

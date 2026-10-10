@@ -7,7 +7,7 @@ from fastapi import APIRouter, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import audit as audit_log
-from . import clock, leakage, merchant_mock, service
+from . import clock, guard, leakage, merchant_mock, service
 from . import fixtures as fx
 from .act import autonomy, escalate, executor, refund
 from .config import BS_NOW
@@ -52,6 +52,7 @@ from .schemas import (
     RayCard,
     RecoveryRequest,
     RefundBoard,
+    ReleaseCheck,
     ReplaySummary,
     ReplyRequest,
     SampleTimeline,
@@ -256,6 +257,8 @@ def get_escalation(escalation_id: str): return _real(escalate.get, escalation_id
 def send_escalation(escalation_id: str, body: SendEscalationRequest): return _real(lambda db: _commit(db, escalate.send(db, escalation_id, f"merchant:{body.approver}"))) if _live() else fx.ESC1
 @api.post("/feedback", response_model=Ack)
 def feedback(body: FeedbackRequest): return _real(_feedback, body) if _live() else Ack()
+@api.get("/guard/release-check", response_model=ReleaseCheck)
+def guard_release_check(): return _real(lambda db: guard.release_check(db, clock.now())) if _live() else fx.RELEASE
 @api.get("/leakage", response_model=LeakageReport)
 def leakage_report(): return _real(lambda db: leakage.report(db, clock.now())) if _live() else fx.LEAKAGE
 @api.get("/learning/weekly", response_model=LearningWeekly)

@@ -101,6 +101,7 @@ S1 to S5 are in the transcripts file under the same IDs. S6 to S9 are web pages,
 - Agentic checkout will become invisible and intent-led, while discovery-led commerce stays.
 - Razorpay operates in about 5 geographies and sees these products as built in India for export.
 - **Use:** "pre-payment and post-payment needs closely tied to payments infrastructure" is the exact space of Blindspot. Because the alternative is usually nothing, the price has to be small and outcome-based. There is no budget line to displace.
+- **Pitch line (10 Oct):** he says Razorpay's largest customers have account managers who stand between them and Razorpay, and that agents now give the smallest merchant an experience at par with the largest. Blindspot is the account manager's first job for a merchant who has none: noticing that a webhook is failing and telling Razorpay with evidence.
 
 ## 6. S6: Razorpay pages on Agent Studio
 
@@ -141,8 +142,8 @@ S1 to S5 are in the transcripts file under the same IDs. S6 to S9 are web pages,
 | T4 | Keep the built flows (refund, recovery links, renewal link) in the demo, and label them as flows that production hands to existing tools. | S4, S5, S2 | Decided |
 | T5 | Use Blade only, as built. | S4 | Already true |
 | T6 | Do not add fee previews or receipts to the demo before submission. Post-submission backlog. | BUSINESS_CASE 5.2 | Backlog |
-| T7 | Add a no-false-urgency check to the template lint, starting with the `T-G2` renewal link, which carries an expiry slot. A real expiry is allowed, an invented one is not. | S6 principle 6 | Backlog, stream C, not a contract change |
-| T8 | Keep the connection point in the mock named for what it is in production: a fulfilment acknowledgement the merchant sends when it grants access. | BUSINESS_CASE 2.1 | Wording only |
+| T7 | Add a no-false-urgency check to the template lint, starting with the `T-G2` renewal link, which carries an expiry slot. A real expiry is allowed, an invented one is not. | S6 principle 6 | Built 10 Oct 2026 (PRD D20, F-55). The "48 hours" in `T-G2` and `T-Z1R` is a constant that nothing enforces in the mock, so the check allows a validity line only when its number is the template's `hours` slot, the link's real expiry in production. |
+| T8 | Keep the connection point in the mock named for what it is in production: a fulfilment acknowledgement the merchant sends when it grants access. | BUSINESS_CASE 2.1 | Done 10 Oct 2026 in the merchant mock and on the Release check screen. The Fix step still says "access hook", because that is the path Blindspot grants access through, which is a different thing. |
 
 ### 9.2 For production
 
@@ -158,6 +159,9 @@ S1 to S5 are in the transcripts file under the same IDs. S6 to S9 are web pages,
 | P8 | Prepare for agent certification: logic, data scope, actions, compliance and message patterns are reviewed before listing. Our SPEC and policy engine are the starting pack. | S6 |
 | P9 | Keep the pilot team to 2 to 3 people with a daily review. | S1, S2 |
 | P10 | Watch's free layer should be reviewed against NPS, the primary internal goal. | S3 |
+| P11 | Attach activation to Razorpay's integration prompt: the prompt a merchant pastes into a coding agent includes the fulfilment acknowledgement call. Connection is the largest driver of the case, and this is a merchant who is connected on day one at no effort. | S2 (integration by prompt) |
+| P12 | Take the pay-page address from agent onboarding's website scan, so the pay-page check needs no setup. | S2 (agent onboarding) |
+| P13 | Build Guard's test ping and pre-deploy check first. Harshil says coding agents moved the bottleneck to testing and deployment, and that repos now fill with agent-written pull requests. Merchants who integrate by prompt run agent-written handlers and release more often, which is the input behind the incident rate. | S2 |
 
 ### 9.3 Still unknown
 
@@ -170,3 +174,29 @@ S1 to S5 are in the transcripts file under the same IDs. S6 to S9 are web pages,
 ### 9.4 Worth getting if you can
 
 The Ken's Zero Shot podcast with Harshil (paywalled), the Agent Studio launch videos on YouTube, a screenshot of Agent Studio's price card from an early-access account, and any statement from the 9 May builder day.
+
+---
+
+## 10. Review of the full transcripts and public news (10 Oct 2026)
+
+Done by reading S1 to S5 in full (`docs/RAZORPAY_TRANSCRIPTS.md`), then checking the PRD, the build plan, the business case and the design guide against them, and searching for Agent Studio pricing and Razorpay news dated after the 10 Oct freeze.
+
+**What changed**
+
+| Change | Where | Why |
+|---|---|---|
+| D20 and F-55: no false urgency, built | PRD, BUILD_PLAN 13, `backend/app/conversation/lint.py` | S6 principle 6 and B12 were written down but never reached the PRD or the code. Found that `T-G2` and `T-Z1R` state a 48 hour validity that nothing in the mock enforces. |
+| D21, P11, P12: activation through the integration prompt and agent onboarding | PRD D21 and section 18, BUILD_PLAN 13 | S2 describes both flows and the digest listed them without connecting them to the case's largest driver. Not priced: the base case keeps 8% connected. |
+| P13, F-81, F-82: prevention checks first within Guard | PRD section 10, BUILD_PLAN 13 | Guard carries ₹0.93 cr of the ₹1.09 cr direct revenue and has no edge over a do-it-yourself script without them. The prototype has neither. |
+| F-80: price card, fee preview, receipt, value ledger now have a feature row | PRD section 10 | BUSINESS_CASE 5.2 described them and the PRD had no row. Still post-submission (T6). |
+| Pitch line from S5 | S5 use | The account manager framing is the plainest way to say who Blindspot is for. Eshan decides whether it goes in the note. |
+
+**What did not change, and why**
+
+- **Pricing.** Razorpay has published no Agent Studio price. Its launch blog says each agent shows its price before install (usage, subscription or outcome), and the CPO told MediaNama the price depends on the agent after the 30 day trial. MediaNama also named dark patterns and price discrimination as open concerns. All of that matches Watch free, Fix at 1 percent with a first incident free, and Guard by subscription. No unfreeze trigger in BUSINESS_CASE section 11 has fired.
+- **Business case numbers.** Nothing in the transcripts or the news moves an input. The activation upside is recorded as unpriced.
+- **Design.** The "chat plus screens" pattern in the FTX talk (an agent proposes the action, asks for a missing input with a generated form, puts a button on anything that moves money, then summarises and says what it did not touch) is the pattern already written as `web/DESIGN.md` section 17 from Razorpay's own agents, and our incident pages already follow it. Loading skeletons came in with PR #30. No design change.
+- **Release plan.** R0 to R7 stay as they are. The investigation agent still waits for a model and pilot data. R6 still needs Eshan's accounts.
+- **Fee preview and receipt in the demo** stay out until after submission (T6). The reason holds: the Fix fee is an assumption, and showing a price in a demo for judges who run Agent Studio invites a pricing argument the pilot should settle first.
+
+**Sources for the pricing check:** [Razorpay Agent Studio principles](https://razorpay.com/blog/razorpay-agent-studio-principles-guardrails-and-merchant-control/), [MediaNama on the CPO and pricing](https://www.medianama.com/2026/03/223-razorpay-chief-product-officer-ai-agent-studio-pricing-compliance-concerns/), [MediaNama on dark patterns](https://www.medianama.com/2026/03/223-razorpay-launches-ai-agent-studio-questions-loom-dark-patterns-price-discrimination/). No Razorpay news dated 3 to 10 Oct 2026 turned up in the search tool, which does not prove there is none.

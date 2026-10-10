@@ -37,6 +37,7 @@ type Demo = {
     messages: { blocked: Record<string, Frame<Action>>; ready: Record<string, Frame<Action>>; previews: Record<string, unknown>; stages: Record<string, Frame<Action>> }
     verify: Record<'soon' | 'closed', Frame>
   }
+  guard: Record<'w0_p0' | 'w0_p1' | 'w1_p0' | 'w1_p1', Schemas['ReleaseCheck']>
   zone1: {
     probe: Record<'broken' | 'ok', Frame>
     health: Record<'broken' | 'ok0' | 'ok1' | 'ok2', Frame>
@@ -166,6 +167,7 @@ export async function demoGet(path: string): Promise<unknown | undefined> {
     return st.hours >= 24 ? d.fix.hook_ok24.data : { ...(d.fix.hook_ok.data as object), healthy_hours: st.hours }
   }
   if (p === '/merchant-mock/page-health') return d.zone1.health[pageKey()].data
+  if (p === '/api/guard/release-check') return d.guard[`${st.mode === 'ok' ? 'w1' : 'w0'}_${z.mode === 'ok' ? 'p1' : 'p0'}`]  // what the user has fixed so far decides which recorded answer
   if (p === '/merchant-mock/app-health') {
     const fixed = dp.fixAt >= 0
     return { app_mode: fixed ? 'fixed' : 'broken', app_fixed_since: null, healthy_hours: fixed ? dp.h - dp.fixAt : 0, signal_healthy: fixed && dp.h - dp.fixAt >= 24 }

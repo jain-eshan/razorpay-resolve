@@ -316,6 +316,7 @@ Most statements by Razorpay people come from talks and interviews: the digest is
 | Date | Change |
 |---|---|
 | 10 Oct 2026 | Frozen. Base: 8% connected, Guard 6%, 80% paid months, ISB squad pay (₹3.74 lakh per person-month). |
+| 10 Oct 2026 | Reviewed against the full transcripts and a search for Agent Studio pricing and news. No input changed and no unfreeze trigger fired. Activation through Razorpay's integration prompt and agent onboarding is recorded in `docs/INTERVIEWS.md` section 10 as unpriced upside to the connected share, not as a new base. |
 | 10 Oct 2026 | Correction to earlier chat figures: Guard costs 56% (mid) and 40% (large) of expected value restored, not 45% and 32%, because the earlier figures left out the 80% detection rate. The pilot cost is about ₹0.8 cr, not ₹0.5 cr, and the Guard uptake gate is 4.5%, not 4%. |
 
 Unfreeze triggers: Razorpay data answers any of the five queries; a gate in section 8 reads out; Razorpay publishes Agent Studio pricing; the rollout decision in section 8 is made.

@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
 from app import clock, merchant_mock
 from app.act import autonomy, executor, messages
+from app.conversation.lint import urgency_violations
 from app.ingest.extract import extract
 from app.ingest.redact import redact
 from app.match import lookup as mt
@@ -469,6 +470,8 @@ if ti3 and inc3:
     add("renewal_customers_held_back", float(len(held3)), f"reported ({len(plan3.items)} planned, 10 percent held back by a hash so nobody chooses)", None)
     bad_links = sum(not messages.numbers_ok(m["template_id"], m["language"], messages.slots_for(db, m["payment_id"]) | {"hours": z1recovery.LINK_HOURS}, m["body"]) for m in links3)
     add("renewal_link_messages_with_a_number_not_from_the_record", float(bad_links), "0", bad_links == 0 and len(links3) == len(plan3.items) - len(held3))
+    pushy = sum(bool(urgency_violations(m["body"], real_expiry=True)) for m in links3)
+    add("renewal_link_messages_that_pressure_the_customer", float(pushy), "0 (a validity line is allowed because it is the link's real expiry; pressure words never are)", pushy == 0 and bool(links3))
     clock.advance(48)
     z1recovery.settle(db)
     out3 = z1recovery.outcome(db, "INC-3")
@@ -683,6 +686,31 @@ if states:
     add("leakage_actions_that_take_access_away", float(len([a for a in get_args(ActionType) if any(v in a for v in verbs)])), "0 (no revoke exists; the founder cuts access in their own system)", not [a for a in get_args(ActionType) if any(v in a for v in verbs)])
     add("leakage_unpaid_renewals_paise", float(rep.owed_paise), "reported (failed renewals with access still on, past the rule)", None)
     add("leakage_longest_hours_over_the_rule", rep.longest_over_hours, "reported", None)
+
+# ---- Guard: the release check (F-81 test ping, F-82 pre-deploy check). Every state the merchant's webhook and pay page can be in, against the answer we know by construction. ----
+from app import guard as guard_check
+
+WEBHOOK_FAILS = {"ok": set(), "401": {"accepts"}, "500": {"answers"}, "ack_then_fail": {"acknowledges"}}   # the step that must fail, written here and not read from guard.py
+PAGE_FAILS = {"ok": set(), "404": {"opens"}, "key_mismatch": {"checkout"}}
+gmem = sqlite3.connect(":memory:")
+gmem.row_factory = sqlite3.Row
+world.backup(gmem)
+wrong_verdict = unsafe_passed = wrong_steps = written = 0
+for wh, wf in WEBHOOK_FAILS.items():
+    for pg, pf in PAGE_FAILS.items():
+        merchant_mock.set_webhook_mode(gmem, wh)
+        merchant_mock.set_page_mode(gmem, pg)
+        marker = gmem.total_changes
+        chk = guard_check.release_check(gmem, clock.now())
+        written += gmem.total_changes - marker
+        broken = bool(wf or pf)
+        wrong_verdict += chk.safe_to_release == broken
+        unsafe_passed += broken and chk.safe_to_release
+        wrong_steps += {x.key for x in chk.steps if x.status == "fail"} != wf | pf
+add("guard_release_checks_with_the_wrong_verdict", float(wrong_verdict), "0 of 12 (every webhook mode against every pay page mode)", wrong_verdict == 0)
+add("guard_broken_releases_marked_safe", float(unsafe_passed), "0 (the one error that matters: telling a merchant to ship something broken)", unsafe_passed == 0)
+add("guard_failed_steps_not_the_ones_that_broke", float(wrong_steps), "0 (each failure is named at the step it belongs to)", wrong_steps == 0)
+add("guard_rows_written_by_running_the_check", float(written), "0 (read only)", written == 0)
 
 report = EvalReport(seed=cfg["seed"], generated_at=datetime.fromisoformat(cfg["snapshot_at"] + "+05:30"), metrics=metrics, arms=[])
 (Path(__file__).parent / "report.json").write_text(report.model_dump_json(indent=2) + "\n")

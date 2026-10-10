@@ -10,11 +10,16 @@ from datetime import datetime, timedelta
 
 from .. import audit, clock
 from ..act import autonomy, messages
-from ..conversation.lint import violations
+from ..conversation.lint import urgency_violations, violations
 from .base import OutboundMessage, PolicyDecision, SendResult, ThreadRef
 from .sim import ADAPTERS
 
 RATE_LIMIT_PER_HOUR = 6
+
+
+def _real_expiry(template_id: str | None, slots: dict | None) -> bool:
+    """A validity statement is real only when the template takes the link's validity as its `hours` slot (BUSINESS_CASE B12)."""
+    return bool(template_id and slots and slots.get("hours") and "hours" in messages.TEMPLATES[template_id]["slots"])
 
 
 def check(db: sqlite3.Connection, *, customer_id: str, template_id: str, language: str, slots: dict, body: str, approved_by: str | None, block: str | None = None) -> PolicyDecision:
@@ -27,6 +32,8 @@ def check(db: sqlite3.Connection, *, customer_id: str, template_id: str, languag
         reasons.append("No approval is on record for this message.")
     if not messages.numbers_ok(template_id, language, slots, body):
         reasons.append("The text has a number that is not from the customer's record.")
+    for v in urgency_violations(body, _real_expiry(template_id, slots)):
+        reasons.append(f"Pressures the customer or states an expiry that is not real: \"{v}\"")
     return PolicyDecision(allowed=not reasons, needs_founder_approval=not approved_by, reasons=reasons)
 
 
@@ -83,6 +90,8 @@ def check_thread(db: sqlite3.Connection, thread: sqlite3.Row, channel_type: str,
         reasons.append("The first message must say it is an AI assistant.")
     for v in violations(body):
         reasons.append(f"Asks for something it must never ask for: \"{v}\"")
+    for v in urgency_violations(body, _real_expiry(template_id, slots)):
+        reasons.append(f"Pressures the customer or states an expiry that is not real: \"{v}\"")
     if template_id and slots is not None and not messages.numbers_ok(template_id, language, slots, body):
         reasons.append("The text has a number that is not from the customer's record.")
     if thread["is_public"] and (re.search(r"\d", re.sub(r"https?://\S+", "", body)) or (slots and slots.get("first_name") and slots["first_name"] in body)):

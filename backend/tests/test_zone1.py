@@ -399,3 +399,21 @@ def test_a_customer_who_adds_the_upi_ref_is_looked_up_not_told_it_is_the_page(fr
     v = fresh.execute("SELECT p.rrn FROM incident_members im JOIN payments p ON p.id = im.payment_id WHERE im.incident_id = 'INC-1' LIMIT 1").fetchone()[0]
     t = _inbound(fresh, f"page not found aa raha hai but paisa kat gaya, UPI ref {v}", who="+919800077004").thread
     assert t.zone != "before"
+
+
+def test_a_link_stops_working_after_the_hours_the_message_promised(fresh):
+    """The message says "valid for 48 hours" (PRD D20), so a simulated customer who would pay after that has not paid. A customer held back has no link and no expiry."""
+    import json
+    from datetime import timedelta
+
+    from app import clock
+    from app.zone1 import recovery
+
+    sent = clock.now()
+    fresh.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('sim.recovery', ?)", (json.dumps({"link": {"early": 40.0, "late": 60.0}, "organic": {"held": 60.0}}),))
+    offer = lambda cid, holdout: {"paid_at": None, "id": f"INC-4:x:{cid}", "holdout": holdout, "sent_at": sent.isoformat()}
+    later = sent + timedelta(hours=100)
+    assert recovery.due(fresh, offer("early", 0), later)
+    assert not recovery.due(fresh, offer("late", 0), later)
+    assert recovery.due(fresh, offer("held", 1), later)
+    assert recovery.LINK_HOURS == 48

@@ -1,0 +1,59 @@
+{
+  "checked_at": "2026-10-02T10:40:00+05:30",
+  "safe_to_release": false,
+  "headline": "Hold the release. 2 of 5 checks failed. First problem: it rejected the signed test event (401).",
+  "steps": [
+    {
+      "key": "answers",
+      "group": "webhook",
+      "label": "Your webhook answers",
+      "status": "pass",
+      "saw": "It answered with a 401, so it is reachable.",
+      "meaning": "",
+      "next_step": ""
+    },
+    {
+      "key": "accepts",
+      "group": "webhook",
+      "label": "It accepts a signed event",
+      "status": "fail",
+      "saw": "It rejected the signed test event (401).",
+      "meaning": "Real payments are signed the same way, so they would be rejected too and no customer would get access.",
+      "next_step": "Check that the webhook secret in your server matches the one in your Razorpay dashboard, then run the check again."
+    },
+    {
+      "key": "acknowledges",
+      "group": "webhook",
+      "label": "It grants access and says so",
+      "status": "skipped",
+      "saw": "Not tried, the event was rejected.",
+      "meaning": "",
+      "next_step": ""
+    },
+    {
+      "key": "opens",
+      "group": "pay_page",
+      "label": "Your pay page opens",
+      "status": "fail",
+      "saw": "It answered 404 (Route not found).",
+      "meaning": "Customers cannot reach the page, so they cannot pay and Razorpay sees no attempt.",
+      "next_step": "Check the route and the deploy, put the page back, and run the check again."
+    },
+    {
+      "key": "checkout",
+      "group": "pay_page",
+      "label": "Checkout opens on it",
+      "status": "skipped",
+      "saw": "Not tried, the page did not open.",
+      "meaning": "",
+      "next_step": ""
+    }
+  ],
+  "failed": 2,
+  "ci_call": "curl -fsS \"$BLINDSPOT_API/api/guard/release-check\" | jq -e '.safe_to_release'",
+  "cannot_see": [
+    "Your code. I only see how your endpoint and your pay page answer.",
+    "Every event type. The test is one payment.captured event with a marker id, so a handler that breaks on refunds or subscriptions would pass.",
+    "A change that goes live after this check. Run it again after the release as well."
+  ]
+}
