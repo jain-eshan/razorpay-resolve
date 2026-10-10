@@ -21,7 +21,7 @@ Every number below is read from `eval/` output or `web/public/snapshot/`. Rerun 
 
 **Where AI is and is not.** The prototype uses no language model. Triage, extraction, detection and attribution are rules and SQL; every number comes from SQL or Python. A model is designed in at three points behind the same interfaces (messy text, free-text server errors, unlisted causes), not built or measured.
 
-**Proof, on a synthetic merchant with hidden ground truth.** 130 eval gates pass.
+**Proof, on a synthetic merchant with hidden ground truth.** 147 eval gates pass.
 - Hero A: 85 customers paid and had no access; 17 complained, 68 never did (ratio 4.0, our kill line was 2). The alert fires 55 minutes after the deploy, with one customer affected.
 - 40 scripted threads: every cooperative customer identified within three questions, no credential requests, 2 of 2 prompt injections ignored.
 - Hero B: the pay-page outage found, 0 false alarms on 5 look-alike days.
@@ -88,7 +88,7 @@ Kill criteria: K1 passes on the synthetic world (ratio 4.0). K4 passes on script
 2. Check the inbox of the Razorpay test account (including Promotions and Spam) for any "webhook failing" or "webhook disabled" email, and tell the next session. The dashboard check is done (nothing shown), so this is the last part of item 1.
 3. Ask Razorpay's contact the K2 question: does RAY or the agentic dashboard list every payment affected by one webhook failure?
 4. Record two takes from the script, from the hosted site (https://razorpay-blindspot.vercel.app/), with the caption on.
-5. Decide whether the note and the video should mention INC-3 (card renewals that failed on Razorpay's side, with the evidence pack). It is built and in the hosted demo, but the note is at 545 of 550 words and the script does not show it. The same goes for INC-2 (customers charged twice, with the guarded refund) and the INC-3 renewal link, both built since. Only the gate count was kept current (130 on 10 Oct).
+5. Decide whether the note and the video should mention INC-3 (card renewals that failed on Razorpay's side, with the evidence pack). It is built and in the hosted demo, but the note is at 545 of 550 words and the script does not show it. The same goes for INC-2 (customers charged twice, with the guarded refund) and the INC-3 renewal link, both built since. Only the gate count was kept current (147 on 10 Oct).
 6. Run `make eval && make snapshot`, commit if anything moved, and check the hosted link (https://razorpay-blindspot.vercel.app/) in a clean browser window with no server running. The old address, razorsense-starter.vercel.app, no longer answers, so make sure nothing you wrote down still uses it.
 7. Remove the test objects (V5) only if you want them gone: the disabled `httpbin` webhook and the ₹10 payment link.
 
