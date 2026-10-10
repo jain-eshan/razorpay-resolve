@@ -11,6 +11,8 @@ export type Guide = {
   icon: IconComponent
   tagline: string
   description: string
+  // One line for the Explore card on the home. It must fit two lines there and be true of the product today.
+  summary?: string
   benefits: { art: ArtId; title: string; text: string }[]
   links: { label: string; to: string }[]
   // Slide 3, "How to use X": three plain steps, in the order a merchant does them.
@@ -49,6 +51,7 @@ export const GUIDES: Guide[] = [
     to: '/incidents',
     icon: ActivityIcon,
     tagline: 'Every customer one payment problem touched, in one place',
+    summary: 'Grouped by where the payment broke, with who is affected and what is at risk.',
     description:
       'A payment can break in three places: before it reaches Razorpay, inside the payment, or after it. Blindspot covers the first and the last, where Razorpay’s own tools stop looking. Each incident shows who is affected, how much money is at risk, and what to do.',
     benefits: [
@@ -70,6 +73,7 @@ export const GUIDES: Guide[] = [
     to: '/threads',
     icon: UsersIcon,
     tagline: 'Customers get help, and you see every thread',
+    summary: 'Finds the payment, then hands over when you are needed.',
     description:
       'When a customer writes about a payment, the assistant says it is an AI, asks for a reference, finds the payment in Razorpay’s records and tells them what happened. You see every thread, and it hands over to you when a person is needed.',
     benefits: [
@@ -91,6 +95,7 @@ export const GUIDES: Guide[] = [
     to: '/channels',
     icon: RadioIcon,
     tagline: 'Choose where customers can reach it',
+    summary: 'What it may read, who it speaks as, and its off switch.',
     description:
       'Customers write where they already are: the help button on Razorpay pages, a payments WhatsApp number, email, Instagram and Messenger. Each channel is off until you connect it, and you can see what the assistant may read on it.',
     benefits: [
@@ -112,6 +117,7 @@ export const GUIDES: Guide[] = [
     to: '/scan',
     icon: SearchIcon,
     tagline: 'See what is already stuck, the day you connect',
+    summary: 'Checks Razorpay’s records against yours on the day you connect.',
     description:
       'The first time you connect, Blindspot compares Razorpay’s records with your access records and lists the customers who paid and were never given access. It only looks. It changes nothing and messages no one.',
     benefits: [
@@ -133,6 +139,7 @@ export const GUIDES: Guide[] = [
     to: '/settings',
     icon: SlidersIcon,
     tagline: 'You decide how much it does on its own',
+    summary: 'It starts on Suggest, where nothing happens until you approve.',
     description:
       'Blindspot starts on Suggest, where nothing happens until you approve it. Raise the level in Settings when you trust the wording. A few things are never available at any level: switching access off, refunding to a new destination, changing Razorpay settings and writing to your database.',
     benefits: [
@@ -154,6 +161,7 @@ export const GUIDES: Guide[] = [
     to: '/learning',
     icon: TrendingUpIcon,
     tagline: 'It tunes itself one step a week, and tells you why',
+    summary: 'Mark a false alarm or a miss, and it adjusts one step a week.',
     description:
       'Tell Blindspot an alert was a false alarm, or that it missed something. At the weekly review it moves one alert setting one step. A setting can change once a week, inside fixed limits, and every change is in the audit log.',
     benefits: [
@@ -175,6 +183,7 @@ export const GUIDES: Guide[] = [
     to: '/how',
     icon: FileTextIcon,
     tagline: 'Every number is checked against hidden answers',
+    summary: 'Every figure is checked against the hidden truth of a made-up merchant.',
     description:
       'Blindspot is tested on a made-up merchant whose real problems are written in a separate file the product never reads. Each check compares what it found with those answers. The made-up world is clean, so high scores show the logic works, not how often it would be wrong on real traffic.',
     benefits: [

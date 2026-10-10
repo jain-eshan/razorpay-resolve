@@ -44,6 +44,8 @@ test('S-17 day-0 scan plays its checklist, then states what it found', async ({ 
 
 test('S-10 how we know shows every gate passing', async ({ page }) => {
   await page.goto('/how')
+  await expect(page.getByText(/^\d+ of \d+ scored checks pass$/)).toBeVisible()  // the score leads, every check is one tap away
+  await page.getByRole('button', { name: /^Show all \d+ checks$/ }).click()
   await expect(page.getByText('silent to complained ratio')).toBeVisible()
   await expect(page.getByText('fail', { exact: true })).toHaveCount(0)
   await expect(page.getByText('pass', { exact: true }).first()).toBeVisible()

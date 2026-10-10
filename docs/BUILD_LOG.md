@@ -649,3 +649,43 @@ Design review: a general-purpose agent ran `.claude/agents/design-reviewer.md` o
 - "At risk" says how much of it is estimated, as the customer count does.
 
 Not checked: dark mode, reduced motion, INC-2 to INC-5 by eye at 375 and 768, the expanded "Show all" state by eye, live mode by eye.
+
+## 10 Oct 2026, design pass batch 3: proof pages, demos and Explore (web)
+
+Goal: the third design batch from Eshan's review: the pages that prove the product works, the demo entry points, and the Explore cards. Built on top of batches 1 and 2. All three go up together.
+
+Built:
+- How we know: opens with "138 of 138 scored checks pass" as a heading in a card, then four checks a founder would ask about, as stat cards in plain words:
+  - stuck customers the Day-0 scan found (81 of 81)
+  - customers named who were really affected (100%)
+  - access given to someone not owed it (0)
+  - replies that asked for a password, card or OTP (0)
+
+  Every value and target is read from the report; only the labels are ours. The 161-row table is behind "Show all 161 checks".
+- Learning: the six-week table is a Blade line chart with a line each for no learning (grey, dashed), weekly baseline (gold) and with learning (green). The lines are straight (`type="linear"`), because Blade's default curve drew values between weeks that are not in the data. The totals stay under the chart.
+- Conversations:
+  - The five demo buttons, which read like filters, are now "Try it as a customer": a card each with the channel's icon and one line. WhatsApp, the fullest demo, is wider so the rows come out even.
+  - The 55 complaint cards are a Blade table, ten to a page, with a count line ("55 complaints, 24 matched to a payment"). Each row's link is the time it came in, so the link names that complaint. Below `l` each complaint is a card, ten at a time with "Show 10 more".
+  - Complaint summaries carry no message text, so the table cannot show the customer's first words without fetching all 55 cases. Not done.
+- Audit log: when the log is empty, a Blade `EmptyState` with the flat "approve" picture, a line on what lands here, and "Open incidents".
+- WhatsApp demo: the founder's half of the page was one muted line until the first message. It now holds an `EmptyState` card saying what will appear there.
+- Explore cards (home):
+  - Each card has a one-line summary (a new `summary` in `lib/guides.ts`, written to fit and to be true today) and an "Open guide" footer, in place of a lone chevron.
+  - The grid is four across from `xl`. The first card (Incidents) spans a full row below `xl` and half a row from `xl`, so no row has a gap.
+  - On phones the sentence is hidden to keep the list short.
+- Docs: DESIGN.md sections 15 and 21, and the EmptyState size quirk in web/CLAUDE.md.
+
+Tests: the How we know smoke test checks the score line, then opens "Show all" before reading a row. A live test looked up "Complaints", which now also matches the count line, so it asks for the exact word.
+
+Checks: `tsc -b`, oxlint, `npm run build`, and all 87 browser tests (72 hosted-demo, 15 live) pass.
+
+Design review: a general-purpose agent ran `.claude/agents/design-reviewer.md` on the batch 3 files. Verdict: pass with notes. All seven notes are taken:
+- The complaints table cut columns at 375 and 768 and every link read "WhatsApp payments number". It now shows cards below `l`, and each link is the time the complaint came in.
+- Explore sentences were cut mid-word, so each guide got a short summary.
+- Learning's week labels ran together on a phone, so they are "W1" to "W6" under a "Week" axis title.
+- Learning's subtitle says the three lines match until week 3.
+- How we know's "gates pass" badge repeated the heading, so it is now a plain count.
+- A failing check shows a warning icon, not a red tick.
+- "Day-0" in a stat label no longer breaks at the hyphen.
+
+Not checked: dark mode, reduced motion, the Audit log with entries in it, the WhatsApp demo after a message by eye, complaint pages 2 to 6, live mode by eye.

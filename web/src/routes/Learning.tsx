@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Badge, Box, Button, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text, Skeleton } from '@razorpay/blade/components'
+import { Badge, Box, Button, ChartCartesianGrid, ChartLegend, ChartLine, ChartLineWrapper, ChartTooltip, ChartXAxis, ChartYAxis, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text, Skeleton } from '@razorpay/blade/components'
 import { PageHeader } from '../components/PageHeader'
 import { Panel } from '../components/Panel'
 import { send, useGet, type Schemas } from '../lib/api'
@@ -111,27 +111,25 @@ export default function Learning() {
         )}
       </Panel>
 
-      <Panel title="Does it help? Six simulated weeks" subtitle="False alerts per week on an invented merchant, averaged over 5 replays. The founder in it calls every alert that is not a real outage false."
+      <Panel title="Does it help? Six simulated weeks" subtitle="False alerts per week on an invented merchant, averaged over 5 replays. The founder in it calls every alert that is not a real outage false. The three match until week 3, so only the green line shows there."
         trailing={<Badge color="notice" size="medium">Simulated</Badge>} pad={false}>
         {weeks.length === 0 ? (
           <Box padding="spacing.6"><Text color="surface.text.gray.muted">The replay has not been run. Run make eval.</Text></Box>
         ) : (
           <>
-            <Table data={{ nodes: weeks.map((w) => ({ id: String(w), week: w })) }} gridTemplateColumns="minmax(80px, 0.6fr) repeat(3, minmax(140px, 1fr))" isHeaderSticky={false}>
-              {(items) => (
-                <>
-                  <TableHeader><TableHeaderRow><TableHeaderCell>Week</TableHeaderCell>{(Object.keys(ARM_TITLE) as (keyof typeof ARM_TITLE)[]).map((a) => <TableHeaderCell key={a}>{ARM_TITLE[a]}</TableHeaderCell>)}</TableHeaderRow></TableHeader>
-                  <TableBody>
-                    {items.map((r) => (
-                      <TableRow key={r.id} item={r}>
-                        <TableCell><Text>{r.week}</Text></TableCell>
-                        {(Object.keys(ARM_TITLE) as (keyof typeof ARM_TITLE)[]).map((a) => <TableCell key={a}><Text weight={a === 'loop' ? 'semibold' : 'regular'}>{num(cell(r.week, a)?.false_alerts ?? 0)}</Text></TableCell>)}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </>
-              )}
-            </Table>
+            {/* A line per way of running it, so the drop is visible at a glance. Hover a week to read the three figures. */}
+            <Box padding="spacing.6" height="300px" testID="learning-chart">
+              <ChartLineWrapper height="100%" data={weeks.map((w) => ({ week: `W${w}`, off: cell(w, 'off')?.false_alerts ?? 0, baseline: cell(w, 'baseline')?.false_alerts ?? 0, loop: cell(w, 'loop')?.false_alerts ?? 0 }))}>
+                <ChartCartesianGrid />
+                <ChartXAxis dataKey="week" label="Week" />
+                <ChartYAxis />
+                <ChartTooltip />
+                <ChartLegend />
+                <ChartLine type="linear" dataKey="off" name={ARM_TITLE.off} color="data.background.categorical.gray.intense" strokeStyle="dashed" />
+                <ChartLine type="linear" dataKey="baseline" name={ARM_TITLE.baseline} color="data.background.categorical.gold.intense" />
+                <ChartLine type="linear" dataKey="loop" name={ARM_TITLE.loop} color="data.background.categorical.green.intense" />
+              </ChartLineWrapper>
+            </Box>
             <Box padding="spacing.6" display="flex" flexDirection="column" gap="spacing.2">
               <Text>{`Over six weeks: ${num(total('off', 'false_alerts'))} false alerts with no learning, ${num(total('baseline', 'false_alerts'))} with only the weekly baseline, ${num(total('loop', 'false_alerts'))} with learning.`}</Text>
               <Text>{`Real outages missed: ${num(total('off', 'missed'))} with no learning, ${num(total('loop', 'missed'))} with learning. Stricter alerts can miss a weak outage; a missed incident you report makes them looser again.`}</Text>

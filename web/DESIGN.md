@@ -423,7 +423,9 @@ Every screen is one of these. Pick one before you write any layout code.
 
 **Numbers.** Rupees with Indian grouping through `rupees()` in `lib/api.ts`. Counts are plain integers. A figure that the agent states must come from the data, not from a model.
 
-**Loading, empty and error.** A page loading its data shows `components/PageSkeleton.tsx` (Blade `Skeleton` shapes where the title, a row of figures and the first card will be), never a bare "Loading" word. Ray working shows `Analyzing` with the turning glyph. Never a spinner next to a skeleton. Empty says what is missing and what to do. Error names the cause and the next step.
+**Loading, empty and error.** A page loading its data shows `components/PageSkeleton.tsx` (Blade `Skeleton` shapes where the title, a row of figures and the first card will be), never a bare "Loading" word. Ray working shows `Analyzing` with the turning glyph. Never a spinner next to a skeleton. Empty says what is missing and what to do: a page with nothing in it yet uses Blade `EmptyState` (size `large`) with a flat picture from `FlatArt.tsx` and one button to where the first entry comes from (Audit log, the founder's side of the WhatsApp demo). An empty group inside a page says why it is empty in one muted line. Error names the cause and the next step.
+
+**Proof pages lead with the answer.** A page that proves something (How we know) opens with the score as a heading in a card, then a few checks in plain words as stat cards, then the full table behind "Show all".
 
 ---
 
@@ -601,6 +603,6 @@ Added 8 Oct 2026 after Eshan shared the launch recording of Razorpay Engage (ads
 - The wallpaper is the real WhatsApp doodle image (`public/whatsapp-wallpaper.jpg`, supplied by Eshan), multiplied over the beige. Chats that come from Razorpay (Ray's alerts) use the Razorpay mark as the profile picture (`avatar="razorpay"`).
 - The same rule applies to email and Instagram when they get a preview: copy the real app first, then build. Email and Instagram previews are not built yet; `EmailDemo` and `IgDemo` still use plain cards.
 
-**Charts** use Blade's chart components (`ChartBarWrapper`, `ChartBar`, axes, legend, tooltip), never hand-drawn bars: a chart needs axis labels and a tooltip on hover. First one: `components/TimelineChart.tsx` (webhook outcomes by hour). `DuplicateChart` follows it (INC-2, orders by day). `OrdersChart` and `RenewalChart` are still hand-drawn and should follow.
+**Charts** use Blade's chart components (`ChartBarWrapper`, `ChartBar`, axes, legend, tooltip), never hand-drawn bars: a chart needs axis labels and a tooltip on hover. First one: `components/TimelineChart.tsx` (webhook outcomes by hour). `DuplicateChart` follows it (INC-2, orders by day). `OrdersChart` and `RenewalChart` are still hand-drawn and should follow. Learning's six-week replay is a `ChartLine` with `type="linear"`: the weeks are points, and the default curve draws values between them that the data does not have.
 
 **Control must be visible in the demo.** Where the real product lets you switch something off, the demo shows it working and shows the undo, with the change held in the browser tab only. First one: Channels (Disconnect, then "Undo, connect it again").

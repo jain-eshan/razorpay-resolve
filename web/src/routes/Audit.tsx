@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import { Badge, Box, SegmentedControl, SegmentedControlItem, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
+import { useNavigate } from 'react-router-dom'
+import { ArrowRightIcon, Badge, Box, Button, Card, CardBody, EmptyState, SegmentedControl, SegmentedControlItem, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
+import { GuideArt } from '../components/GuideArt'
 import { Panel } from '../components/Panel'
 import { useGet, type Schemas } from '../lib/api'
 import { sentence, when } from '../lib/format'
@@ -12,6 +14,7 @@ const COLOR = { approval: 'primary', action: 'neutral', verify: 'positive', poli
 // S-09. Every approval, action, check and blocked message, newest first.
 export default function Audit() {
   const { data, error } = useGet<Schemas['AuditEntry'][]>('/api/audit')
+  const nav = useNavigate()
   const [kind, setKind] = useState<(typeof KINDS)[number]>('all')
   const rows = (data ?? []).filter((e) => kind === 'all' || e.kind === kind)
   if (!data && !error) return <PageSkeleton />
@@ -19,7 +22,16 @@ export default function Audit() {
     <Box display="flex" flexDirection="column" gap="spacing.6">
       <PageHeader title="Audit log" description="Every approval, change and check, with who did it. Nothing here can be edited." />
       {error && <Text color="feedback.text.negative.intense">Could not load: {error}</Text>}
-      <Panel title="Log" pad={false} trailing={<Text size="small" color="surface.text.gray.muted">{rows.length} entries</Text>}>
+      {data?.length === 0 ? (
+        <Card>
+          <CardBody>
+            <EmptyState size="large" asset={<Box width="120px"><GuideArt art="approve" height="80px" /></Box>} title="Nothing to show yet"
+              description="Every plan, approval and check lands here with who did it and when. Open an incident and approve a step of its fix to see the first entry.">
+              <Button variant="primary" size="medium" icon={ArrowRightIcon} iconPosition="right" onClick={() => nav('/incidents')}>Open incidents</Button>
+            </EmptyState>
+          </CardBody>
+        </Card>
+      ) : <Panel title="Log" pad={false} trailing={<Text size="small" color="surface.text.gray.muted">{rows.length} entries</Text>}>
         <Box padding="spacing.5">
           <SegmentedControl label="Kind" name="kind" value={kind} onChange={({ value }) => setKind(value as (typeof KINDS)[number])}>
             {KINDS.map((k) => <SegmentedControlItem key={k} value={k}>{sentence(k)}</SegmentedControlItem>)}
@@ -53,7 +65,7 @@ export default function Audit() {
             )}
           </Table>
         )}
-      </Panel>
+      </Panel>}
     </Box>
   )
 }
