@@ -382,7 +382,7 @@ Source of truth for the shell: `src/components/Shell.tsx`. Read it before touchi
 
 **Side nav** (Blade `SideNav`, in this order)
 1. Home, Transactions, Settlements, Reports: production, inert.
-2. `BLINDSPOT` section: Ray, Incidents, Conversations, Channels, Day-0 scan, Access report, Release check. Ours, live.
+2. `BLINDSPOT` section: Ray, Incidents, Conversations, Channels, Day-0 scan, Access report, Release check, Connect by prompt. Ours, live.
 3. `PROOF AND CONTROL` section: Audit log, How we know, Learning, Settings. Ours, live.
 4. `PAYMENT PRODUCTS` section: Payment Links, Payment Pages, Razorpay.me Link, then "+11 More" (`maxVisibleItems={3}`). Production, inert.
 5. Footer: Test Mode switch (on, inert) and Account & Settings (inert).
@@ -603,6 +603,6 @@ Added 8 Oct 2026 after Eshan shared the launch recording of Razorpay Engage (ads
 - The wallpaper is the real WhatsApp doodle image (`public/whatsapp-wallpaper.jpg`, supplied by Eshan), multiplied over the beige. Chats that come from Razorpay (Ray's alerts) use the Razorpay mark as the profile picture (`avatar="razorpay"`).
 - The same rule applies to email and Instagram when they get a preview: copy the real app first, then build. Email and Instagram previews are not built yet; `EmailDemo` and `IgDemo` still use plain cards.
 
-**Charts** use Blade's chart components (`ChartBarWrapper`, `ChartBar`, axes, legend, tooltip), never hand-drawn bars: a chart needs axis labels and a tooltip on hover. First one: `components/TimelineChart.tsx` (webhook outcomes by hour). `DuplicateChart` follows it (INC-2, orders by day). `OrdersChart` and `RenewalChart` are still hand-drawn and should follow. Learning's six-week replay is a `ChartLine` with `type="linear"`: the weeks are points, and the default curve draws values between them that the data does not have.
+**Charts** use Blade's chart components (`ChartBarWrapper`, `ChartBar`, axes, legend, tooltip), never hand-drawn bars: a chart needs axis labels and a tooltip on hover. First one: `components/TimelineChart.tsx` (webhook outcomes by hour). `DuplicateChart` follows it (INC-2, orders by day). `OrdersChart` (three lines: orders that arrived, normal for the hour, orders nobody tried to pay for) and `RenewalChart` (stacked card renewals) follow it as of 10 Oct 2026, and nothing is hand-drawn any more. A line says what a chart cannot: how many hours the pay page failed, how many UPI renewals went through. Learning's six-week replay is a `ChartLine` with `type="linear"`: the weeks are points, and the default curve draws values between them that the data does not have.
 
 **Control must be visible in the demo.** Where the real product lets you switch something off, the demo shows it working and shows the undo, with the change held in the browser tab only. First one: Channels (Disconnect, then "Undo, connect it again").

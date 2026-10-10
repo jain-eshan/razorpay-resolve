@@ -23,6 +23,7 @@ from app.schemas import ActionType, EvalMetric, EvalReport
 
 from eval.calibrate import fit
 from eval.conversation import run as run_conversation
+from eval.founder_effort import run as run_founder_effort
 from eval.handovers import run as run_handovers
 from eval.learning import run as run_learning
 
@@ -177,6 +178,10 @@ else:
 
 # ---- R3: the conversation, 40 scripted threads against hidden truth ----
 for name, value, target, ok in run_conversation(world, truth):
+    add(name, value, target, ok)
+
+# ---- The north star: founder minutes per incident (approvals counted from the engine's own plans, 30 seconds each assumed) ----
+for name, value, target, ok in run_founder_effort(world):
     add(name, value, target, ok)
 
 # ---- R5: handovers (Instagram and Messenger control passing, public posts to private messages) ----

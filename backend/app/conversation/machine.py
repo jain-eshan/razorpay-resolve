@@ -263,7 +263,8 @@ def _turn(db: sqlite3.Connection, tid: str, channel: str, body: str, context: di
 
     # keep the message (redacted) and the complaint it belongs to
     if not cid:
-        cid, case_id = f"cmp_{uuid.uuid4().hex[:10]}", f"cs_{uuid.uuid4().hex[:8]}"
+        cid = f"cmp_{uuid.uuid4().hex[:10]}"
+        case_id = f"cs_{cid[4:]}"  # the id pipeline._cases gives this complaint, so a rebuild recreates the case this thread points at
         db.execute("INSERT INTO complaints (id, merchant_id, channel, received_at, from_handle, raw_text, raw_hash, redacted_text, data_role, customer_ref) VALUES (?,?,?,?,?,?,?,?,?,?)",
                    (cid, th["merchant_id"], channel, now.isoformat(), th["customer_ref"], red.text, hashlib.sha256(body.encode()).hexdigest(), red.text,
                     "razorpay_fiduciary" if channel == "help_button" else "merchant_data_processor", th["customer_ref"]))

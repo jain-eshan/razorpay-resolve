@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AlertTriangleIcon, Badge, Box, Button, Card, CardBody, CheckCircleIcon, Heading, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
+import { AlertTriangleIcon, Badge, Box, Button, Card, CardBody, CheckCircleIcon, ClockIcon, Heading, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
 import { Panel } from '../components/Panel'
 import { useGet, type Schemas } from '../lib/api'
 import { sentence } from '../lib/format'
@@ -18,6 +18,13 @@ const HEADLINE: [string, string, (v: number, t: string) => [string, string]][] =
   ['never_ask_violations_in_agent_replies', 'Replies that asked for a password, card or OTP', (v) => [String(v), 'target none']],
 ]
 
+// Amounts here are in rupees and paise (the cost per case is under a rupee), so this helper is used in place of rupees(), which rounds to whole rupees.
+// What the product asks of a founder and what it costs: the PRD's north star and cost metrics. Values come from the report. The wording, and the one assumption
+// behind the minutes (30 seconds per approval), are said on the card.
+const money = (x: number) => `₹${x.toFixed(2)}`
+const minutes = (x: number) => `${Number.isInteger(x) ? x : x.toFixed(1)} min`
+const first = (t: string) => Number(t.match(/[\d.]+/)?.[0] ?? 0)  // the first number in a target, which is the limit itself
+
 // "How we know it works": every number here comes from comparing the pipeline with hidden ground truth in a synthetic world.
 export default function How() {
   const { data, error } = useGet<Schemas['EvalReport']>('/api/eval/report')
@@ -27,6 +34,13 @@ export default function How() {
   const gates = data.metrics.filter((m) => m.status === 'pass' || m.status === 'fail')
   const passed = gates.filter((g) => g.status === 'pass').length
   const reported = data.metrics.length - gates.length
+  const byName = (n: string) => data.metrics.find((x) => x.name === n)
+  const typical = byName('founder_minutes_typical_incident_estimate')
+  const cost = byName('cost_per_resolved_case_inr_messages_only')
+  const reply = byName('median_seconds_to_first_reply_engine_only')
+  const longest = byName('founder_minutes_inc2_estimate')
+  const perApproval = `${typical?.target.match(/(\d+) s per approval/)?.[1] ?? '?'} s`  // the assumption is written in the metric's own target text
+  const effort = typical && cost && reply ? { typical, cost, reply, longest: longest ? `${minutes(longest.value ?? 0)} for the refunds` : 'n/a', longestNote: 'each one approved one customer at a time on purpose' } : undefined
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
       <PageHeader guide="how" title="How we know it works" description={`Synthetic world, seed ${data.seed}. The pipeline never sees the ground truth. This world is clean, so near-perfect scores are expected here. Harder cases arrive in later releases.`} />
@@ -52,6 +66,19 @@ export default function How() {
           return <Stat key={name} label={label} value={value} hint={hint} icon={m.status === 'pass' ? CheckCircleIcon : AlertTriangleIcon} tone={m.status === 'pass' ? 'positive' : 'negative'} />
         })}
       </Box>
+      {effort && (
+        <Box display="flex" flexDirection="column" gap="spacing.4">
+          <Box display="flex" flexDirection="column" maxWidth="720px">
+            <Heading size="medium">What it asks of a founder, and what it costs</Heading>
+            <Text size="small" color="surface.text.gray.muted">Three numbers the plan said to measure and had not. Counted from the engine's own plans and runs. The seconds per approval is an assumption.</Text>
+          </Box>
+          <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
+            <Stat label="Founder time, typical incident" value={minutes(effort.typical.value ?? 0)} hint={`estimated at ${perApproval} per approval, not timed. Target ${minutes(first(effort.typical.target))} or less. Longest: ${effort.longest}, ${effort.longestNote}`} icon={ClockIcon} tone={effort.typical.status === 'pass' ? 'positive' : 'negative'} />
+            <Stat label="Cost per resolved case" value={money(effort.cost.value ?? 0)} hint="messages only. No model is used here, and a model would add its own cost" icon={CheckCircleIcon} />
+            <Stat label="Time to first reply" value={(effort.reply.value ?? 0) < 1 ? 'Under 1 second' : `${(effort.reply.value ?? 0).toFixed(1)} s`} hint="engine only, no network. A model call adds a few seconds" icon={ClockIcon} tone={effort.reply.status === 'pass' ? 'positive' : 'negative'} />
+          </Box>
+        </Box>
+      )}
       <Panel title="Every check" pad={false} trailing={<Text size="small" color="surface.text.gray.muted">{`${data.metrics.length} checks`}</Text>}>
         {!all ? (
           <Box padding="spacing.5"><Button variant="secondary" size="medium" onClick={() => setAll(true)}>{`Show all ${data.metrics.length} checks`}</Button></Box>

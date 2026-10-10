@@ -389,3 +389,83 @@ Added from the business case (`docs/BUSINESS_CASE.md`) and the Razorpay intervie
 **Guard's prevention checks come first within Guard.** Harshil Mathur says coding agents moved the bottleneck from writing code to testing and deploying, and Razorpay's own integration path now produces merchants whose handler an agent wrote. More releases means more broken webhooks, which is the input behind the incident rate. The test ping (F-81) and the pre-deploy check (F-82) are what a do-it-yourself script cannot copy cheaply, so they lead the Guard work.
 
 **Backlog from the interviews.** Built 10 Oct 2026: the no-false-urgency check (F-55, D20), which refuses pressure wording on every outgoing message and an expiry that is not the link's real one (stream C, no contract change), and the link expiry itself made real in the simulation; the Guard release check (F-81 and F-82 as one screen and `GET /api/guard/release-check`, contracts v0.12) against a simulated merchant; and the fulfilment acknowledgement wording in the merchant mock (T8). Still not started: the price card, fee preview and receipt (F-80, stream D, post-submission by decision T6), and everything that needs a real merchant endpoint (R6).
+
+---
+
+## 14. Roadmap reassessment (10 Oct 2026)
+
+Eshan asked for an exhaustive check of what is left, ranked, with the low-value items cut. Method: the Problem-Ordered Roadmap rule (an item needs a sharp problem, a verbatim story, a strategy lever and a metric, and an item without them is cut) plus RICE to rank and MoSCoW to decide. The inventory comes from the PRD feature table (section 10), HANDOFF section 2, the BUILD_LOG open lists and SUBMISSION section 4. State on `main` after PR #33.
+
+### 14.1 State of the whole plan
+
+| Area | State |
+|---|---|
+| R0 to R5 (detect, fix, channels, conversation, Zone 1, learning, handovers) | Built, simulated merchant, rules only. 144 eval gates pass, 485 backend tests. |
+| Incidents in the world | INC-1 (Hero A), INC-2 duplicates and guarded refund, INC-3 Razorpay-side renewals with escalation and renewal link, INC-4 and INC-5 (Hero B), J6 access report. |
+| Guard | Release check built (F-81, F-82). Value report not built. |
+| R7 submission kit | Note, script and verify list written. Eshan still has to check, record and submit. The note is at 545 of 550 words and shows only Heroes A and B. |
+| Not built, needs a model | Investigation agent (F-31), three-arm evaluation (F-53 part), a real extractor for Devanagari and screenshots. |
+| Not built, needs Eshan's accounts | R6 real Razorpay test-mode rails (F-70), one real WhatsApp thread (F-71). |
+| Not built, held by decision T6 until after submission | Price card, fee preview, receipt, value ledger with cost (F-80). |
+| PRD section 13 metrics not yet measured | Median time to first useful reply, cost per resolved case, founder minutes per incident (the north star). |
+| Known leftovers | Thread page crash after a pipeline rebuild; `OrdersChart` and `RenewalChart` hand-drawn instead of Blade charts (DESIGN.md 21); help bubble and email and Instagram previews not drawn as the apps (DESIGN.md 16, 21); dark mode never checked; stale "130 gates" in SUBMISSION. |
+
+### 14.2 Scoring
+
+RICE with scales set for this project. **Reach**: 3 is in the note or the 90 second video or on both heroes, 2 is a nav screen a judge will click, 1 is an edge screen or back-end proof, 0.5 is invisible. **Impact**: 3 moves the biggest driver of the business case or removes a high severity risk, 2 closes a gap a judge can check, 1 supports a claim or is polish, 0.5 is nice to have. **Confidence**: how sure I am it ships as scoped with what exists. **Effort**: agent-days, where one day is about one batch item (the release check took about 1.5). Score is Reach x Impact x Confidence / Effort.
+
+| # | Item | R | I | C | E | Score | MoSCoW | Call |
+|---|---|---|---|---|---|---|---|---|
+| 1 | Measure the three missing PRD metrics (first reply time, cost per case, founder minutes per incident) and show them on "How we know" | 3 | 2 | 0.8 | 1.5 | 3.2 | Must | Built 10 Oct |
+| 2 | Connect by prompt: the text a merchant pastes into a coding agent to wire the webhook and the fulfilment acknowledgement, checked by the release check | 2 | 3 | 0.7 | 1.5 | 2.8 | Must | Built 10 Oct |
+| 3 | Orders and renewals charts as Blade charts (Hero B is in the video) | 3 | 1 | 0.7 | 1.5 | 1.4 | Should | Built 10 Oct |
+| 4 | Price card, fee preview, receipt | 2 | 2 | 0.6 | 2 | 1.2 | Should | Held by T6, first after submission |
+| 5 | Guard monthly value report (no prices) | 2 | 1 | 0.5 | 1.5 | 0.7 | Should | Next. Rescored 10 Oct (confidence 0.8 to 0.5): the hosted demo has no server, so the report would stay at its snapshot values while the user fixes incidents, and read "restored: 0" after a fix. It needs the demo to compute from its own state first |
+| 6 | Fix the thread page crash after a rebuild (KTLO) | 0.5 | 2 | 0.9 | 0.5 | 0.9 | KTLO | Built 10 Oct |
+| 7 | R6 real rails and one real WhatsApp thread | 3 | 3 | 0.4 | 5 | 0.7 | Should | Blocked on Eshan: test keys and accounts |
+| 8 | Release check for more event types (refund, subscription) | 1 | 1 | 0.7 | 1.5 | 0.5 | Could | Pilot |
+| 9 | Dark mode check | 1 | 0.5 | 0.6 | 1 | 0.3 | Could | Later, cheap |
+| 10 | Scheduled or pipeline-triggered release check | 0.5 | 1 | 0.6 | 1 | 0.3 | Could | Pilot, cannot be shown |
+| 11 | Help bubble, email and Instagram previews drawn as the apps | 1 | 0.5 | 0.8 | 1.5 | 0.3 | Could | Cut for now: not in the script |
+| 12 | Rules reading Devanagari | 1 | 1 | 0.5 | 2 | 0.25 | Won't (now) | The model does this in production |
+| 13 | Investigation agent and three-arm evaluation | 2 | 2 | 0.3 | 5 | 0.24 | Won't (now) | Cut from the competition build (T1). Revisit after the pilot shows what the rules cannot explain |
+| 14 | Learning: live feedback sources, timer, calibrator refit | 0.5 | 0.5 | 0.5 | 3 | 0.04 | Won't | Cut |
+
+### 14.3 What is cut, and why
+
+- **Investigation agent, three-arm evaluation (F-31, part of F-53).** No model in the competition build (T1), no key, and the production plan waits for pilot data. Showing it with scripted replies would be the "looks like a chatbot" risk in section 16.
+- **Learning loop extras.** A live source for customer replies and founder edits needs real channels (R6). A timer and a calibrator refit cannot be shown in a hosted demo. The weekly card and the replay stay.
+- **Rules for Devanagari, a real screenshot reader.** Both are the model's job in production and a rule version would be worse than none.
+- **Help bubble and app-style email and Instagram previews.** Polish on screens the video does not show.
+- **Scheduled release checks.** Real in a pilot, invisible in a demo.
+- **PRD section 18, "beyond v1".** Cut: D2C extension, helpdesk sidebar apps, consent bridge, live public-mention listening (privacy), grievance matching for Razorpay's own desk. Keep for after the pilot: entitlement connector library (it is the activation path), cross-merchant early warning (needs its own legal basis), Vulcan baselines (internal).
+
+### 14.4 This batch (80 percent new build, 20 percent KTLO)
+
+New build, in score order: items 1, 2, 3, then 5 if there is room. KTLO: item 6. Halt rule: KTLO is well under 40 percent.
+
+| Item | Sharp problem | Verbatim story | Strategy lever | Success metric |
+|---|---|---|---|---|
+| 1 | The numbers look invented, and the north star (founder minutes) has no number | PRD risk table: "Numbers look invented", High | Credibility with the evaluator | Every PRD section 13 metric has a measured or labelled value on "How we know" |
+| 2 | A merchant with no signal finds out from a ticket days later, and the case needs them connected | "the only reason we even notice is because someone opens a support ticket days later" | Activation, the largest driver of the case | Share of alerted merchants connected (pilot gate G-P1, at least 6 percent) |
+| 3 | Hero B is about silence, and the chart that shows the silence is a hand-drawn bar set | "a subscription didn't go through yesterday, I didn't get alerted... and neither did my client" | Make silence visible | The Hero B screen reads as a Razorpay dashboard chart, with no design review finding |
+| 5 | Guard is sold on prevention and a monthly report, and there is no report | "users were paying for orders, but the database wasn't reflecting them" | Guard uptake | Guard uptake gate G-P2, at least 4.5 percent |
+
+### 14.5 Decisions for Eshan, not for a build
+
+1. **Refresh the note and the video?** Both show Heroes A and B only. Since they were written the product gained INC-2, INC-3 (with the escalation and the renewal link), the access report, the release check and the urgency rule. The note has 5 words to spare. A swap, not an addition, is needed.
+2. **R6 keys.** Real rails are the strongest answer to "is this real" and the one item blocked on you. It needs a Razorpay test key pair in `.env` (never in chat) and a deployed merchant mock.
+3. **K2 and K3.** The question to Razorpay (does RAY or the agentic dashboard already list every affected payment) and the founder calls are still open and decide whether the whole bet stands.
+4. **Housekeeping.** Old remote branches and worktrees from merged work.
+
+### 14.6 What this batch did (10 Oct 2026)
+
+Built in score order: items 1, 2, 3, then the KTLO item 6. Item 5 was dropped from the batch after a second look (see its row). KTLO was 1 of 5 items, well under the 40 percent line.
+
+1. **The three missing PRD metrics** (`eval/founder_effort.py`, `eval/conversation.py`, a new row on "How we know"). Founder time for the typical incident is 4 minutes (counted as approvals from the engine's own plans, 30 seconds each assumed, the count checked against a real run). **Finding:** INC-2 comes to 10.5 minutes, over the 10 minute target, because every refund is approved one customer at a time on purpose. The choice is to keep the guardrail and say so, not to batch refunds. Cost per resolved case is ₹0.07 in messages. First reply takes under a millisecond of engine time.
+2. **Connect by prompt** (`/connect`, PRD F-83). The prompt carries six rules, each one closing a failure the product finds. A test checks it carries no key or secret and that the copy button copies exactly the text shown.
+3. **Orders and renewals charts** are Blade charts. Nothing in the app is hand-drawn any more.
+4. **KTLO:** the thread page no longer crashes after a pipeline rebuild. Root cause: a live conversation named its case with a random id and a rebuild recreated cases under a different one.
+
+Open for Eshan (from 14.5): refresh the note and video, the R6 keys, K2 and K3, and the stale "130 eval gates" in `docs/SUBMISSION.md` (it is now 147, the same number of words).
+

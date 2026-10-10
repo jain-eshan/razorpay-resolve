@@ -159,7 +159,7 @@ S1 to S5 are in the transcripts file under the same IDs. S6 to S9 are web pages,
 | P8 | Prepare for agent certification: logic, data scope, actions, compliance and message patterns are reviewed before listing. Our SPEC and policy engine are the starting pack. | S6 |
 | P9 | Keep the pilot team to 2 to 3 people with a daily review. | S1, S2 |
 | P10 | Watch's free layer should be reviewed against NPS, the primary internal goal. | S3 |
-| P11 | Attach activation to Razorpay's integration prompt: the prompt a merchant pastes into a coding agent includes the fulfilment acknowledgement call. Connection is the largest driver of the case, and this is a merchant who is connected on day one at no effort. | S2 (integration by prompt) |
+| P11 | (Built as a prototype page on 10 Oct 2026: `/connect`, PRD F-83.) Attach activation to Razorpay's integration prompt: the prompt a merchant pastes into a coding agent includes the fulfilment acknowledgement call. Connection is the largest driver of the case, and this is a merchant who is connected on day one at no effort. | S2 (integration by prompt) |
 | P12 | Take the pay-page address from agent onboarding's website scan, so the pay-page check needs no setup. | S2 (agent onboarding) |
 | P13 | Build Guard's test ping and pre-deploy check first. Harshil says coding agents moved the bottleneck to testing and deployment, and that repos now fill with agent-written pull requests. Merchants who integrate by prompt run agent-written handlers and release more often, which is the input behind the incident rate. | S2 |
 

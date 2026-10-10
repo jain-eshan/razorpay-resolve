@@ -201,7 +201,7 @@ Signal, Complaint (any inbound message), Thread (a conversation on one channel),
 - Eval harness and a "How we know" page with a rule-versus-agent comparison
 
 **Should**
-- Investigation agent over typed tools, with rule fallback
+- Investigation agent over typed tools, with rule fallback (cut from the competition build 10 Oct 2026: BUILD_PLAN section 14)
 - Escalation to Razorpay with an evidence pack
 - Duplicate-charge incident, Razorpay-side renewal incident
 - Instagram and Messenger handover (simulated), public mention handoff (simulated)
@@ -351,7 +351,7 @@ IDs are used in the build plan. Release codes are defined in `Blindspot_v2_Build
 | F-25 | Escalation to founder with a one-screen brief | M | R3 |
 | F-26 | Escalation to Razorpay with evidence pack | S | R4 |
 | F-30 | Signatures, grouping, lift, event join | M | R1 |
-| F-31 | Investigation agent over typed tools, with rule fallback | S | R4 |
+| F-31 | Investigation agent over typed tools, with rule fallback | S | Cut from the competition build (no model, T1). Revisit after the pilot |
 | F-32 | Attribution table with evidence, including inferred rows | M | R1, R4 |
 | F-33 | Silent-victim search with tiers and exclusions | M | R1 |
 | F-34 | Replay eligibility per affected event | M | R2 |
@@ -374,6 +374,7 @@ IDs are used in the build plan. Release codes are defined in `Blindspot_v2_Build
 | F-80 | Price card before connecting, fee preview before approving a fix, receipt after, monthly value ledger (BUSINESS_CASE 5.2) | P | Pilot |
 | F-81 | Guard test ping: a signed test event sent to the merchant's webhook endpoint that checks the handler answers, accepts it and sends a fulfilment acknowledgement | P | Pilot. Prototype built 10 Oct as the Release check screen (merchant simulated) |
 | F-82 | Guard pre-deploy check a merchant can call before a release: the test ping and a pay-page check (opens, and checkout opens) in one call that returns safe or hold | P | Pilot. Prototype built 10 Oct, same screen and `GET /api/guard/release-check` |
+| F-83 | Connect by prompt: the text a merchant pastes into a coding agent to wire the webhook and the fulfilment acknowledgement, checked afterwards by the release check | M | Built 10 Oct as the `/connect` page (proposal, no real endpoint) |
 
 Priority P means pilot build after submission (BUSINESS_CASE section 8). The prototype has F-81 and F-82 as one screen against a simulated merchant, and none of F-80. Guard has no edge over do-it-yourself tooling without F-81 and F-82, so they come first in the pilot (BUILD_PLAN section 13). Not in the prototype: a check against a real merchant endpoint, a trigger from a real release pipeline, and the check on event types other than a payment capture.
 
@@ -430,6 +431,8 @@ New guardrails: window and template enforcement per channel, disclosure on first
 | Learning | False-alert rate over simulated weeks, edit rate on drafted replies | Falling |
 
 **How the system learns.** It records feedback events: the founder marks a verdict wrong, edits or sends a draft, a customer replies or goes silent, a recovery link is paid. A nightly job updates per-merchant baselines, alert thresholds and template choices within bounds. Every change is versioned with a reason, and the founder sees a weekly card: "this week I learned...". This is tuning, not model retraining, and the note says so.
+
+**Measured on 10 Oct 2026** (`eval/founder_effort.py`, `eval/conversation.py`, shown on "How we know"): founder time for the typical incident 4 minutes against the target of 10, counted as approvals from the engine's own plans at 30 seconds each, which is an assumption and not a timing; the longest, INC-2, is 10.5 minutes because each refund is approved one customer at a time on purpose. Cost per resolved case ₹0.07 in messages, with no model (the business case sizes a model at about ₹2.79). Engine time to first reply under a millisecond median, without network or model.
 
 **Three-way evaluation.** Fixed rules only, the agent, and a no-signal case where the agent only ties the rules. The agent's wins are in messy language, free-text server errors and unseen causes. It ties on a plain 5xx after a deploy. The page shows both.
 
@@ -545,7 +548,7 @@ A1 Razorpay logs per-attempt webhook outcomes internally (the dashboard shows a 
 
 ## 18. Roadmap beyond v1
 
-Shadow onboarding for every new merchant, an entitlement connector library (Supabase, Firebase, Django, Laravel, WooCommerce), helpdesk sidebar apps, live replay with Razorpay, grievance matching and routing for Razorpay's own desk, cross-merchant early warning (k-anonymous, 5 or more merchants, never an automatic risk action), Vulcan baselines, live public-mention listening on licensed APIs, a consent bridge, more mismatch types, and a D2C extension. Details are in v1 section 24.
+Shadow onboarding for every new merchant, an entitlement connector library (Supabase, Firebase, Django, Laravel, WooCommerce), helpdesk sidebar apps, live replay with Razorpay, grievance matching and routing for Razorpay's own desk, cross-merchant early warning (k-anonymous, 5 or more merchants, never an automatic risk action), Vulcan baselines, live public-mention listening on licensed APIs, a consent bridge, more mismatch types, and a D2C extension. Details are in v1 section 24. **Cut on 10 Oct 2026** (BUILD_PLAN section 14.3): the D2C extension, helpdesk sidebar apps, the consent bridge, live public-mention listening and grievance matching for Razorpay's own desk. Kept for after the pilot: the entitlement connector library (it is the activation path), cross-merchant early warning (needs its own legal basis) and Vulcan baselines (internal).
 
 **Production cuts and order** (from the Razorpay interviews, `docs/INTERVIEWS.md`): in production, refunds, recovery links and renewal links are handed to Razorpay's existing tools and agents, and the investigation agent waits until the pilot shows how many incidents the rules cannot explain. The order is activation first (the fulfilment acknowledgement, plugin signals, event-tool receivers), then Watch, then Fix, then Guard's prevention checks. Pilot and gates: `docs/BUSINESS_CASE.md` section 8.
 
