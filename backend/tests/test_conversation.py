@@ -407,3 +407,15 @@ def test_the_dial_is_per_channel_so_assist_on_one_channel_does_not_loosen_anothe
     b = inbound(fresh, f"paisa kat gaya 299 ka, UPI ref {other}", "whatsapp_payments", who="+919800000031")
     assert msgs(fresh, a)[0].policy["status"] == "sent" and msgs(fresh, a)[0].approved_by == "auto"
     assert msgs(fresh, b)[-1].policy["status"] == "draft"
+
+
+def test_a_live_thread_still_opens_after_the_pipeline_is_rebuilt(fresh):
+    """A rebuild deletes every case and writes one per complaint. A conversation that was already open used to keep a case id the rebuild no longer made, and its page crashed."""
+    from app import pipeline
+
+    tid = inbound(fresh, "paisa kat gaya 299 ka", "whatsapp_payments", who="u-rebuild")
+    case_before = m.get_thread(fresh, tid).case
+    assert case_before is not None
+    pipeline.run(fresh)
+    after = m.get_thread(fresh, tid)
+    assert after.case is not None and after.case.id == case_before.id

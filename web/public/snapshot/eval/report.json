@@ -159,6 +159,18 @@
       "status": "pass"
     },
     {
+      "name": "median_seconds_to_first_reply_engine_only",
+      "value": 0.0004,
+      "target": "< 60 (PRD section 13), over 38 payment threads. Engine time only: no network and no model. A model call adds about 3 to 4 seconds (INTERVIEWS S4)",
+      "status": "pass"
+    },
+    {
+      "name": "cost_per_resolved_case_inr_messages_only",
+      "value": 0.0663,
+      "target": "reported, over 26 resolved cooperative threads. WhatsApp replies are billed at the Meta rate in the simulator and other channels are free. No model is used, and BUSINESS_CASE 2.3 sizes one at about 2.79 on Sonnet",
+      "status": "report"
+    },
+    {
       "name": "never_ask_violations_in_agent_replies",
       "value": 0.0,
       "target": "0",
@@ -204,6 +216,54 @@
       "name": "other_merchant_payments_disclosed",
       "value": 0.0,
       "target": "0",
+      "status": "pass"
+    },
+    {
+      "name": "founder_minutes_inc1_estimate",
+      "value": 4.0,
+      "target": "reported. 8 approvals counted (verify click and messaging switch included) x 30 s each, and the 30 s is an assumption, not a timing.",
+      "status": "report"
+    },
+    {
+      "name": "founder_minutes_inc2_estimate",
+      "value": 10.5,
+      "target": "reported. 21 approvals counted (verify click and messaging switch included) x 30 s each, and the 30 s is an assumption, not a timing. Above the target on purpose: each refund is approved one customer at a time (a guardrail), so it cannot be batched.",
+      "status": "report"
+    },
+    {
+      "name": "founder_minutes_inc3_estimate",
+      "value": 6.0,
+      "target": "reported. 12 approvals counted (verify click and messaging switch included) x 30 s each, and the 30 s is an assumption, not a timing.",
+      "status": "report"
+    },
+    {
+      "name": "founder_minutes_inc4_estimate",
+      "value": 2.5,
+      "target": "reported. 5 approvals counted (verify click and messaging switch included) x 30 s each, and the 30 s is an assumption, not a timing.",
+      "status": "report"
+    },
+    {
+      "name": "founder_minutes_inc5_estimate",
+      "value": 2.5,
+      "target": "reported. 5 approvals counted (verify click and messaging switch included) x 30 s each, and the 30 s is an assumption, not a timing.",
+      "status": "report"
+    },
+    {
+      "name": "founder_minutes_typical_incident_estimate",
+      "value": 4.0,
+      "target": "<= 10 (PRD north star, read as the typical incident: the median of 5). Same assumption of 30 s per approval",
+      "status": "pass"
+    },
+    {
+      "name": "founder_approvals_in_the_longest_fix",
+      "value": 21.0,
+      "target": "reported (INC-2; refunds are one customer at a time on purpose, so they cannot be batched to save time)",
+      "status": "report"
+    },
+    {
+      "name": "founder_approval_count_matches_a_real_run_inc1",
+      "value": 0.0,
+      "target": "0 (the count above for INC-1 is 8, a real run through the executor logged 8)",
       "status": "pass"
     },
     {

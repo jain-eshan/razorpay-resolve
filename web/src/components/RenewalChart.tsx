@@ -1,34 +1,30 @@
-import { Box, Text } from '@razorpay/blade/components'
+import { Box, ChartBar, ChartBarWrapper, ChartCartesianGrid, ChartLegend, ChartTooltip, ChartXAxis, ChartYAxis, Text } from '@razorpay/blade/components'
 import { hourLabel } from '../lib/format'
 
 export type RenewalHour = { at: string; card_ok: number; card_failed: number; upi_ok: number; upi_failed: number }
 
-const UNIT = 14 // px per renewal in an hour
-const MAX = 112
-
-// One column per hour. Green: card renewals that went through. Red: card renewals that failed. The thin strip under the column is UPI AutoPay renewals
-// that hour: green when they went through, so you can see UPI was fine while cards were not.
+// Card renewals by hour, stacked. Green: went through. Red: failed. Hover a bar to read the hour and each count. UPI AutoPay renewals are not drawn: the line
+// under the chart adds them up over the same hours, so you can see UPI was fine while cards were not. The hours with something to say are listed below it.
 export function RenewalChart({ hours, marks }: { hours: RenewalHour[]; marks: Record<string, string[]> }) {
-  const px = (n: number): `${number}px` => `${Math.min(Math.round(n * UNIT), MAX)}px`
   const marked = hours.filter((h) => marks[h.at]?.length)
+  const upiOk = hours.reduce((n, h) => n + h.upi_ok, 0)
+  const upiFailed = hours.reduce((n, h) => n + h.upi_failed, 0)
+  const data = hours.map((h) => ({ hour: hourLabel(h.at), ok: h.card_ok, failed: h.card_failed }))
   return (
     <Box display="flex" flexDirection="column" gap="spacing.4">
-      <Box display="flex" alignItems="flex-end" gap="spacing.1" height="128px" aria-label="Card renewals by hour" testID="renewal-chart">
-        {hours.map((h) => (
-          <Box key={h.at} flex="1" minWidth="3px" height="128px" display="flex" flexDirection="column" justifyContent="flex-end">
-            <Box height={px(h.card_failed)} backgroundColor="feedback.background.negative.intense" />
-            <Box height={px(h.card_ok)} backgroundColor="feedback.background.positive.intense" />
-            <Box height="4px" backgroundColor={h.upi_failed > 0 ? 'feedback.background.negative.intense' : h.upi_ok > 0 ? 'feedback.background.positive.subtle' : 'surface.background.gray.moderate'} />
-          </Box>
-        ))}
-      </Box>
-      <Box display="flex" gap="spacing.5" flexWrap="wrap">
-        {([['feedback.background.positive.intense', 'Card renewals that went through'], ['feedback.background.negative.intense', 'Card renewals that failed'],
-          ['feedback.background.positive.subtle', 'UPI AutoPay renewals that went through (strip)']] as const).map(([c, t]) => (
-          <Box key={t} display="flex" alignItems="center" gap="spacing.2"><Box width="12px" height="12px" borderRadius="small" backgroundColor={c} /><Text size="small" color="surface.text.gray.subtle">{t}</Text></Box>
-        ))}
+      <Box height="280px" testID="renewal-chart">
+        <ChartBarWrapper data={data} height="100%">
+          <ChartCartesianGrid />
+          <ChartXAxis dataKey="hour" interval={Math.max(0, Math.ceil(hours.length / 5) - 1)} />
+          <ChartYAxis />
+          <ChartTooltip />
+          <ChartLegend />
+          <ChartBar dataKey="ok" name="Card renewals that went through" color="data.background.categorical.green.intense" stackId="cards" />
+          <ChartBar dataKey="failed" name="Card renewals that failed" color="data.background.categorical.red.intense" stackId="cards" />
+        </ChartBarWrapper>
       </Box>
       <Box display="flex" flexDirection="column" gap="spacing.2">
+        <Text size="small" color="surface.text.gray.muted">{`Card renewals by hour. UPI AutoPay in the same hours: ${upiOk} renewals went through and ${upiFailed} failed.`}</Text>
         {marked.map((h) => (
           <Text key={h.at} size="small">{hourLabel(h.at)} · {marks[h.at].join(' · ')}</Text>
         ))}

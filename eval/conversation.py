@@ -3,7 +3,9 @@ the world and compares what happened with what should have happened (truth_threa
 import json
 import re
 import sqlite3
+import statistics
 import sys
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -25,12 +27,17 @@ def run(world: sqlite3.Connection, truth: sqlite3.Connection) -> list[tuple[str,
     for s in scripts:
         base = datetime.fromisoformat(s["received_base"]) if s["received_base"] else clock.now()
         tid = None
+        first_s = None
         for i, turn in enumerate(s["turns"]):
+            t0 = time.perf_counter()
             tid = machine.handle_inbound(db, s["channel"], s["who"], turn["text"], turn.get("context") or {}, base + timedelta(minutes=5 * i))
+            if i == 0:
+                first_s = time.perf_counter() - t0  # wall clock for the first message to be read, matched and answered: engine only, no network and no model
         t = machine.get_thread(db, tid)
+        cost = db.execute("SELECT COALESCE(SUM(cost_inr_milli), 0) FROM thread_messages WHERE thread_id = ? AND direction = 'outbound'", (tid,)).fetchone()[0] / 1000
         pids = json.loads(db.execute("SELECT matched_payment_ids FROM cases WHERE id = ?", (t.case.id,)).fetchone()[0]) if t.case else []
         out.append({"s": s, "e": exp[s["id"]], "state": t.state, "q": t.question_count, "pids": pids, "incident": t.incident_id,
-                    "said": [m.body for m in t.messages if m.direction == "outbound"], "stored_inbound": sum(m.direction == "inbound" for m in t.messages)})
+                    "first_s": first_s, "cost_inr": cost, "said": [m.body for m in t.messages if m.direction == "outbound"], "stored_inbound": sum(m.direction == "inbound" for m in t.messages)})
     n = len(out)
     res: list[tuple[str, float, str, bool | None]] = []
 
@@ -44,6 +51,12 @@ def run(world: sqlite3.Connection, truth: sqlite3.Connection) -> list[tuple[str,
     add("identified_within_3_questions_cooperative", ok3, ">= 0.85 (kill criterion K4 if < 0.60)", ok3 >= 0.85)
     wrong = sum(1 for r in out if r["pids"] and r["pids"][0] != r["e"]["expected_payment_id"])
     add("customers_shown_a_payment_that_is_not_theirs", wrong, "0", wrong == 0)
+    answered = [r["first_s"] for r in out if r["e"]["expected_outcome"] != "pass_back" and r["said"]]
+    median_s = statistics.median(answered)
+    add("median_seconds_to_first_reply_engine_only", median_s, f"< 60 (PRD section 13), over {len(answered)} payment threads. Engine time only: no network and no model. A model call adds about 3 to 4 seconds (INTERVIEWS S4)", median_s < 60)
+    resolved = [r for r in coop if r["pids"][:1] == [r["e"]["expected_payment_id"]] and r["q"] <= 3]
+    per_case = sum(r["cost_inr"] for r in resolved) / len(resolved)
+    add("cost_per_resolved_case_inr_messages_only", per_case, f"reported, over {len(resolved)} resolved cooperative threads. WhatsApp replies are billed at the Meta rate in the simulator and other channels are free. No model is used, and BUSINESS_CASE 2.3 sizes one at about 2.79 on Sonnet", None)
     allsaid = [t for r in out for t in r["said"]]
     bad = sum(bool(violations(t)) for t in allsaid)
     add("never_ask_violations_in_agent_replies", bad, "0", bad == 0)

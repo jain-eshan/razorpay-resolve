@@ -43,7 +43,7 @@ export default function ReleaseCheck() {
       {error && <Text color="feedback.text.negative.intense">Could not run the check: {error}. Reload the page, and if it keeps failing check that the API is running.</Text>}
       {data && (
         <>
-          <Alert isFullWidth isDismissible={false} color="information" title="A Guard feature, shown as a prototype" description="Guard is the paid prevention tier: checks that run before a customer is hurt. Your server and pay page are simulated here, and the release-script call is a proposed API. Nothing in your account changes. A real check would send your server one signed test event, marked as a test." />
+          <Alert isFullWidth isDismissible={false} color="information" title="A Guard feature, shown as a prototype" description="Guard is the paid prevention tier: checks that run before a customer is hurt. If your webhook is not wired yet, use Connect by prompt first. Your server and pay page are simulated here, and the release-script call is a proposed API. Nothing in your account changes. A real check would send your server one signed test event, marked as a test." />
           <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
             <Stat label="Verdict" value={data.safe_to_release ? 'Safe to release' : 'Hold the release'} hint="from the checks below" icon={ShieldIcon} tone={data.safe_to_release ? 'positive' : 'negative'} />
             <Stat label="Checks passed" value={`${passed} of ${data.steps.length}`} hint={data.failed ? `${data.failed} failed` : 'none failed'} icon={CheckCircleIcon} tone={data.failed ? 'notice' : 'positive'} />

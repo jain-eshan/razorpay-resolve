@@ -111,3 +111,27 @@ test('S-20 release check: the starting world is on hold, each failed step says w
   await expect(page.getByRole('button', { name: 'Run the check again' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Release check' }).first()).toBeVisible()
 })
+
+// Connect by prompt (PRD D21): a page of text. The prompt must carry the rules that close the failures the product finds, copy exactly, and point on to the release check.
+test('S-21 connect by prompt: the prompt names the rules, copies exactly, and leads to the release check', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/connect')
+  await expect(page.getByRole('heading', { name: 'Connect by prompt' })).toBeVisible()
+  await expect(page.getByText('A proposal, shown as a prototype')).toBeVisible()
+  const prompt = page.getByTestId('connect-prompt')
+  await expect(prompt).toContainText('X-Razorpay-Signature')
+  await expect(prompt).toContainText('X-Razorpay-Event-Id')
+  await expect(prompt).toContainText('Grant the customer access in our own database FIRST')
+  await expect(prompt).toContainText('fulfilment acknowledgement')
+  await expect(prompt).toContainText('blindspot_test')
+  await expect(prompt).not.toContainText(/rzp_(test|live)_|whsec_/)  // a prompt carries no key and no secret
+  await page.getByRole('button', { name: 'Copy the prompt' }).click()
+  await expect(page.getByRole('button', { name: 'Copied' })).toBeVisible()
+  const copied = await page.evaluate(() => navigator.clipboard.readText())
+  expect(copied).toBe((await prompt.innerText()).replace(/\u00a0/g, ' ').trim())
+  await expect(page.getByText('What each rule closes')).toBeVisible()
+  await expect(page.getByRole('button', { name: /grant|refund|send|approve|revoke|undo/i })).toHaveCount(0)  // it changes nothing
+  await page.getByRole('button', { name: 'Open the release check' }).click()
+  await expect(page).toHaveURL(/\/release-check$/)
+  await expect(page.getByRole('link', { name: 'Connect by prompt' }).first()).toBeVisible()  // reachable from the side nav
+})
