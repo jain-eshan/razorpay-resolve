@@ -1,6 +1,7 @@
 """Never-ask lint on the 60-case set (SPEC 4.5): 30 texts that ask for a secret must be blocked, 30 that do not must pass."""
 import pytest
-from app.conversation.lint import violations
+from app.channels import policy
+from app.conversation.lint import urgency_violations, violations
 from app.conversation.templates import TEMPLATES
 
 ASKS = [
@@ -48,3 +49,59 @@ def test_no_template_in_either_language_ever_asks_for_a_secret():
 def test_a_softened_hindi_request_is_still_blocked():
     assert violations("OTP bata na")
     assert violations("Apna PIN bhej na")
+
+
+# ---------- no false urgency (BUSINESS_CASE B12, PRD D20) ----------
+PRESSURE = [
+    "Hurry, this link will not last.", "Last chance to renew.", "Act now or lose your plan.", "Don't miss this.", "Limited time only.", "Only today.",
+    "You have 2 hours left.", "Just 3 hours remaining to pay.", "Your link expires soon.", "Your offer ends tonight.", "Final reminder before we close it.",
+    "Pay now or else your access goes.", "Pay or you will lose your seat.", "Your plan will be cancelled.", "It is now or never.", "The last date is tomorrow.",
+    "Jaldi karein, link khatam ho jayega.", "Abhi pay karo warna access band.", "Yeh aakhri mauka hai.", "Sirf aaj ke liye.",
+]
+CALM = [
+    "Your Premium Monthly is active now.", "Here is your link to renew. Take your time.", "Pay when you are ready.", "Your bank will reverse it by 3 Oct.",
+    "We have kept your access on until 4 Oct.", "I'm an AI assistant. I can help find your payment.", "Please send the 12-digit UPI ref from your bank app.",
+    "We will message you when it is done.", "Aapka payment jaldi dhoondhne ke liye UPI ref bhej dein.", "Hum kabhi OTP ya PIN nahi maangte.",
+    "If the money left your account, your bank will reverse it within 3 days.", "We will send you the link within 2 hours.", "We will message you here within 1 hour.",
+]
+
+
+@pytest.mark.parametrize("text", PRESSURE)
+def test_pressure_wording_is_blocked_even_with_a_real_expiry(text):
+    assert urgency_violations(text, real_expiry=True), text
+
+
+@pytest.mark.parametrize("text", CALM)
+def test_calm_wording_passes(text):
+    assert not urgency_violations(text), text
+
+
+def test_a_validity_statement_needs_a_real_expiry():
+    text = "Here is your link. It is valid for 48 hours."
+    assert urgency_violations(text) and not urgency_violations(text, real_expiry=True)
+    assert urgency_violations("Renew within 24 hours.") and urgency_violations("24 ghante ke andar renew karein.")
+    assert urgency_violations("Yeh 24 ghante tak valid hai.") and not urgency_violations("Yeh 24 ghante tak valid hai.", real_expiry=True)
+
+
+def test_no_template_pressures_a_customer_and_only_link_templates_state_an_expiry():
+    for tid, t in TEMPLATES.items():
+        for lang in ("en", "hi_latn"):
+            assert not urgency_violations(t[lang], real_expiry="hours" in t["slots"]), (tid, lang)
+            if "hours" not in t["slots"]:
+                assert not urgency_violations(t[lang]), (tid, lang)
+
+
+def test_an_invented_expiry_is_refused_by_the_send_path(fresh):
+    cust = fresh.execute("SELECT customer_id FROM payments LIMIT 1").fetchone()["customer_id"]
+    slots = {"first_name": "Asha", "date": "29 Sep", "grace_until": "4 Oct", "plan": "Premium Monthly"}  # T-G1 has no `hours` slot
+    d = policy.check(fresh, customer_id=cust, template_id="T-G1", language="en", slots=slots, body="Your access is kept. Renew within 24 hours.", approved_by="merchant:founder")
+    assert not d.allowed and any("not real" in r for r in d.reasons)
+
+
+def test_the_real_link_expiry_passes_and_pressure_added_to_it_does_not(fresh):
+    cust = fresh.execute("SELECT customer_id FROM payments LIMIT 1").fetchone()["customer_id"]
+    slots = {"first_name": "Asha", "amount": "599", "hours": 48, "plan": "Premium Monthly"}
+    ok = policy.check(fresh, customer_id=cust, template_id="T-G2", language="en", slots=slots, body="Hi Asha, the payment network issue is fixed. Here is your link to renew your Premium Monthly for ₹599. It is valid for 48 hours.", approved_by="merchant:founder")
+    assert not any("not real" in r for r in ok.reasons)
+    bad = policy.check(fresh, customer_id=cust, template_id="T-G2", language="en", slots=slots, body="Hi Asha, last chance. Here is your link for ₹599. It is valid for 48 hours.", approved_by="merchant:founder")
+    assert any("not real" in r for r in bad.reasons)

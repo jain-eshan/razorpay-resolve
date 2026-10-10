@@ -1,5 +1,6 @@
 """The merchant's side, simulated (SPEC section 15, "Merchant mock"). Blindspot reaches the merchant only through these
-functions or the /merchant-mock routes. In R6 a real access hook replaces them.
+functions or the /merchant-mock routes. In R6 a real access hook replaces them. In production the merchant's side is two things Razorpay can see:
+its webhook endpoint, and a fulfilment acknowledgement its server sends back when it has granted access (BUSINESS_CASE 2.1, INTERVIEWS T8).
 
 State lives in the `entitlements` table (the merchant's access records) and two `settings` keys for the webhook.
 There is deliberately no revoke: `restore` only puts back what a Blindspot grant changed.
@@ -114,6 +115,14 @@ def health(db: sqlite3.Connection) -> dict:
             "signal_healthy": mode == "ok" and hours >= HEALTHY_HOURS}
 
 
+def webhook_test_event(db: sqlite3.Connection) -> dict:
+    """A signed test event with a marker id, answered the way the current mode says. `acknowledged` is the fulfilment acknowledgement: the merchant's
+    server saying it did what the event asked (granted access). `ack_then_fail` is the dangerous one: 2xx, and nothing granted. Changes nothing."""
+    mode = health(db)["webhook_mode"]
+    return {"ok": {"status": 200, "acknowledged": True}, "401": {"status": 401, "acknowledged": False}, "500": {"status": 500, "acknowledged": False},
+            "ack_then_fail": {"status": 200, "acknowledged": False}}[mode] | {"mode": mode}
+
+
 # ---------- the merchant's Android app (INC-2) ----------
 def set_app_mode(db: sqlite3.Connection, mode: str) -> dict:
     """Demo control: the merchant's developer ships the fix for the double tap (or it is undone). Records when the fixed release went out."""
@@ -136,9 +145,11 @@ def app_health(db: sqlite3.Connection) -> dict:
 def pay_page(db: sqlite3.Connection) -> dict:
     """What a visitor, or the pay-URL probe, gets from the merchant's pay page right now."""
     mode = _setting(db, "mock.page_mode") or "404"  # the INC-4 world starts broken
-    return {"ok": {"status": 200, "load_ms": 180, "checkout_script_present": True, "note": None},
-            "404": {"status": 404, "load_ms": 120, "checkout_script_present": False, "note": "Route not found"},
-            "key_mismatch": {"status": 200, "load_ms": 210, "checkout_script_present": True, "note": "Page loads, checkout does not open"}}[mode] | {"mode": mode}
+    # checkout_opens: pressing Pay really opens Razorpay's checkout. A wrong or rotated key leaves the script on the page and the button dead, so the
+    # old probe (status and script only) passes it; the release check does not.
+    return {"ok": {"status": 200, "load_ms": 180, "checkout_script_present": True, "checkout_opens": True, "note": None},
+            "404": {"status": 404, "load_ms": 120, "checkout_script_present": False, "checkout_opens": False, "note": "Route not found"},
+            "key_mismatch": {"status": 200, "load_ms": 210, "checkout_script_present": True, "checkout_opens": False, "note": "Page loads, checkout does not open"}}[mode] | {"mode": mode}
 
 
 def set_page_mode(db: sqlite3.Connection, mode: str) -> dict:

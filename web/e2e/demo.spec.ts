@@ -411,3 +411,23 @@ test('INC-2: the hosted demo takes the clock only after the refunds, and refunds
   await btn(page, 'Move the clock forward 3 hours').click()
   await expect(panel(page).getByText(/hosted demo, refund all the customers first/)).toBeVisible()
 })
+
+// The release check follows what the user has fixed: the webhook fixed on INC-1 turns its three steps green, and the pay page keeps it on hold until INC-4's page is fixed too.
+test('the release check turns green for the webhook once its developer ships the fix, and the pay page keeps it on hold', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'View list' }).click()
+  await expect(page).toHaveURL(/\/incidents\/INC-1$/)
+  await btn(page, 'Test hook').click()
+  await btn(page, 'Plan the fix').click()
+  await btn(page, 'Looks right, continue').click()
+  await btn(page, 'Grant the first 5').click()
+  await btn(page, /^Grant the rest/).click()
+  await btn(page, 'Verify and close').click()
+  await expect(panel(page).getByText(/still answers 401/)).toBeVisible()
+  await btn(page, 'Your developer ships the fix').click()
+  await page.getByRole('link', { name: 'Release check' }).first().click()
+  await expect(page).toHaveURL(/\/release-check$/)
+  await expect(page.getByText('Passed', { exact: true })).toHaveCount(3)  // answers, accepts, acknowledges
+  await expect(page.getByText('Failed', { exact: true })).toHaveCount(1)  // the pay page is still a 404
+  await expect(page.getByText('Hold the release', { exact: true }).first()).toBeVisible()
+})

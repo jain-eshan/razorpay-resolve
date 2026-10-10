@@ -15,6 +15,7 @@ import Incidents from './routes/Incidents'
 import GuidePage from './routes/GuidePage'
 import Home from './routes/Home'
 import Leakage from './routes/Leakage'
+import ReleaseCheck from './routes/ReleaseCheck'
 import Learning from './routes/Learning'
 import PublicDemo from './routes/PublicDemo'
 import Reference from './routes/Reference'
@@ -39,6 +40,7 @@ export default function App() {
               <Route path="/incidents/:id/dev" element={<Dev />} />
               <Route path="/scan" element={<Scan />} />
               <Route path="/access" element={<Leakage />} />
+              <Route path="/release-check" element={<ReleaseCheck />} />
               <Route path="/threads" element={<Threads />} />
               <Route path="/threads/:id" element={<ThreadPage />} />
               <Route path="/cases/:id" element={<Case />} />

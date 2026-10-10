@@ -33,7 +33,9 @@ Blindspot (working name) is Eshan Jain's entry for the Razorpay x ISB AI PM Buil
 | R4 rest: duplicate-charge monitor and guarded refund (INC-2, F-03, F-39) | Done, contracts v0.9. Merged as PR #25. Section 2g. |
 | R4 rest: renewal link for INC-3 | Done, contracts v0.10. Merged as PR #26. Section 2h. |
 | Data retention enforced (F-54) | Done, no contract change. Merged as PR #27. Section 2i. |
-| R4 rest: J6 access without payment, a read-only report | Done, contracts v0.11. In review. Section 2j. |
+| R4 rest: J6 access without payment, a read-only report | Done, contracts v0.11. Merged as PR #29. Section 2j. |
+| No false urgency in every outgoing message (F-55, PRD D20) | Done, no contract change. In review. Section 2k. |
+| Guard release check (F-81 test ping and F-82 pre-deploy check, one screen) | Done, contracts v0.12. In review. Section 2l. |
 | R5 first slice: handovers (Instagram and Messenger control passing, public posts to private) | Done, contracts v0.6. Merged as PR #9. Section 2d. |
 | R5 second slice: learning loop, weekly card, screen S-18 (no model) | Done, contracts v0.7. Merged as PR #15. Section 2e. |
 | R5 rest: renewal anomaly (F-08, INC-3) | Done, contracts v0.8. Merged as PR #19. Section 2f. |
@@ -142,13 +144,29 @@ Merged as PR #27. Full account in `docs/BUILD_LOG.md`. No contract change and no
 - **Limits:** it runs when the demo clock moves, not on a real timer. Redacted complaint text stays indefinitely. Disconnecting a channel still only stops processing and deletes nothing. The hosted demo never reaches 30 days, so it does not show this. Found while writing the tests and not caused by this change: after `pipeline.run` on a database that has live conversations, a live thread points at a case id that no longer exists and the thread page errors. The API starts on a fresh world, so normal use does not hit it.
 
 ### J6, access without payment, 10 Oct 2026 (section 2j)
-In review. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.11).
+Merged as PR #29. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.11).
 - **What it does:** a read-only report (side nav "Access report", `/access`, `GET /api/leakage`) of customers whose UPI AutoPay renewal failed on their side (not enough money in the account) and who still have access after the merchant's own grace rule (48 hours, `merchants.grace_hours_after_failed_renewal`). It shows the count, the unpaid renewals added up, the longest overrun, the list, the customers still inside the rule (each joins the report when its rule runs out, so it moves with the demo clock), how it checked (a four step funnel), what it left out and why, and what it cannot see. **Report only: no button, nothing written, no action that removes access** (a test and an eval gate check this).
 - **Code:** `synth/leakage.py` (the world, applied last, own random stream), `backend/app/leakage.py` (the report), `eval/run_eval.py` (10 J6 checks), `backend/tests/test_leakage.py` (12). Web: `routes/Leakage.tsx`, a nav item, `smoke.spec.ts` S-19. The hosted demo reads the snapshot file `leakage.json` (a plain GET, no replay frames).
 - **Left out on purpose:** customers who paid again, customers whose access the merchant already cut (the rule working), bank-side failures (the customer owes nothing), and card subscribers (INC-3's extension keeps cards on for a different reason).
 - **Results (invented data, one seed):** 9 of 9 found, precision and recall 1.0, 0 look-alikes listed, the 4 customers inside the rule shown apart and moving in after 48 demo hours. Rs 2,691 unpaid, longest 9 days 20 hours over. Eval 138 pass, 0 fail, 23 reported figures. Quote as "works as designed on a simulation".
 - **Side effect to know:** the world has 23 more UPI renewals, so INC-3's "what they have in common" table now compares against a bigger renewal base (cards 45 percent to 30 percent of renewals, lift 2.2 to 3.4) and gained a true row (every failure was `GATEWAY_ERROR`). INC-1's comparison shares moved by under 1.5 points. No headline number of any incident moved.
 - **Limits:** one seed, and the world was built with the report in view. It cannot tell a leak from access the merchant extended on purpose (stated on the page). Only UPI AutoPay (the spec's case). It reads the access records as exported at 10:30, not live. No contact with the customer, no nudge, no CSV export.
+
+### No false urgency, 10 Oct 2026 (section 2k)
+In review. Full account in `docs/BUILD_LOG.md`. No contract change, no screen change.
+- **What it does:** `urgency_violations` in `backend/app/conversation/lint.py`, called from both send paths in `backend/app/channels/policy.py` (`check` for incident messages such as the renewal link, `check_thread` for chats). Pressure wording ("hurry", "last chance", "2 hours left", "or you will lose", Hinglish "jaldi karein", "warna", "sirf aaj") is always refused. A validity line ("valid for 48 hours", "renew within 24 hours") is refused unless the template takes the link's validity as its `hours` slot. A refused chat reply is held as a draft with the reason; a refused incident message raises like any other blocked send.
+- **Why:** Agent Studio's certification screens for dark patterns (INTERVIEWS S6), and `T-G2` and `T-Z1R` state "valid for 48 hours" from a constant (`recovery.LINK_HOURS`) that nothing in the mock enforces. In production that number must be the real `expire_by` of the payment link.
+- **Results:** no shipped template trips it. 20 pressure texts blocked and 13 calm texts pass, checked through both send paths, and the incident-path calls and the chat-path call were each removed once to see their tests go red. Eval 140 pass, 0 fail (two new gates: agent replies, and every sent renewal link). Backend 471 tests.
+- **Limits:** it is a pattern list, so a new way of pushing a customer will pass until it is added. It reads English and Hinglish in Latin script only. It does not check that a sent link really expires (the mock link never does).
+
+### Guard release check, 10 Oct 2026 (section 2l)
+In review. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.12).
+- **What it does:** a screen (`/release-check`, side nav "Release check") and `GET /api/guard/release-check` that a merchant runs before shipping. It sends the merchant's webhook one signed test event and opens the pay page, then shows five steps: the webhook answers, accepts a signed event and sends a fulfilment acknowledgement; the pay page opens and checkout opens. Each is Passed, Failed or Not tried (an earlier step failed). A failure says what was seen, what it means for a customer and what to do. The verdict is "Safe to release" only when all five pass. It also shows the one line a release script would run (`curl ... | jq -e '.safe_to_release'`), tagged as a proposed API. Read only: a test counts database changes.
+- **Why:** it is the one part of Guard the prototype lacked (INTERVIEWS P13, PRD F-81 and F-82). It also sees what the old pay-page probe cannot: a page that loads while checkout will not open (a wrong or rotated key).
+- **Code:** `backend/app/guard.py`, `merchant_mock.webhook_test_event` and `checkout_opens`, schemas `ReleaseCheck` and `ReleaseStep`, `backend/tests/test_guard.py` (13). Web: `routes/ReleaseCheck.tsx`, a nav item, `record_guard` in `scripts/demo_script.py` and the four recorded answers in `lib/demo.ts` (picked by whether the user has fixed the webhook and the pay page).
+- **Also in this batch:** the link expiry is real in the simulation (`recovery.due`): a customer who would pay after 48 hours has not paid, so "valid for 48 hours" is true. No number moved, because every simulated payer pays within 36 hours.
+- **Results (invented data):** all 12 combinations of webhook mode and pay-page mode give the right verdict and fail the right step, and no broken state is ever marked safe. Eval 144 pass, 0 fail, 23 reported. Backend 485 tests. Browser: snapshot suite 75, live suites 15.
+- **Limits:** the merchant is simulated, so nothing here has touched a real endpoint. One event type (a payment capture). It does not run on a schedule or from a pipeline. The hosted demo shows four recorded states, so a webhook left on `ack_then_fail` or a `key_mismatch` page shows only in the live app and the tests.
 
 ### UX review, 7 Oct 2026 (PR #6)
 Eshan asked for a designer's review of the whole web app. Method: Playwright with the installed Chrome at 1440 and 390 wide (full-resolution screenshots, computed styles, overflow, text size and contrast checks on 13 routes), because the in-app browser shrinks screenshots.
@@ -260,7 +278,7 @@ The full verify list is PRD section 16.3.
 
 ## 6b. Pending (as of the end of 7 Oct 2026)
 
-**Pull requests:** only the J6 pull request (#29) is open as of 10 Oct 2026 (PRs #16 to #28 are merged). Old remote branches and worktrees from merged work are still around (section 3b rule 5): `git branch -r` shows about 19 `claude/*` branches and `git worktree list` about 17 folders. Nothing was deleted without Eshan's say-so. CodeRabbit has hit its free review limit on this repo and offers paid reviews ($0.25 a file). Not switched on, Eshan's call.
+**Pull requests:** as of 10 Oct 2026 PRs #16 to #31 are merged, including the J6 report (#29) and the design pass (#30). Old remote branches and worktrees from merged work are still around (section 3b rule 5): `git branch -r` shows about 19 `claude/*` branches and `git worktree list` about 17 folders. Nothing was deleted without Eshan's say-so. CodeRabbit has hit its free review limit on this repo and offers paid reviews ($0.25 a file). Not switched on, Eshan's call.
 
 **Phone-width accessibility task: fixed.** "No button exposed at 375px" was the phone menu hiding the whole page from assistive technology. Merged as PRs #21 and #22 on 8 Oct (a custom Drawer replaced Blade's phone SideNav; focus stays in the menu 10 of 10 runs). Details in `docs/BUILD_LOG.md`. Traps (5) in section 9 below is therefore only about how Playwright loads the page.
 

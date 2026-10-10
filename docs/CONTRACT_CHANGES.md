@@ -4,6 +4,14 @@ A change to anything under `contracts/`, to `backend/app/schemas.py`, `backend/a
 `backend/app/conversation/templates.py`, the capability flags in `backend/app/config.py` or `synth/config.yaml` needs a pull request that
 updates `contracts/` (run `make contracts`), bumps the version below and adds an entry here. Streams do not edit these files directly.
 
+## contracts-v0.12 (10 Oct 2026, Guard release check)
+
+Additive only. Existing paths, models and fields are unchanged. All 161 earlier eval metrics have the same value and status as `main` (compared by name); 6 are added (4 for the release check, 2 for the no-false-urgency check, which is not a contract change).
+- New route `GET /api/guard/release-check` (no parameters): `ReleaseCheck` with `ReleaseStep`. Read only. It sends the merchant's webhook one signed test event (a simulation in the prototype) and reads the pay page, and returns five steps in two groups with `pass`, `fail` or `skipped`, what was seen, what it means and the next step, a `safe_to_release` flag and the line a release script would run. Nothing is stored and nothing is written (a test counts database changes).
+- No new action type and nothing that changes the merchant's records.
+- Merchant mock (not part of the frozen `/api` contract): the pay page now reports `checkout_opens`, and `webhook_test_event` answers with a fulfilment acknowledgement.
+- `contracts/snapshot_manifest.json` gains `guard/release-check.json`. `web/src/types/api.ts` is regenerated.
+
 ## contracts-v0.11 (10 Oct 2026, during R4, J6 access without payment)
 
 Additive only. Existing paths, models and fields are unchanged. Every earlier eval metric has the same value and status (151 compared with `main`); the shares in INC-1's and INC-3's "what they have in common" tables moved because the world has 23 more UPI renewals (see the build log).

@@ -580,6 +580,27 @@ class LearningReplay(BaseModel):
     rows: list[ReplayRow]
 
 
+# ---------- Guard release check (contracts-v0.12) ----------
+class ReleaseStep(BaseModel):
+    key: str
+    group: Literal["webhook", "pay_page"]
+    label: str
+    status: Literal["pass", "fail", "skipped"]
+    saw: str                        # what the check saw, in the merchant's words
+    meaning: str                    # what a failure means for a customer; empty on a pass
+    next_step: str                  # what to do; empty on a pass
+
+
+class ReleaseCheck(BaseModel):
+    checked_at: datetime
+    safe_to_release: bool           # true only when every step passed (a skipped step is not a pass)
+    headline: str
+    steps: list[ReleaseStep]
+    failed: int
+    ci_call: str                    # the line a release script would run (proposed, nothing like it exists at Razorpay)
+    cannot_see: list[str]
+
+
 # ---------- J6: access without payment (contracts-v0.11) ----------
 class LeakageRow(BaseModel):
     subscription_id: str

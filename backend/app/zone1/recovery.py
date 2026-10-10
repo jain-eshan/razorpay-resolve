@@ -68,6 +68,8 @@ def due(db: sqlite3.Connection, offer: sqlite3.Row, now: datetime) -> bool:
         return True
     cid = offer["id"].split(":", 2)[2]
     delay = _behaviour(db)["organic" if offer["holdout"] else "link"].get(cid)
+    if delay is not None and not offer["holdout"] and delay > LINK_HOURS:
+        return False  # the message said the link is valid for LINK_HOURS, so a payment through it after that cannot happen (PRD D20)
     return delay is not None and datetime.fromisoformat(offer["sent_at"]) + timedelta(hours=delay) <= now
 
 

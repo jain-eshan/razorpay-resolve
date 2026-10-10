@@ -55,6 +55,11 @@
     "operation": "eval_report_api_eval_report_get"
   },
   {
+    "path": "/api/guard/release-check",
+    "file": "guard/release-check.json",
+    "operation": "guard_release_check_api_guard_release_check_get"
+  },
+  {
     "path": "/api/incidents",
     "file": "incidents.json",
     "operation": "list_incidents_api_incidents_get"

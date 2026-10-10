@@ -2720,6 +2720,108 @@
         "title": "RefundRow",
         "type": "object"
       },
+      "ReleaseCheck": {
+        "properties": {
+          "cannot_see": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cannot See",
+            "type": "array"
+          },
+          "checked_at": {
+            "format": "date-time",
+            "title": "Checked At",
+            "type": "string"
+          },
+          "ci_call": {
+            "title": "Ci Call",
+            "type": "string"
+          },
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "headline": {
+            "title": "Headline",
+            "type": "string"
+          },
+          "safe_to_release": {
+            "title": "Safe To Release",
+            "type": "boolean"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/ReleaseStep"
+            },
+            "title": "Steps",
+            "type": "array"
+          }
+        },
+        "required": [
+          "checked_at",
+          "safe_to_release",
+          "headline",
+          "steps",
+          "failed",
+          "ci_call",
+          "cannot_see"
+        ],
+        "title": "ReleaseCheck",
+        "type": "object"
+      },
+      "ReleaseStep": {
+        "properties": {
+          "group": {
+            "enum": [
+              "webhook",
+              "pay_page"
+            ],
+            "title": "Group",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "meaning": {
+            "title": "Meaning",
+            "type": "string"
+          },
+          "next_step": {
+            "title": "Next Step",
+            "type": "string"
+          },
+          "saw": {
+            "title": "Saw",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pass",
+              "fail",
+              "skipped"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "group",
+          "label",
+          "status",
+          "saw",
+          "meaning",
+          "next_step"
+        ],
+        "title": "ReleaseStep",
+        "type": "object"
+      },
       "ReplayRow": {
         "properties": {
           "arm": {
@@ -4619,6 +4721,24 @@
           }
         },
         "summary": "Feedback"
+      }
+    },
+    "/api/guard/release-check": {
+      "get": {
+        "operationId": "guard_release_check_api_guard_release_check_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReleaseCheck"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Guard Release Check"
       }
     },
     "/api/handovers": {

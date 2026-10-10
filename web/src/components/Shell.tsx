@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useState, type ComponentProps, type ReactNode } 
 import { Link, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 import {
-  ActivityIcon, AtSignIcon, Avatar, Badge, BellIcon, Box, ChevronDownIcon, ClipboardIcon, CreditCardIcon, Drawer, DrawerBody, DrawerHeader, FileIcon, FileTextIcon, FlaskIcon, HomeIcon, IconButton, LinkIcon, MenuIcon, RadioIcon, RayIcon, RepeatIcon, SearchIcon, SearchInput, SettingsIcon, SideNav, SideNavBody, SideNavFooter, SideNavLink, SideNavSection, Switch, TabNav, TabNavItem, TabNavItems, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent, TrendingUpIcon, UnlockIcon, UsersIcon, useTheme, WalletIcon,
+  ActivityIcon, AtSignIcon, Avatar, Badge, BellIcon, Box, ChevronDownIcon, ClipboardIcon, CreditCardIcon, Drawer, DrawerBody, DrawerHeader, FileIcon, FileTextIcon, FlaskIcon, HomeIcon, IconButton, LinkIcon, MenuIcon, RadioIcon, RayIcon, RepeatIcon, SearchIcon, SearchInput, SettingsIcon, ShieldIcon, SideNav, SideNavBody, SideNavFooter, SideNavLink, SideNavSection, Switch, TabNav, TabNavItem, TabNavItems, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent, TrendingUpIcon, UnlockIcon, UsersIcon, useTheme, WalletIcon,
   type IconComponent,
 } from '@razorpay/blade/components'
 
@@ -16,6 +16,7 @@ const BLINDSPOT: Item[] = [
   { title: 'Channels', to: '/channels', icon: RadioIcon },
   { title: 'Day-0 scan', to: '/scan', icon: SearchIcon },
   { title: 'Access report', to: '/access', icon: UnlockIcon },
+  { title: 'Release check', to: '/release-check', icon: ShieldIcon },
 ]
 const PROOF: Item[] = [
   { title: 'Audit log', to: '/audit', icon: ClipboardIcon },

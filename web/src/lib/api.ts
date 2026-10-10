@@ -34,20 +34,20 @@ export async function get<T>(path: string): Promise<T> {
 
 // `version` is bumped after a write so the same path is fetched again.
 export function useGet<T>(path: string | null, version = 0) {
-  const [res, setRes] = useState<{ path: string; data?: T; error?: string }>()
+  const [res, setRes] = useState<{ path: string; v: number; data?: T; error?: string }>()
   useEffect(() => {
     if (!path) return
     let live = true
     get<T>(path).then(
-      (data) => live && setRes({ path, data }),
-      (e: Error) => live && setRes({ path, error: e.message }),
+      (data) => live && setRes({ path, v: version, data }),
+      (e: Error) => live && setRes({ path, v: version, error: e.message }),
     )
     return () => {
       live = false
     }
   }, [path, version])
   const cur = path && res?.path === path ? res : undefined // ignore a stale result from the previous path; keep the old data while a refetch runs
-  return { data: cur?.data, error: cur?.error }
+  return { data: cur?.data, error: cur?.error, busy: !!path && cur?.v !== version } // busy: the answer on screen is from an earlier run
 }
 
 // Money is integer paise. Indian digit grouping: ₹2,40,000.

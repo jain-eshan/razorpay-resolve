@@ -859,3 +859,53 @@ Collected while writing this log up in full. Nothing here was changed without be
 - Dark mode has not been checked on any page.
 - The thread page crashes after a pipeline rebuild leaves a thread pointing at a case id that no longer exists (data retention entry above). Not fixed.
 - Old remote branches and worktrees still exist (PR #28 noted this). This session's worktree and its stacked branch `claude/design-batch-2-incidents` go once PR #30 merges.
+
+## 10 Oct 2026, review against the full transcripts, and the no-false-urgency check (integrator)
+
+Goal: Eshan asked whether the design trends, business updates, pricing and what Razorpay's founder, chief product officer and tech team said change the PRD or the roadmap, and to change them only if they do, then keep building.
+
+Method: read the PRD, build plan, business case, interview digest, handoff and the last build log entries, then read all five transcripts in full (S1 to S5, about 25,000 words) instead of relying on the digest, read `web/DESIGN.md` section 17, merged the design pass from `main` (PR #30), and searched for Agent Studio pricing and Razorpay news.
+
+Findings (full table in `docs/INTERVIEWS.md` section 10):
+- Most of it was already absorbed by the earlier 10 Oct docs pass (D12 to D19, the production cuts, T1 to T8, P1 to P10). Pricing, the business case numbers, the design guide and the release plan stay as they are. Razorpay has published no Agent Studio price, and no unfreeze trigger fired.
+- Three real gaps, now fixed: the no-false-urgency rule (B12, S6) was in the business case and the backlog but not in the PRD or the code; Guard's prevention checks (test ping, pre-deploy check) and the price card, fee preview and receipt had no feature rows; and the transcripts show a cheap activation path (the integration prompt and agent onboarding's website scan) that the digest listed but never tied to the case's largest driver. Recorded as D20, D21, F-55, F-80 to F-82 and P11 to P13, with the activation path marked as unpriced upside.
+- One finding in code: `T-G2` and `T-Z1R` tell customers a link is "valid for 48 hours". The 48 is a constant (`recovery.LINK_HOURS`), stored nowhere and enforced nowhere in the mock, so the message states an expiry the prototype does not have.
+
+Built (the one backlog item the review made worth doing now, T7): `urgency_violations` in `conversation/lint.py`, wired into `channels/policy.py` at both send paths. Pressure wording is always refused. A validity statement is allowed only when the template takes `hours` as a slot. Files: `backend/app/conversation/lint.py`, `backend/app/channels/policy.py`, `backend/tests/test_policy.py`, `backend/tests/test_handover.py`, `eval/conversation.py`, `eval/run_eval.py`.
+
+What the checks caught:
+- My first test used "Renew within 24 hours" as the invented expiry, and the lint did not flag it, because the pattern only knew "valid for". Widened to an instruction followed by "within N hours", with calm controls ("we will send you the link within 2 hours", "your bank will reverse it within 3 days") so it does not catch promises and facts.
+- The chat-path test then failed on "Send the UPI ref within 2 hours" (no "send" in the verb list). Added the verbs, limited to an instruction to the customer (sentence start, "please", "must", after a comma).
+- My first attempt to break the code on purpose did nothing: macOS `sed -i` rejected the command, so the tests passed on unbroken code. Redone with a script. Removing both incident-path calls turned two tests red, and removing only the chat-path call turned the third red. Restored each time.
+- A stray copy of `policy.py` went to `/tmp` by mistake and was deleted.
+
+Checks: `uv run pytest` 471 passed; `uv run ruff check .` clean; `make eval` 140 pass, 0 fail, 23 reported (was 138 and 23, so the two new gates); `./scripts/secret_scan.sh` clean; `npm ci` and `npm run build` in `web/` succeed. No em dashes in the changed files. Not run: the Playwright suites (nothing in `web/` or the snapshot changed; CI runs them).
+
+Not touched: `web/` and `contracts/`, so no design review and no contract entry. The snapshot is unchanged because no output of the engine moved.
+
+Not done, on purpose: the fee preview, receipt and price card (T6, after submission); the Guard test ping and pre-deploy check (pilot work, they need a real merchant endpoint); the investigation agent (needs a model and, per the production cuts, pilot data); R6 (needs Eshan's Razorpay test keys and accounts).
+
+## 10 Oct 2026, Guard release check, link expiry made real, fulfilment acknowledgement (integrator)
+
+Goal: Eshan asked for a bigger batch, merged in one pull request. The piece chosen is Guard's prevention check, because the business case sells Guard on it (PRD F-81 test ping, F-82 pre-deploy check, INTERVIEWS P13) and the prototype had neither. It sits in the same pull request as the no-false-urgency check above.
+
+Built:
+- `backend/app/guard.py` and `GET /api/guard/release-check` (contracts v0.12): five steps (the webhook answers, accepts a signed event, sends a fulfilment acknowledgement; the pay page opens, checkout opens), each pass, fail or skipped, with what was seen, what it means and the next step. Safe only when all five pass. Read only.
+- Merchant mock: `webhook_test_event` (status plus a fulfilment acknowledgement, which is the T8 wording) and `checkout_opens` on the pay page.
+- Link expiry made real in the simulation (`recovery.due`): a customer who would pay after the 48 hours the message promises has not paid. No number moved: the latest simulated payment is at 35.8 hours.
+- Web: `routes/ReleaseCheck.tsx`, a side nav item, four recorded demo answers (`record_guard`, picked by whether the user has fixed the webhook and the pay page), `useGet` now also returns `busy`.
+- Tests and gates: `backend/tests/test_guard.py` (13), one test in `test_zone1.py`, 4 eval gates (all 12 combinations of webhook mode and pay page mode give the right verdict and fail the right step; no broken state is marked safe; reading writes nothing), 3 browser tests.
+
+What the checks caught:
+- The first run of the pay-page test failed: the mock's "wrong key" page has the checkout script present and checkout dead, and my check passed it. The existing pay-page probe has the same blind spot (the handoff already says so). Fixed by adding `checkout_opens` to the mock and using it in the release check. The old probe is unchanged.
+- I removed the acknowledgement check, then the checkout check, then made the check write a row: each turned tests red, so the tests do guard those. One of my own assertions had an operator-precedence slip that would have let it pass too easily; fixed.
+- Independent design review, first pass: pass with notes. Fixed: the banner said "nothing is changed" although a real check runs the merchant's handler; the button gave no feedback while running (and a double click would send two test events); "now" was false for a recorded 2 Oct time; "Passed" beside "It answered 401" read as a contradiction; "Guard" was never explained; DESIGN.md section 14 missed the nav item; two lines ran wider than 720px; the headline card repeated the Verdict stat. Not fixed: heading levels skip from h4 to h6 and a date is a heading, because both come from the shared `Stat` and `Panel` (the Access report has the same pattern), so it is a follow-up for the shared parts; and the step lists are plain boxes, because Blade's `Box` has no `role` prop.
+- My `role` attributes failed the type check, so the site build failed and the browser tests ran against the previous build. I only saw it because I read the type output instead of the last line. Removed, rebuilt, re-ran. Also my first `busy` flag set state inside an effect and added a lint warning; it is now derived from what was fetched.
+- `data/world.db` was left with the webhook fixed after my live browser run (it is a scratch file; `make synth` resets it). It made one of my own checks look wrong until I looked at it.
+
+Checks: `uv run pytest` 485 passed; `make lint` clean; `make eval` 144 pass, 0 fail, 23 reported, and all 161 metrics that `main` has are identical by name (6 added); `make test` including `npm run build` and the secret scan; `tsc -b` and oxlint clean; snapshot browser suite 75 of 75 on a production build; live suites (`talk`, `fix`) 15 of 15 against the real API; the page at 375, 768 and 1440px with no sideways overflow. Run on a throwaway config and free ports (5190, 5174, 8000), because 5173 belonged to another chat. No em dashes in the changed files.
+
+Design review: an independent general-purpose agent followed `.claude/agents/design-reviewer.md` (the `design-reviewer` agent type is not registered in this session) and edited nothing. First pass: pass with notes, fixed as listed above. Second pass after the fixes: pass. It ran types, lint and the mechanical searches (clean), the layout, smoke and demo tests, the page at 375, 768 and 1440px (no overflow, clean console), and spot-checked `/access`, `/incidents`, `/scan` and `/audit` after the `useGet` change. It could not check: live mode and the real API, the other three recorded states in a browser, the phone menu and keyboard focus order, a screen reader, dark mode, and whether the loading spinner is visible (in the hosted build the button is disabled for a few milliseconds only, because the answer is already in memory). It saw one Recharts "width(-1) and height(-1)" warning on `/incidents/INC-1`, which I did not compare with `main`; this batch does not touch that page. The remaining notes (heading levels in the shared `Stat` and `Panel`, no `role="list"`) are listed above as not fixed.
+
+Not done, on purpose: the price card, fee preview and receipt (T6, after submission); a check against a real merchant endpoint, on a schedule or from a release pipeline (R6 and the pilot); event types other than a payment capture; a role-based list for the step rows.
+
