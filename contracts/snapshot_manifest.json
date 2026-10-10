@@ -140,6 +140,11 @@
     "operation": "get_trace_api_incidents__incident_id__trace_get"
   },
   {
+    "path": "/api/leakage",
+    "file": "leakage.json",
+    "operation": "leakage_report_api_leakage_get"
+  },
+  {
     "path": "/api/learning/params",
     "file": "learning/params.json",
     "operation": "learning_params_api_learning_params_get"

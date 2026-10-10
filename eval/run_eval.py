@@ -654,6 +654,36 @@ if ti2 and inc2:
     add("incident_closes_only_after_the_fix_has_held_24h", float(not before_fix and not too_soon and closed), "1.0 (refunds are not enough: the app must stop doubling first)", not before_fix and not too_soon and closed)
     clock.reset()
 
+# ---- J6: access without payment, a read-only report. Scored against hidden truth (`truth_leakage`). ----
+from app import leakage as leakage_report
+
+states = {}
+for r in truth.execute("SELECT payment_id, state FROM truth_leakage"):
+    states.setdefault(r["state"], set()).add(r["payment_id"])
+if states:
+    rep = leakage_report.report(world, clock.now())
+    listed, soon = {x.payment_id for x in rep.rows}, {x.payment_id for x in rep.inside_rule}
+    add("leakage_report_precision", len(listed & states["leak"]) / len(listed) if listed else 0.0, ">= 0.98", bool(listed) and len(listed & states["leak"]) / len(listed) >= 0.98)
+    add("leakage_report_recall", len(listed & states["leak"]) / len(states["leak"]), ">= 0.98", len(listed & states["leak"]) / len(states["leak"]) >= 0.98)
+    look2 = states["access_cut"] | states["paid_since"] | states["not_theirs"]
+    add("leakage_look_alikes_in_the_report", float(len((listed | soon) & look2)), "0 (access already cut, paid again, bank-side failures)", not (listed | soon) & look2)
+    add("leakage_inside_rule_shown_as_leaks", float(len(listed & states["inside_grace"])), "0 (a failure inside the merchant's own 48 hour rule is not a leak yet)", not listed & states["inside_grace"])
+    add("leakage_inside_rule_listed_apart", len(soon & states["inside_grace"]) / len(states["inside_grace"]), "1.0 (shown as 'will cross', each with the hour its rule ends)", soon == states["inside_grace"])
+    mem = sqlite3.connect(":memory:")
+    mem.row_factory = sqlite3.Row
+    world.backup(mem)
+    changes = mem.total_changes
+    leakage_report.report(mem, clock.now())
+    add("leakage_rows_written_by_reading_the_report", float(mem.total_changes - changes), "0 (report only)", mem.total_changes == changes)
+    clock.advance(48)
+    later = leakage_report.report(mem, clock.now())
+    clock.reset()
+    add("leakage_inside_rule_move_in_when_the_rule_runs_out", float(later.customers - rep.customers), f"= {len(states['inside_grace'])} (the same customers, 48 hours on)", later.customers - rep.customers == len(states["inside_grace"]))
+    verbs = {"revoke", "cut", "remove", "cancel", "suspend", "expire"}
+    add("leakage_actions_that_take_access_away", float(len([a for a in get_args(ActionType) if any(v in a for v in verbs)])), "0 (no revoke exists; the founder cuts access in their own system)", not [a for a in get_args(ActionType) if any(v in a for v in verbs)])
+    add("leakage_unpaid_renewals_paise", float(rep.owed_paise), "reported (failed renewals with access still on, past the rule)", None)
+    add("leakage_longest_hours_over_the_rule", rep.longest_over_hours, "reported", None)
+
 report = EvalReport(seed=cfg["seed"], generated_at=datetime.fromisoformat(cfg["snapshot_at"] + "+05:30"), metrics=metrics, arms=[])
 (Path(__file__).parent / "report.json").write_text(report.model_dump_json(indent=2) + "\n")
 lines = ["# Eval report", "", f"Synthetic world, seed {cfg['seed']}. Ground truth is never visible to the pipeline.", "",

@@ -1903,6 +1903,182 @@
         "title": "LaneEvent",
         "type": "object"
       },
+      "LeakageLeftOut": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "count"
+        ],
+        "title": "LeakageLeftOut",
+        "type": "object"
+      },
+      "LeakageReport": {
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "cannot_see": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cannot See",
+            "type": "array"
+          },
+          "customers": {
+            "title": "Customers",
+            "type": "integer"
+          },
+          "funnel": {
+            "items": {
+              "$ref": "#/components/schemas/LeakageStep"
+            },
+            "title": "Funnel",
+            "type": "array"
+          },
+          "grace_hours": {
+            "title": "Grace Hours",
+            "type": "integer"
+          },
+          "headline": {
+            "title": "Headline",
+            "type": "string"
+          },
+          "inside_rule": {
+            "items": {
+              "$ref": "#/components/schemas/LeakageRow"
+            },
+            "title": "Inside Rule",
+            "type": "array"
+          },
+          "left_out": {
+            "items": {
+              "$ref": "#/components/schemas/LeakageLeftOut"
+            },
+            "title": "Left Out",
+            "type": "array"
+          },
+          "longest_over_hours": {
+            "title": "Longest Over Hours",
+            "type": "number"
+          },
+          "owed_paise": {
+            "title": "Owed Paise",
+            "type": "integer"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/LeakageRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "as_of",
+          "grace_hours",
+          "headline",
+          "customers",
+          "owed_paise",
+          "longest_over_hours",
+          "rows",
+          "inside_rule",
+          "left_out",
+          "funnel",
+          "cannot_see"
+        ],
+        "title": "LeakageReport",
+        "type": "object"
+      },
+      "LeakageRow": {
+        "properties": {
+          "access_until": {
+            "format": "date-time",
+            "title": "Access Until",
+            "type": "string"
+          },
+          "amount_paise": {
+            "title": "Amount Paise",
+            "type": "integer"
+          },
+          "customer_masked": {
+            "title": "Customer Masked",
+            "type": "string"
+          },
+          "failed_at": {
+            "format": "date-time",
+            "title": "Failed At",
+            "type": "string"
+          },
+          "hours_over_rule": {
+            "title": "Hours Over Rule",
+            "type": "number"
+          },
+          "payment_id": {
+            "title": "Payment Id",
+            "type": "string"
+          },
+          "plan": {
+            "title": "Plan",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "rule_ends_at": {
+            "format": "date-time",
+            "title": "Rule Ends At",
+            "type": "string"
+          },
+          "subscription_id": {
+            "title": "Subscription Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subscription_id",
+          "payment_id",
+          "customer_masked",
+          "plan",
+          "amount_paise",
+          "reason",
+          "failed_at",
+          "rule_ends_at",
+          "hours_over_rule",
+          "access_until"
+        ],
+        "title": "LeakageRow",
+        "type": "object"
+      },
+      "LeakageStep": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "count"
+        ],
+        "title": "LeakageStep",
+        "type": "object"
+      },
       "LearningChange": {
         "properties": {
           "after": {
@@ -5031,6 +5207,24 @@
           }
         },
         "summary": "Verify"
+      }
+    },
+    "/api/leakage": {
+      "get": {
+        "operationId": "leakage_report_api_leakage_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeakageReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Leakage Report"
       }
     },
     "/api/learning/params": {

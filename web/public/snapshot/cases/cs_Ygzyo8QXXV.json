@@ -55,7 +55,7 @@
     {
       "payment_id": "pay_YQ6qsaSZ5QGr81",
       "method": "fuzzy",
-      "calibrated_score": 0.17633624243827753,
+      "calibrated_score": 0.17145676021043552,
       "features": {
         "amount": 1.0,
         "time": 0.32821904476847313,
@@ -70,7 +70,7 @@
     {
       "payment_id": "pay_7eyQHUOUJYd1jI",
       "method": "fuzzy",
-      "calibrated_score": 0.16588142836709863,
+      "calibrated_score": 0.16950184974366522,
       "features": {
         "amount": 1.0,
         "time": 0.26379246759039027,

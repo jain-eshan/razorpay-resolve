@@ -67,3 +67,19 @@ test('S-04 a case opens from the snapshot without a server', async ({ page, requ
   await expect(page.getByText(/Matched to pay_\w+ by an exact identifier/)).toBeVisible()
   await expect(page.getByText('Customer says')).toBeVisible()
 })
+
+// J6. A report, not an action: it lists customers whose UPI renewal failed and who still have access past the merchant's rule, and offers nothing that changes anything.
+test('S-19 access report: the stat is the list, the inside-rule customers are apart, and there is nothing to press', async ({ page }) => {
+  await page.goto('/access')
+  await expect(page.getByRole('heading', { name: 'Access without payment' })).toBeVisible()
+  await expect(page.getByText('A report, not an action')).toBeVisible()
+  await expect(page.getByText(/\d+ customers failed a UPI renewal, are past your 48 hour rule and still have access/)).toBeVisible()
+  const stat = Number((await page.getByText('Customers past your rule', { exact: true }).locator('xpath=following-sibling::*[1]').innerText()).replace(/\D/g, ''))
+  expect(stat).toBeGreaterThan(0)
+  await expect(page.getByRole('row')).toHaveCount(stat + 4)  // one row per customer in the list, plus the four inside the rule
+  await expect(page.getByText(/\d+ more are inside your rule/)).toBeVisible()
+  await expect(page.getByText('Left out, and why')).toBeVisible()
+  await expect(page.getByText('What I cannot see')).toBeVisible()
+  await expect(page.getByRole('button', { name: /revoke|remove|cut|send|approve|refund|grant|fix|message|extend/i })).toHaveCount(0)  // nothing here changes anything (the page has no main landmark to scope to, so the check is by name)
+  await expect(page.getByRole('link', { name: 'Access report' }).first()).toBeVisible()  // reachable from the side nav
+})
