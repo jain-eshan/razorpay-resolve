@@ -101,7 +101,7 @@ def _markers(sig: dict, day: datetime) -> list[str]:
     if hit(sig["first_at"]):
         marks.append("first double charge")
     if hit(sig["alert_at"]):
-        marks.append("alert would fire")
+        marks.append(f"alert would fire at {datetime.fromisoformat(sig['alert_at']).strftime('%H:%M')}")
     return marks
 
 

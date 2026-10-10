@@ -1,4 +1,4 @@
-# Handoff: where Blindspot stands (10 Oct 2026: R0 to R5 on `main` except the items marked "not started" below; R7 submission kit, INC-3, INC-2 with the guarded refund, the INC-3 renewal link and data retention are merged as PRs #16, #19, #25, #26 and #27)
+# Handoff: where Blindspot stands (10 Oct 2026: R0 to R5 on `main` except the items marked "not started" below; R7 submission kit, INC-3, INC-2 with the guarded refund, the INC-3 renewal link and data retention are merged as PRs #16, #19, #25, #26 and #27; the J6 report, the no-false-urgency check, the Guard release check and the roadmap batch as #29, #33 and #34)
 
 Read this first in a new chat, then `docs/PRD.md`. Everything below is true as of the last commit on `main`.
 
@@ -6,7 +6,7 @@ Read this first in a new chat, then `docs/PRD.md`. Everything below is true as o
 
 0. **Before anything else:** `gh issue list --label ci-failure --state open`. If CI is red on `main` there is an issue (opened by `.github/workflows/ci-alert.yml`). Fix it first, before any new work. Rules are in the root `CLAUDE.md`.
 1. Read this file, then `docs/BUILD_LOG.md` (what happened and what broke), then `docs/BUILD_PLAN.md` section 5 for the next release. Before any decision about pricing, scope cuts or production design, read `docs/BUSINESS_CASE.md` (frozen numbers) and `docs/INTERVIEWS.md` (what Razorpay has said, and the tech calls it supports). The unabridged transcripts behind it are in `docs/RAZORPAY_TRANSCRIPTS.md`; read the full text before relying on a detail.
-2. `make setup` once. Then `make test`, `make eval`, `make e2e` should all pass on a clean checkout (about 3 minutes).
+2. `make setup` once. Then `make test`, `make eval`, `make e2e` should all pass on a clean checkout (about 3 minutes on a laptop, about 7 on CI).
 3. Run it: `make run-api` (fresh synthetic world, API on 8000) and `make run-web` with `VITE_MODE=live`. Without `VITE_MODE=live` the web shows the guided demo from the committed snapshot.
 4. Eshan is non-technical. Explain plainly, ask before commit, push, delete or anything outward-facing, no em dashes. Work on a short-lived branch cut from current `origin/main`, open a PR, and merge once CI passes (Eshan merged PR #6 himself; GitHub auto-merge is switched off for this repo, so merging is a manual click or `gh pr merge --merge`).
 5. Eshan uses git worktrees (one folder per chat). Read section 3b before you start, in particular: run `git fetch` first and cut your branch from `origin/main`, then `cd web && npm ci`.
@@ -29,14 +29,15 @@ Blindspot (working name) is Eshan Jain's entry for the Razorpay x ISB AI PM Buil
 | UX review and one-branch cleanup (7 Oct, section 2b) | Done. Merged as PR #6. `main` is now the only branch. |
 | R4 first slice: Zone 1, Hero B (cannot reach the pay page), no model | Done, contracts v0.5. Merged as PR #8. Section 2c. |
 | R4 rest: escalation to Razorpay | Done with INC-3, contracts v0.8. Merged as PR #19. Section 2f. |
-| R4 rest: investigation agent, three-way eval (need a model) | Not started |
+| R4 rest: investigation agent, three-way eval | Cut from the competition build (no model, decision T1). Revisit after the pilot |
 | R4 rest: duplicate-charge monitor and guarded refund (INC-2, F-03, F-39) | Done, contracts v0.9. Merged as PR #25. Section 2g. |
 | R4 rest: renewal link for INC-3 | Done, contracts v0.10. Merged as PR #26. Section 2h. |
 | Data retention enforced (F-54) | Done, no contract change. Merged as PR #27. Section 2i. |
 | R4 rest: J6 access without payment, a read-only report | Done, contracts v0.11. Merged as PR #29. Section 2j. |
-| No false urgency in every outgoing message (F-55, PRD D20) | Done, no contract change. In review. Section 2k. |
+| No false urgency in every outgoing message (F-55, PRD D20) | Done, no contract change. Merged as PR #33. Section 2k. |
 | Guard release check (F-81 test ping and F-82 pre-deploy check, one screen) | Done, contracts v0.12. Merged as PR #33. Section 2l. |
-| Roadmap reassessment and the batch it ranked (the three missing PRD metrics, Connect by prompt, Blade charts, thread crash fix) | Done, no contract change. In review. Section 2m, ranking in BUILD_PLAN section 14. |
+| Roadmap reassessment and the batch it ranked (the three missing PRD metrics, Connect by prompt, Blade charts, thread crash fix) | Done, no contract change. Merged as PR #34. Section 2m, ranking in BUILD_PLAN section 14. |
+| Final audit by four independent reviewers, the fixes, and the AI build log (`docs/AI_BUILD_LOG.md`) | Done, no contract change. In review. Section 2n. |
 | R5 first slice: handovers (Instagram and Messenger control passing, public posts to private) | Done, contracts v0.6. Merged as PR #9. Section 2d. |
 | R5 second slice: learning loop, weekly card, screen S-18 (no model) | Done, contracts v0.7. Merged as PR #15. Section 2e. |
 | R5 rest: renewal anomaly (F-08, INC-3) | Done, contracts v0.8. Merged as PR #19. Section 2f. |
@@ -79,10 +80,10 @@ The hosted site (https://razorpay-blindspot.vercel.app/, on Vercel, Root Directo
 - **No model is used yet.** Triage and extraction are rules. They read English and Hinglish in Latin script. Devanagari is only recognised as a language, so the rules call it "other" and a person sees it. A model-based extractor goes behind `extract()` with the same output shape. Needs an Anthropic key with a spend cap, and then the three-arm comparison (rules, agent, no signal) that the eval report does not have yet.
 - **The scripted threads are friendly to the rules.** They are generated from templates close to the patterns the extractor knows, so 1.0 is optimistic. K4 is not settled until real founders show real messages.
 - **Screenshots are simulated:** a script supplies the text a screenshot reader would return (`context.screenshot_text`). No image is read.
-- **Fuzzy matching is weak by design:** on generated complaints the true payment is in the top 3 suggestions 72 percent of the time, top 1 only 45 percent, and no threshold reaches 95 percent precision, so it never decides anything.
+- **Fuzzy matching is weak by design:** on generated complaints the true payment is in the top 3 suggestions 66.5 percent of the time, top 1 only 36 percent (`eval/report.md`, 10 Oct), and no threshold reaches 95 percent precision, so it never decides anything.
 - **Retention** is enforced for the transcript and the saved identifiers (section 2i). Raw attachments are never stored, so there is nothing to purge for them.
 - **Public mentions, Instagram and Messenger** (R5) have no adapter. A public thread gets a held draft that the public filter blocks.
-- **Not measured:** time to first useful reply under 60 seconds, cost per resolved case.
+- **Measured on 10 Oct (section 2m):** the engine's own time to first reply and the message cost per resolved case. **Not measured:** how long a person takes to read and approve.
 - **The conversation dial is per channel** (Channels screen). The Settings dial is global and governs grants and incident messages.
 - The first read of `/api/channels` seeds the channel and consent rows (a read that writes). Fine for the prototype.
 
@@ -170,7 +171,7 @@ Merged as PR #33. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/C
 - **Limits:** the merchant is simulated, so nothing here has touched a real endpoint. One event type (a payment capture). It does not run on a schedule or from a pipeline. The hosted demo shows four recorded states, so a webhook left on `ack_then_fail` or a `key_mismatch` page shows only in the live app and the tests.
 
 ### Roadmap reassessment and its batch, 10 Oct 2026 (section 2m)
-In review. The ranked list and the cuts are in `docs/BUILD_PLAN.md` section 14 (read it before starting new work: it says what is cut and why). Full account of the build in `docs/BUILD_LOG.md`. No contract change.
+Merged as PR #34. The ranked list and the cuts are in `docs/BUILD_PLAN.md` section 14 (read it before starting new work: it says what is cut and why). Full account of the build in `docs/BUILD_LOG.md`. No contract change.
 - **The three PRD metrics that had no number** now do (`eval/founder_effort.py`, `eval/conversation.py`, a row on "How we know"): founder minutes for the typical incident 4.0 (approvals counted from the engine's own plans at an assumed 30 seconds each, checked against a real INC-1 run), cost per resolved case ₹0.07 (messages only, no model), median engine time to first reply under a millisecond. **Finding to carry:** INC-2 is 10.5 founder minutes against a target of 10, because each refund is approved one customer at a time. Kept on purpose. The honest answer is to say so, not to batch refunds.
 - **Connect by prompt** (`/connect`, `routes/Connect.tsx`, `lib/connectPrompt.ts`, PRD F-83): the prompt a merchant pastes into a coding agent. Six rules, each closing a failure the product finds. A proposal: the acknowledgement route in the prompt is a placeholder. A test checks the prompt carries no key or secret and that the copy button copies exactly the text shown.
 - **Blade charts:** `OrdersChart` and `RenewalChart` replace the hand-drawn bars. No hand-drawn chart is left.
@@ -178,6 +179,18 @@ In review. The ranked list and the cuts are in `docs/BUILD_PLAN.md` section 14 (
 - **Cut on 10 Oct** (BUILD_PLAN 14.3): the investigation agent and three-arm evaluation from the competition build, learning-loop extras, Devanagari rules, scheduled release checks, and the D2C, helpdesk-app, consent-bridge, live-listening and grievance-matching items. **Dropped from this batch:** the Guard value report, because the hosted demo cannot keep it in step with what the user fixes.
 - **Results:** eval 147 pass, 0 fail (all earlier metrics unchanged). Backend 486 tests. Browser: snapshot suite 77.
 - **Limits:** the minutes rest on a 30 second assumption nobody timed. The reply time is engine only. Connect by prompt has not been tried on a real coding agent: nobody has run the prompt and watched an agent produce a correct handler yet, which is the first thing to do with R6.
+
+### Final audit and fixes, 10 Oct 2026 (section 2n)
+In review. Full account in `docs/BUILD_LOG.md`. No contract change. Read `docs/AI_BUILD_LOG.md` too: it is the submission's AI build log.
+- **Why:** Eshan shared the official brief (see `memory/project_buildathon_brief.md` in his notes: five judging dimensions, Track 2 asks, four deliverables). Four independent reviewers then audited the product: the docs for stale or contradictory claims, the product against the brief as a strict judge, a rehearsal of the 90-second script, and the code against the hard rules.
+- **Decision kept:** the prototype has no model. The brief asks the note to say why AI is necessary and what it does better than a rule. The answer has to come from the production design and from where the rules visibly stop, not from a model in the prototype.
+- **Fixed in code (each with a test that fails without the fix, 605 backend tests, 78 snapshot browser tests and 15 live ones now):** an approval must be `merchant:<name>` with a name (an empty name, "system" and the like were accepted); the never-ask lint now runs on incident messages too and reads clause by clause (27 of 30 new phrasings used to slip through, none do now); the pressure-wording lint is wider (13 of 15 slipped); typed founder replies cannot state a rupee amount that is not in the customer's record; a card number, CVV, OTP, PIN, password, Aadhaar or PAN a customer volunteers is removed before anything is stored; "STOP" and "mat bhejo" now write a suppression that blocks chat replies and incident messages to that customer (the PRD promised it and no code did it); a time without a zone no longer breaks the clock, and the clock is capped and does not move when a step fails; one customer tapping a button three times is not a duplicate-charge incident; refund text keeps paise and an unknown payment method cannot break the clock; a message the rules cannot read but that mentions money goes to the founder instead of being dropped in silence; `.env.*` is ignored.
+- **Fixed in the product's words:** INC-1 said "Razorpay turns the webhook off". Eshan's own 24-hour test showed it does not. It now says "Razorpay's docs say it turns the webhook off" and that the step is documented, not observed.
+- **Fixed after the rehearsal reviewer:** the demo customer now sends a 12-digit UPI reference, hidden identifiers show in words and never as a raw `[RRN_1]` token (`plainTokens` in `lib/format.ts`), the chart marker says when the alert fires, and "How we know" shows the hero numbers. The video findings that are for Eshan to apply are in `docs/SUBMISSION.md` section 6.
+- **Fixed in the docs:** about 30 stale or false claims across the README, PRD, SPEC, plan, handoff, business case and digest (statuses still "in review", test and eval counts, model claims in sections that describe production, a wrong customer count in the business case, old file names).
+- **Measured and unchanged:** all 177 eval metrics have the same value and status as before (147 pass, 0 fail, 30 reported).
+- **Known limits, left as they are and written in the README:** no sign-in, the merchant stand-in in the same app, a receiver that records any POST, retention keeping some message text, autopilot sending a bulk message without a pause after the first five (the PRD matrix allows it, the default is "Suggest"), a per-calendar-day refund limit.
+- **Still open:** the note, the video and Eshan's own checks (SUBMISSION section 4), K2 and K3. The reviewer's suggestion to show, on "How we know", where the rules stop on messy input (Devanagari, slang, unlisted server errors) as the gap a production model fills is not built.
 
 ### UX review, 7 Oct 2026 (PR #6)
 Eshan asked for a designer's review of the whole web app. Method: Playwright with the installed Chrome at 1440 and 390 wide (full-resolution screenshots, computed styles, overflow, text size and contrast checks on 13 routes), because the in-app browser shrinks screenshots.
@@ -201,7 +214,7 @@ Open design questions for Eshan: RAY ("RAY on WhatsApp", a centred phone mock) i
 ## 3. Repo map
 
 ```
-docs/        PRD.md  SPEC.md  BUILD_PLAN.md  V1_SPEC.md  BUILD_LOG.md  CONTRACT_CHANGES.md  HANDOFF.md
+docs/        PRD.md  SPEC.md  BUILD_PLAN.md  V1_SPEC.md  BUILD_LOG.md  CONTRACT_CHANGES.md  HANDOFF.md  BUSINESS_CASE.md  INTERVIEWS.md  RAZORPAY_TRANSCRIPTS.md  SUBMISSION.md  business_model.py
 contracts/   schema.sql  truth_schema.sql  openapi.json  snapshot_manifest.json   (frozen, generated)
 backend/app/ schemas.py (models)  fixtures.py (placeholders)  main.py (API)  service.py (read layer)  pipeline.py  db.py  clock.py
              detect/  widen/  investigate/ (rule verdict)  attribution.py  config.py
@@ -289,7 +302,7 @@ The full verify list is PRD section 16.3.
 
 ## 6b. Pending (as of the end of 7 Oct 2026)
 
-**Pull requests:** as of 10 Oct 2026 PRs #16 to #31 are merged, including the J6 report (#29) and the design pass (#30). Old remote branches and worktrees from merged work are still around (section 3b rule 5): `git branch -r` shows about 19 `claude/*` branches and `git worktree list` about 17 folders. Nothing was deleted without Eshan's say-so. CodeRabbit has hit its free review limit on this repo and offers paid reviews ($0.25 a file). Not switched on, Eshan's call.
+**Pull requests:** as of 10 Oct 2026 PRs #16 to #34 are merged, including the J6 report (#29) and the design pass (#30). Old remote branches and worktrees from merged work are still around (section 3b rule 5): `git branch -r` still shows many old `claude/*` branches and `git worktree list` many old folders. Nothing was deleted without Eshan's say-so. CodeRabbit has hit its free review limit on this repo and offers paid reviews ($0.25 a file). Not switched on, Eshan's call.
 
 **Phone-width accessibility task: fixed.** "No button exposed at 375px" was the phone menu hiding the whole page from assistive technology. Merged as PRs #21 and #22 on 8 Oct (a custom Drawer replaced Blade's phone SideNav; focus stays in the menu 10 of 10 runs). Details in `docs/BUILD_LOG.md`. Traps (5) in section 9 below is therefore only about how Playwright loads the page.
 
@@ -300,17 +313,17 @@ Needs Eshan:
 - **Five founder calls (V2, kill criterion K3):** none done. Script in `docs/BUILD_PLAN.md` section 8.
 - **Razorpay questions (V3, nine of them):** no answers yet.
 - **Test account cleanup (V5):** the disabled `httpbin` webhook and the ₹10 payment link are still there. Nothing is deleted until Eshan says so. The Supabase sink is still in `401` mode.
-- **A free model, if the investigation agent is wanted:** his Claude plan has no API, so Ollama locally or Groq's free tier (needs him to make a free account and key).
+- **A free model, only if the investigation agent is revived after the pilot (it is cut from the competition build):** his Claude plan has no API, so Ollama locally or Groq's free tier (needs him to make a free account and key).
 - **Two UX questions:** is RAY (the WhatsApp page) still the right landing page, and should the avatar do something when clicked.
 - **Vercel:** live at https://razorpay-blindspot.vercel.app/ (renamed from razorsense-starter.vercel.app on 9 Oct 2026, which no longer answers). Root Directory `web`, no env vars. Check that the production branch is `main`. Deep links such as `/incidents/INC-3` work (`web/vercel.json` rewrites them).
 
 Needs the next session:
-- **Contract tags:** only `contracts-v0.1` is tagged. v0.2 to v0.11 are not. Tag after Eshan agrees.
+- **Contract tags:** only `contracts-v0.1` is tagged. v0.2 to v0.12 are not. Tag after Eshan agrees.
 - **Hero A's language control overflows at 375px** (the label "Each customer's language" wraps out of its box in `components/FixPanel.tsx`). INC-3's panel uses "Auto" instead.
 - **Deferred from R1:** the 24 synthetic screenshots (R3 simulated screenshot text instead; real images need a vision model).
 - **Demo state is in memory** (clock offset, webhook fix). A restart gives a fresh world.
 - **Bundle is 1.3 MB** (Blade). Code-split later.
-- **Not built from the roadmap:** the investigation agent and three-way eval, R6.
+- **Not built from the roadmap:** the investigation agent and three-way eval (cut, T1), R6 (not required by the brief).
 
 ## 7. Next steps
 
@@ -318,11 +331,11 @@ Order of work, with what each needs:
 1. **Start clean.** Fix any `ci-failure` issue first (section 0), `git fetch`, cut a branch from `origin/main`, `make setup`, `cd web && npm ci`. `gh pr list` should be empty.
 2. **Pick the next slice** (one PR per slice):
    - **INC-2 is built and merged** (section 2g). Left over from it: refunds that the bank rejects (`failed`) have no path yet, the refund-not-received conversation (`T-F1`) is not wired to a real refund record, and a real Razorpay test-mode refund waits for R6 (`RZP_REFUNDS_TEST_MODE` is still off).
-   - **The investigation agent and the three-way eval (rules, agent, no signal).** Needs the model decision above. Goes behind the existing interfaces (`ingest/extract.py` for reading messy text, `investigate/` for causes nobody listed, a response-body reader for free-text server errors). `AgentTrace` already has `model_id` and `rule_based`. Cache every model output for tests (BUILD_PLAN section 10). The hosted demo stays on recorded frames.
+   - **The investigation agent and the three-way eval (rules, agent, no signal).** Cut from the competition build (T1); this is the production design. Needs the model decision above. Goes behind the existing interfaces (`ingest/extract.py` for reading messy text, `investigate/` for causes nobody listed, a response-body reader for free-text server errors). `AgentTrace` already has `model_id` and `rule_based`. Cache every model output for tests (BUILD_PLAN section 10). The hosted demo stays on recorded frames.
    - **The "failed but access still on" report (V1_SPEC J6):** built (section 2j).
 3. **Finish R7.** Decide whether the note and the video should mention INC-3 (the note is 545 words of a 450 to 550 limit, so something has to go), then the items in `docs/SUBMISSION.md` section 4.
 4. **Validation track runs alongside:** founder calls, Razorpay questions, the webhook decision above, the PRD 16.3 verify list (statuses are in `docs/SUBMISSION.md` section 3). The founder calls now also ask: how often did a customer pay and get nothing in the last year, what would you pay, what do you use today (these replace the incident-rate and Guard-price assumptions).
-5. **Business track (after submission):** the pilot and gates in `docs/BUSINESS_CASE.md` section 8, and the queued items in BUILD_PLAN section 13 (a no-false-urgency template check, a fee preview and receipt, renaming the access check in the mock). None is started.
+5. **Business track (after submission):** the pilot and gates in `docs/BUSINESS_CASE.md` section 8, and the queued item in BUILD_PLAN section 13 (the fee preview, price card and receipt, F-80). Not started. The no-false-urgency check and the access-check rename are built.
 
 **Recipe for a new after-the-payment incident** (what INC-3 touched, in order). Follow it and the new incident cannot silently break the existing ones:
 1. World: a new `synth/<name>.py` with its own random stream (`seed + n`), applied last in `synth/generate.py`, a block in `synth/config.yaml`, truth rows in `truth.db`. Never change `synth/world.py`'s draws or earlier numbers move.
@@ -336,7 +349,7 @@ Order of work, with what each needs:
 
 ## 8. Working agreements
 
-- Contracts are frozen. Change them only via `make contracts` plus an entry in `docs/CONTRACT_CHANGES.md` (currently v0.11).
+- Contracts are frozen. Change them only via `make contracts` plus an entry in `docs/CONTRACT_CHANGES.md` (currently v0.12).
 - Every number on screen comes from SQL or Python. The pipeline must never read `truth.db` (a test enforces it).
 - Ask Eshan before: commit, push, delete, create accounts, send anything outward, or change his Razorpay account beyond test objects he has allowed.
 - Keys go in `.env` only. Razorpay keys must be `rzp_test_`.

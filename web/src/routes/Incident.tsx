@@ -63,12 +63,12 @@ function Evidence({ inc }: { inc: Schemas['IncidentDetail'] }) {
 // What happened, in order, in the dashboard's Timeline style. The last step is where the founder's fix lands.
 function Milestones({ inc, pack, atAlert, fix }: { inc: Schemas['IncidentDetail']; pack?: Schemas['EvidencePack']; atAlert: number | null; fix: RefObject<HTMLDivElement> }) {
   const v = inc.verdict
-  const off = inc.timeline.find((b) => b.markers.some((m) => m.startsWith('Razorpay turns the webhook off')))
+  const off = inc.timeline.find((b) => b.markers.some((m) => m.startsWith("Razorpay's docs say it turns the webhook off")))
   const steps: { at?: string; title: string; text?: string; stamp?: string; tone: 'neutral' | 'negative' | 'information' | 'notice' | 'positive' }[] = [
     { at: v.onset_at, title: 'Your change went live', text: String(v.cause_summary_slots.change ?? ''), tone: 'neutral' as const },
     ...(pack?.first_failure_at ? [{ at: pack.first_failure_at, title: 'First failed delivery', text: `Your server answered ${v.signature.status ?? 'with an error'}`, tone: 'negative' as const }] : []),
     ...(inc.would_have_alerted_at ? [{ at: inc.would_have_alerted_at, title: 'You could have known', text: `${atAlert ?? 1} customer affected`, tone: 'information' as const }] : []),
-    ...(off ? [{ at: off.bucket_start, title: 'Razorpay turned the webhook off', text: 'After 24 hours of failures', stamp: `Around ${when(off.bucket_start)}`, tone: 'notice' as const }] : []),
+    ...(off ? [{ at: off.bucket_start, title: "Razorpay's docs say it turns the webhook off", text: 'After 24 hours of failures. In our own test the retries stopped and the webhook stayed switched on, so this step is documented, not observed', stamp: `Around ${when(off.bucket_start)}`, tone: 'notice' as const }] : []),
     ...(v.resolved_at ? [{ at: v.resolved_at, title: 'Your server answered again', tone: 'positive' as const }] : []),
   ].sort((a, b) => a.at!.localeCompare(b.at!))
   const done = inc.status === 'closed'

@@ -6,7 +6,7 @@
 **Due:** Tue 13 Oct 2026, 11:59 PM IST. Internal target: submit by 6 PM IST on 13 Oct, with everything frozen by the night of Mon 12 Oct.
 **Deliverables:** one-page note, 90-second video, working prototype, AI build log.
 **Judges:** the Razorpay PMs who built RAY (AI account manager on WhatsApp) and Agent Studio (pre-built agents with review-first guardrails).
-**Status of this document:** source of truth for a parallel Claude Code build session. It supersedes `Pre-Debit_Engine_Build_Spec.md` and the unfinished Claude Doc "Blind Spot: Full Build Spec".
+**Status of this document:** historical. Superseded by `docs/PRD.md` and `docs/SPEC.md` wherever they differ (they ignore the 13 Oct internal target and the plan to use a model in the prototype). It was the source of truth for the first parallel Claude Code build session. It supersedes `Pre-Debit_Engine_Build_Spec.md` and the unfinished Claude Doc "Blind Spot: Full Build Spec".
 
 ---
 

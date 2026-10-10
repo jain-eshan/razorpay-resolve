@@ -3,12 +3,12 @@
 | | |
 |---|---|
 | Product (working name) | Blindspot. The name is a placeholder and lives in one constant (`PRODUCT_NAME`). |
-| Version | 2.0, 6 Oct 2026 |
-| Status | Draft for Eshan's approval |
+| Version | 2.1, 10 Oct 2026 (2.0 was 6 Oct) |
+| Status | Working draft, updated 10 Oct 2026 (D12 to D21 and F-55, F-80 to F-83 added that day). **The prototype has no language model (decision T1).** Sections that name a model describe the production design. |
 | Owner and builder | Eshan Jain (product owner). Implementation by coding agents. |
 | Context | Razorpay x ISB AI PM Build Challenge, Track 2 "Recover and Grow with AI". Judges are Razorpay PMs who built RAY and Agent Studio. |
-| Supersedes | The product definition in `Blind_Spot_Build_Spec.md` (v1). Anything not changed here is inherited from v1 by section number. |
-| Companion files | `Blindspot_v2_Tech_Spec.md` (how it is built), `Blindspot_v2_Build_Plan.md` (who builds what, in which order) |
+| Supersedes | The product definition in `docs/V1_SPEC.md` (v1). Anything not changed here is inherited from v1 by section number. |
+| Companion files | `docs/SPEC.md` (how it is built), `docs/BUILD_PLAN.md` (who builds what, in which order) |
 
 Evidence tags used throughout: **[dash]** observed in the Razorpay test dashboard on 6 Oct 2026. **[docs]** Razorpay docs read on 6 Oct via a summarising fetch tool. **[meta]** Meta developer docs read the same way. **[dossier]** earlier research in the dossier folder. **[assumption]** an inference about Razorpay internals. **[verify]** must be re-checked on the raw page before it appears in the note or video.
 
@@ -33,7 +33,7 @@ Evidence tags used throughout: **[dash]** observed in the Razorpay test dashboar
 | D3 | Scope is narrowed. We own post-payment and pre-payment. RAY, Vulcan, Payment Links, Subscription Recovery and Ecosystem Health own the payment in flight, and we integrate with them. We do not build failed-payment retries, fraud, routing, disputes or settlement explainers. | 6 Oct |
 | D4 | Intake order: (1) Razorpay-owned entry points, (2) a dedicated payments WhatsApp number, (3) email via reply-to, alias and keyword forwarding rule, (4) Instagram and Messenger handover, (5) public mentions, private-first. | 6 Oct |
 | D5 | Public posts are a doorbell, not data. We look up an identifier a person volunteers, reply publicly with nothing specific, and link a person to a payment only after they reply on a private channel. | 6 Oct |
-| D6 | Customer-facing voice is co-branded: "[Merchant] payment help, with Razorpay". It says it is an AI assistant. | 6 Oct (assumed accepted) |
+| D6 | Customer-facing voice is co-branded: "[Merchant] payment help, powered by Razorpay". It says it is an AI assistant. | 6 Oct (assumed accepted) |
 | D7 | The interface uses Razorpay's own system: Blade components, tokens and RazorSense, from the `razorsense-starter` repo. | 6 Oct |
 | D8 | Autonomy is a dial. The default is "Suggest", with identifier questions to customers allowed from day one. | 6 Oct (assumption, confirm) |
 | D9 | Two hero demonstrations: paid-no-access (proven) and cannot-reach-the-pay-page (inferred). | 6 Oct |
@@ -198,7 +198,7 @@ Signal, Complaint (any inbound message), Thread (a conversation on one channel),
 - Email intake (reply-to, alias, keyword rule) (simulated inbox)
 - Fix flow: dry run, first 5, rest, verify, close. Dev handoff page. Message preview.
 - Autonomy dial, audit log, consent and permissions screen
-- Eval harness and a "How we know" page with a rule-versus-agent comparison
+- Eval harness and a "How we know" page (the planned rule-versus-agent comparison was cut from the competition build: it needs a model, T1)
 
 **Should**
 - Investigation agent over typed tools, with rule fallback (cut from the competition build 10 Oct 2026: BUILD_PLAN section 14)
@@ -323,7 +323,7 @@ The founder sees the same thread, the incident it joined, and one button to appr
 
 ## 10. Features
 
-IDs are used in the build plan. Release codes are defined in `Blindspot_v2_Build_Plan.md`. Acceptance criteria for each live in the tech spec.
+IDs are used in the build plan. Release codes are defined in `docs/BUILD_PLAN.md`. Acceptance criteria for each live in `docs/SPEC.md`.
 
 | ID | Feature | Priority | Release |
 |---|---|---|---|
@@ -434,7 +434,7 @@ New guardrails: window and template enforcement per channel, disclosure on first
 
 **Measured on 10 Oct 2026** (`eval/founder_effort.py`, `eval/conversation.py`, shown on "How we know"): founder time for the typical incident 4 minutes against the target of 10, counted as approvals from the engine's own plans at 30 seconds each, which is an assumption and not a timing; the longest, INC-2, is 10.5 minutes because each refund is approved one customer at a time on purpose. Cost per resolved case ₹0.07 in messages, with no model (the business case sizes a model at about ₹2.79). Engine time to first reply under a millisecond median, without network or model.
 
-**Three-way evaluation.** Fixed rules only, the agent, and a no-signal case where the agent only ties the rules. The agent's wins are in messy language, free-text server errors and unseen causes. It ties on a plain 5xx after a deploy. The page shows both.
+**Three-way evaluation (planned, cut from the competition build: no model, T1).** Fixed rules only, the agent, and a no-signal case where the agent only ties the rules. The agent's wins are in messy language, free-text server errors and unseen causes. It ties on a plain 5xx after a deploy. The page shows both.
 
 ---
 

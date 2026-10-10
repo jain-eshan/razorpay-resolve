@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Alert, Badge, Box, Button, Card, CardBody, Heading, RayIcon, Text, TextArea } from '@razorpay/blade/components'
 import { isLive, send, type Schemas } from '../lib/api'
-import { when } from '../lib/format'
+import { plainTokens, when } from '../lib/format'
 
 type Thread = Schemas['ThreadDetail']
 const STATE: Record<string, [string, 'positive' | 'notice' | 'neutral' | 'negative' | 'information']> = {
@@ -49,7 +49,7 @@ export function ThreadView({ thread, onChanged }: { thread: Thread; onChanged: (
           if (m.sender_role === 'system') {  // who has control, or why nothing was said: a line for the founder, never sent to anyone
             return (
               <Box key={m.id} alignSelf="center" maxWidth="560px" textAlign="center" paddingY="spacing.2" testID="thread-note">
-                <Text size="small" color="surface.text.gray.muted">{m.body} · {when(m.created_at)}</Text>
+                <Text size="small" color="surface.text.gray.muted">{plainTokens(m.body)} · {when(m.created_at)}</Text>
               </Box>
             )
           }
@@ -59,7 +59,7 @@ export function ThreadView({ thread, onChanged }: { thread: Thread; onChanged: (
             <Box key={m.id} display="flex" gap="spacing.3" flexDirection={customer ? 'row-reverse' : 'row'} alignItems="flex-start">
               {!customer && m.sender_role === 'agent' && <RayIcon size="large" color="surface.icon.onSea.onSubtle" />}
               <Box maxWidth="85%" backgroundColor={customer ? 'surface.background.gray.intense' : 'surface.background.gray.subtle'} borderRadius="large" padding="spacing.5" display="flex" flexDirection="column" gap="spacing.2">
-                <Text>{m.body}</Text>
+                <Text>{plainTokens(m.body)}</Text>
                 <Text size="small" color="surface.text.gray.muted">
                   {customer ? 'Customer' : m.sender_role === 'founder' ? 'You' : 'Agent'} · {when(m.created_at)}
                   {status === 'sent' && ` · sent${m.approved_by === 'auto' ? ' by itself' : ` · approved by ${m.approved_by?.replace('merchant:', '')}`}`}

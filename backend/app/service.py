@@ -110,9 +110,9 @@ def _timeline(db: sqlite3.Connection, run: Run, disabled_at: str | None) -> list
         if t <= run.first_bad_at < nxt:
             m.append("change point")
         if t <= run.alert_at < nxt:
-            m.append("alert would fire")
+            m.append(f"alert would fire at {run.alert_at.strftime('%H:%M')}")
         if disabled_at and t <= datetime.fromisoformat(disabled_at) < nxt:
-            m.append("Razorpay turns the webhook off")
+            m.append("Razorpay's docs say it turns the webhook off here")
         buckets.append(TimelineBucket(bucket_start=t, ok=c["2xx"], client_error=c["4xx"], server_error=c["5xx"] + c["timeout"], not_attempted=c["not_attempted_disabled"], markers=m))
         t = nxt
     return buckets

@@ -333,6 +333,8 @@ def _auto(db: sqlite3.Connection, aid: str, level: str) -> None:
 
 
 def approve(db: sqlite3.Connection, action_id: str, stage: str, approver: str) -> Action:
+    if not autonomy.is_person(approver):
+        raise ActError(403, "An approval has to come from a person, as 'merchant:' and a name.")
     with _write(db):
         a = _action(db, action_id)
         if a["status"] == "reverted":
@@ -358,7 +360,7 @@ def approve_row(db: sqlite3.Connection, action_id: str, payment_id: str, approve
         a = _action(db, action_id)
         if a["action_type"] != "refund":
             raise ActError(422, "Only refunds are approved one customer at a time.")
-        if not approver.startswith("merchant:"):
+        if not autonomy.is_person(approver):
             raise ActError(403, "A refund needs a person's approval, one customer at a time. It never runs on its own.")
         if a["status"] == "drafted":
             raise ActError(409, "Review the list first: approve the dry run, then refund customers one by one.")

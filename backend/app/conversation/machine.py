@@ -40,6 +40,10 @@ MAX_QUESTIONS = 3
 QUESTIONS = ("T-ID1", "T-ID2", "T-ID3")
 NUDGE_AFTER = timedelta(hours=6)
 HUMAN_ASK = re.compile(r"\b(?:human|real person|agent|manager|supervisor|someone|insaan|banda|bande se|call me|talk to|speak to)\b", re.IGNORECASE)
+OPT_OUT = re.compile(r"(?i)^\s*(?:stop|unsubscribe)\s*[.!]*\s*$|\bunsubscribe\b|\bstop (?:messaging|texting|contacting|sending|emailing|calling|whatsapp)|\b(?:do not|don'?t|dont) (?:message|contact|text|email|call|whatsapp) me\b|"
+                     r"\bleave me alone\b|\bremove (?:me|my number)\b|\bmessage mat\b|\bmat (?:bhejo|bhejna|karo|karna)\b|\bmujhe (?:message|msg|sms) (?:mat|nahi|na)\b|\bband karo\b")
+MONEY_WORDS = re.compile(r"(?i)\b(?:paisa|paise|money|bank|debit(?:ed)?|deducted|charged?|kat\s?gaya|gaya|payment|paid|pay|refund|transaction|txn|upi|amount|rupees?|rs)\b|पैसे|पैसा|रुपये|कट|भुगतान|पेमेंट|बैंक|रिफंड|डेबिट")
+UNREADABLE = "The message mentions money or a payment in words the rules could not read. A person should look. In production a model reads this."
 LEGAL = re.compile(r"charge\s?back|consumer court|legal|lawyer|police|\bfir\b|ombudsman|\brbi\b", re.IGNORECASE)
 OPEN = ("opened", "triage", "identify", "lookup", "matched", "explain", "wait_for_fix", "not_found")
 CLAIM_LABEL = {"debited_no_access": "paid but has no access", "debited_no_order": "was charged but the order did not go through", "charged_twice": "was charged twice",
@@ -156,7 +160,7 @@ def _redact(db: sqlite3.Connection, cid: str | None, text: str) -> Redacted:
             mapping[t] = f"[{k.upper()}_{counts[k]}]"
             vault[mapping[t]] = (k, v)
     text = re.sub(r"\[[A-Z0-9_]+_\d+\]", lambda m: mapping.get(m.group(0), m.group(0)), red.text)
-    return Redacted(text, vault)
+    return Redacted(text, vault, red.secrets)
 
 
 def _merge(old: Extraction | None, new: Extraction) -> Extraction:
@@ -189,6 +193,8 @@ def handle_inbound(db: sqlite3.Connection, channel: str, customer_ref: str, text
         if ch["status"] != "connected":
             raise ActError(409, f"The {channel.replace('_', ' ')} channel is not connected.")
         now = received_at or clock.now()
+        if now.tzinfo is None:  # a time without a zone cannot be compared with the clock; take it as the merchant's own time
+            now = now.replace(tzinfo=clock.now().tzinfo)
         is_public = is_public or channel == "public_mention"
         cref = f"cust_{hashlib.sha256(customer_ref.encode()).hexdigest()[:12]}"
         th = db.execute("SELECT * FROM threads WHERE channel_id = ? AND customer_ref = ? AND state IN (%s) ORDER BY opened_at DESC LIMIT 1" % ",".join("?" * len(OPEN)),
@@ -236,6 +242,11 @@ def _turn(db: sqlite3.Connection, tid: str, channel: str, body: str, context: di
     th = db.execute("SELECT * FROM threads WHERE id = ?", (tid,)).fetchone()
     cid = db.execute("SELECT complaint_id FROM cases WHERE id = ?", (th["case_id"],)).fetchone()["complaint_id"] if th["case_id"] else None
     red = _redact(db, cid, body)
+    if red.secrets:  # the values are already gone: say only that it happened
+        audit.log(db, "system", "policy", tid, f"The customer shared {', '.join(sorted(set(red.secrets)))}. It was removed before anything was stored or read, and the assistant never asks for it.", thread_id=tid)
+    if OPT_OUT.search(body):  # the customer asked not to be contacted: written down, so no channel or message can reach them again (PRD 7.4)
+        _suppress(db, th, now)
+        return
     ctx_pay = db.execute("SELECT id FROM payments WHERE id = ? OR order_id = ?", (context.get("payment_id"), context.get("order_id"))).fetchone() if (context.get("payment_id") or context.get("order_id")) else None
     new = extract(red, now, known_payment=bool(ctx_pay))
     name = _name(db)
@@ -243,6 +254,8 @@ def _turn(db: sqlite3.Connection, tid: str, channel: str, body: str, context: di
     lang = _lang(new)  # replaced by the language of the whole conversation once the earlier messages are merged in
 
     handoff = _handoff_reason(new, body)
+    if not handoff and not new.is_payment_related and not th["claim"] and not ctx_pay and MONEY_WORDS.search(body) and (re.search(r"\d", body) or not body.isascii()):
+        handoff = UNREADABLE  # never drop a message that mentions money in silence: the customer would hear nothing
     if th["is_public"]:
         _public_turn(db, tid, red, new, handoff, context, lang, name, now)
         return
@@ -370,6 +383,14 @@ def _date_slot(x: Extraction, now: datetime) -> str:
     return f"{x.window.start.day} {x.window.start:%b}" if x.window and x.window.resolved else "the time you mentioned"
 
 
+def _suppress(db: sqlite3.Connection, th: sqlite3.Row, now: datetime) -> None:
+    """Record the opt-out under the thread's handle and hand the thread to the founder. Nothing is said back: a suppressed customer is not messaged, not even to confirm."""
+    db.execute("INSERT OR IGNORE INTO suppressions (id, merchant_id, customer_ref_hash, reason, created_at) VALUES (?,?,?,?,?)",
+               (f"sup_{th['customer_ref']}", th["merchant_id"], th["customer_ref"], "customer asked not to be contacted", now.isoformat()))
+    db.execute("UPDATE threads SET state = 'human', closed_at = ? WHERE id = ?", (now.isoformat(), th["id"]))
+    audit.log(db, "system", "policy", th["id"], "The customer asked not to be contacted. They are suppressed for good: nothing more is sent on this channel or about their payments.", thread_id=th["id"])
+
+
 def _handoff_reason(x: Extraction, body: str) -> str | None:
     if x.injection_suspected:
         return "The message tried to give the system instructions. Treated as data and not followed."
@@ -456,6 +477,8 @@ def reply(db: sqlite3.Connection, thread_id: str, body: str | None, template_id:
             raise ActError(404, f"Thread {thread_id} not found.")
         now = clock.now()
         approver = f"merchant:{approved_by}"
+        if not autonomy.is_person(approver):
+            raise ActError(403, "A reply has to be approved by a person: give a name.")
         if body is None:  # approve the held draft as it is
             d = db.execute("SELECT * FROM thread_messages WHERE thread_id = ? AND direction = 'outbound' AND json_extract(policy_json, '$.status') = 'draft' ORDER BY created_at DESC, rowid DESC LIMIT 1", (thread_id,)).fetchone()
             if not d:

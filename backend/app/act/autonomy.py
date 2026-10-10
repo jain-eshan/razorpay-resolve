@@ -3,6 +3,7 @@
 Each action or message class maps to the approval a level needs. `taps` turns that into the stages the founder must approve by hand;
 every other stage runs by itself once the stage before it has been verified."""
 import json
+import re
 import sqlite3
 
 from .. import audit
@@ -23,6 +24,20 @@ MATRIX = {
     "refund": {"suggest": "per_row_web", "assist": "per_row_web", "autopilot_reversible": "per_row_web"},
 }
 ACTION_CLASS = {"grant": "grant_exact", "message": "incident_message", "recovery_link": "recovery_link", "refund": "refund"}  # the types that can execute: R2 grants and messages, R4 recovery links, refunds
+
+_PERSON = re.compile(r"merchant:[A-Za-z0-9_.-]+")
+_AUTO = re.compile(r"auto(?::[a-z_]+)?")
+
+
+def is_person(approver: str | None) -> bool:
+    """A real approval from a founder: 'merchant:' and then a name. An empty name, 'system', 'x' and everything else are not."""
+    return bool(approver) and _PERSON.fullmatch(approver) is not None
+
+
+def is_approver(approver: str | None) -> bool:
+    """A founder, or the autonomy setting acting for them ('auto' or 'auto:<level>', which only the engine itself produces)."""
+    return is_person(approver) or (bool(approver) and _AUTO.fullmatch(approver) is not None)
+
 
 DEFAULTS = {"daily_refund_cap_paise": 500_000, "max_bulk_customers": 100, "messaging_enabled": False, "holdout_percent": 10, "autonomy": "suggest"}
 

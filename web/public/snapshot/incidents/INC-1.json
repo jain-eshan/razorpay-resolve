@@ -195,7 +195,7 @@
       "not_attempted": 0,
       "markers": [
         "change point",
-        "alert would fire"
+        "alert would fire at 15:15"
       ]
     },
     {
@@ -389,7 +389,7 @@
       "server_error": 0,
       "not_attempted": 1,
       "markers": [
-        "Razorpay turns the webhook off"
+        "Razorpay's docs say it turns the webhook off here"
       ]
     },
     {

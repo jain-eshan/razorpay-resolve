@@ -77,8 +77,10 @@ test('WhatsApp: pick a message, the agent says it is an AI, finds the payment, a
   await chat.getByRole('button', { name: /paisa kat gaya 299 ka/ }).click()
   await expect(chat.getByText(/Main ek AI hoon/)).toBeVisible()
   await expect(founder.getByText('Finding the payment')).toBeVisible()
-  await chat.getByRole('button', { name: /^UPI ref pay_/ }).click()
+  await chat.getByRole('button', { name: /^UPI ref \d{12}$/ }).click()  // the 12-digit reference the agent asked for, not a payment id
   await expect(founder.getByText('Waiting for the fix')).toBeVisible()
+  await expect(page.getByText(/\[[A-Z0-9_]+_\d+\]/)).toHaveCount(0)  // no raw [RRN_1] style token on screen
+  await expect(founder.getByText(/UPI ref \(hidden\)/).first()).toBeVisible()  // not 'UPI ref UPI reference (hidden)'
   await expect(founder.getByText('Held for you')).toBeVisible()
   await expect(chat.getByText(/hume mil gaya/)).toHaveCount(0)
   await expect(founder.getByRole('button', { name: 'Reply in your own words' })).toHaveCount(0)
@@ -207,7 +209,7 @@ test('Instagram: the inbox passes a payment thread to Blindspot, keeps what is n
   await expect(page.getByText('Blindspot has control')).toBeVisible()
   await expect(founder.getByText(/The Meta inbox passed this conversation to Blindspot/)).toBeVisible()
   await expect(chat.getByText(/Main ek AI hoon/)).toBeVisible()
-  await chat.getByRole('button', { name: /^UPI ref pay_|^UPI ref \d+/ }).click()
+  await chat.getByRole('button', { name: /^UPI ref \d{12}$/ }).click()
   await expect(founder.getByText('Waiting for the fix')).toBeVisible()
   await expect(page.getByText('Blindspot has control')).toBeVisible() // it keeps control while a fix is awaited
 

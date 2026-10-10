@@ -83,7 +83,7 @@ def _markers(sig: dict, hour: datetime) -> list[str]:
     if hit(sig["first_failure_at"]):
         marks.append("first card renewal fails")
     if hit(sig["alert_at"]):
-        marks.append("alert would fire")
+        marks.append(f"alert would fire at {datetime.fromisoformat(sig['alert_at']).strftime('%H:%M')}")
     if hit(sig["resolved_at"]):
         marks.append("card renewals work again")
     return marks

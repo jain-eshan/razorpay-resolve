@@ -3,6 +3,7 @@
 R2 runs the checks that exist before channels do: suppression list, messaging switched on, an approval on record, and the number-from-slot
 check. R3 replaces `check` with the full engine (consent, window, disclosure, never-ask lint, rate limit) over real threads.
 The sender is the mock: it records the message as sent and talks to no one."""
+import json
 import re
 import sqlite3
 import uuid
@@ -22,25 +23,37 @@ def _real_expiry(template_id: str | None, slots: dict | None) -> bool:
     return bool(template_id and slots and slots.get("hours") and "hours" in messages.TEMPLATES[template_id]["slots"])
 
 
-def check(db: sqlite3.Connection, *, customer_id: str, template_id: str, language: str, slots: dict, body: str, approved_by: str | None, block: str | None = None) -> PolicyDecision:
+def opted_out(db: sqlite3.Connection, customer_id: str, payment_id: str | None = None) -> bool:
+    """Did this customer ask not to be contacted? A suppression is written under the handle they wrote from, so a customer who is reached by an incident message is
+    found through the case that matched their payment."""
+    if db.execute("SELECT 1 FROM suppressions WHERE customer_ref_hash = ?", (customer_id,)).fetchone():
+        return True
+    return bool(payment_id) and db.execute("SELECT 1 FROM suppressions s JOIN complaints c ON c.customer_ref = s.customer_ref_hash JOIN cases cs ON cs.complaint_id = c.id WHERE cs.matched_payment_ids LIKE ?",
+                                           (f'%"{payment_id}"%',)).fetchone() is not None
+
+
+def check(db: sqlite3.Connection, *, customer_id: str, template_id: str, language: str, slots: dict, body: str, approved_by: str | None, block: str | None = None,
+          payment_id: str | None = None) -> PolicyDecision:
     reasons = [block] if block else []  # `block`: a reason the caller already knows (the channel's window has closed, there is no permission to message them)
-    if db.execute("SELECT 1 FROM suppressions WHERE customer_ref_hash = ?", (customer_id,)).fetchone():  # R3 keys this by hashed channel handle
+    if opted_out(db, customer_id, payment_id):
         reasons.append("This customer asked not to be contacted.")
     if not autonomy.read(db).messaging_enabled:
         reasons.append("Messaging is switched off in settings.")
-    if not approved_by:
+    if not autonomy.is_approver(approved_by):
         reasons.append("No approval is on record for this message.")
     if not messages.numbers_ok(template_id, language, slots, body):
         reasons.append("The text has a number that is not from the customer's record.")
+    for v in violations(body):
+        reasons.append(f"Asks for something it must never ask for: \"{v}\"")
     for v in urgency_violations(body, _real_expiry(template_id, slots)):
         reasons.append(f"Pressures the customer or states an expiry that is not real: \"{v}\"")
-    return PolicyDecision(allowed=not reasons, needs_founder_approval=not approved_by, reasons=reasons)
+    return PolicyDecision(allowed=not reasons, needs_founder_approval=not autonomy.is_approver(approved_by), reasons=reasons)
 
 
 def send(db: sqlite3.Connection, *, action_id: str, payment_id: str, customer_id: str, template_id: str, language: str, slots: dict, approved_by: str | None, block: str | None = None) -> str:
     """Returns the message id, or raises PermissionError with the reasons. A blocked attempt is logged and stored as a draft."""
     body = messages.render(template_id, language, slots)
-    decision = check(db, customer_id=customer_id, template_id=template_id, language=language, slots=slots, body=body, approved_by=approved_by, block=block)
+    decision = check(db, customer_id=customer_id, template_id=template_id, language=language, slots=slots, body=body, approved_by=approved_by, block=block, payment_id=payment_id)
     mid = f"msg_{uuid.uuid4().hex[:12]}"
     category = messages.TEMPLATES[template_id]["category"]
     status = "sent" if decision.allowed else "blocked"
@@ -58,6 +71,20 @@ def channel_level(db: sqlite3.Connection, channel_id: str) -> str:
 
 # ---------- thread replies: the full engine (SPEC 3.3), in the order the spec gives ----------
 HUMAN_AGENT_WINDOW = timedelta(days=7)
+
+
+_AMOUNT = re.compile(r"(?:₹|\brs\.?|\binr)\s*(\d[\d,]*(?:\.\d+)?)", re.IGNORECASE)
+
+
+def _amounts_not_in_record(db: sqlite3.Connection, thread: sqlite3.Row, body: str) -> str | None:
+    """The first rupee amount in typed text that is not the amount of a payment matched to this customer's case, or None (SPEC rule: numbers come from the record)."""
+    found = [m.group(1).replace(",", "") for m in _AMOUNT.finditer(body)]
+    if not found:
+        return None
+    case = db.execute("SELECT matched_payment_ids FROM cases WHERE id = ?", (thread["case_id"],)).fetchone() if thread["case_id"] else None
+    ids = json.loads(case["matched_payment_ids"]) if case and case["matched_payment_ids"] else []
+    known = {float(r["amount_paise"]) / 100 for r in db.execute(f"SELECT amount_paise FROM payments WHERE id IN ({','.join('?' * len(ids))})", ids)} if ids else set()
+    return next((f for f in found if float(f) not in known), None)
 
 
 def check_thread(db: sqlite3.Connection, thread: sqlite3.Row, channel_type: str, *, body: str, template_id: str | None, language: str, slots: dict | None,
@@ -94,6 +121,8 @@ def check_thread(db: sqlite3.Connection, thread: sqlite3.Row, channel_type: str,
         reasons.append(f"Pressures the customer or states an expiry that is not real: \"{v}\"")
     if template_id and slots is not None and not messages.numbers_ok(template_id, language, slots, body):
         reasons.append("The text has a number that is not from the customer's record.")
+    if template_id is None and slots is None and (bad := _amounts_not_in_record(db, thread, body)):  # typed text: an amount must be one of this customer's own payments
+        reasons.append(f"The text states an amount ({bad}) that is not in this customer's record.")
     if thread["is_public"] and (re.search(r"\d", re.sub(r"https?://\S+", "", body)) or (slots and slots.get("first_name") and slots["first_name"] in body)):
         reasons.append("A public reply cannot contain numbers or names. Move to a private message.")
     recent = db.execute("SELECT COUNT(*) AS n FROM thread_messages WHERE thread_id = ? AND direction = 'outbound' AND sender_role IN ('agent','founder') AND created_at >= ?",
@@ -101,7 +130,7 @@ def check_thread(db: sqlite3.Connection, thread: sqlite3.Row, channel_type: str,
     if recent >= RATE_LIMIT_PER_HOUR:
         reasons.append(f"Rate limit: at most {RATE_LIMIT_PER_HOUR} messages an hour to one customer.")
     level = channel_level(db, thread["channel_id"])  # the dial is per channel for conversations (SPEC 10.2); grants and incident messages use the global setting
-    needs_founder = autonomy.MATRIX[message_class][level] != "auto" and not approved_by
+    needs_founder = autonomy.MATRIX[message_class][level] != "auto" and not autonomy.is_approver(approved_by)
     if needs_founder:
         reasons.append("Waiting for your approval.")
     return PolicyDecision(allowed=not reasons, requires_template=needs_template, needs_founder_approval=needs_founder, reasons=reasons)

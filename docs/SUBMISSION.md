@@ -54,7 +54,7 @@ Record the hosted demo (the guided one). Keep a small caption on screen for the 
 | 1:15 to 1:25 | Fix stepper: first 5, the rest, verify, the one RazorSense moment, then `/how` | "One approval fixes 81 customers in stages. After 24 healthy hours: 81 of 81 confirmed active, ₹56,319 restored. Every number here is on the How we know page, checked against hidden ground truth." |
 | 1:25 to 1:30 | Title card | "Razorpay owns the payment. Blindspot owns the before and the after." |
 
-Do not say in the video: that a model reads the messages; that the replies take seconds (response time is not measured); anything about RAY's behaviour; the Meta message prices.
+Do not say in the video: that a model reads the messages; that the replies take seconds (only the engine's own time is measured, under a millisecond, and a model call would add a few seconds); anything about RAY's behaviour; the Meta message prices.
 
 ---
 
@@ -112,3 +112,33 @@ Not in the note (it is at the word limit). Full numbers and the model: `docs/BUS
 **Do not say:** that a model reads the messages in the prototype; that merchants have asked for it or will pay (no founder has been asked yet); that Guard will sell (it costs 40 to 56 percent of the value it restores, so it sells on prevention, and uptake is the weakest assumption); any figure for how many Razorpay merchants have webhook failures (not public); any price as Razorpay's (Agent Studio prices are not published).
 
 **Optional sentence for the note**, if one can be cut elsewhere: "Priced as free detection, a 1 percent fee on value restored, and an optional ₹999 a month plan; about ₹0.9 crore a year to run, so a low-cost bet on trust, to be proven in a six-month pilot."
+
+---
+
+## 6. Rehearsal findings for the video (10 Oct 2026)
+
+An independent reviewer walked the script above, click by click, on the local build and on the hosted site (fresh browser, no cache, 1440 and 375 wide). Every number in the voice-over matches the product. These are the points to fix when you write the final script. None of them needs a code change.
+
+**Wording that does not match the screen**
+- **0:10 to 0:35.** The ₹56,319 is the 81 customers still locked out, not the 85 affected. Say "85 affected, 81 still locked out, ₹56,319 at risk".
+- **0:55 to 1:15 (INC-4).** The voice-over says Blindspot "saw the page check fail and 12 customers write in, flagged it five minutes after the page broke". The page says you would have known at 20:15, before any customer wrote (the first wrote at 20:25). Better: "Blindspot saw the page check fail five minutes after the page broke, before anyone wrote in. Twelve customers later did."
+- **1:15 to 1:25.** "Every number here is on the How we know page" is not true for 85, 17, 68, ₹56,319 or 12. The page now shows the measured ones (4.0 silent per complaint, 55 minutes to alert, 5 minutes for the pay page, 100 percent identified in 3 questions, 147 of 147 checks). Say "The measured numbers are on the How we know page."
+- **0:35 to 0:55.** "Beside the incident it joined" is a small `INC-1` chip on the thread, not a link and not a split screen.
+
+**What is not in the app**
+- The title card at 1:25 to 1:30. Make it in editing.
+- The three-zone graphic at 0:00. The unlabelled art is on `/guides/blindspot`. The labelled Before, Inside and After view is on `/incidents`.
+
+**Timing.** Narration is about 78 seconds at 150 words a minute, and the clicks overrun 90 seconds by 8 to 10. The 1:15 row is the densest: 33 words and about 8 clicks in 10 seconds. Trim the INC-4 hold or speed up the stepper in editing.
+
+**State.** A full page reload (F5) restarts the demo, and in-app links keep what you did. Reload before every take. After the success surface the incident list and Home still show INC-1 as open, so go straight to How we know. The Home alert is about 1,300 pixels down the page, so scroll to it. The success surface showed ragged edges in headless Chrome: look at it in real Chrome on the recording machine.
+
+**A path that fits (1440 wide, hosted site)**
+1. 0:00 full load of `/guides/blindspot`, hold 10 seconds.
+2. 0:10 sidebar Ray, scroll to the alert, "View list", hold on the INC-1 tiles and the "With this on" banner.
+3. 0:35 sidebar Conversations, the WhatsApp card, the first message, then the "UPI ref" message, then "Approve and send".
+4. 0:55 sidebar Incidents, INC-4: the banner, the tiles, one scroll for the evidence, then the chart.
+5. 1:08 sidebar Incidents, INC-1, "Start the fix", then: Test hook, Plan the fix, Looks right continue, Grant the first 5, Grant the rest, Your developer ships the fix, Move the clock forward 24 hours, Verify and close. Hold on the success surface, then sidebar How we know.
+
+**Not checked by the reviewer:** real-GPU rendering of the success surface, audio pacing, Safari and Firefox.
+
