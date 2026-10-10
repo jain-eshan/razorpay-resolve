@@ -555,6 +555,30 @@ Result: 8 new tests, backend 420 pass, web build, lint and secret scan clean. No
 Not built: a real timer, deleting redacted complaint text (needs the pipeline to stop rebuilding from it), a "delete this customer's data" action, retention shown anywhere except the one line on Channels. Not touched: `web/`, so no design review.
 
 
+## 10 Oct 2026, business case, pricing and interview digest (docs only)
+
+Placed above the J6 entry on purpose: another open pull request (design pass batch 1) appends at the end of this file, and a second append there would be a merge conflict. Move it to the end whenever convenient.
+
+Goal: price the product for production, not the demo, and put what Razorpay's own people have said into the repo, so product and tech decisions are made with it. Eshan asked for the base case to be frozen, not stretched, with every scenario and sensitivity recorded and the decisions written into the product docs.
+
+Built:
+- `docs/business_model.py`: one seeded, standard-library script that produces every figure in the business case (frozen base, four scenarios, pay cases, break-evens, a tornado over 22 inputs, pricing and demand sensitivity, 20,000 random draws, a merchant's view). It passes `ruff` and runs in a few seconds.
+- `docs/BUSINESS_CASE.md`: the frozen assumptions with a source tag on each, results, sensitivity, the three-layer offer, how a merchant sees value and cost, the do-it-yourself alternative, decisions B1 to B12, the pilot and its gates, the five internal queries, and a change log.
+- `docs/INTERVIEWS.md`: a digest in our own words of nine sources (a post, three interviews and talks, Razorpay pages, pricing pages, the RazorpayX billing doc, the job descriptions, pay data), with the calls each supports for the demo (T1 to T8) and for production (P1 to P10).
+- Existing docs: PRD decisions D12 to D19, risks, kill criteria K7 and K8, section 14 and 17 and 18; SPEC section 21 (prototype to production mapping); BUILD_PLAN gate G6 and section 13; HANDOFF section 4b, read-first and next steps; SUBMISSION section 5 (questions after the video); root `CLAUDE.md` read-first line.
+
+How the number changed, and what I got wrong on the way (all in the change log of the business case):
+- The first production model assumed every detected incident became a paid fix and that Guard customers paid for 12 months. Adding a detection rate, a paid-fix approval rate and 80 percent paid months cut fee revenue from 0.72 to 0.33 and Guard from 1.81 to 1.27 (₹ cr).
+- Agent Studio's "couple of thousand merchants live" cut the first connected-merchant assumption from 75,000 to 20,000. Eshan pointed out it is a gated early-access product, so the frozen base is 40,000, still far below the first guess.
+- The team cost fell from ₹1.8 cr to about ₹0.4 cr a year when the dedicated team became man-hours of a small squad (Harshil Mathur's post describes a two-person AI team), then rose a little with ISB pay (₹25 to 38 lakh cash plus ESOP).
+- A chat figure was wrong: Guard costs 56 percent (mid-size) and 40 percent (large) of the value it restores, not 45 and 32, because the earlier figure left out the detection rate. The pilot is about ₹0.8 cr, not ₹0.5 cr.
+
+Decisions: the case is a low-cost option on trust, not a revenue line (three-year total -₹1.09 cr on direct revenue, +₹0.28 cr with ₹50 of avoided cost per incident). Watch is free, Fix is 1 percent of value restored, Guard is ₹999 or ₹2,999 a month. Production hands refunds, recovery links and renewal links to existing Razorpay tools. No model in the competition build.
+
+Not done: no code, contract, screen or snapshot changed. Items queued in BUILD_PLAN section 13 (no-false-urgency template check, fee preview and receipt, rename of the access check in the mock) are not started. Sources that were blocked (LinkedIn, The Ken podcast, the Agent Studio page) are listed in INTERVIEWS section 9.4. The model is a planning tool on assumed inputs: the funnel above the cohort and Guard uptake have no public source.
+
+Checks: `ruff check docs/business_model.py`, the script run twice with the same output, every figure in `BUSINESS_CASE.md` compared with the output, no em dashes in changed files, and a trial merge of this branch against the open design pull request (no conflicts). Not touched: `web/`, so no design review.
+
 ## 10 Oct 2026, R4 rest: J6, access without payment (integrator)
 
 Goal: the last after-the-payment journey in the spec that needed neither a model nor a new account. V1_SPEC J6: UPI renewals failed for insufficient funds, but access stayed on past the merchant's grace rule. Report only, no revoke. I chose it from the handoff's list (the investigation agent needs a model, R6 needs accounts). It is the mirror of Hero A: there customers paid and have no access, here they have access and have not paid.

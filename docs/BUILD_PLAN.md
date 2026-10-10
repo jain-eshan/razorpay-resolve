@@ -209,6 +209,7 @@ Delivers F-70, F-71.
 | G3 | R3 | Does the conversation identify payments safely (K4)? | Redesign questions and lint before building Zone 1. |
 | G4 | R4 | Is Zone 1 precise enough (K6)? | Hero B becomes a roadmap slide with the evidence. The product stays. |
 | G5 | R7 | Is everything verified or disclosed? | Remove the claim or state the doubt. |
+| G6 | Pilot, month 6 (after submission) | Do at least 6% of alerted merchants connect and at least 4.5% of eligible merchants take Guard (BUSINESS_CASE section 8)? | Stop the paid layer, keep Watch (about ₹0.46 cr a year). |
 
 ---
 
@@ -360,3 +361,27 @@ Own merchant_mock/, .github/, deploy config. R2: merchant mock with webhook mode
 You are stream F (validation and writing) on "blindspot". Read docs/PRD.md sections 3, 4, 16, 17 and BUILD_PLAN sections 8 and 11.
 Keep the verify list and the evidence log current. Draft the founder call script, the Razorpay questions, the one-page note, the 90-second script and the AI build log. Cite only real, linkable quotes in the note. Label simulated material. No em dashes, no filler phrases.
 ```
+
+---
+
+## 13. After submission: production cuts, pilot and gates (10 Oct 2026)
+
+Added from the business case (`docs/BUSINESS_CASE.md`) and the Razorpay interviews (`docs/INTERVIEWS.md`). No release above changes. The prototype is the specification for what follows.
+
+**Cut or hand off in production.** Refunds, recovery links and renewal links go to Razorpay's existing tools and agents. The investigation agent waits for pilot data. Instagram, Messenger and public-post handovers have no real integration and wait. Voice is out. The learning loop stays minimal.
+
+**Keep and build first.** In this order: the fulfilment acknowledgement and plugin and event-tool signals (activation is the largest driver of the case); Watch as a platform feature; Fix as an Agent Studio agent; Guard's prevention checks (a test ping to the webhook endpoint, a pay-page check, a pre-deploy check). Guard has no edge over do-it-yourself tooling without the prevention checks, and the prototype does not have the test ping or the pre-deploy check.
+
+**Squad.** One full-stack builder, half an AI PM, one senior engineer, a quarter of an analyst, a tenth of an engineering manager. About 26 person-months in year 1 (build 7 months, compliance and security 1.5, run 5), then about 12 a year.
+
+**Pilot (about 6 months, about ₹0.8 cr).**
+
+| Months | Work | Exit |
+|---|---|---|
+| 0 to 2 | Pull the five internal queries. Watch on webhook health and the order gap for 200 opt-in merchants, fulfilment acknowledgement, daily review. | Measured incident rate and the first alert-to-connect numbers |
+| 2 to 5 | Fix as an agent (staged access fix, messages, customer conversation on the existing WhatsApp connector), fee preview and receipt, first-incident-free. | Paid-fix approval rate |
+| 4 to 6 | Guard offered after an incident, with prevention checks and the monthly report. Test ₹499 for mid-size merchants. | Guard uptake |
+
+**Gates and kill:** BUSINESS_CASE section 8 and PRD K7 and K8. Two failed gates at month 6 means Watch only.
+
+**Backlog that came out of the interviews (none started).** A no-false-urgency rule in the template lint, beginning with `T-G2` (stream C, no contract change). A fee preview and receipt on the fix stepper (stream D, shows the price before approval). Rename the access check in the merchant mock to a fulfilment acknowledgement (wording only).

@@ -91,3 +91,24 @@ Kill criteria: K1 passes on the synthetic world (ratio 4.0). K4 passes on script
 5. Decide whether the note and the video should mention INC-3 (card renewals that failed on Razorpay's side, with the evidence pack). It is built and in the hosted demo, but the note is at 545 of 550 words and the script does not show it. The same goes for INC-2 (customers charged twice, with the guarded refund) and the INC-3 renewal link, both built since. Only the gate count was kept current (130 on 10 Oct).
 6. Run `make eval && make snapshot`, commit if anything moved, and check the hosted link (https://razorpay-blindspot.vercel.app/) in a clean browser window with no server running. The old address, razorsense-starter.vercel.app, no longer answers, so make sure nothing you wrote down still uses it.
 7. Remove the test objects (V5) only if you want them gone: the disabled `httpbin` webhook and the ₹10 payment link.
+
+---
+
+## 5. Business case: answers for questions after the video
+
+Not in the note (it is at the word limit). Full numbers and the model: `docs/BUSINESS_CASE.md`. Everything here is a plan on assumptions, not a result: the prototype has no real merchants and no model. Say so first.
+
+| If asked | Answer |
+|---|---|
+| What does it cost Razorpay? | About ₹0.86 crore a year to run and ₹1.19 crore to build in year 1, with a team of about three working part of the time. That is about 0.07 percent of FY25 gross profit. Model calls are about 3 percent of the cost. |
+| What do you charge? | Watch (detection and alerts) is free and part of the 2% fee. Fix is 1% of the value restored, the first incident free, and free when the fault is Razorpay's. Guard is ₹999 or ₹2,999 a month and adds prevention checks and a monthly report. It all goes through Razorpay's existing billing. |
+| Is it a profit centre? | No. At the base case direct revenue is about ₹1.1 crore a year against about ₹0.9 crore of cost, and the three-year total is slightly negative. It becomes clearly positive if each detected incident saves Razorpay about ₹50 of support or dispute cost, which Razorpay's own data can confirm. It is a bet on merchant trust. |
+| What would make you stop? | A six-month pilot with gates: at least 6 percent of alerted merchants connect and at least 4.5 percent take Guard. If two gates fail, keep only the free detection layer, about ₹0.46 crore a year. |
+| Why not charge for tokens or use a bigger model? | Model calls are about 3 percent of cost, and Razorpay already sells outcomes, not model use. |
+| Where is the AI? | In the prototype there is no model: rules and SQL decide, and every number comes from SQL or Python. In production a model reads messy messages behind the same function, on Razorpay's own agent stack. Money and access changes stay deterministic, which is the same rule Razorpay applies to money in its own dashboard. |
+| Does it overlap with Agent Studio and the dashboard? | Yes, in three places, and we say so. The dashboard already refunds duplicate payments, Cart Recovery handles dropped buyers, and Subscription Recovery handles renewals. In production we hand those off. We keep what none of them does: seeing a failing webhook, widening one complaint to everyone affected, saying whose side the fault is, and finding the payment from the customer's first message. |
+| Why would a merchant pay when a developer could build it? | A developer can build a reconciliation script, a Hookdeck relay and an alert for about ₹1.3 to 1.5 lakh in the first year. They cannot see Razorpay's own delivery logs, message the customer, or restore access in stages with undo. |
+
+**Do not say:** that a model reads the messages in the prototype; that merchants have asked for it or will pay (no founder has been asked yet); that Guard will sell (it costs 40 to 56 percent of the value it restores, so it sells on prevention, and uptake is the weakest assumption); any figure for how many Razorpay merchants have webhook failures (not public); any price as Razorpay's (Agent Studio prices are not published).
+
+**Optional sentence for the note**, if one can be cut elsewhere: "Priced as free detection, a 1 percent fee on value restored, and an optional ₹999 a month plan; about ₹0.9 crore a year to run, so a low-cost bet on trust, to be proven in a six-month pilot."
