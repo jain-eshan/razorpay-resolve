@@ -11,7 +11,7 @@ from . import clock, merchant_mock, service
 from . import fixtures as fx
 from .act import autonomy, escalate, executor, refund
 from .config import BS_NOW
-from .conversation import handover, machine
+from .conversation import handover, machine, retention
 from .db import ROOT, connect
 from .learning import loop as learning
 from .schemas import (
@@ -194,6 +194,7 @@ def advance_clock(body: ClockAdvance):
         machine.nudge_silent(db, now)
         z1recovery.settle(db, now)
         refund.settle(db, now)
+        retention.sweep(db, now)
         db.commit()
     return ClockState(now=now)
 @api.get("/messages/preview", response_model=list[MessagePreview])
