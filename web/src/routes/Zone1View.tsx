@@ -12,6 +12,7 @@ import { Stat } from '../components/Stat'
 import { Zone1Fix } from '../components/Zone1Fix'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { CHANNEL, OWNER, sentence, when } from '../lib/format'
+import { PageSkeleton } from '../components/PageSkeleton'
 
 type Sig = { kind: 'probe' | 'gap' | 'complaints'; hourly: Hour[]; normal_zero_share?: number; alert_at?: string; end?: string | null; event_at?: string | null }
 const STATUS_TONE = { open: 'notice', fixing: 'information', verifying: 'information', closed: 'positive' } as const
@@ -42,7 +43,7 @@ export default function Zone1View({ id }: { id: string }) {
   const { data: members } = useGet<Schemas['Member'][]>(`/api/incidents/${id}/members`, version)
   const { data: sample } = useGet<Schemas['SampleTimeline'][]>(`/api/incidents/${id}/sample`, version)
   if (error) return <Text color="feedback.text.negative.intense">Could not load {id}: {error}</Text>
-  if (!inc) return <Text color="surface.text.gray.muted">Loading</Text>
+  if (!inc) return <PageSkeleton />
   const v = inc.verdict
   const sig = v.signature as unknown as Sig
   const s = v.cause_summary_slots

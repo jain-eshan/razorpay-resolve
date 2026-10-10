@@ -6,6 +6,7 @@ import { isLive, useGet, type Schemas } from '../lib/api'
 import { demoNote } from '../lib/demo'
 import { CHANNEL, sentence, when } from '../lib/format'
 import { PageHeader } from '../components/PageHeader'
+import { PageSkeleton } from '../components/PageSkeleton'
 
 const DEMOS = [['/chat-demo', 'Talk to it on WhatsApp'], ['/help-demo/receipt', 'Tap help on a receipt'], ['/email-demo', 'Write to it by email'], ['/ig-demo', 'Instagram: control passes and returns'], ['/public-demo', 'A public post']] as const
 
@@ -62,7 +63,7 @@ export function ThreadPage() {
   const [v, setV] = useState(0)
   const { data, error } = useGet<Schemas['ThreadDetail']>(`/api/threads/${id}`, v)
   if (error) return <Text color="feedback.text.negative.intense">Could not load {id}: {error}</Text>
-  if (!data) return <Text color="surface.text.gray.muted">Loading</Text>
+  if (!data) return <PageSkeleton />
   return (
     <Box display="flex" flexDirection="column" gap="spacing.5">
       <Box display="flex" gap="spacing.5" flexWrap="wrap">

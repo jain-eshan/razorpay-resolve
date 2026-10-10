@@ -17,6 +17,7 @@ import { OWNER, sentence, when } from '../lib/format'
 import DuplicateView from './DuplicateView'
 import RenewalView from './RenewalView'
 import Zone1View from './Zone1View'
+import { PageSkeleton } from '../components/PageSkeleton'
 
 const TIERS = ['exact', 'likely', 'check', 'excluded'] as const
 const TIER_LABEL = { exact: 'Exact', likely: 'Likely', check: 'Check manually', excluded: 'Excluded' }
@@ -70,7 +71,7 @@ export default function Incident() {
   const { data: pack } = useGet<Schemas['EvidencePack']>(`/api/incidents/${id}/evidence_pack`)
   const [tier, setTier] = useState<(typeof TIERS)[number]>('exact')
   if (error) return <Text color="feedback.text.negative.intense">Could not load {id}: {error}</Text>
-  if (!inc) return <Text color="surface.text.gray.muted">Loading</Text>
+  if (!inc) return <PageSkeleton />
   if (inc.zone === 'before') return <Zone1View id={id} />
   if (inc.mismatch_type === 'E') return <DuplicateView id={id} />   // customers charged twice: the webhook worked, only the second charge is wrong
   if (inc.mismatch_type === 'G') return <RenewalView id={id} />   // renewals that failed on Razorpay's side: no webhook to show

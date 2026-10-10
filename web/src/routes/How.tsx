@@ -3,6 +3,7 @@ import { Panel } from '../components/Panel'
 import { useGet, type Schemas } from '../lib/api'
 import { sentence } from '../lib/format'
 import { PageHeader } from '../components/PageHeader'
+import { PageSkeleton } from '../components/PageSkeleton'
 
 const TONE = { pass: 'positive', fail: 'negative', report: 'neutral', 'n/a': 'neutral' } as const
 
@@ -10,7 +11,7 @@ const TONE = { pass: 'positive', fail: 'negative', report: 'neutral', 'n/a': 'ne
 export default function How() {
   const { data, error } = useGet<Schemas['EvalReport']>('/api/eval/report')
   if (error) return <Text color="feedback.text.negative.intense">Could not load the report: {error}</Text>
-  if (!data) return <Text color="surface.text.gray.muted">Loading</Text>
+  if (!data) return <PageSkeleton />
   const gates = data.metrics.filter((m) => m.status === 'pass' || m.status === 'fail')
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">

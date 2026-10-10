@@ -4,6 +4,7 @@ import { Panel } from '../components/Panel'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { OWNER, ZONE, sentence, when } from '../lib/format'
 import { PageHeader } from '../components/PageHeader'
+import { PageSkeleton } from '../components/PageSkeleton'
 
 const OWNER_TONE = { merchant_code: 'notice', merchant_config: 'notice', razorpay: 'negative', bank: 'information', customer: 'neutral', unknown: 'neutral' } as const
 const STATUS_TONE = { open: 'notice', fixing: 'information', verifying: 'information', closed: 'positive' } as const
@@ -11,6 +12,7 @@ const STATUS_TONE = { open: 'notice', fixing: 'information', verifying: 'informa
 export default function Incidents() {
   const nav = useNavigate()
   const { data, error } = useGet<Schemas['IncidentSummary'][]>('/api/incidents')
+  if (!data && !error) return <PageSkeleton />
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
       <PageHeader title="Incidents" description="Grouped by where the payment broke." guide="incidents" />

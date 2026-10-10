@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
+import { m } from 'framer-motion'
 import { Badge, Box, Button, Card, CardBody, CheckIcon, Heading, RayIcon, Text } from '@razorpay/blade/components'
+import { prefersReducedMotion } from '../razorsense'
 
 // How Razorpay's agents answer (Payout, Receivables, Bookkeeping agents; web/DESIGN.md section 17): a bold title that leads with the number,
 // one muted line saying what was analysed, the evidence as cards, then "How can I help you next?" with numbered next steps.
@@ -57,8 +59,15 @@ export function UserBubble({ children }: { children: ReactNode }) {
 }
 
 // Shown while the agent works, in place of a spinner: the Ray glyph in AI green and one word.
+// The Ray glyph turns a quarter, pauses, and turns again (DESIGN.md section 8: 480ms, emphasized easing). Still for people who ask for less motion.
 export function Analyzing() {
-  return <Box display="flex" alignItems="center" gap="spacing.3"><RayIcon size="medium" color="surface.icon.onSea.onSubtle" /><Text color="surface.text.gray.muted">Analyzing</Text></Box>
+  const glyph = <RayIcon size="medium" color="surface.icon.onSea.onSubtle" />
+  return (
+    <Box display="flex" alignItems="center" gap="spacing.3" testID="analyzing">
+      {prefersReducedMotion ? glyph : <m.div animate={{ rotate: 90 }} transition={{ duration: 0.48, ease: [0.5, 0, 0, 1], repeat: Infinity, repeatDelay: 0.48 }} style={{ display: 'flex' }}>{glyph}</m.div>}
+      <Text color="surface.text.gray.muted">Analyzing</Text>
+    </Box>
+  )
 }
 
 // One round of a fix flow: the merchant's message (once they have acted), then the agent's step as a titled card. `analyzing` shows the working state above the card.

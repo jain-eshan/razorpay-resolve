@@ -554,3 +554,34 @@ Result: 8 new tests, backend 420 pass, web build, lint and secret scan clean. No
 
 Not built: a real timer, deleting redacted complaint text (needs the pipeline to stop rebuilding from it), a "delete this customer's data" action, retention shown anywhere except the one line on Channels. Not touched: `web/`, so no design review.
 
+
+## 10 Oct 2026, design pass batch 1: loading, Ray on WhatsApp, Channels, Setup pictures (web)
+
+Goal: the first of three design batches from Eshan's end-to-end review as a small merchant. This batch covers what he named: the loading state, the WhatsApp previews on the home, the Channels layout and the Setup picture.
+
+Built:
+- `components/PageSkeleton.tsx`: Blade `Skeleton` shapes for a title, a row of figures and a card. Every page that showed a bare "Loading" word now shows it: Channels, Case, Dev, the three incident views, How we know, Settings, Conversations, Incidents, Audit log, Day-0 scan. On Incidents and Audit log it also stops "0 found" and "0 entries" from flashing up before the data arrives. Learning's weekly line loads as a one-line skeleton.
+- `Analyzing` (`components/AgentAnswer.tsx`) now turns the Ray glyph as DESIGN.md section 8 describes (480ms, emphasized easing, pause, repeat), still for reduced motion. Ray's home answers use it in place of "Looking at your incidents" and "Scanning".
+- Ray on WhatsApp (`routes/Ray.tsx`): was four full chats side by side, 700 to 800px tall each. Now the four problems are cards you can pick, each with one line of figures read from the ray card ("85 customers · ₹56,319 at risk"). Beside them is one short clip: the first heads-up only, with its two buttons. Eshan picked the switcher over a 2x2 grid. Heading changed from "RAY" to "Ray", as everywhere else.
+- Ray chat box: Blade's default "Upload file" did nothing, so it is hidden (`hideFileUpload`).
+- Channels: two groups instead of nine full-width cards. "Where customers write to you" (six cards, two columns) and "Ways you bring complaints in" (three small cards with one line each). Each card has the channel's Blade icon in a tile and the badges under the name, with Disconnect (or Undo) at the top right at every width. The consent list follows, and "Kept for 30 days" sits as a footer under a divider. Each group heading says how many are on. "Forward from RAY" became "Forward from Ray".
+- Setup (`components/SetupScene.tsx`): the static network picture is replaced by a moving scene per step that follows the choice on the right:
+  - Channels: the ticked channels send messages to Ray, and an unticked one goes grey and dashed.
+  - Autonomy: Suggest stops each step at a "you" checkpoint that pulses, Assist shows one green tick and lets steps through, and Autopilot draws a dashed limit with the checkpoint off.
+  - First scan: a line sweeps the customers and the stuck ones turn orange.
+
+  Blade icons and tokens only. Still for reduced motion.
+- Setup's right card: the empty 20px row kept for Back is now one row on every step with Back (once there is a step to go back to) and "Step 1 of 3: Channels", so the heading still does not move and there is no blank band.
+- Docs: DESIGN.md sections 15, 16 and 21, and web/CLAUDE.md files list.
+
+Tests: four browser tests read the full home chats (the second message, "Your pay page is not answering", and so on). They now pick the problem first and check the shorter clip. The smoke test checks the figure line beside the clip in place of the cause line.
+
+Checks: `tsc -b`, oxlint, `npm run build`, no hex colours outside the WhatsApp files, 69 hosted-demo browser tests and 15 live ones pass.
+
+Design review: the `design-reviewer` agent is not offered in this session, so a general-purpose agent ran its file (`.claude/agents/design-reviewer.md`) on the diff. First verdict was fail, with two content findings:
+- The Assist picture showed steps running straight to customers, while Assist still needs the founder for messages.
+- "13 orders lost" read as exact for an inferred incident.
+
+Five low ones came with them: a bordered Box in place of a Card, "Ray reads and replies" on Channels, a scene that looped forever, a hand-drawn radio circle, and the clip below the picker on phones. All seven are fixed. Second verdict: pass with notes. Taken: the picker column now fills the clip's height. Left as is: the Autonomy scene plays for about 10s per choice (three short plays, then it rests). Not checked: dark mode, reduced motion by eye (code paths read only), live-mode Channels by eye (the 15 live tests pass), skeletons on every page by eye.
+
+Not in this batch (batches 2 and 3, listed for Eshan): incident pages (stat row, a "Start the fix" button on the timeline, evidence as bars, a lighter customer table, a summary on the incident list, phone cards for it), How we know summary, a Learning chart, a Conversations table, the Audit log empty state, the WhatsApp demo layout, and the Explore cards.

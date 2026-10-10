@@ -12,6 +12,7 @@ import { Panel } from '../components/Panel'
 import { Stat } from '../components/Stat'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { OWNER, sentence, when } from '../lib/format'
+import { PageSkeleton } from '../components/PageSkeleton'
 
 type Sig = { app_version: string; release_at: string | null; first_at: string; alert_at: string; pairs: number }
 const STATUS_TONE = { open: 'notice', fixing: 'information', verifying: 'information', closed: 'positive' } as const
@@ -35,7 +36,7 @@ export default function DuplicateView({ id }: { id: string }) {
   const { data: members } = useGet<Schemas['Member'][]>(`/api/incidents/${id}/members`, version)
   const { data: sample } = useGet<Schemas['SampleTimeline'][]>(`/api/incidents/${id}/sample`, version)
   if (error) return <Text color="feedback.text.negative.intense">Could not load {id}: {error}</Text>
-  if (!inc) return <Text color="surface.text.gray.muted">Loading</Text>
+  if (!inc) return <PageSkeleton />
   const v = inc.verdict
   const sig = v.signature as unknown as Sig
   const rows = (members ?? []).filter((m) => m.tier === tier).map((m) => ({ ...m, id: m.payment_id }))

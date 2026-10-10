@@ -2,11 +2,11 @@ import { expect, test } from '@playwright/test'
 
 // Smoke tests for the R1 screens. They read the snapshot written by `make snapshot` (real pipeline output), so they assert shapes, not exact counts.
 
-test('S-01 RAY alert says how many customers were affected', async ({ page }) => {
+test('S-01 Ray alert says how many customers were affected', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'RAY on WhatsApp' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Ray on WhatsApp' })).toBeVisible()
   await expect(page.getByText(/\d+ customer affected so far/)).toBeVisible()
-  await expect(page.getByText(/Your server returned 401 to Razorpay from/)).toBeVisible()
+  await expect(page.getByText(/^\d+ customers · ₹[\d,]+ at risk$/)).toBeVisible()  // the full count sits beside the clip; the clip is only the first heads-up
   await expect(page.getByRole('group', { name: /^WhatsApp chat with Ray by Razorpay/ }).first()).toBeVisible()  // Ray's alerts are drawn as WhatsApp, not as cards
 })
 

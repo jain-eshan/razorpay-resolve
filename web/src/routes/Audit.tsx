@@ -4,6 +4,7 @@ import { Panel } from '../components/Panel'
 import { useGet, type Schemas } from '../lib/api'
 import { sentence, when } from '../lib/format'
 import { PageHeader } from '../components/PageHeader'
+import { PageSkeleton } from '../components/PageSkeleton'
 
 const KINDS = ['all', 'approval', 'action', 'verify', 'policy', 'tool_call'] as const
 const COLOR = { approval: 'primary', action: 'neutral', verify: 'positive', policy: 'notice', llm_call: 'information', tool_call: 'information' } as const
@@ -13,6 +14,7 @@ export default function Audit() {
   const { data, error } = useGet<Schemas['AuditEntry'][]>('/api/audit')
   const [kind, setKind] = useState<(typeof KINDS)[number]>('all')
   const rows = (data ?? []).filter((e) => kind === 'all' || e.kind === kind)
+  if (!data && !error) return <PageSkeleton />
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
       <PageHeader title="Audit log" description="Every approval, change and check, with who did it. Nothing here can be edited." />

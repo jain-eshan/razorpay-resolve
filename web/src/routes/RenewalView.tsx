@@ -12,6 +12,7 @@ import { RenewalFix } from '../components/RenewalFix'
 import { Stat } from '../components/Stat'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { OWNER, sentence, when } from '../lib/format'
+import { PageSkeleton } from '../components/PageSkeleton'
 
 type Sig = { hourly: RenewalHour[]; first_failure_at: string; alert_at: string; resolved_at: string | null; run_length: number }
 const STATUS_TONE = { open: 'notice', fixing: 'information', verifying: 'information', closed: 'positive' } as const
@@ -31,7 +32,7 @@ export default function RenewalView({ id }: { id: string }) {
   const { data: members } = useGet<Schemas['Member'][]>(`/api/incidents/${id}/members`, version)
   const { data: sample } = useGet<Schemas['SampleTimeline'][]>(`/api/incidents/${id}/sample`, version)
   if (error) return <Text color="feedback.text.negative.intense">Could not load {id}: {error}</Text>
-  if (!inc) return <Text color="surface.text.gray.muted">Loading</Text>
+  if (!inc) return <PageSkeleton />
   const v = inc.verdict
   const sig = v.signature as unknown as Sig
   const s = v.cause_summary_slots

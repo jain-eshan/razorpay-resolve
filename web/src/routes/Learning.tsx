@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Badge, Box, Button, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
+import { Badge, Box, Button, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text, Skeleton } from '@razorpay/blade/components'
 import { PageHeader } from '../components/PageHeader'
 import { Panel } from '../components/Panel'
 import { send, useGet, type Schemas } from '../lib/api'
@@ -57,7 +57,7 @@ export default function Learning() {
       {(error || weekly.error) && <Text color="feedback.text.negative.intense">Could not do that: {error ?? weekly.error}</Text>}
 
       <Panel title={changes ? `${changes} ${changes === 1 ? 'change' : 'changes'} this week` : 'No changes this week'} subtitle="Worked out from the feedback you gave in the last 7 days">
-        {weekly.data ? weekly.data.lines.map((l) => <Text key={l}>{l}</Text>) : <Text color="surface.text.gray.muted">Loading.</Text>}
+        {weekly.data ? weekly.data.lines.map((l) => <Text key={l}>{l}</Text>) : <Skeleton height="20px" width="min(420px, 80%)" borderRadius="medium" />}
         <Box display="flex" flexDirection="column" gap="spacing.3" paddingTop="spacing.4" borderTopWidth="thin" borderTopColor="surface.border.gray.subtle">
           <Text size="small" color="surface.text.gray.muted">Did I miss something? Tell me what it looked like.</Text>
           <Box display="flex" gap="spacing.3" flexWrap="wrap">

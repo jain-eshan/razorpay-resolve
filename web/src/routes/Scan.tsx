@@ -12,6 +12,7 @@ import { useHeroWash } from '../components/iso'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { OWNER } from '../lib/format'
 import { prefersReducedMotion } from '../razorsense'
+import { PageSkeleton } from '../components/PageSkeleton'
 
 type Scan = Schemas['ScanResult']
 const STEP_MS = 520
@@ -38,7 +39,7 @@ export default function Scan() {
   }, [data, step])
 
   if (error) return <Text color="feedback.text.negative.intense">Could not load the scan: {error}</Text>
-  if (!data) return <Text color="surface.text.gray.muted">Scanning</Text>
+  if (!data) return <PageSkeleton />
   const running = step < steps(data).length
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">

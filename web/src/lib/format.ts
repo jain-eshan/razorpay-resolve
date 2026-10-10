@@ -17,7 +17,7 @@ export const sentence = (s: string) => {
 }
 
 export const CHANNEL: Record<string, string> = { help_button: 'Help button on Razorpay pages', whatsapp_payments: 'WhatsApp payments number', email: 'Email', ig_dm: 'Instagram DMs', fb_dm: 'Messenger',
-  public_mention: 'Public mentions', ray_forward: 'Forward from RAY', paste: 'Paste a complaint', csv: 'Upload a CSV' }
+  public_mention: 'Public mentions', ray_forward: 'Forward from Ray', paste: 'Paste a complaint', csv: 'Upload a CSV' }
 
 export const OWNER: Record<string, string> = {
   merchant_code: 'Your side · Code',

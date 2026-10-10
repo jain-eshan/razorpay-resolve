@@ -5,6 +5,7 @@ import { Panel } from '../components/Panel'
 import { useGet, type Schemas } from '../lib/api'
 import { OWNER, when } from '../lib/format'
 import { PageHeader } from '../components/PageHeader'
+import { PageSkeleton } from '../components/PageSkeleton'
 
 function download(name: string, type: string, body: string) {
   const a = document.createElement('a')
@@ -21,7 +22,7 @@ export default function Dev() {
   const { data: pack } = useGet<Schemas['EvidencePack']>(`/api/incidents/${id}/evidence_pack`)
   const { data: members } = useGet<Schemas['Member'][]>(`/api/incidents/${id}/members`)
   if (error) return <Text color="feedback.text.negative.intense">Could not load {id}: {error}</Text>
-  if (!inc || !pack) return <Text color="surface.text.gray.muted">Loading</Text>
+  if (!inc || !pack) return <PageSkeleton />
 
   const csv = ['payment_id,customer,amount_inr,plan,webhook_outcome,your_record,group', ...(members ?? []).map((m) =>
     [m.payment_id, m.customer_masked, m.amount_paise / 100, m.plan, m.delivery_outcome, m.merchant_state, m.tier].map((v) => `"${String(v).replaceAll('"', '""')}"`).join(','))].join('\n')

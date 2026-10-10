@@ -3,13 +3,14 @@ import { Alert, Badge, Box, Card, CardBody, Heading, Text } from '@razorpay/blad
 import { Lane } from '../components/Lane'
 import { useGet, type Schemas } from '../lib/api'
 import { PageHeader } from '../components/PageHeader'
+import { PageSkeleton } from '../components/PageSkeleton'
 
 // S-04: the customer says, Razorpay says, your records say. Closest guesses are for the founder only and are never shown to the customer.
 export default function Case() {
   const { id = '' } = useParams()
   const { data: c, error } = useGet<Schemas['CaseDetail']>(`/api/cases/${id}`)
   if (error) return <Text color="feedback.text.negative.intense">Could not load {id}: {error}</Text>
-  if (!c) return <Text color="surface.text.gray.muted">Loading</Text>
+  if (!c) return <PageSkeleton />
   const x = c.extraction as Record<string, unknown>
   const exact = c.candidates.filter((k) => k.method !== 'fuzzy')
   const guesses = c.candidates.filter((k) => k.method === 'fuzzy')
