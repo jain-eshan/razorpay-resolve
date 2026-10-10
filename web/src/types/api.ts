@@ -618,6 +618,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/leakage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Leakage Report */
+        get: operations["leakage_report_api_leakage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/learning/params": {
         parameters: {
             query?: never;
@@ -1548,6 +1565,80 @@ export interface components {
             source_ref?: string | null;
             /** Text */
             text: string;
+        };
+        /** LeakageLeftOut */
+        LeakageLeftOut: {
+            /** Count */
+            count: number;
+            /** Label */
+            label: string;
+        };
+        /** LeakageReport */
+        LeakageReport: {
+            /**
+             * As Of
+             * Format: date-time
+             */
+            as_of: string;
+            /** Cannot See */
+            cannot_see: string[];
+            /** Customers */
+            customers: number;
+            /** Funnel */
+            funnel: components["schemas"]["LeakageStep"][];
+            /** Grace Hours */
+            grace_hours: number;
+            /** Headline */
+            headline: string;
+            /** Inside Rule */
+            inside_rule: components["schemas"]["LeakageRow"][];
+            /** Left Out */
+            left_out: components["schemas"]["LeakageLeftOut"][];
+            /** Longest Over Hours */
+            longest_over_hours: number;
+            /** Owed Paise */
+            owed_paise: number;
+            /** Rows */
+            rows: components["schemas"]["LeakageRow"][];
+        };
+        /** LeakageRow */
+        LeakageRow: {
+            /**
+             * Access Until
+             * Format: date-time
+             */
+            access_until: string;
+            /** Amount Paise */
+            amount_paise: number;
+            /** Customer Masked */
+            customer_masked: string;
+            /**
+             * Failed At
+             * Format: date-time
+             */
+            failed_at: string;
+            /** Hours Over Rule */
+            hours_over_rule: number;
+            /** Payment Id */
+            payment_id: string;
+            /** Plan */
+            plan: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Rule Ends At
+             * Format: date-time
+             */
+            rule_ends_at: string;
+            /** Subscription Id */
+            subscription_id: string;
+        };
+        /** LeakageStep */
+        LeakageStep: {
+            /** Count */
+            count: number;
+            /** Label */
+            label: string;
         };
         /** LearningChange */
         LearningChange: {
@@ -3314,6 +3405,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    leakage_report_api_leakage_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeakageReport"];
                 };
             };
         };

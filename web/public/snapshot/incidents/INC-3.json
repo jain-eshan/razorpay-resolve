@@ -394,8 +394,15 @@
       "dimension": "method",
       "value": "card",
       "share_affected": 1.0,
-      "share_baseline": 0.4524,
-      "lift": 2.2
+      "share_baseline": 0.2969,
+      "lift": 3.4
+    },
+    {
+      "dimension": "error_code",
+      "value": "GATEWAY_ERROR",
+      "share_affected": 1.0,
+      "share_baseline": 0.15,
+      "lift": 6.7
     },
     {
       "dimension": "card_network",

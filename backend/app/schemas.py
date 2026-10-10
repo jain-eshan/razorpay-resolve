@@ -578,3 +578,41 @@ class ReplayRow(BaseModel):
 class LearningReplay(BaseModel):
     note: str
     rows: list[ReplayRow]
+
+
+# ---------- J6: access without payment (contracts-v0.11) ----------
+class LeakageRow(BaseModel):
+    subscription_id: str
+    payment_id: str                 # the failed renewal
+    customer_masked: str
+    plan: str
+    amount_paise: int
+    reason: str                     # the failure as the bank or Razorpay worded it
+    failed_at: datetime
+    rule_ends_at: datetime          # failed_at plus the merchant's grace rule
+    hours_over_rule: float          # negative while the rule has not run out: hours left, as a minus
+    access_until: datetime
+
+
+class LeakageStep(BaseModel):
+    label: str
+    count: int
+
+
+class LeakageLeftOut(BaseModel):
+    label: str
+    count: int
+
+
+class LeakageReport(BaseModel):
+    as_of: datetime
+    grace_hours: int
+    headline: str
+    customers: int
+    owed_paise: int                 # the failed renewals nobody has paid yet
+    longest_over_hours: float
+    rows: list[LeakageRow]          # past the rule and still with access, longest first
+    inside_rule: list[LeakageRow]   # failed, access on, rule not yet run out
+    left_out: list[LeakageLeftOut]
+    funnel: list[LeakageStep]
+    cannot_see: list[str]

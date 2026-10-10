@@ -1,4 +1,4 @@
-# Handoff: where Blindspot stands (10 Oct 2026: R0 to R5 on `main` except the items marked "not started" below; R7 submission kit, INC-3, INC-2 with the guarded refund and the INC-3 renewal link are merged as PRs #16, #19, #25 and #26; data retention is enforced, in review)
+# Handoff: where Blindspot stands (10 Oct 2026: R0 to R5 on `main` except the items marked "not started" below; R7 submission kit, INC-3, INC-2 with the guarded refund, the INC-3 renewal link and data retention are merged as PRs #16, #19, #25, #26 and #27)
 
 Read this first in a new chat, then `docs/PRD.md`. Everything below is true as of the last commit on `main`.
 
@@ -32,7 +32,8 @@ Blindspot (working name) is Eshan Jain's entry for the Razorpay x ISB AI PM Buil
 | R4 rest: investigation agent, three-way eval (need a model) | Not started |
 | R4 rest: duplicate-charge monitor and guarded refund (INC-2, F-03, F-39) | Done, contracts v0.9. Merged as PR #25. Section 2g. |
 | R4 rest: renewal link for INC-3 | Done, contracts v0.10. Merged as PR #26. Section 2h. |
-| Data retention enforced (F-54) | Built, no contract change. In review. Section 2i. |
+| Data retention enforced (F-54) | Done, no contract change. Merged as PR #27. Section 2i. |
+| R4 rest: J6 access without payment, a read-only report | Done, contracts v0.11. In review. Section 2j. |
 | R5 first slice: handovers (Instagram and Messenger control passing, public posts to private) | Done, contracts v0.6. Merged as PR #9. Section 2d. |
 | R5 second slice: learning loop, weekly card, screen S-18 (no model) | Done, contracts v0.7. Merged as PR #15. Section 2e. |
 | R5 rest: renewal anomaly (F-08, INC-3) | Done, contracts v0.8. Merged as PR #19. Section 2f. |
@@ -113,7 +114,7 @@ Merged as PR #19. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/C
 - **Results (invented data):** found with 0 minutes onset error, alert 85 minutes after onset (it needs 5 failed renewals in a row), fix precision and recall 1.0, 3 of 3 complaints joined, 0 customers who paid again touched. 24 INC-3 and escalation checks, 23 gates pass. Quote as "works as designed on a simulation".
 - **Limits:** one seed, and the world was built with the monitor in view. Razorpay-side is by elimination (medium confidence). The escalation is a mock: nothing leaves and no reply comes. Not built: the recovery link for failed renewals once Razorpay says it is fixed (with the 10% holdout), collecting the renewals, the "failed but access still on" report. Only one renewal incident can exist (the id is reserved). The hosted demo tells customers only after access is on for all of them.
 - **Dates:** the window is Tue 29 Sep, not Thu 1 Oct as in SPEC 13.2, because Thu falls inside the INC-1 outage.
-- **Open, found on the way:** at 375px opened directly, no button on the incident pages is exposed to the accessibility tree (Hero A, Hero B and INC-3 alike). A separate task chip was raised. Hero A's fix panel has the language control overflow at 375px that INC-3's panel no longer has.
+- **Found on the way, fixed later:** at 375px opened directly, no button on the incident pages was exposed to the accessibility tree (PRs #21 and #22, 8 Oct). Still open: Hero A's fix panel has the language control overflow at 375px that INC-3's panel no longer has.
 
 ### INC-2, customers charged twice, and the guarded refund, 9 Oct 2026 (section 2g)
 Merged as PR #25. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.9).
@@ -134,11 +135,20 @@ Merged as PR #26. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/C
 - **Trap:** never run `eval.run_eval` twice on the same database before `make snapshot`. The match calibration shifts and 26 unrelated case files change. Use `make snapshot` (it rebuilds first).
 
 ### Data retention, 10 Oct 2026 (section 2i)
-In review. Full account in `docs/BUILD_LOG.md`. No contract change and no screen change: the Channels screen already says "Kept for 30 days", and this makes that true.
+Merged as PR #27. Full account in `docs/BUILD_LOG.md`. No contract change and no screen change: the Channels screen already says "Kept for 30 days", and this makes that true.
 - **What it does:** `backend/app/conversation/retention.py`. When the demo clock moves (`POST /api/clock/advance`), a sweep finds conversations with no activity for the channel's retention period (the days the founder granted, 30 by default) and removes the transcript text and the real identifiers behind the tokens (`token_vault`: phone, email, UPI handle, bank reference). A conversation still marked open is set to "resolved", so a customer who writes again starts a new one. One line goes in the audit log (kind `policy`) with the counts. Running it twice changes nothing.
 - **What it keeps on purpose:** the redacted complaint text (the pipeline rebuilds every case from it, so removing it would move incident numbers; tested against a control copy that is never swept), the case, each message's template id and send decision, and the audit log.
 - **What it skips:** a conversation whose incident is not closed (the founder needs the evidence), and one with a reply waiting for approval (approving it would send the removed text). Both are tested.
 - **Limits:** it runs when the demo clock moves, not on a real timer. Redacted complaint text stays indefinitely. Disconnecting a channel still only stops processing and deletes nothing. The hosted demo never reaches 30 days, so it does not show this. Found while writing the tests and not caused by this change: after `pipeline.run` on a database that has live conversations, a live thread points at a case id that no longer exists and the thread page errors. The API starts on a fresh world, so normal use does not hit it.
+
+### J6, access without payment, 10 Oct 2026 (section 2j)
+In review. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.11).
+- **What it does:** a read-only report (side nav "Access report", `/access`, `GET /api/leakage`) of customers whose UPI AutoPay renewal failed on their side (not enough money in the account) and who still have access after the merchant's own grace rule (48 hours, `merchants.grace_hours_after_failed_renewal`). It shows the count, the unpaid renewals added up, the longest overrun, the list, the customers still inside the rule (each joins the report when its rule runs out, so it moves with the demo clock), how it checked (a four step funnel), what it left out and why, and what it cannot see. **Report only: no button, nothing written, no action that removes access** (a test and an eval gate check this).
+- **Code:** `synth/leakage.py` (the world, applied last, own random stream), `backend/app/leakage.py` (the report), `eval/run_eval.py` (10 J6 checks), `backend/tests/test_leakage.py` (12). Web: `routes/Leakage.tsx`, a nav item, `smoke.spec.ts` S-19. The hosted demo reads the snapshot file `leakage.json` (a plain GET, no replay frames).
+- **Left out on purpose:** customers who paid again, customers whose access the merchant already cut (the rule working), bank-side failures (the customer owes nothing), and card subscribers (INC-3's extension keeps cards on for a different reason).
+- **Results (invented data, one seed):** 9 of 9 found, precision and recall 1.0, 0 look-alikes listed, the 4 customers inside the rule shown apart and moving in after 48 demo hours. Rs 2,691 unpaid, longest 9 days 20 hours over. Eval 138 pass, 0 fail, 23 reported figures. Quote as "works as designed on a simulation".
+- **Side effect to know:** the world has 23 more UPI renewals, so INC-3's "what they have in common" table now compares against a bigger renewal base (cards 45 percent to 30 percent of renewals, lift 2.2 to 3.4) and gained a true row (every failure was `GATEWAY_ERROR`). INC-1's comparison shares moved by under 1.5 points. No headline number of any incident moved.
+- **Limits:** one seed, and the world was built with the report in view. It cannot tell a leak from access the merchant extended on purpose (stated on the page). Only UPI AutoPay (the spec's case). It reads the access records as exported at 10:30, not live. No contact with the customer, no nudge, no CSV export.
 
 ### UX review, 7 Oct 2026 (PR #6)
 Eshan asked for a designer's review of the whole web app. Method: Playwright with the installed Chrome at 1440 and 390 wide (full-resolution screenshots, computed styles, overflow, text size and contrast checks on 13 routes), because the in-app browser shrinks screenshots.
@@ -238,9 +248,9 @@ The full verify list is PRD section 16.3.
 
 ## 6b. Pending (as of the end of 7 Oct 2026)
 
-**Pull requests:** #16 (submission kit) and #19 (INC-3 and the escalation) are merged, #19 by Eshan himself at 18:03 UTC on 7 Oct after CI passed. Clean up if not done: delete the remote branch `claude/r4-inc3-renewal`, remove its worktree (section 3b rule 5). A later PR carries this handoff. CodeRabbit has hit its free review limit on this repo and offers paid reviews ($0.25 a file). Not switched on, Eshan's call.
+**Pull requests:** only the J6 pull request (#29) is open as of 10 Oct 2026 (PRs #16 to #28 are merged). Old remote branches and worktrees from merged work are still around (section 3b rule 5): `git branch -r` shows about 19 `claude/*` branches and `git worktree list` about 17 folders. Nothing was deleted without Eshan's say-so. CodeRabbit has hit its free review limit on this repo and offers paid reviews ($0.25 a file). Not switched on, Eshan's call.
 
-**Open task started by Eshan in a separate session:** "buttons exposed to assistive tech at phone width". At 375px opened directly, no button on the incident pages (Hero A, Hero B, INC-3) shows up when Playwright asks for buttons by role, though the text is there. It may be a real accessibility problem in the mobile shell or an artifact of how the page loads. Check that session's branch or PR before touching `web/src/components/Shell.tsx`.
+**Phone-width accessibility task: fixed.** "No button exposed at 375px" was the phone menu hiding the whole page from assistive technology. Merged as PRs #21 and #22 on 8 Oct (a custom Drawer replaced Blade's phone SideNav; focus stays in the menu 10 of 10 runs). Details in `docs/BUILD_LOG.md`. Traps (5) in section 9 below is therefore only about how Playwright loads the page.
 
 Needs Eshan:
 - **Decide the next slice** (section 7).
@@ -254,21 +264,21 @@ Needs Eshan:
 - **Vercel:** live at https://razorpay-blindspot.vercel.app/ (renamed from razorsense-starter.vercel.app on 9 Oct 2026, which no longer answers). Root Directory `web`, no env vars. Check that the production branch is `main`. Deep links such as `/incidents/INC-3` work (`web/vercel.json` rewrites them).
 
 Needs the next session:
-- **Contract tags:** only `contracts-v0.1` is tagged. v0.2 to v0.9 are not. Tag after Eshan agrees.
+- **Contract tags:** only `contracts-v0.1` is tagged. v0.2 to v0.11 are not. Tag after Eshan agrees.
 - **Hero A's language control overflows at 375px** (the label "Each customer's language" wraps out of its box in `components/FixPanel.tsx`). INC-3's panel uses "Auto" instead.
 - **Deferred from R1:** the 24 synthetic screenshots (R3 simulated screenshot text instead; real images need a vision model).
 - **Demo state is in memory** (clock offset, webhook fix). A restart gives a fresh world.
 - **Bundle is 1.3 MB** (Blade). Code-split later.
-- **Not built from the roadmap:** the investigation agent and three-way eval, the "failed but access still on" report (J6), R6.
+- **Not built from the roadmap:** the investigation agent and three-way eval, R6.
 
 ## 7. Next steps
 
 Order of work, with what each needs:
-1. **Start clean.** Fix any `ci-failure` issue first (section 0), `git fetch`, cut a branch from `origin/main`, `make setup`, `cd web && npm ci`. The accessibility task from 6b may have opened its own PR; check `gh pr list`.
+1. **Start clean.** Fix any `ci-failure` issue first (section 0), `git fetch`, cut a branch from `origin/main`, `make setup`, `cd web && npm ci`. `gh pr list` should be empty.
 2. **Pick the next slice** (one PR per slice):
    - **INC-2 is built and merged** (section 2g). Left over from it: refunds that the bank rejects (`failed`) have no path yet, the refund-not-received conversation (`T-F1`) is not wired to a real refund record, and a real Razorpay test-mode refund waits for R6 (`RZP_REFUNDS_TEST_MODE` is still off).
    - **The investigation agent and the three-way eval (rules, agent, no signal).** Needs the model decision above. Goes behind the existing interfaces (`ingest/extract.py` for reading messy text, `investigate/` for causes nobody listed, a response-body reader for free-text server errors). `AgentTrace` already has `model_id` and `rule_based`. Cache every model output for tests (BUILD_PLAN section 10). The hosted demo stays on recorded frames.
-   - **The "failed but access still on" report (V1_SPEC J6):** UPI renewals that failed for insufficient funds while access stayed on past the merchant's grace rule. Report only, no revoke. Needs a new world block, a monitor and a read-only screen.
+   - **The "failed but access still on" report (V1_SPEC J6):** built (section 2j).
 3. **Finish R7.** Decide whether the note and the video should mention INC-3 (the note is 545 words of a 450 to 550 limit, so something has to go), then the items in `docs/SUBMISSION.md` section 4.
 4. **Validation track runs alongside:** founder calls, Razorpay questions, the webhook decision above, the PRD 16.3 verify list (statuses are in `docs/SUBMISSION.md` section 3).
 
@@ -284,7 +294,7 @@ Order of work, with what each needs:
 
 ## 8. Working agreements
 
-- Contracts are frozen. Change them only via `make contracts` plus an entry in `docs/CONTRACT_CHANGES.md` (currently v0.10).
+- Contracts are frozen. Change them only via `make contracts` plus an entry in `docs/CONTRACT_CHANGES.md` (currently v0.11).
 - Every number on screen comes from SQL or Python. The pipeline must never read `truth.db` (a test enforces it).
 - Ask Eshan before: commit, push, delete, create accounts, send anything outward, or change his Razorpay account beyond test objects he has allowed.
 - Keys go in `.env` only. Razorpay keys must be `rzp_test_`.

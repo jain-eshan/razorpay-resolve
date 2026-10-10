@@ -4,6 +4,14 @@ A change to anything under `contracts/`, to `backend/app/schemas.py`, `backend/a
 `backend/app/conversation/templates.py`, the capability flags in `backend/app/config.py` or `synth/config.yaml` needs a pull request that
 updates `contracts/` (run `make contracts`), bumps the version below and adds an entry here. Streams do not edit these files directly.
 
+## contracts-v0.11 (10 Oct 2026, during R4, J6 access without payment)
+
+Additive only. Existing paths, models and fields are unchanged. Every earlier eval metric has the same value and status (151 compared with `main`); the shares in INC-1's and INC-3's "what they have in common" tables moved because the world has 23 more UPI renewals (see the build log).
+- New route `GET /api/leakage` (every parameter optional, none needed): `LeakageReport` with `LeakageRow`, `LeakageStep` and `LeakageLeftOut`. Read only. It is computed from the data at the demo clock's time, so a failure that is inside the merchant's grace rule moves into the report when the rule runs out. Nothing is stored and nothing is written.
+- No new action type and no route that changes access: J6 is a report, and no revoke exists (a test and an eval gate check that no action type is named like one).
+- `contracts/truth_schema.sql` gains `truth_leakage` (eval only, never read by the app). `synth/config.yaml` gains a `leakage` block and the world gains `synth/leakage.py`, applied last with its own random stream. The merchant's grace rule is the existing `grace_hours_after_failed_renewal` (48).
+- `contracts/snapshot_manifest.json` gains `leakage.json`.
+
 ## contracts-v0.10 (9 Oct 2026, during R4, the renewal link for INC-3)
 
 Additive only. No path, model or field changed, and `make contracts` produces no diff in `contracts/`.

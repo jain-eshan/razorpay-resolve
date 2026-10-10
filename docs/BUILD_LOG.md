@@ -555,6 +555,38 @@ Result: 8 new tests, backend 420 pass, web build, lint and secret scan clean. No
 Not built: a real timer, deleting redacted complaint text (needs the pipeline to stop rebuilding from it), a "delete this customer's data" action, retention shown anywhere except the one line on Channels. Not touched: `web/`, so no design review.
 
 
+## 10 Oct 2026, R4 rest: J6, access without payment (integrator)
+
+Goal: the last after-the-payment journey in the spec that needed neither a model nor a new account. V1_SPEC J6: UPI renewals failed for insufficient funds, but access stayed on past the merchant's grace rule. Report only, no revoke. I chose it from the handoff's list (the investigation agent needs a model, R6 needs accounts). It is the mirror of Hero A: there customers paid and have no access, here they have access and have not paid.
+
+Built:
+- World (`synth/leakage.py`, own random stream, applied last): 23 UPI AutoPay renewals. 9 failed for insufficient funds more than 48 hours before the snapshot and still have access (the report), 5 failed and were cut when the rule ran out (correct), 3 failed and paid again on their own, 4 failed in the last 48 hours (inside the rule), 2 failed on the bank's side with access on. Truth in a new `truth_leakage` table. Failures are drawn in office hours between 20 and 26 Sep and 1 to 2 Oct, clear of INC-3's UPI control hours and of every Zone 1 evening window.
+- Report (`backend/app/leakage.py`): one read-only function over payments, subscriptions and the access records, at the demo clock's time. The rule is the merchant's own `grace_hours_after_failed_renewal`. It is not an incident (no id, no row in `incidents`), so no incident number moved. Inside-rule customers join the report when the rule runs out (after 48 demo hours it lists 13).
+- API and screen: `GET /api/leakage` (contracts v0.11), `routes/Leakage.tsx` at `/access`, side nav "Access report". A plain GET, so the hosted demo reads a snapshot file and needed no replay frames. No button, nothing written, no action that removes access.
+
+Result (invented data, one seed): 9 of 9 found, precision and recall 1.0, 0 look-alikes listed, 4 inside-rule customers shown apart. Rs 2,691 unpaid, longest 9 days 20 hours over. Eval 138 pass, 0 fail, 23 reported (was 130 and 21). Backend 433 tests (was 420), snapshot browser suite 71, live suites 15.
+
+What the checks caught:
+- The config had `inside_grace` twice (a time window and a count), so the second silently replaced the first and the generator crashed. Renamed the window `inside_window`.
+- The first run of every new test passed, which proves nothing. Six deliberate breaks of the report (ignore a later payment, include cards, blame bank-side failures, ignore whether access is on, hard-code 48 hours, count inside-rule customers as leaks) were each caught by a test, and one of them also turned two eval gates red. Reading the report writes nothing is checked by SQLite's `total_changes`.
+- I first claimed "the eval is unchanged" from the counts alone. `eval/report.*` is git-ignored, so that was not proof. I built `origin/main` in a scratch folder and compared all 151 old metrics by name: identical value and status, 10 added.
+- A second look at the page on a phone found the "9 found" and "Will cross" badges cut to "9..." and "Will...", and the stat cards squeezed into two columns. Badges removed (the title says it), one column on phones.
+- The independent review found "6 days 24 hours" (rounding after the day split), a "nothing to press" test that could not fail (the app has no `main` landmark, so the count was always 0; now matched by button name and shown to fail when a "Send message" button is added), "Rs" in the headline against the rupee sign everywhere else, and a funnel where one customer vanished between 25 and 19 (bank-side failures with access cut were not counted; now every step is accounted for, with a test).
+
+Side effects to know (computed data, not typed text):
+- The world has 23 more UPI renewals, so INC-3's "what they have in common" table compares against a bigger renewal base: cards fall from 45 to 30 percent of renewals (lift 2.2 to 3.4) and a true row appears (every failure was `GATEWAY_ERROR`, 100 percent against 15). INC-1's comparison shares moved by under 1.5 points. "874 access records" is now 897. Fuzzy match scores on cases moved in the third decimal (suggestions only, no metric moved). No headline number of any incident changed. `demo.json` also changed in generated ids on every rebuild.
+
+Decisions:
+- Scope is customer-side failures only (the spec says insufficient funds). Bank or Razorpay-side failures are counted as left out, never as leaks.
+- Named "Access without payment" on screen, because the Day-0 scan already uses "leaked" for the opposite case (paid, no access).
+- No CSV export, no nudge to the customer, no grace rule edit. A report with no action was the brief.
+
+Not built or not checked: the report cannot tell a leak from access the merchant extended on purpose (the page says so), only UPI AutoPay is covered, the access records are the 10:30 export and not live, the empty state (zero customers) and the error state were read from code and not seen, dark mode, a real screen reader. The existing grey nav items show `cursor: pointer` and not `not-allowed` (found by the reviewer, same on `main`, left alone).
+
+Checks: `make test` (433 backend tests, build, secret scan), `make eval`, `tsc -b`, `oxlint`, snapshot suite 71, live suites 15 (run with `CI=1`), no em dashes in the changed files.
+
+Design review: the `design-reviewer` agent type is not registered in this session, so a general-purpose agent that had not seen my work followed `.claude/agents/design-reviewer.md` and edited nothing. Verdict: pass with notes. It ran types, lint and the mechanical searches (hex, inline styles, raw tags, fixed widths, `repeat(`, em dashes: clean), checked the page against section 15's list template, confirmed no primary button and that every production nav item stays inert, and looked at 375, 768 and 1440px in Chrome (no sideways overflow, no console errors). Seven findings, all fixed or answered above except two it left optional: the tables scroll sideways inside their box on phones (allowed by the layout rule, and "Your rule" now comes before "Renewal failed" so the key column shows first), and the nav cursor. It could not check: the live API route, the empty and error states, dark mode, screen reader and tab order, or the numbers against the database (the tests and eval do that). Not independent after the fixes: I re-checked the hours text, the funnel and the test by running them, and nobody re-read the final page.
+
 ## 10 Oct 2026, design pass batch 1: loading, Ray on WhatsApp, Channels, Setup pictures (web)
 
 Goal: the first of three design batches from Eshan's end-to-end review as a small merchant. This batch covers what he named: the loading state, the WhatsApp previews on the home, the Channels layout and the Setup picture.

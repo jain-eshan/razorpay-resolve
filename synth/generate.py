@@ -11,6 +11,7 @@ import yaml
 
 from .duplicates import apply as add_duplicates
 from .handovers import build_handovers
+from .leakage import apply as add_leakage
 from .renewals import apply as add_renewals
 from .threads import build_threads
 from .world import build
@@ -34,7 +35,8 @@ def generate(out: Path, seed: int | None = None) -> dict:
     counts["threads"] = build_threads(dbs["world.db"], dbs["truth.db"], out, cfg["seed"])
     counts["handover_scripts"] = build_handovers(dbs["world.db"], dbs["truth.db"], out, cfg["seed"])
     counts.update(add_renewals(cfg, dbs["world.db"], dbs["truth.db"], out))
-    counts.update(add_duplicates(cfg, dbs["world.db"], dbs["truth.db"], out))  # last, so nothing earlier moves
+    counts.update(add_duplicates(cfg, dbs["world.db"], dbs["truth.db"], out))
+    counts.update(add_leakage(cfg, dbs["world.db"], dbs["truth.db"], out))  # last, so nothing earlier moves
     for d in dbs.values():
         d.close()
     return counts

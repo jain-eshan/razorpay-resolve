@@ -907,6 +907,66 @@
       "value": 1.0,
       "target": "1.0 (refunds are not enough: the app must stop doubling first)",
       "status": "pass"
+    },
+    {
+      "name": "leakage_report_precision",
+      "value": 1.0,
+      "target": ">= 0.98",
+      "status": "pass"
+    },
+    {
+      "name": "leakage_report_recall",
+      "value": 1.0,
+      "target": ">= 0.98",
+      "status": "pass"
+    },
+    {
+      "name": "leakage_look_alikes_in_the_report",
+      "value": 0.0,
+      "target": "0 (access already cut, paid again, bank-side failures)",
+      "status": "pass"
+    },
+    {
+      "name": "leakage_inside_rule_shown_as_leaks",
+      "value": 0.0,
+      "target": "0 (a failure inside the merchant's own 48 hour rule is not a leak yet)",
+      "status": "pass"
+    },
+    {
+      "name": "leakage_inside_rule_listed_apart",
+      "value": 1.0,
+      "target": "1.0 (shown as 'will cross', each with the hour its rule ends)",
+      "status": "pass"
+    },
+    {
+      "name": "leakage_rows_written_by_reading_the_report",
+      "value": 0.0,
+      "target": "0 (report only)",
+      "status": "pass"
+    },
+    {
+      "name": "leakage_inside_rule_move_in_when_the_rule_runs_out",
+      "value": 4.0,
+      "target": "= 4 (the same customers, 48 hours on)",
+      "status": "pass"
+    },
+    {
+      "name": "leakage_actions_that_take_access_away",
+      "value": 0.0,
+      "target": "0 (no revoke exists; the founder cuts access in their own system)",
+      "status": "pass"
+    },
+    {
+      "name": "leakage_unpaid_renewals_paise",
+      "value": 269100.0,
+      "target": "reported (failed renewals with access still on, past the rule)",
+      "status": "report"
+    },
+    {
+      "name": "leakage_longest_hours_over_the_rule",
+      "value": 236.4,
+      "target": "reported",
+      "status": "report"
     }
   ],
   "arms": [],
