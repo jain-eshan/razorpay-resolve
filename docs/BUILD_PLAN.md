@@ -4,14 +4,14 @@
 |---|---|
 | Version | 2.0, 6 Oct 2026 |
 | Status | Draft for approval |
-| Companion files | `Blindspot_v2_PRD.md` (what and why), `Blindspot_v2_Tech_Spec.md` (how) |
+| Companion files | `docs/PRD.md` (what and why), `docs/SPEC.md` (how) |
 | Planning basis | The 13 Oct deadline is ignored (decision D10). Work is organised for speed through parallel streams, not for a calendar. Effort is in agent-days, a judgment estimate. |
 
 ---
 
 ## 1. Plan in one page
 
-Seven releases, six streams, five decision gates.
+Eight releases (R0 to R7), six streams, six decision gates (G1 to G6).
 
 | Release | Outcome | Agent-days | Gate |
 |---|---|---|---|
@@ -370,7 +370,7 @@ Added from the business case (`docs/BUSINESS_CASE.md`) and the Razorpay intervie
 
 **Cut or hand off in production.** Refunds, recovery links and renewal links go to Razorpay's existing tools and agents. The investigation agent waits for pilot data. Instagram, Messenger and public-post handovers have no real integration and wait. Voice is out. The learning loop stays minimal.
 
-**Keep and build first.** In this order: the fulfilment acknowledgement and plugin and event-tool signals (activation is the largest driver of the case); Watch as a platform feature; Fix as an Agent Studio agent; Guard's prevention checks (a test ping to the webhook endpoint, a pay-page check, a pre-deploy check). Guard has no edge over do-it-yourself tooling without the prevention checks, and the prototype does not have the test ping or the pre-deploy check.
+**Keep and build first.** In this order: the fulfilment acknowledgement and plugin and event-tool signals (activation is the largest driver of the case); Watch as a platform feature; Fix as an Agent Studio agent; Guard's prevention checks (a test ping to the webhook endpoint, a pay-page check, a pre-deploy check). Guard has no edge over do-it-yourself tooling without the prevention checks, and the prototype did not have the test ping or the pre-deploy check until 10 Oct 2026, when both were built as the Release check screen.
 
 **Squad.** One full-stack builder, half an AI PM, one senior engineer, a quarter of an analyst, a tenth of an engineering manager. About 26 person-months in year 1 (build 7 months, compliance and security 1.5, run 5), then about 12 a year.
 
@@ -400,15 +400,15 @@ Eshan asked for an exhaustive check of what is left, ranked, with the low-value 
 
 | Area | State |
 |---|---|
-| R0 to R5 (detect, fix, channels, conversation, Zone 1, learning, handovers) | Built, simulated merchant, rules only. 144 eval gates pass, 485 backend tests. |
+| R0 to R5 (detect, fix, channels, conversation, Zone 1, learning, handovers) | Built, simulated merchant, rules only. 147 eval gates pass, 486 backend tests. |
 | Incidents in the world | INC-1 (Hero A), INC-2 duplicates and guarded refund, INC-3 Razorpay-side renewals with escalation and renewal link, INC-4 and INC-5 (Hero B), J6 access report. |
 | Guard | Release check built (F-81, F-82). Value report not built. |
 | R7 submission kit | Note, script and verify list written. Eshan still has to check, record and submit. The note is at 545 of 550 words and shows only Heroes A and B. |
 | Not built, needs a model | Investigation agent (F-31), three-arm evaluation (F-53 part), a real extractor for Devanagari and screenshots. |
 | Not built, needs Eshan's accounts | R6 real Razorpay test-mode rails (F-70), one real WhatsApp thread (F-71). |
 | Not built, held by decision T6 until after submission | Price card, fee preview, receipt, value ledger with cost (F-80). |
-| PRD section 13 metrics not yet measured | Median time to first useful reply, cost per resolved case, founder minutes per incident (the north star). |
-| Known leftovers | Thread page crash after a pipeline rebuild; `OrdersChart` and `RenewalChart` hand-drawn instead of Blade charts (DESIGN.md 21); help bubble and email and Instagram previews not drawn as the apps (DESIGN.md 16, 21); dark mode never checked; stale "130 gates" in SUBMISSION. |
+| PRD section 13 metrics | Measured on 10 Oct (14.6): engine time to first reply, message cost per resolved case, founder minutes per incident. |
+| Known leftovers | Resolved on 10 Oct (14.6): the thread page crash, the hand-drawn charts, the "130 gates" in SUBMISSION. Still open: help bubble and email and Instagram previews not drawn as the apps (DESIGN.md 16, 21); dark mode never checked. |
 
 ### 14.2 Scoring
 
@@ -467,5 +467,5 @@ Built in score order: items 1, 2, 3, then the KTLO item 6. Item 5 was dropped fr
 3. **Orders and renewals charts** are Blade charts. Nothing in the app is hand-drawn any more.
 4. **KTLO:** the thread page no longer crashes after a pipeline rebuild. Root cause: a live conversation named its case with a random id and a rebuild recreated cases under a different one.
 
-Open for Eshan (from 14.5): refresh the note and video, the R6 keys, K2 and K3, and the stale "130 eval gates" in `docs/SUBMISSION.md` (it is now 147, the same number of words).
+Open for Eshan (from 14.5): refresh the note and video, K2 and K3. The "130 eval gates" in `docs/SUBMISSION.md` is now 147. The brief does not require R6 real rails, so the keys are not needed for the submission.
 

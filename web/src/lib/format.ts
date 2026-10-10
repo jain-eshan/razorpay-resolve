@@ -11,6 +11,11 @@ export const hourLabel = (iso: string) =>
   new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', hour12: false, timeZone: IST }).format(new Date(iso)).replace(',', '').replace('Sept', 'Sep') + ':00'
 
 // Raw values arrive as snake_case ("tool_call", "upi"). Show them as a sentence.
+// The engine keeps real identifiers out of stored text and leaves a token such as [RRN_1]. A person reads that as an error, so show it in words.
+const TOKEN_WORDS: Record<string, string> = { PAYMENT_ID: 'payment ID', ORDER_ID: 'order ID', RRN: 'UPI reference', PHONE: 'phone number', EMAIL: 'email address', VPA: 'UPI ID', CARD4: 'last four digits' }
+export const plainTokens = (s: string) =>
+  s.replace(/\[([A-Z][A-Z0-9]*(?:_[A-Z][A-Z0-9]*)*)_\d+\]/g, (m, k: string, at: number, whole: string) => (TOKEN_WORDS[k] ? (/\b(?:ref|reference|id|number)\s*$/i.test(whole.slice(0, at)) ? '(hidden)' : `${TOKEN_WORDS[k]} (hidden)`) : m)).replaceAll('[REMOVED]', '(removed for safety)')
+
 export const sentence = (s: string) => {
   const t = s.replaceAll('_', ' ').replace(/\bupi\b/g, 'UPI')
   return t.charAt(0).toUpperCase() + t.slice(1)

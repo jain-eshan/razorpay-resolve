@@ -9,13 +9,17 @@ import { PageSkeleton } from '../components/PageSkeleton'
 
 const TONE = { pass: 'positive', fail: 'negative', report: 'neutral', 'n/a': 'neutral' } as const
 const pct = (x: number) => `${Math.round(x * 100)}%`
-const num = (t: string) => Number(t.replace(/[^0-9.]/g, ''))
+const num = (t: string) => Number(t.match(/[\d.]+/)?.[0] ?? 0)  // the first number in a target, which is the limit itself
 // The checks a founder would ask about first, in their words. Each value and target is read from the report; only the wording is ours.
 const HEADLINE: [string, string, (v: number, t: string) => [string, string]][] = [
   ['day0_customers_found_vs_truth', 'Stuck customers the Day\u20110 scan found', (v, t) => [String(v), `out of ${num(t)} in the hidden truth`]],
   ['silent_victim_precision_exact_tier', 'Customers named who were really affected', (v, t) => [pct(v), `target ${pct(num(t))} or more`]],
   ['grants_that_ground_truth_says_were_not_owed', 'Access given to someone not owed it', (v) => [String(v), 'target none']],
   ['never_ask_violations_in_agent_replies', 'Replies that asked for a password, card or OTP', (v) => [String(v), 'target none']],
+  ['silent_to_complained_ratio', 'Silent customers for each one who complained (webhook incident)', (v, t) => [v.toFixed(1), `kill line ${num(t)}`]],
+  ['alert_latency_minutes_from_deploy', 'Minutes from the deploy to the alert (webhook incident)', (v) => [`${Math.round(v)} min`, 'when the first customer was hit']],
+  ['zone1_inc4_minutes_from_start_to_alert', 'Minutes from the pay page breaking to the alert (pay page incident)', (v) => [`${Math.round(v)} min`, 'with the pay-page check switched on']],
+  ['identified_within_3_questions_cooperative', 'Customers whose payment was found in 3 questions', (v) => [pct(v), 'on scripted, friendly threads']],
 ]
 
 // Amounts here are in rupees and paise (the cost per case is under a rupee), so this helper is used in place of rupees(), which rounds to whole rupees.
@@ -23,7 +27,6 @@ const HEADLINE: [string, string, (v: number, t: string) => [string, string]][] =
 // behind the minutes (30 seconds per approval), are said on the card.
 const money = (x: number) => `₹${x.toFixed(2)}`
 const minutes = (x: number) => `${Number.isInteger(x) ? x : x.toFixed(1)} min`
-const first = (t: string) => Number(t.match(/[\d.]+/)?.[0] ?? 0)  // the first number in a target, which is the limit itself
 
 // "How we know it works": every number here comes from comparing the pipeline with hidden ground truth in a synthetic world.
 export default function How() {
@@ -43,7 +46,7 @@ export default function How() {
   const effort = typical && cost && reply ? { typical, cost, reply, longest: longest ? `${minutes(longest.value ?? 0)} for the refunds` : 'n/a', longestNote: 'each one approved one customer at a time on purpose' } : undefined
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <PageHeader guide="how" title="How we know it works" description={`Synthetic world, seed ${data.seed}. The pipeline never sees the ground truth. This world is clean, so near-perfect scores are expected here. Harder cases arrive in later releases.`} />
+      <PageHeader guide="how" title="How we know it works" description={`Synthetic world, seed ${data.seed}. The pipeline never sees the ground truth. This world is clean, so near-perfect scores are expected here. Real traffic is messier, and reading that mess is the job of the production model.`} />
       {/* The answer first: the score, then four checks in plain words, then every check for anyone who wants them. */}
       <Card>
         <CardBody>
@@ -63,7 +66,7 @@ export default function How() {
           const m = data.metrics.find((x) => x.name === name)
           if (!m || m.value === null || m.value === undefined) return null
           const [value, hint] = show(m.value, m.target)
-          return <Stat key={name} label={label} value={value} hint={hint} icon={m.status === 'pass' ? CheckCircleIcon : AlertTriangleIcon} tone={m.status === 'pass' ? 'positive' : 'negative'} />
+          return <Stat key={name} label={label} value={value} hint={hint} icon={m.status === 'pass' ? CheckCircleIcon : m.status === 'fail' ? AlertTriangleIcon : ClockIcon} tone={m.status === 'pass' ? 'positive' : m.status === 'fail' ? 'negative' : 'neutral'} />
         })}
       </Box>
       {effort && (
@@ -73,7 +76,7 @@ export default function How() {
             <Text size="small" color="surface.text.gray.muted">Three numbers the plan said to measure and had not. Counted from the engine's own plans and runs. The seconds per approval is an assumption.</Text>
           </Box>
           <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
-            <Stat label="Founder time, typical incident" value={minutes(effort.typical.value ?? 0)} hint={`estimated at ${perApproval} per approval, not timed. Target ${minutes(first(effort.typical.target))} or less. Longest: ${effort.longest}, ${effort.longestNote}`} icon={ClockIcon} tone={effort.typical.status === 'pass' ? 'positive' : 'negative'} />
+            <Stat label="Founder time, typical incident" value={minutes(effort.typical.value ?? 0)} hint={`estimated at ${perApproval} per approval, not timed. Target ${minutes(num(effort.typical.target))} or less. Longest: ${effort.longest}, ${effort.longestNote}`} icon={ClockIcon} tone={effort.typical.status === 'pass' ? 'positive' : 'negative'} />
             <Stat label="Cost per resolved case" value={money(effort.cost.value ?? 0)} hint="messages only. No model is used here, and a model would add its own cost" icon={CheckCircleIcon} />
             <Stat label="Time to first reply" value={(effort.reply.value ?? 0) < 1 ? 'Under 1 second' : `${(effort.reply.value ?? 0).toFixed(1)} s`} hint="engine only, no network. A model call adds a few seconds" icon={ClockIcon} tone={effort.reply.status === 'pass' ? 'positive' : 'negative'} />
           </Box>

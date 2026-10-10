@@ -190,14 +190,21 @@ def advance_clock(body: ClockAdvance):
         return ClockState(now=BS_NOW)
     if body.hours < 0:
         raise HTTPException(422, "The clock only moves forward.")
+    if body.hours > 24 * 400:
+        raise HTTPException(422, "The clock moves at most 400 days at a time.")
     with closing(connect()) as db:
         now = clock.advance(body.hours)
-        service.log_clock(db, body.hours, now)
-        machine.nudge_silent(db, now)
-        z1recovery.settle(db, now)
-        refund.settle(db, now)
-        retention.sweep(db, now)
-        db.commit()
+        try:
+            service.log_clock(db, body.hours, now)
+            machine.nudge_silent(db, now)
+            z1recovery.settle(db, now)
+            refund.settle(db, now)
+            retention.sweep(db, now)
+            db.commit()
+        except Exception:
+            db.rollback()
+            clock.advance(-body.hours)  # a step failed, so the clock stays where it was and the next call can still work
+            raise
     return ClockState(now=now)
 @api.get("/messages/preview", response_model=list[MessagePreview])
 def message_preview(action_id: str | None = None): return _real(executor.message_previews, action_id) if _live() else fx.PREVIEWS

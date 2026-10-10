@@ -187,7 +187,7 @@ Done by reading S1 to S5 in full (`docs/RAZORPAY_TRANSCRIPTS.md`), then checking
 |---|---|---|
 | D20 and F-55: no false urgency, built | PRD, BUILD_PLAN 13, `backend/app/conversation/lint.py` | S6 principle 6 and B12 were written down but never reached the PRD or the code. Found that `T-G2` and `T-Z1R` state a 48 hour validity that nothing in the mock enforces. |
 | D21, P11, P12: activation through the integration prompt and agent onboarding | PRD D21 and section 18, BUILD_PLAN 13 | S2 describes both flows and the digest listed them without connecting them to the case's largest driver. Not priced: the base case keeps 8% connected. |
-| P13, F-81, F-82: prevention checks first within Guard | PRD section 10, BUILD_PLAN 13 | Guard carries ₹0.93 cr of the ₹1.09 cr direct revenue and has no edge over a do-it-yourself script without them. The prototype has neither. |
+| P13, F-81, F-82: prevention checks first within Guard | PRD section 10, BUILD_PLAN 13 | Guard carries ₹0.93 cr of the ₹1.09 cr direct revenue and has no edge over a do-it-yourself script without them. The prototype now has both, as the Release check screen (built 10 Oct 2026). |
 | F-80: price card, fee preview, receipt, value ledger now have a feature row | PRD section 10 | BUSINESS_CASE 5.2 described them and the PRD had no row. Still post-submission (T6). |
 | Pitch line from S5 | S5 use | The account manager framing is the plainest way to say who Blindspot is for. Eshan decides whether it goes in the note. |
 

@@ -91,7 +91,7 @@ def build_cohort(db: sqlite3.Connection, run: Run, disabled_at: str | None, now:
     for eid in run.bad_event_ids:
         ev = dict(db.execute("SELECT * FROM webhook_events WHERE id = ?", (eid,)).fetchone())
         p = dict(db.execute("SELECT * FROM payments WHERE id = ?", (ev["payment_id"],)).fetchone())
-        outcome = "not attempted, webhook disabled" if ev["final_delivery_class"] == "not_attempted_disabled" else "401, retried until the webhook was disabled" if ev["final_delivery_class"] == "4xx" else ev["final_delivery_class"]
+        outcome = "not attempted (webhook off, as Razorpay's docs describe)" if ev["final_delivery_class"] == "not_attempted_disabled" else "401, retried until Razorpay stopped" if ev["final_delivery_class"] == "4xx" else ev["final_delivery_class"]
         members.append(_member(db, p, ev, outcome, p["id"] in complaints, disabled_at, now, export_at))
         seen.add(p["id"])
     # delivered with a 2xx but the merchant's record shows no access (needs the access records)

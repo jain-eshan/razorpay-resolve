@@ -18,7 +18,7 @@ export function TimelineChart({ buckets }: { buckets: Schemas['TimelineBucket'][
           <ChartLegend />
           <ChartBar dataKey="delivered" name="Delivered" color="data.background.categorical.green.intense" stackId="webhooks" />
           <ChartBar dataKey="errors" name="Your server returned an error" color="data.background.categorical.red.intense" stackId="webhooks" />
-          <ChartBar dataKey="off" name="Nothing sent, webhook off" color="data.background.categorical.gray.intense" stackId="webhooks" />
+          <ChartBar dataKey="off" name="Nothing sent" color="data.background.categorical.gray.intense" stackId="webhooks" />
         </ChartBarWrapper>
       </Box>
       <Box display="flex" flexDirection="column" gap="spacing.2">

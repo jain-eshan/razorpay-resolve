@@ -135,3 +135,15 @@ test('S-21 connect by prompt: the prompt names the rules, copies exactly, and le
   await expect(page).toHaveURL(/\/release-check$/)
   await expect(page.getByRole('link', { name: 'Connect by prompt' }).first()).toBeVisible()  // reachable from the side nav
 })
+
+// How we know: the numbers a viewer is told to look for are on the page, read from the report, and a reported figure does not look like a failure.
+test('S-22 how we know shows the hero numbers, with the right limits and no false alarm on a reported figure', async ({ page }) => {
+  await page.goto('/how')
+  await expect(page.getByText(/of \d+ scored checks pass/)).toBeVisible()
+  await expect(page.getByText('Silent customers for each one who complained (webhook incident)')).toBeVisible()
+  await expect(page.getByText('kill line 2', { exact: true })).toBeVisible()  // the limit itself, not every digit in the target text glued together
+  await expect(page.getByText(/^\d+ min$/).first()).toBeVisible()
+  await expect(page.getByText('Minutes from the pay page breaking to the alert (pay page incident)')).toBeVisible()
+  await expect(page.getByText(/Hero A|Hero B/)).toHaveCount(0)  // internal names stay out of the page
+  await expect(page.getByText('What it asks of a founder, and what it costs')).toBeVisible()
+})

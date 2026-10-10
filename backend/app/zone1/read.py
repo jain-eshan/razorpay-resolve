@@ -101,7 +101,7 @@ def _markers(sig: dict, change: str, hour: datetime) -> list[str]:
     if hit(sig["onset"]):
         marks.append("pay page starts failing" if sig["kind"] == "probe" else "first order nobody could pay for")
     if hit(sig.get("alert_at")):
-        marks.append("alert would fire")
+        marks.append(f"alert would fire at {datetime.fromisoformat(sig['alert_at']).strftime('%H:%M')}")
     if sig["end"] and hit(sig["end"]):
         marks.append("works again")
     return marks

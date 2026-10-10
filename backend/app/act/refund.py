@@ -13,7 +13,7 @@ import sqlite3
 from datetime import datetime, timedelta
 
 from .. import audit, clock
-from . import autonomy
+from . import autonomy, messages
 
 HOURS_TO_PROCESS = {"upi": 2, "netbanking": 24, "card": 72}   # how long the mocked refund stays pending on the demo clock
 WINDOW = {"upi": "3 working days", "netbanking": "5 working days", "card": "7 working days"}  # what the customer is told to expect
@@ -49,13 +49,13 @@ def blocked(db: sqlite3.Connection, payment_id: str, incident_id: str) -> str | 
         return f"{payment_id} has already been refunded, or was never captured."
     cap, spent = autonomy.read(db).daily_refund_cap_paise, spent_today(db)
     if spent + p["amount_paise"] > cap:
-        return f"Today's refund limit is ₹{cap // 100:,}. ₹{spent // 100:,} is already refunded today, so this ₹{p['amount_paise'] // 100:,} waits for tomorrow or a higher limit in settings."
+        return f"Today's refund limit is ₹{messages.inr(cap)}. ₹{messages.inr(spent)} is already refunded today, so this ₹{messages.inr(p['amount_paise'])} waits for tomorrow or a higher limit in settings."
     return None
 
 
 def issue(db: sqlite3.Connection, payment_id: str, approver: str, incident_id: str) -> dict:
     """Refund one duplicate in full to its original method. Raises RefundBlocked with the reason when a rule says no."""
-    if not approver.startswith("merchant:"):
+    if not autonomy.is_person(approver):
         raise RefundBlocked("A refund needs a person's approval, one customer at a time. It never runs on its own.")
     if reason := blocked(db, payment_id, incident_id):
         raise RefundBlocked(reason)
@@ -64,7 +64,7 @@ def issue(db: sqlite3.Connection, payment_id: str, approver: str, incident_id: s
     db.execute("INSERT INTO refunds (id, payment_id, amount_paise, status, arn, rrn, speed, created_at, processed_at, source) VALUES (?,?,?,?,?,?,?,?,?,?)",
                (rid, payment_id, p["amount_paise"], "pending", None, None, "normal", clock.now().isoformat(), None, "make_good"))
     db.execute("UPDATE payments SET status = 'refunded' WHERE id = ?", (payment_id,))
-    audit.log(db, approver, "action", payment_id, f"Refunded ₹{p['amount_paise'] // 100:,} to the original {p['method']} method. Refund {rid}. This cannot be undone.", incident_id=incident_id, refund_id=rid)
+    audit.log(db, approver, "action", payment_id, f"Refunded ₹{messages.inr(p['amount_paise'])} to the original {p['method']} method. Refund {rid}. This cannot be undone.", incident_id=incident_id, refund_id=rid)
     return {"refund_id": rid}
 
 
@@ -78,7 +78,7 @@ def settle(db: sqlite3.Connection, now: datetime) -> int:
     """Move refunds from pending to processed once enough time has passed on the demo clock, and give them their bank reference. Safe to call any time."""
     n = 0
     for r in db.execute("SELECT r.*, p.method FROM refunds r JOIN payments p ON p.id = r.payment_id WHERE r.status = 'pending' AND r.source = 'make_good'").fetchall():
-        done = datetime.fromisoformat(r["created_at"]) + timedelta(hours=HOURS_TO_PROCESS[r["method"]])
+        done = datetime.fromisoformat(r["created_at"]) + timedelta(hours=HOURS_TO_PROCESS.get(r["method"], max(HOURS_TO_PROCESS.values())))
         if now >= done:
             card = r["method"] == "card"
             db.execute("UPDATE refunds SET status = 'processed', processed_at = ?, arn = ?, rrn = ? WHERE id = ?",

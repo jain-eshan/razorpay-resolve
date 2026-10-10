@@ -90,7 +90,7 @@ def find(db: sqlite3.Connection) -> list[Run]:
     out = []
     for version in sorted({p.app_version for p in pairs if p.kind == "duplicate"}):
         mine = sorted((p for p in pairs if p.kind == "duplicate" and p.app_version == version), key=lambda p: p.second_at)
-        if len(mine) < MIN_PAIRS:
+        if len({p.customer_id for p in mine}) < MIN_PAIRS:  # one customer tapping three times is one customer
             continue
         rel = db.execute("SELECT id, at FROM merchant_events WHERE kind = 'app_release' AND label = ? ORDER BY at DESC LIMIT 1", (version,)).fetchone()
         release_at = _t(rel["at"]) if rel else None

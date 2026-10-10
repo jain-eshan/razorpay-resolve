@@ -256,7 +256,7 @@
       "server_error": 0,
       "not_attempted": 5,
       "markers": [
-        "alert would fire",
+        "alert would fire at 12:30",
         "works again"
       ]
     },

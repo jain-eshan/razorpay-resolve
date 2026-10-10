@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Version | 2.0, 6 Oct 2026 |
-| Status | Draft for approval. Source of truth for the build, together with the PRD and `Blind_Spot_Build_Spec.md` (v1). |
+| Status | Draft for approval. Source of truth for the build, together with the PRD and `docs/V1_SPEC.md` (v1). **The prototype has no language model (decision T1).** Sections that name a model, a cache of model outputs or an agent describe the production design. |
 | Reading order for a coding agent | 1. PRD sections 1, 4, 6, 7, 8. 2. This file, sections 1 to 4. 3. v1 sections 0.4, 14, 16. 4. The rest of this file. 5. The build plan for your stream. |
 | Rule of precedence | This file overrides v1 where they conflict. Anything this file does not mention is inherited from v1 by section number. |
 
@@ -53,7 +53,7 @@
         world.py incidents.py threads.py screenshots.py fixtures_public.py
         writes data/world.db (pipeline) and data/truth.db (eval only)
                                    |
- web/ (Vite + React + Blade) ------+------ merchant_mock/ (FastAPI :8100)
+ web/ (Vite + React + Blade) ------+------ merchant mock (backend/app/merchant_mock.py, at /merchant-mock on :8000)
   RAY phone | inbox | incident | thread    /webhooks/razorpay (modes ok|401|500|ack_then_fail)
   fix | dev page | channels | settings     /entitlements   /entitlements/grant   /health
   customer surfaces (help entry, chat,     /pay-page  (probe target, modes ok|404|key_mismatch)
@@ -81,7 +81,7 @@
 |---|---|---|
 | Live local | backend, merchant mock, web dev server, LLM calls | Development, recording the video |
 | Snapshot | `make snapshot` runs the full pipeline offline and writes every UI response to `web/public/snapshot/*.json`. The web build is static and reads JSON. Actions change client state and show the exact request that would be sent. | Public Vercel link, works with no backend or API key |
-| LLM off | Cached model outputs in `data/llm_cache/`, rule verdicts, scripted conversation replies | Tests, CI, offline demo |
+| LLM off | Rule verdicts and scripted conversation replies (a cache of model outputs, `data/llm_cache/`, is the production plan and does not exist: the prototype has no model) | Tests, CI, offline demo |
 | Real rails (R6) | Razorpay test-mode objects and real webhook deliveries to a deployed merchant mock | Credibility proof, labelled in the UI |
 
 ### 2.3 Simulated clock
@@ -100,7 +100,7 @@ All time logic uses `app/clock.py` with `BS_NOW`. Default `2026-10-02T10:40:00+0
 | Tests | pytest, hypothesis (optional), Playwright smoke | |
 | Tooling | uv or pip, ruff, mypy (light), Makefile | |
 
-**Frontend rules.** Use Blade components and tokens. No hardcoded colours, spacing, radii or durations where a token exists. Lay out with `Box`. Before using a Blade component not yet used in the repo, call the Blade MCP docs tools. The installed types win over the docs. Follow `razorsense-starter/CLAUDE.md` and `DESIGN.md`.
+**Frontend rules.** Use Blade components and tokens. No hardcoded colours, spacing, radii or durations where a token exists. Lay out with `Box`. Before using a Blade component not yet used in the repo, call the Blade MCP docs tools. The installed types win over the docs. Follow `web/CLAUDE.md` and `web/DESIGN.md`.
 
 ---
 
@@ -527,6 +527,8 @@ Kaksha (fictional test-series app) as in v1 section 16.1, 14 days from Sat 19 Se
 
 ### 13.2 Incidents
 
+*Built world, 10 Oct 2026: the dates below were adjusted where they clashed. INC-3 (card renewals) is Tue 29 Sep, not Thu 1 Oct, because Thursday falls inside the INC-1 outage (CONTRACT_CHANGES v0.8). INC-4 is Thu 1 Oct and still broken at the snapshot.*
+
 | ID | Zone | What | Window | Ground truth |
 |---|---|---|---|---|
 | INC-1 | After | Webhook 401 after a deploy, disabled after 24 hours, about 40 captured payments, 9 complained, 31 silent, 2 fixed by hand, a hidden 2xx-but-failed subset of 4 to 6 | Tue 29 Sep 14:20 to Thu 1 Oct 11:05 | v1 section 16.2 |
@@ -580,7 +582,7 @@ Kaksha (fictional test-series app) as in v1 section 16.1, 14 days from Sat 19 Se
 | Cost per resolved case | Reported in INR and USD |
 | Learning loop (6-week replay) | False alerts per week fall, edit rate falls |
 
-**Three-arm comparison.** Arm R is the rule engine only. Arm A is the full system. Arm N is a no-signal scenario where the agent only ties arm R. For each metric the report shows R, A and N side by side. The agent's expected wins are messy-language triage, response-body reading, unseen causes and drafting. The expected ties are plain 5xx after a deploy and exact-key lookups.
+**Three-arm comparison (planned; cut from the competition build, no model, T1).** Arm R is the rule engine only. Arm A is the full system. Arm N is a no-signal scenario where the agent only ties arm R. For each metric the report shows R, A and N side by side. The agent's expected wins are messy-language triage, response-body reading, unseen causes and drafting. The expected ties are plain 5xx after a deploy and exact-key lookups.
 
 ---
 
@@ -629,7 +631,7 @@ Routes use React Router. Demo-critical screens are marked with a star.
 | S-07 star | `/incidents/:id/dev` | Developer handoff, shareable and read-only | Calm |
 | S-08 star | panel | Verify and close with the one RazorSense surface | Joyful |
 | S-09 | `/audit` | Audit log | Calm |
-| S-10 star | `/how` | "How we know it works": eval tables and three-arm view | Calm |
+| S-10 star | `/how` | "How we know it works": eval tables (the three-arm view was cut, T1) | Calm |
 | S-11 | `/settings` | Settings and autonomy dial, caps, holdout | Calm |
 | S-12 | `/channels` | Channels and permissions: consent, scopes, disconnect, per-channel autonomy | Calm |
 | S-13 star | `/help-demo/checkout-error`, `/help-demo/link-page`, `/help-demo/receipt` | Customer-facing "Need help with this payment?" surfaces (simulated Razorpay-owned entry points) | Regret on error states |
@@ -736,6 +738,6 @@ Not a contract change. The prototype in this repo is the specification. Producti
 | `audit.py` | The Agent Studio audit trail. |
 | Web screens | Blade generative-UI blocks in the agentic dashboard: incident card, timeline table, fix stepper with confirm buttons. |
 
-**For the demo (to 13 Oct).** Nothing above changes the code. No model, as decided. The built refund, recovery-link and renewal-link flows stay and are described as flows that production hands to existing tools. One small item is queued, not started: a no-false-urgency rule in the template lint, beginning with `T-G2`, whose expiry slot must stay a real expiry. Full list: `docs/INTERVIEWS.md` section 9.
+**For the demo (to 13 Oct).** Nothing above changes the code. No model, as decided. The built refund, recovery-link and renewal-link flows stay and are described as flows that production hands to existing tools. Built 10 Oct 2026: the no-false-urgency rule in the lint (PRD D20), which allows an expiry only when it is the link's real one. Full list: `docs/INTERVIEWS.md` section 9.
 
 **For production.** Detection is a platform feature (Watch, free). Fix and Guard are a first-party Agent Studio agent. Pricing, gates and the pilot are in `docs/BUSINESS_CASE.md`.

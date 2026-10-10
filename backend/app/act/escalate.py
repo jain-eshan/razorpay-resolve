@@ -14,6 +14,7 @@ from .. import audit, clock
 from ..db import write_tx as _write
 from ..pipeline import pack_ref
 from ..schemas import Escalation
+from . import autonomy
 from .executor import ActError
 
 SAMPLE = 5
@@ -83,6 +84,8 @@ def create(db: sqlite3.Connection, incident_id: str, target: str = "razorpay", a
 
 def send(db: sqlite3.Connection, esc_id: str, approver: str) -> Escalation:
     """The founder's approval. The pack is rebuilt first, so 'what was already tried' is true at the moment it goes."""
+    if not autonomy.is_person(approver):
+        raise ActError(403, "Only a person can send the evidence pack, as 'merchant:' and a name.")
     with _write(db):
         r = _row(db, esc_id)
         if r["status"] != "drafted":

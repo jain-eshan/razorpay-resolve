@@ -1,6 +1,6 @@
 import { Box, Text } from '@razorpay/blade/components'
 import type { Schemas } from '../lib/api'
-import { when } from '../lib/format'
+import { plainTokens, when } from '../lib/format'
 
 export function Lane({ title, items }: { title: string; items: Schemas['LaneEvent'][] }) {
   return (
@@ -8,7 +8,7 @@ export function Lane({ title, items }: { title: string; items: Schemas['LaneEven
       <Text size="small" weight="semibold">{title}</Text>
       {items.length === 0 && <Text size="small" color="surface.text.gray.muted">Nothing</Text>}
       {[...items].sort((a, b) => a.at.localeCompare(b.at)).map((e) => (
-        <Text key={e.source_ref + e.text} size="small">{when(e.at)} · {e.text}</Text>
+        <Text key={e.source_ref + e.text} size="small">{when(e.at)} · {plainTokens(e.text)}</Text>
       ))}
     </Box>
   )

@@ -206,8 +206,8 @@ Included in Guard: up to 2,000 customer messages a month (about ₹230 of cost t
 ### 5.2 How a merchant sees value and cost
 
 - **Before:** a price card in the dashboard before anything is switched on, as Agent Studio does. For Guard, a calculator on the merchant's own last 12 months of webhook and order data, which Razorpay already holds. It shows how many payments fell inside a failing window and what that cost.
-- **At approval:** a fee preview, for example "85 customers, ₹56,319 restored x 1% = ₹563, plus about ₹10 of messages, charged to your next settlement." The founder approves knowing the price.
-- **After:** a receipt: "85 of 85 confirmed active, ₹56,319 restored, found in 55 minutes, you paid ₹573." If a fix is undone, the fee reverses, as payout fees do.
+- **At approval:** a fee preview, for example "81 customers, ₹56,319 restored x 1% = ₹563, plus about ₹10 of messages, charged to your next settlement." The founder approves knowing the price.
+- **After:** a receipt: "81 of 81 confirmed active, ₹56,319 restored, found in 55 minutes, you paid ₹573." If a fix is undone, the fee reverses, as payout fees do.
 - **Always:** a monthly cap, a per-incident cap, a message budget, and an alert at 80 percent of any of them. A monthly value ledger: incidents caught, customers made whole, rupees restored, hours saved, what it cost.
 - **Trial:** the first incident free, and a 30-day Guard trial with a credit limit, mirroring Agent Studio's trial.
 - **Billing:** no build. Razorpay already deducts fees at source, collects other fees daily as a line in the statement, issues a monthly invoice on the 1st, offers a reconciliation report, and has a "free" fee type and fee reversals.

@@ -4,7 +4,7 @@ import { Alert, Box, Button, Card, CardBody, Text, TextArea, TextInput } from '@
 import { isLive, send, type Schemas } from '../lib/api'
 import { demoNote } from '../lib/demo'
 import { useLiveThread } from '../lib/live'
-import { when } from '../lib/format'
+import { plainTokens, when } from '../lib/format'
 import { PageHeader } from '../components/PageHeader'
 
 // S-15: a customer writes to the merchant, a forwarding rule hands payment mail to the agent, and the reply goes back in the same thread.
@@ -45,7 +45,7 @@ export default function EmailDemo() {
       {mails.map((m) => (
         <Card key={m.id}><CardBody>
           <Text size="small" color="surface.text.gray.muted">{m.direction === 'inbound' ? `From ${from}` : 'From Kaksha payment help, powered by Razorpay'} · {when(m.created_at)}</Text>
-          <Text>{m.body}</Text>
+          <Text>{plainTokens(m.body)}</Text>
         </CardBody></Card>
       ))}
       {tid && <Link to={`/threads/${tid}`}><Text size="small" color="interactive.text.primary.normal">See it as the founder</Text></Link>}
