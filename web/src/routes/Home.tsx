@@ -33,7 +33,7 @@ export default function Home() {
   const done = setupDone()
   const wash = useHeroWash()
   const input = (
-    <ChatInput value={value} onChange={({ value }) => setValue(value)} onSubmit={ask} placeholder="Ask Ray anything about your payments" accessibilityLabel="Ask Ray"
+    <ChatInput value={value} onChange={({ value }) => setValue(value)} onSubmit={ask} placeholder="Ask Ray anything about your payments" accessibilityLabel="Ask Ray" hideFileUpload
       suggestions={['Who did the failed webhook affect?', 'Which customers paid and have no access?']} onSuggestionAccept={({ suggestion }) => setValue(suggestion)} />
   )
 
@@ -95,23 +95,27 @@ export default function Home() {
 
       <Box display="flex" flexDirection="column" gap="spacing.5">
         <Heading size="large">Explore Blindspot</Heading>
-        <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', m: 'repeat(2, minmax(0, 1fr))', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
-          {/* The overview is the welcome card above, so it is not repeated here. */}
-          {GUIDES.filter((g) => g.id !== 'blindspot').map((g) => (
-            <Link key={g.id} to={`/guides/${g.id}`} style={{ textDecoration: 'none' }}>
-              <Card height="100%">
-                <CardBody>
-                  <Box display="flex" flexDirection="column" gap="spacing.4" height="100%">
-                    <Box display="flex" alignItems="center" gap="spacing.3"><g.icon size="medium" color="surface.icon.gray.muted" /><Text color="surface.text.gray.muted">{g.title}</Text></Box>
-                    <Heading size="small">{g.tagline}</Heading>
-                    <Box display="flex" flexDirection="column" gap="spacing.4" marginTop="auto">
-                      <Divider />
-                      <Box display="flex" justifyContent="flex-end"><ChevronRightIcon size="medium" color="surface.icon.gray.muted" /></Box>
+        {/* Seven guides (the overview is the welcome card above). The first spans a full row up to xl and half a row from xl, so every row is full. */}
+        <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', m: 'repeat(2, minmax(0, 1fr))', l: 'repeat(3, minmax(0, 1fr))', xl: 'repeat(4, minmax(0, 1fr))' }} gap="spacing.5">
+          {GUIDES.filter((g) => g.id !== 'blindspot').map((g, i) => (
+            <Box key={g.id} gridColumn={i === 0 ? { base: 'auto', m: '1 / -1', xl: 'span 2' } : 'auto'}>
+              <Link to={`/guides/${g.id}`} style={{ textDecoration: 'none' }}>
+                <Card height="100%">
+                  <CardBody>
+                    <Box display="flex" flexDirection="column" gap="spacing.3" height="100%">
+                      <Box display="flex" alignItems="center" gap="spacing.3"><g.icon size="medium" color="surface.icon.gray.muted" /><Text color="surface.text.gray.muted">{g.title}</Text></Box>
+                      <Heading size="small">{g.tagline}</Heading>
+                      {/* The guide in one line. Not on phones, where seven cards are already a long scroll. */}
+                      <Box display={{ base: 'none', m: 'block' }}><Text size="small" color="surface.text.gray.muted" truncateAfterLines={3}>{g.summary ?? `${g.description.split('. ')[0].replace(/\.$/, '')}.`}</Text></Box>
+                      <Box display="flex" flexDirection="column" gap="spacing.3" marginTop="auto" paddingTop="spacing.2">
+                        <Divider />
+                        <Box display="flex" justifyContent="space-between" alignItems="center"><Text size="small" weight="semibold" color="interactive.text.primary.normal">Open guide</Text><ChevronRightIcon size="medium" color="interactive.icon.primary.normal" /></Box>
+                      </Box>
                     </Box>
-                  </Box>
-                </CardBody>
-              </Card>
-            </Link>
+                  </CardBody>
+                </Card>
+              </Link>
+            </Box>
           ))}
         </Box>
       </Box>

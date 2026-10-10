@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { Badge, Box, Button, Card, CardBody, Heading, Text } from '@razorpay/blade/components'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { OWNER, ZONE, when } from '../lib/format'
-import { AgentAnswer, Divider, Label } from './AgentAnswer'
+import { AgentAnswer, Analyzing, Divider, Label } from './AgentAnswer'
 
 // Ray's answers on the home screen. Every figure comes straight from the incident and scan data; no model writes any text here.
 type Inc = Schemas['IncidentSummary']
@@ -10,7 +10,7 @@ type Inc = Schemas['IncidentSummary']
 export function IncidentsAnswer() {
   const nav = useNavigate()
   const { data } = useGet<Inc[]>('/api/incidents')
-  if (!data) return <Text color="surface.text.gray.muted">Looking at your incidents</Text>
+  if (!data) return <Analyzing />
   if (data.length === 0) return <AgentAnswer title="Nothing is open" text="I checked Razorpay's records against yours and found no mismatches.">{null}</AgentAnswer>
   const sorted = [...data].sort((a, b) => b.affected - a.affected)
   const zones = (['after', 'before', 'during'] as const).filter((z) => sorted.some((i) => i.zone === z))
@@ -55,7 +55,7 @@ export function IncidentsAnswer() {
 export function ScanAnswer() {
   const nav = useNavigate()
   const { data } = useGet<Schemas['ScanResult']>('/api/scan/day0')
-  if (!data) return <Text color="surface.text.gray.muted">Scanning</Text>
+  if (!data) return <Analyzing />
   return (
     <AgentAnswer
       title={`${data.leaked_customers} customers paid and have no access`}

@@ -407,9 +407,9 @@ Every screen is one of these. Pick one before you write any layout code.
 - Vertical rhythm: `spacing.6` between blocks on data pages, `spacing.7` on pages with explainers, `spacing.9` between major sections of a home page.
 - Cards are white, radius 12, padding 24, with Blade's own border and shadow. Never draw a card from a `Box` with a border. Use `Card`, or `Panel` (`components/Panel.tsx`) for a card with a grey header band.
 
-**List page** (Incidents, Conversations, Audit log): PageHeader, optional stat cards, then a `Panel` containing a Blade `Table`. Rows are 48px, cells have 12px side padding, a second line under a value is 12px muted. The row's identifying text is a real link. Status goes in a `Badge`.
+**List page** (Incidents, Conversations, Audit log): PageHeader, optional stat cards (added up from the rows, with a hint when part of a total is an estimate), then a `Panel` containing a Blade `Table`. Below `l` a table whose key figures sit on the right becomes one card per row (Incidents), so the figures are not pushed off the side. An empty group says why it is empty. Rows are 48px, cells have 12px side padding, a second line under a value is 12px muted. The row's identifying text is a real link. Status goes in a `Badge`.
 
-**Detail page** (Incident): breadcrumb or a "Go back" link, one summary card (status tile, headline, status pill), then two columns: Details cards on the left, a sticky Timeline on the right, one call to action at the bottom of the timeline.
+**Detail page** (Incident): breadcrumb or a "Go back" link, one summary card (status tile, headline, status pill), then two columns: Details cards on the left, a sticky Timeline on the right, one call to action at the bottom of the timeline (`components/StartFix.tsx`, "Start the fix", which takes you down to the fix steps; beside the content from `l`; below that, under the stat row, because the Timeline drops under the fix steps). Stat cards sit four across from `l` and fill their cell, so a row is one height.
 
 **Settings page**: one `Panel` per topic, label above value, the control on the right, one Save button at the end. Read-only snapshots say so in an `Alert`.
 
@@ -423,7 +423,9 @@ Every screen is one of these. Pick one before you write any layout code.
 
 **Numbers.** Rupees with Indian grouping through `rupees()` in `lib/api.ts`. Counts are plain integers. A figure that the agent states must come from the data, not from a model.
 
-**Loading, empty and error.** Loading is a muted one-line text or a Blade skeleton that matches the final size, never a spinner next to a skeleton. Empty says what is missing and what to do. Error names the cause and the next step.
+**Loading, empty and error.** A page loading its data shows `components/PageSkeleton.tsx` (Blade `Skeleton` shapes where the title, a row of figures and the first card will be), never a bare "Loading" word. Ray working shows `Analyzing` with the turning glyph. Never a spinner next to a skeleton. Empty says what is missing and what to do: a page with nothing in it yet uses Blade `EmptyState` (size `large`) with a flat picture from `FlatArt.tsx` and one button to where the first entry comes from (Audit log, the founder's side of the WhatsApp demo). An empty group inside a page says why it is empty in one muted line. Error names the cause and the next step.
+
+**Proof pages lead with the answer.** A page that proves something (How we know) opens with the score as a heading in a card, then a few checks in plain words as stat cards, then the full table behind "Show all".
 
 ---
 
@@ -444,13 +446,13 @@ Every screen is one of these. Pick one before you write any layout code.
 - Right card: a Back link, a large heading, one muted line, the one question for this step, a full-width blue Continue at the bottom, a small muted note under it.
 - One question per screen. Three steps at most.
 - The choices are cards you can pick (Blade `Card` with `isSelected`; three across from 1280px, stacked below): channels (pick any) each with its own Blade icon, autonomy levels (pick one) with "Start here" on Suggest. Step 3 shows the scan result as two large figures and an alert. A short note under the choices says what stays true whatever you pick.
-- The two cards stretch to one height, and the left card ends with a flat picture for the current step. The heading stays in the same place on every step.
+- The two cards stretch to one height, and the left card ends with a moving picture for the current step that answers the question as you answer it (`components/SetupScene.tsx`): the channels you tick light up and send messages to Ray, the autonomy level decides whether messages stop at you, and the first scan sweeps the customers. Still for people who ask for less motion. The heading stays in the same place on every step.
 - It never asks for a password, PAN, OTP, card number or any other credential. The recording of Razorpay's onboarding asks for those; ours does not. This is a hard rule from SPEC section 0.
 - Progress is remembered in the browser only (`lib/setup.ts`), because settings are read-only in the demo.
 
 **Ray home** (`routes/Home.tsx`). From Razorpay's Ray home.
 - Hero on a soft tinted panel: "Hello, {name}" in muted text, then the Ray glyph in AI green beside "What can I do for you today?", then the Blade `ChatInput`, then four topic buttons.
-- Under it: the welcome card (a mint-to-blue panel, a green "NEW" badge, the guide's headline, one line, one blue "Take the tour" button, the overview picture from 1280px up), then the setup card ("Set up Blindspot in 3 easy steps", a `0/3 COMPLETED` badge, a blue button), then "Explore Blindspot" cards, then the WhatsApp preview.
+- Under it: the welcome card (a mint-to-blue panel, a green "NEW" badge, the guide's headline, one line, one blue "Take the tour" button, the overview picture from 1280px up), then the setup card ("Set up Blindspot in 3 easy steps", a `0/3 COMPLETED` badge, a blue button), then "Explore Blindspot" cards, then Ray on WhatsApp: the four problems as cards you can pick, one line of figures each, and beside them one short clip of the first heads-up for the one picked. The full story is on the incident page.
 - Asking a question turns the page into a conversation (section 17).
 
 **Help bubble.** Razorpay's upload screens show a small blue question pill ("What is a Power of Attorney document?") that opens a short answer card. Use the same for any field a merchant may not understand. Not built yet.
@@ -597,10 +599,10 @@ Added 8 Oct 2026 after Eshan shared the launch recording of Razorpay Engage (ads
 
 **Messages are drawn as the app they are sent in.** When Blindspot shows a message a customer will receive, it draws that app, not a card: `components/WhatsAppChat.tsx` is WhatsApp for Android (green header with the business name and verified tick, wallpaper, date chip, the Meta business notice, bubbles with a tail and a time, ticks on what the customer sent, quick-reply buttons, input bar). It is used for the fix flow's "Send this to N customers" step, Ray's alerts to the founder, and the customer side of the WhatsApp demo.
 - This is the one place that is allowed raw elements, inline styles and hex colours, because it copies Meta's look, not Razorpay's. The colours live in `lib/whatsapp.ts` (a `.ts` file, so the hex grep in section 19 stays clean). Do not use them anywhere else.
-- Show only what matters. Previews use `compact` (slim header and the messages on the wallpaper, no call icons, notice or input bar); the full phone with input bar stays only for the interactive customer demo. Show at most two previews side by side; list the other templates as text underneath.
+- Show only what matters. Previews use `compact` (slim header and the messages on the wallpaper, no call icons, notice or input bar); the full phone with input bar stays only for the interactive customer demo. Show at most two previews side by side; list the other templates as text underneath. Where there are more than two, show one clip and let the person pick which (the Ray home). A clip is the one message that matters, not the whole thread.
 - The wallpaper is the real WhatsApp doodle image (`public/whatsapp-wallpaper.jpg`, supplied by Eshan), multiplied over the beige. Chats that come from Razorpay (Ray's alerts) use the Razorpay mark as the profile picture (`avatar="razorpay"`).
 - The same rule applies to email and Instagram when they get a preview: copy the real app first, then build. Email and Instagram previews are not built yet; `EmailDemo` and `IgDemo` still use plain cards.
 
-**Charts** use Blade's chart components (`ChartBarWrapper`, `ChartBar`, axes, legend, tooltip), never hand-drawn bars: a chart needs axis labels and a tooltip on hover. First one: `components/TimelineChart.tsx` (webhook outcomes by hour). `DuplicateChart` follows it (INC-2, orders by day). `OrdersChart` and `RenewalChart` are still hand-drawn and should follow.
+**Charts** use Blade's chart components (`ChartBarWrapper`, `ChartBar`, axes, legend, tooltip), never hand-drawn bars: a chart needs axis labels and a tooltip on hover. First one: `components/TimelineChart.tsx` (webhook outcomes by hour). `DuplicateChart` follows it (INC-2, orders by day). `OrdersChart` and `RenewalChart` are still hand-drawn and should follow. Learning's six-week replay is a `ChartLine` with `type="linear"`: the weeks are points, and the default curve draws values between them that the data does not have.
 
 **Control must be visible in the demo.** Where the real product lets you switch something off, the demo shows it working and shows the undo, with the change held in the browser tab only. First one: Channels (Disconnect, then "Undo, connect it again").

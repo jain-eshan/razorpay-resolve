@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Alert, Box, Text } from '@razorpay/blade/components'
+import { Alert, Box, Card, CardBody, EmptyState } from '@razorpay/blade/components'
+import { GuideArt } from '../components/GuideArt'
 import { CustomerChat } from '../components/CustomerChat'
 import { ThreadView } from '../components/ThreadView'
 import { isLive } from '../lib/api'
@@ -20,7 +21,13 @@ export default function ChatDemo() {
         <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'minmax(320px, 400px) minmax(0, 1fr)' }} gap="spacing.7" alignItems="start">
           <CustomerChat channel="whatsapp_payments" who="+919800012345" title="Kaksha payment help" onThread={setTid} />
           <Box minWidth="0px">
-            {t ? <ThreadView thread={t} onChanged={() => setV((n) => n + 1)} /> : <Text color="surface.text.gray.muted">The founder's view appears when the customer writes.</Text>}
+            {t ? <ThreadView thread={t} onChanged={() => setV((n) => n + 1)} /> : (
+              // Holds the founder's side of the page from the start, so the layout does not sit half empty until the first message.
+              <Card><CardBody>
+                <EmptyState size="large" asset={<Box width="120px"><GuideArt art="handover" height="80px" /></Box>} title="The founder's view appears here"
+                  description="Tap a message on the left. Here you see what the founder sees: the payment the agent found, what your records show, and any reply waiting for approval." />
+              </CardBody></Card>
+            )}
           </Box>
         </Box>
       )}

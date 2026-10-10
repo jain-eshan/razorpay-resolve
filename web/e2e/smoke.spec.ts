@@ -2,11 +2,11 @@ import { expect, test } from '@playwright/test'
 
 // Smoke tests for the R1 screens. They read the snapshot written by `make snapshot` (real pipeline output), so they assert shapes, not exact counts.
 
-test('S-01 RAY alert says how many customers were affected', async ({ page }) => {
+test('S-01 Ray alert says how many customers were affected', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'RAY on WhatsApp' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Ray on WhatsApp' })).toBeVisible()
   await expect(page.getByText(/\d+ customer affected so far/)).toBeVisible()
-  await expect(page.getByText(/Your server returned 401 to Razorpay from/)).toBeVisible()
+  await expect(page.getByText(/^\d+ customers · ₹[\d,]+ at risk$/)).toBeVisible()  // the full count sits beside the clip; the clip is only the first heads-up
   await expect(page.getByRole('group', { name: /^WhatsApp chat with Ray by Razorpay/ }).first()).toBeVisible()  // Ray's alerts are drawn as WhatsApp, not as cards
 })
 
@@ -44,6 +44,8 @@ test('S-17 day-0 scan plays its checklist, then states what it found', async ({ 
 
 test('S-10 how we know shows every gate passing', async ({ page }) => {
   await page.goto('/how')
+  await expect(page.getByText(/^\d+ of \d+ scored checks pass$/)).toBeVisible()  // the score leads, every check is one tap away
+  await page.getByRole('button', { name: /^Show all \d+ checks$/ }).click()
   await expect(page.getByText('silent to complained ratio')).toBeVisible()
   await expect(page.getByText('fail', { exact: true })).toHaveCount(0)
   await expect(page.getByText('pass', { exact: true }).first()).toBeVisible()
@@ -82,4 +84,14 @@ test('S-19 access report: the stat is the list, the inside-rule customers are ap
   await expect(page.getByText('What I cannot see')).toBeVisible()
   await expect(page.getByRole('button', { name: /revoke|remove|cut|send|approve|refund|grant|fix|message|extend/i })).toHaveCount(0)  // nothing here changes anything (the page has no main landmark to scope to, so the check is by name)
   await expect(page.getByRole('link', { name: 'Access report' }).first()).toBeVisible()  // reachable from the side nav
+})
+
+test('incident list adds up the incidents and says why a zone is empty; an incident page jumps to its fix', async ({ page }) => {
+  await page.goto('/incidents')
+  await expect(page.getByText('Customers affected', { exact: true })).toBeVisible()
+  await expect(page.getByText(/Razorpay's own dashboard, so Blindspot does not look here/)).toBeVisible()
+  await page.goto('/incidents/INC-1')
+  await expect(page.getByRole('heading', { name: 'Fix it' })).not.toBeInViewport()
+  await page.getByRole('button', { name: 'Start the fix' }).click()
+  await expect(page.getByRole('heading', { name: 'Fix it' })).toBeInViewport()
 })

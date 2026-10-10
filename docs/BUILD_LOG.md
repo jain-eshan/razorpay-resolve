@@ -149,6 +149,22 @@ Branches: `blindspot` merged into `main`, which is now the only long-lived branc
 
 After the merge (PR #6): deleted `blindspot` and the merged `claude/*` branches on GitHub, then `claude/docs-review-build-d91b5a` (duplicate R2, last commit `d96b591`) at Eshan's request. Eshan's main folder moved to `main`. Worktree rules are in `docs/HANDOFF.md` section 3b.
 
+## 7 Oct 2026, handoff after the UX review (docs only, PR #7)
+
+Written on 10 Oct from the pull request, so the log covers every merge. PR #7 merged at 08:04 UTC, after #6. Before this, the UX review entry above held only its last paragraph about it.
+
+What changed, docs only:
+- `docs/HANDOFF.md`:
+  - The state table now says PRs #2 to #6 are merged.
+  - A summary of the 7 Oct UX review: what was wrong, what was fixed, what was left alone and why, and the open design questions.
+  - A new section 3b on branches and worktrees.
+  - Refreshed next steps and loose ends.
+- `CLAUDE.md`: a short branches-and-worktrees rule, so every new chat sees it first.
+- `web/CLAUDE.md`: the Blade docs tool (`get_blade_component_docs`) writes Cursor rule files into the repo before it answers, so read the component source in `node_modules` instead.
+- `docs/BUILD_LOG.md`: the line on the branch cleanup (the last paragraph of the UX review entry).
+
+Checks: none needed, docs only. CI on `main` failed after this merge. The cause was the Hero A time limit, not this change (see "CI investigation and failure alert" below).
+
 ## 7 Oct 2026, R4 first slice: Hero B without a model (integrator)
 
 Goal: build the "customer cannot reach the pay page" story end to end with rules and SQL only: detect it, say it is inferred, show the evidence, offer recovery links with a holdout, verify, close. The investigation agent, the three-way eval, escalation to Razorpay, duplicates and refunds are not in this slice.
@@ -316,6 +332,29 @@ What checking caught:
 
 Not done: item 1 of the verify list (the 24-hour webhook disable, due about 18:41 IST on 7 Oct) needs Eshan to look at the dashboard. Nothing in `web/` changed, so no design review was needed. No recording was made.
 
+## 7 Oct 2026, graphify code map (tooling, PR #18)
+
+Written on 10 Oct from the pull request; PR #18 merged at 17:50 UTC with no log entry because it changed no application code.
+
+Goal: let a session ask a map of the repo where a thing lives, in place of searching files broadly.
+
+What changed:
+- `.gitignore`: ignores the generated `graphify-out/` (about 15 MB).
+- `.githooks/post-commit` (new): refreshes the code graph in the background after each commit. It needs no model and takes about 3 seconds. It never blocks or fails a commit, and does nothing when graphify is not installed.
+- `CLAUDE.md`: a "Code map" paragraph. It points sessions to `graphify query`, `graphify path`, `graphify affected` and `graphify-out/GRAPH_REPORT.md`, and says to read the real file before editing.
+
+Decisions:
+- The hook is a file in `.githooks`, because this repo sets `core.hooksPath` there. `graphify hook install` refuses that path and writes to the default hooks folder, which git ignores here, so the stock install would never run.
+- `graphify claude install` was not used, because its hook fires on every Bash, Read and Glob call.
+
+Checks:
+- The hook returns in 0.003 s and exits 0 with or without graphify.
+- `graphify update` kept all 241 doc nodes (1,751 nodes in total), and `affected`, `path` and `query` gave sensible answers.
+- About 6.7 times fewer tokens per question than reading the whole corpus. Secret scan clean.
+- Not run: `make test` and the web tests (no code changed).
+
+Note: git reads hooks from the main checkout's `.githooks`, so the hook went live only once the main checkout pulled this merge. A new worktree has no `graphify-out/` until `graphify update .` runs (root `CLAUDE.md`).
+
 ## 7 Oct 2026, R4 and R5 rest: INC-3 and the escalation to Razorpay (integrator)
 
 Goal: the one incident where the fault is Razorpay's, and the evidence pack that goes with it. A burst of card renewals fails inside Razorpay's gateway, the merchant's access job cuts access, and nobody on the merchant's side did anything wrong. No model.
@@ -353,6 +392,26 @@ Not built: the recovery link for failed renewals once Razorpay says it is fixed 
 Checks: 363 backend and synth tests (was 334), 46 snapshot browser tests (was 43; 2 new walkthroughs and INC-3 in the layout test), 13 live browser tests including a new INC-3 flow (the `fix` and `talk` specs ran this time), eval as above, types and lint clean, secret scan clean, no em dashes in new files.
 
 Design review: the `design-reviewer` agent could not be started as an agent in this session, so I ran its checks by hand. Mechanical: types, lint, no hex colours, no inline styles, no raw tags, no `repeat(N, 1fr)`, fixed widths only on an icon tile and legend swatches, no em dashes, INC-3 added to the layout test (375, 768 and 1440 px, no sideways overflow). Looked at: INC-3 at 1440 and 375 px, the fix panel after working through it at 1440 and 375 px, the RAY home at 1440 px. Found and fixed: the language control at 375 px. Not looked at by eye: INC-3 at 768 px (the layout test passes), dark mode, the RAY WhatsApp section (asserted by the browser test, not seen), the Incidents list row for INC-3. Found and not fixed: at 375 px opened directly, no button on the incident pages (Hero A, Hero B, INC-3) is exposed to the accessibility tree; handed off as a separate task.
+
+## 7 Oct 2026, handoff for the next chat (docs only, PR #20)
+
+Written on 10 Oct from the pull request; PR #20 merged at 18:18 UTC. PR #19 (INC-3) had merged before its last documentation commit landed, so `main` had INC-3 without the updated handoff. This closed that gap.
+
+What changed, docs only:
+- `docs/HANDOFF.md`, sections 6b and 7 rewritten for the end of 7 Oct:
+  - what needs Eshan, and what the next session needs
+  - the three candidate next slices, with what each requires
+  - a step-by-step recipe for adding a new incident without breaking Hero A or Hero B
+  - the traps hit that session
+
+  Its status tables now say PRs #16 and #19 are merged.
+- `README.md`, `web/CLAUDE.md`: status rows and a guide to the INC-3 screens.
+- `docs/SUBMISSION.md`: the to-do list gains "decide whether the note and the video mention INC-3".
+
+Open items it recorded for Eshan:
+- The real against modelled webhook disable. The test-mode experiment showed no disable, while the synthetic world still has Razorpay turning the webhook off after 24 hours.
+- The free-model decision for the investigation agent.
+- The accessibility task then running in a separate session, which became PRs #21 and #22.
 
 ## 7 Oct 2026, 24-hour webhook experiment (integrator)
 
@@ -555,6 +614,24 @@ Result: 8 new tests, backend 420 pass, web build, lint and secret scan clean. No
 Not built: a real timer, deleting redacted complaint text (needs the pipeline to stop rebuilding from it), a "delete this customer's data" action, retention shown anywhere except the one line on Channels. Not touched: `web/`, so no design review.
 
 
+## 10 Oct 2026, handoff and submission note synced with main (docs only, PR #28)
+
+Written on 10 Oct from the pull request; PR #28 merged at 08:04 UTC. These stale statements were found while reading all of `docs/` against `main`.
+
+What changed, docs only:
+- `docs/HANDOFF.md`:
+  - Data retention is merged (PR #27), not in review.
+  - The contract tags line says v0.2 to v0.10.
+  - The open-PR paragraph and the phone accessibility task are closed (PRs #21, #22).
+  - It notes the old remote branches and worktrees that still exist (not deleted).
+- `docs/SUBMISSION.md`:
+  - The note said 123 eval gates; `make eval` then gave 130 pass, 0 fail.
+  - Item 5 also says INC-2 and the renewal link are built and not in the note.
+
+Checks: `make test` (420 passed, build, secret scan clean), `make eval` (130 pass, 0 fail, 21 reported). No code or contract change.
+
+Later the same day: PR #29 (J6) added 8 gates, so `make eval` gives 138 pass, 0 fail, 23 reported. `docs/HANDOFF.md` says 138, while `docs/SUBMISSION.md` still says 130 (line 24, and "130 on 10 Oct" in item 5). Not changed here; it is Eshan's note. See the open items at the end of this log.
+
 ## 10 Oct 2026, business case, pricing and interview digest (docs only)
 
 Placed above the J6 entry on purpose: another open pull request (design pass batch 1) appends at the end of this file, and a second append there would be a merge conflict. Move it to the end whenever convenient.
@@ -611,3 +688,174 @@ Not built or not checked: the report cannot tell a leak from access the merchant
 Checks: `make test` (433 backend tests, build, secret scan), `make eval`, `tsc -b`, `oxlint`, snapshot suite 71, live suites 15 (run with `CI=1`), no em dashes in the changed files.
 
 Design review: the `design-reviewer` agent type is not registered in this session, so a general-purpose agent that had not seen my work followed `.claude/agents/design-reviewer.md` and edited nothing. Verdict: pass with notes. It ran types, lint and the mechanical searches (hex, inline styles, raw tags, fixed widths, `repeat(`, em dashes: clean), checked the page against section 15's list template, confirmed no primary button and that every production nav item stays inert, and looked at 375, 768 and 1440px in Chrome (no sideways overflow, no console errors). Seven findings, all fixed or answered above except two it left optional: the tables scroll sideways inside their box on phones (allowed by the layout rule, and "Your rule" now comes before "Renewal failed" so the key column shows first), and the nav cursor. It could not check: the live API route, the empty and error states, dark mode, screen reader and tab order, or the numbers against the database (the tests and eval do that). Not independent after the fixes: I re-checked the hours text, the funnel and the test by running them, and nobody re-read the final page.
+
+## 10 Oct 2026, design pass: the review, the plan and how it shipped (web, PR #30)
+
+Goal: Eshan asked for a sweep of every page and journey from a small merchant's point of view, as a visual and product designer would. He named four things: a Setup picture that moves, shorter WhatsApp previews on the home, the Channels layout (empty right side, Disconnect stacked under the text), and the loading state. He asked for every other page to be checked the same way, against Blade and Razorpay's look.
+
+How the review was done:
+- Every route was opened at 1440px, and Home, Setup, Channels and Incidents at 375px. The tool was Playwright from `web/node_modules`, with screenshots in the session scratchpad, not the repo.
+- Pages scroll inside an inner element, not the window, so a "full page" screenshot showed only the first screen. The viewport was grown to the height of the page container for each shot.
+- The Playwright version in `package-lock.json` wanted Chromium headless shell build 1243, which was not installed. It was installed with `npx playwright install chromium` (the e2e tests need it too).
+- Rules read first: `web/CLAUDE.md` and `web/DESIGN.md` sections 6 to 8, 13 to 21.
+
+What the review found, page by page, and which batch took it:
+- Every page: a bare "Loading" word in the corner (batch 1). Long pages with the main action at the bottom (batch 2). Walls of numbers where a summary or a chart would do (batches 2 and 3). A dead "Upload file" in Ray's chat box (batch 1).
+- Ray home: four full WhatsApp chats, against DESIGN.md's own "at most two side by side" (batch 1). Explore cards with an empty band and an orphan card (batch 3). Explore far too long on a phone (batch 3).
+- Setup: a static picture, the same on every step, and a blank band above the heading on step 1 (batch 1).
+- Incidents list: cut-off titles, a three-line "Started" column, no summary, an unexplained "0 found", figures off screen on a phone (batch 2).
+- Incident pages: INC-1's stat cards laid out unlike the other three; evidence as a list of percentages; a bold, heavy customer table; "Change it" in the browser's default link style; the fix 4,000px down (batch 2).
+- Channels: nine full-width cards repeating the same lines, and Disconnect stacked under the content (batch 1).
+- Conversations: demo buttons that read like filters, complaint rows as cards (batch 3).
+- Audit log: a one-line empty state (batch 3).
+- How we know: 161 rows with no summary (batch 3). Learning: the six-week result as a table (batch 3).
+- WhatsApp demo: the founder's half empty until the first message (batch 3).
+- Fonts, spacing and icons were already on Blade tokens and Blade icons throughout. The one gap was channel icons missing from Channels and Conversations (batches 1 and 3).
+
+Left as they were (looked at, no change needed or out of scope): the guide pages, the Day-0 scan page, Settings, the Developer evidence page, the case page, the help, email, Instagram and public-post demos, INC-1's "Can Razorpay replay these?" and "Look at 5 before acting" panels, and Setup's own unselected-choice circle (hand-drawn, older than this work). Also untouched: `OrdersChart` and `RenewalChart` (still hand-drawn, already noted in DESIGN.md section 21), the help bubble (DESIGN.md section 16, not built), and the email and Instagram previews (still plain cards).
+
+How it shipped:
+- Batch 1 was built, reviewed, committed and opened as PR #30 with Auto-fix on. The branch was cut from an older `main`. Updating it with `git reset` or `git merge --ff-only` was refused by the session's permission check, so the app's sync tool merged `main` instead. The first sync conflicted only in this file (both sides appended an entry); both were kept, main's first. Main had also added the Access without payment report (PR #29), which got the loading skeleton too.
+- Eshan then asked to build all three batches and ship them together in PR #30. Batches 2 and 3 were built on a local branch stacked on batch 1, committed one per batch, and fast-forwarded onto #30's branch. Four files were changed by both batches: this log, `web/DESIGN.md`, `web/CLAUDE.md` and `web/e2e/smoke.spec.ts`. They were split so that each commit holds only its own batch's lines. A second sync brought in main's docs-only PR #31 with no conflict.
+- Bots on #30: the Vercel preview deployed, and CodeRabbit started a review. Neither had findings when this was written.
+- Each batch went through the design reviewer: batch 1 failed, then passed with notes; batches 2 and 3 passed with notes. Every finding was fixed or is written down in the batch entry. The `design-reviewer` agent type is not offered in this session, so each time a general-purpose agent was given `.claude/agents/design-reviewer.md` and told to edit nothing.
+
+Not checked anywhere in this pass: dark mode, and reduced motion by eye (the code paths were read, and each new animation has a still version).
+
+## 10 Oct 2026, design pass batch 1: loading, Ray on WhatsApp, Channels, Setup pictures (web)
+
+Goal: the first of three design batches from Eshan's end-to-end review as a small merchant. This batch covers what he named: the loading state, the WhatsApp previews on the home, the Channels layout and the Setup picture.
+
+Built:
+- `components/PageSkeleton.tsx`: Blade `Skeleton` shapes for a title, a row of figures and a card. Every page that showed a bare "Loading" word now shows it: Channels, Case, Dev, the three incident views, How we know, Settings, Conversations, Incidents, Audit log, Day-0 scan, and the Access without payment report that came in from main. On Incidents and Audit log it also stops "0 found" and "0 entries" from flashing up before the data arrives. Learning's weekly line loads as a one-line skeleton.
+- `Analyzing` (`components/AgentAnswer.tsx`) now turns the Ray glyph as DESIGN.md section 8 describes (480ms, emphasized easing, pause, repeat), still for reduced motion. Ray's home answers use it in place of "Looking at your incidents" and "Scanning".
+- Ray on WhatsApp (`routes/Ray.tsx`): was four full chats side by side, 700 to 800px tall each. Now the four problems are cards you can pick, each with one line of figures read from the ray card ("85 customers · ₹56,319 at risk"). Beside them is one short clip: the first heads-up only, with its two buttons. Eshan picked the switcher over a 2x2 grid. Heading changed from "RAY" to "Ray", as everywhere else.
+- Ray chat box: Blade's default "Upload file" did nothing, so it is hidden (`hideFileUpload`).
+- Channels: two groups instead of nine full-width cards. "Where customers write to you" (six cards, two columns) and "Ways you bring complaints in" (three small cards with one line each). Each card has the channel's Blade icon in a tile and the badges under the name, with Disconnect (or Undo) at the top right at every width. The consent list follows, and "Kept for 30 days" sits as a footer under a divider. Each group heading says how many are on. "Forward from RAY" became "Forward from Ray".
+- Setup (`components/SetupScene.tsx`): the static network picture is replaced by a moving scene per step that follows the choice on the right:
+  - Channels: the ticked channels send messages to Ray, and an unticked one goes grey and dashed.
+  - Autonomy: Suggest stops each step at a "you" checkpoint that pulses, Assist shows one green tick and lets steps through, and Autopilot draws a dashed limit with the checkpoint off.
+  - First scan: a line sweeps the customers and the stuck ones turn orange.
+
+  Blade icons and tokens only. Still for reduced motion.
+- Setup's right card: the empty 20px row kept for Back is now one row on every step with Back (once there is a step to go back to) and "Step 1 of 3: Channels", so the heading still does not move and there is no blank band.
+- Docs: DESIGN.md sections 15, 16 and 21, and web/CLAUDE.md files list.
+
+Tests: four browser tests read the full home chats (the second message, "Your pay page is not answering", and so on). They now pick the problem first and check the shorter clip. The smoke test checks the figure line beside the clip in place of the cause line.
+
+Checks: `tsc -b`, oxlint, `npm run build`, no hex colours outside the WhatsApp files, 69 hosted-demo browser tests and 15 live ones pass.
+
+Design review: the `design-reviewer` agent is not offered in this session, so a general-purpose agent ran its file (`.claude/agents/design-reviewer.md`) on the diff. First verdict was fail, with two content findings:
+- The Assist picture showed steps running straight to customers, while Assist still needs the founder for messages.
+- "13 orders lost" read as exact for an inferred incident.
+
+Five low ones came with them: a bordered Box in place of a Card, "Ray reads and replies" on Channels, a scene that looped forever, a hand-drawn radio circle, and the clip below the picker on phones. All seven are fixed. Second verdict: pass with notes. Taken: the picker column now fills the clip's height. Left as is: the Autonomy scene plays for about 10s per choice (three short plays, then it rests). Not checked: dark mode, reduced motion by eye (code paths read only), live-mode Channels by eye (the 15 live tests pass), skeletons on every page by eye.
+
+Files: new `components/PageSkeleton.tsx` and `components/SetupScene.tsx`. Changed: `components/AgentAnswer.tsx` (`Analyzing`), `components/RayAnswers.tsx` and `lib/format.ts` ("Forward from Ray"). Routes: `Audit`, `Case`, `Channels`, `Dev`, `DuplicateView`, `Home` (`hideFileUpload`), `How`, `Incident`, `Incidents`, `Learning`, `Leakage` (after the sync), `Ray`, `RenewalView`, `Scan`, `Settings`, `Setup`, `Threads` and `Zone1View`. Tests: `e2e/demo.spec.ts` (Hero B, INC-3 and INC-2 walkthroughs pick their problem on the home first), `e2e/smoke.spec.ts` (S-01). Docs: `web/DESIGN.md`, `web/CLAUDE.md`, this log.
+
+Noticed along the way:
+- Blade's `ChatInput` has a `hideFileUpload` prop; the upload link is on by default.
+- A Blade `Card` with `onClick` puts an invisible button over the whole card. Playwright refuses to click the title text under it, and the button itself reads as not visible, so tests click the title with `force: true`.
+- The Setup scene restarts when a choice changes (the drawing is keyed on the choice), plays three times, then rests on its last frame.
+
+Not in this batch (batches 2 and 3, listed for Eshan): incident pages (stat row, a "Start the fix" button on the timeline, evidence as bars, a lighter customer table, a summary on the incident list, phone cards for it), How we know summary, a Learning chart, a Conversations table, the Audit log empty state, the WhatsApp demo layout, and the Explore cards.
+
+## 10 Oct 2026, design pass batch 2: incident pages (web)
+
+Goal: the second design batch from Eshan's review. On the incident pages the fix sat at the bottom of a 4,000px page, INC-1's figures were laid out unlike the other three views, the evidence was a wall of percentages, and the list cut titles off and hid its figures on a phone. Built on top of batch 1 (PR #30).
+
+Built:
+- `components/StartFix.tsx`: "Start the fix" (or "See how it was fixed" once closed) at the bottom of every incident's Timeline. It is the detail template's one call to action and scrolls down to the fix steps. It is shown from `l`, where the Timeline stays in view beside the content. Below that the Timeline sits under the fix steps, so the button sits under the stat row instead.
+- INC-1: the full-width "Affected" card and three uneven ones are now four across, as on INC-2 to INC-5. `Stat` fills its grid cell, so every stat row is one height even when a hint wraps.
+- INC-1 evidence: each pattern is a pair of Blade `ProgressBar`s, orange for the share of affected payments and grey for the share normally, with the figures under them, biggest gap first. Four are shown, then "Show all 9".
+- INC-1 customers table: "What happened" is no longer bold, so 85 rows of long text read lighter.
+- Fix panel: "Change it" is Blade's `Link`, not the browser's default underlined one.
+- Incidents list:
+  - Three stat cards added up from the rows: open incidents, at risk, customers affected. The hint says how many of the customers are estimated, from inferred incidents.
+  - The empty "Inside the payment" group now says why: bank and UPI failures are on Razorpay's own dashboard (the Incidents guide says the same).
+  - "Could have known" shows only the time when it is the same day.
+  - Titles wrap in place of being cut off. Blade's `Link` is `max-content` on purpose, so the title is the router's link around Blade `Text`, as the Explore cards do. This is noted in web/CLAUDE.md.
+  - Below `l` (phones and tablets) each incident is a card with its figures, in place of a table that pushed Affected and At risk off the screen.
+- Docs: DESIGN.md section 15 (list and detail templates) and the Link quirk in web/CLAUDE.md.
+
+Files: new `components/StartFix.tsx`. Changed: `components/Stat.tsx` (fills its cell, icon does not shrink), `components/FixPanel.tsx` (Blade `Link`), and routes `Incident`, `Zone1View`, `DuplicateView`, `RenewalView` and `Incidents`. Tests: `e2e/smoke.spec.ts` (one new test). Docs: `web/DESIGN.md` section 15, `web/CLAUDE.md`, this log.
+
+Noticed along the way:
+- INC-2 to INC-5 already had four stat cards across. Only INC-1 was different.
+- INC-1's first card keeps the label "Affected", because smoke test S-03 checks that Complained plus Silent equals Affected. "paid, no access" went into the hint.
+- Playwright's `getByText(...).first()` picks the first match even when it is hidden. The phone cards come after the table in the page, so a desktop test finds the table row.
+- The evidence sort (biggest gap first) is a presentation choice; the figures are the engine's.
+
+Tests: a new smoke test covers the stat cards, the empty-group note, and "Start the fix" bringing "Fix it" into view.
+
+Checks: `tsc -b`, oxlint, `npm run build`, and all 87 browser tests (72 hosted-demo, 15 live) pass.
+
+Design review: a general-purpose agent ran `.claude/agents/design-reviewer.md` on the diff, since the agent itself is not offered in this session. Verdict: pass with notes. Six notes, all taken:
+- The table only becomes cards below `l`, not `m`, because at 768px it still cut the figures off.
+- Below `l` there is a "Start the fix" button under the stat row.
+- Stat icons no longer shrink.
+- The list's stat cards stack below `l`.
+- The evidence legend says "dark grey", which is what Blade's neutral bar draws.
+- "At risk" says how much of it is estimated, as the customer count does.
+
+Not checked: dark mode, reduced motion, INC-2 to INC-5 by eye at 375 and 768, the expanded "Show all" state by eye, live mode by eye.
+
+## 10 Oct 2026, design pass batch 3: proof pages, demos and Explore (web)
+
+Goal: the third design batch from Eshan's review: the pages that prove the product works, the demo entry points, and the Explore cards. Built on top of batches 1 and 2. All three go up together.
+
+Built:
+- How we know: opens with "138 of 138 scored checks pass" as a heading in a card, then four checks a founder would ask about, as stat cards in plain words:
+  - stuck customers the Day-0 scan found (81 of 81)
+  - customers named who were really affected (100%)
+  - access given to someone not owed it (0)
+  - replies that asked for a password, card or OTP (0)
+
+  Every value and target is read from the report; only the labels are ours. The 161-row table is behind "Show all 161 checks".
+- Learning: the six-week table is a Blade line chart with a line each for no learning (grey, dashed), weekly baseline (gold) and with learning (green). The lines are straight (`type="linear"`), because Blade's default curve drew values between weeks that are not in the data. The totals stay under the chart.
+- Conversations:
+  - The five demo buttons, which read like filters, are now "Try it as a customer": a card each with the channel's icon and one line. WhatsApp, the fullest demo, is wider so the rows come out even.
+  - The 55 complaint cards are a Blade table, ten to a page, with a count line ("55 complaints, 24 matched to a payment"). Each row's link is the time it came in, so the link names that complaint. Below `l` each complaint is a card, ten at a time with "Show 10 more".
+  - Complaint summaries carry no message text, so the table cannot show the customer's first words without fetching all 55 cases. Not done.
+- Audit log: when the log is empty, a Blade `EmptyState` with the flat "approve" picture, a line on what lands here, and "Open incidents".
+- WhatsApp demo: the founder's half of the page was one muted line until the first message. It now holds an `EmptyState` card saying what will appear there.
+- Explore cards (home):
+  - Each card has a one-line summary (a new `summary` in `lib/guides.ts`, written to fit and to be true today) and an "Open guide" footer, in place of a lone chevron.
+  - The grid is four across from `xl`. The first card (Incidents) spans a full row below `xl` and half a row from `xl`, so no row has a gap.
+  - On phones the sentence is hidden to keep the list short.
+- Docs: DESIGN.md sections 15 and 21, and the EmptyState size quirk in web/CLAUDE.md.
+
+Files: routes `How`, `Learning`, `Threads`, `Audit`, `ChatDemo` and `Home` (the Explore section), and `lib/guides.ts` (an optional `summary` on each guide). Tests: `e2e/smoke.spec.ts` (S-10), `e2e/talk.spec.ts` (the exact "Complaints" lookup). Docs: `web/DESIGN.md` sections 15 and 21, `web/CLAUDE.md`, this log.
+
+Noticed along the way:
+- The eval report has 161 checks: 138 scored and 23 reported, not scored. `docs/SUBMISSION.md` still says 130 gates (see the open items below).
+- Blade's `ChartLine` draws a smooth curve by default, which makes up values between weeks. `type="linear"` draws straight lines.
+- Blade's `EmptyState` limits its picture to 60, 90, 120 or 160px square by size. The `xlarge` size also makes the title display-sized, too big for a card, so both empty states use `large`.
+- The Audit log is empty in the hosted demo until you act. Approving a step adds lines (`lib/demo.ts`), so the empty state's "approve a step of its fix to see the first entry" is true.
+- The four headline checks on How we know were picked because a founder would ask them. The wording is ours; every value and target comes from `eval/report.json`.
+
+Tests: the How we know smoke test checks the score line, then opens "Show all" before reading a row. A live test looked up "Complaints", which now also matches the count line, so it asks for the exact word.
+
+Checks: `tsc -b`, oxlint, `npm run build`, and all 87 browser tests (72 hosted-demo, 15 live) pass.
+
+Design review: a general-purpose agent ran `.claude/agents/design-reviewer.md` on the batch 3 files. Verdict: pass with notes. All seven notes are taken:
+- The complaints table cut columns at 375 and 768 and every link read "WhatsApp payments number". It now shows cards below `l`, and each link is the time the complaint came in.
+- Explore sentences were cut mid-word, so each guide got a short summary.
+- Learning's week labels ran together on a phone, so they are "W1" to "W6" under a "Week" axis title.
+- Learning's subtitle says the three lines match until week 3.
+- How we know's "gates pass" badge repeated the heading, so it is now a plain count.
+- A failing check shows a warning icon, not a red tick.
+- "Day-0" in a stat label no longer breaks at the hyphen.
+
+Not checked: dark mode, reduced motion, the Audit log with entries in it, the WhatsApp demo after a message by eye, complaint pages 2 to 6, live mode by eye.
+
+## Open items, as of 10 Oct 2026 (after the design pass)
+
+Collected while writing this log up in full. Nothing here was changed without being asked.
+- `docs/SUBMISSION.md` says "130 eval gates pass" (line 24, and item 5). `make eval` now gives 138 pass, 0 fail, 23 reported, since J6 (PR #29). `docs/HANDOFF.md` already says 138. It is Eshan's note and near its word limit, so it was left for him.
+- `OrdersChart` and `RenewalChart` are still hand-drawn bars; DESIGN.md section 21 says they should move to Blade charts.
+- The help bubble (DESIGN.md section 16) is not built.
+- The email and Instagram message previews are plain cards, not drawn as the app (DESIGN.md section 21).
+- Dark mode has not been checked on any page.
+- The thread page crashes after a pipeline rebuild leaves a thread pointing at a case id that no longer exists (data retention entry above). Not fixed.
+- Old remote branches and worktrees still exist (PR #28 noted this). This session's worktree and its stacked branch `claude/design-batch-2-incidents` go once PR #30 merges.

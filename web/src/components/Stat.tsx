@@ -1,12 +1,13 @@
 import { Box, Card, CardBody, Heading, Text, type IconComponent } from '@razorpay/blade/components'
 
 // A small stat card, like Refunds, Disputes and Failed on the dashboard's payments page. The label and the value stay siblings.
+// It fills its grid cell, so a row of stats is one height even when one hint wraps.
 export function Stat({ label, value, hint, icon: Icon, tone = 'neutral' }: { label: string; value: string; hint?: string; icon?: IconComponent; tone?: 'neutral' | 'positive' | 'negative' | 'notice' }) {
   return (
-    <Card>
+    <Card height="100%">
       <CardBody>
         <Box display="flex" gap="spacing.4" alignItems="flex-start">
-          {Icon && <Icon size="large" color={tone === 'neutral' ? 'surface.icon.gray.muted' : `feedback.icon.${tone}.intense`} />}
+          {Icon && <Box flexShrink={0} display="flex"><Icon size="large" color={tone === 'neutral' ? 'surface.icon.gray.muted' : `feedback.icon.${tone}.intense`} /></Box>}
           <Box display="flex" flexDirection="column">
             <Text size="small" weight="semibold" color="surface.text.gray.subtle">{label}</Text>
             <Heading size="large">{value}</Heading>

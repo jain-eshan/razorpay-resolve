@@ -1,8 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Alert, Badge, Box, Button, Card, CardBody, CheckCircleIcon, Heading, HeadsetIcon, Link, MailIcon, SlidersIcon, StepGroup, StepItem, StepItemIndicator, Text, UserCheckIcon, WhatsAppIcon, ZapIcon, type IconComponent } from '@razorpay/blade/components'
-import { GuideArt } from '../components/GuideArt'
-import type { ArtId } from '../components/FlatArt'
+import { Alert, ArrowLeftIcon, Badge, Box, Button, Card, CardBody, CheckCircleIcon, Heading, HeadsetIcon, Link, MailIcon, SlidersIcon, StepGroup, StepItem, StepItemIndicator, Text, UserCheckIcon, WhatsAppIcon, ZapIcon, type IconComponent } from '@razorpay/blade/components'
+import { SetupScene } from '../components/SetupScene'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { saveSetup, setupDone } from '../lib/setup'
 
@@ -20,8 +19,6 @@ const STEPS = ['Channels', 'Autonomy', 'First scan']
 // A line under the choices on the first two steps: what stays true whatever you pick.
 const NOTE = ['Blindspot reads only messages about a payment, says it is an AI in every reply, and never asks a customer for a password, card details or an OTP.', 'Whatever you pick, switching a customer’s access off is never available.', '']
 const STEP_HELP = ['Where customers can reach you', 'How much it does on its own', 'What is already stuck']
-// The picture in the left card, per step.
-const ART: ArtId[] = ['channels', 'stairs', 'search']
 
 // A card you can pick, with an icon, a title, one line and a tick. Used for channels (pick any) and autonomy levels (pick one).
 function Choice({ icon: Icon, title, text, selected, onPick, badge }: { icon: IconComponent; title: string; text: string; selected: boolean; onPick: () => void; badge?: string }) {
@@ -95,7 +92,7 @@ export default function Setup() {
               <StepGroup size="large">
                 {STEPS.map((t, i) => <StepItem key={t} title={t} description={STEP_HELP[i]} stepProgress={i < step ? 'full' : 'none'} marker={<StepItemIndicator color={i < step ? 'positive' : i === step ? 'primary' : 'neutral'} />} />)}
               </StepGroup>
-              <Box marginTop="auto"><GuideArt art={ART[step]} /></Box>
+              <Box marginTop="auto"><SetupScene step={step} channels={channels} level={level} /></Box>
             </Box>
           </CardBody>
         </Card>
@@ -103,8 +100,11 @@ export default function Setup() {
       <Card height="100%">
         <CardBody>
           <Box display="flex" flexDirection="column" gap="spacing.6" minHeight={{ base: 'auto', m: '480px' }} height="100%">
-            <Box display={{ base: 'block', l: 'none' }}><Text size="small" weight="semibold" color="surface.text.gray.muted">{`Step ${step + 1} of ${STEPS.length}: ${STEPS[step]}`}</Text></Box>
-            <Box minHeight="20px">{step > 0 && <Link href="#" onClick={(e) => { e.preventDefault(); setStep(step - 1) }}>Back</Link>}</Box>
+            {/* One row above the heading on every step, so the heading never moves: Back once there is a step to go back to, and where you are. */}
+            <Box display="flex" alignItems="center" gap="spacing.4" minHeight="20px">
+              {step > 0 && <Link href="#" icon={ArrowLeftIcon} onClick={(e) => { e.preventDefault(); setStep(step - 1) }}>Back</Link>}
+              <Text size="small" weight="semibold" color="surface.text.gray.muted">{`Step ${step + 1} of ${STEPS.length}: ${STEPS[step]}`}</Text>
+            </Box>
             <Box display="flex" flexDirection="column" gap="spacing.2">
               <Heading size="xlarge">{copy[step][0]}</Heading>
               <Text color="surface.text.gray.muted">{copy[step][1]}</Text>

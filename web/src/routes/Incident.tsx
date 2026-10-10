@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useRef, useState, type RefObject } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   Alert, AlertTriangleIcon, Badge, BellOffIcon, Box, Button, Card, CardBody, CheckCircleIcon, Heading, MessageCircleIcon,
-  SegmentedControl, SegmentedControlItem, StepGroup, StepItem, StepItemIndicator, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TablePagination,
+  ProgressBar, SegmentedControl, SegmentedControlItem, StepGroup, StepItem, StepItemIndicator, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TablePagination,
   TableRow, Text,
 } from '@razorpay/blade/components'
 import { Crumbs } from '../components/Crumbs'
@@ -10,6 +10,7 @@ import { FeedbackPanel } from '../components/FeedbackPanel'
 import { FixPanel } from '../components/FixPanel'
 import { Lane } from '../components/Lane'
 import { Panel } from '../components/Panel'
+import { StartFix } from '../components/StartFix'
 import { Stat } from '../components/Stat'
 import { TimelineChart } from '../components/TimelineChart'
 import { rupees, useGet, type Schemas } from '../lib/api'
@@ -17,6 +18,7 @@ import { OWNER, sentence, when } from '../lib/format'
 import DuplicateView from './DuplicateView'
 import RenewalView from './RenewalView'
 import Zone1View from './Zone1View'
+import { PageSkeleton } from '../components/PageSkeleton'
 
 const TIERS = ['exact', 'likely', 'check', 'excluded'] as const
 const TIER_LABEL = { exact: 'Exact', likely: 'Likely', check: 'Check manually', excluded: 'Excluded' }
@@ -24,12 +26,42 @@ const OWNER_TONE = { merchant_code: 'notice', merchant_config: 'notice', razorpa
 const STATUS_TONE = { open: 'notice', fixing: 'information', verifying: 'information', closed: 'positive' } as const
 const STATUS_LABEL = { open: 'Open', fixing: 'Fixing', verifying: 'Verifying', closed: 'Closed' }
 
-const two = (top: string, bottom: string) => (
-  <Box display="flex" flexDirection="column"><Text weight="semibold" color="surface.text.gray.subtle">{top}</Text><Text size="small" color="surface.text.gray.muted">{bottom}</Text></Box>
+// A value with a muted line under it. `plain` drops the bold, for long text that would make every row heavy.
+const two = (top: string, bottom: string, plain = false) => (
+  <Box display="flex" flexDirection="column"><Text weight={plain ? 'regular' : 'semibold'} color="surface.text.gray.subtle">{top}</Text><Text size="small" color="surface.text.gray.muted">{bottom}</Text></Box>
 )
+const SHOWN = 4  // evidence rows shown before "Show all"
+
+// What the failed payments have in common, as bars: the share of affected payments (orange) against the share normally (grey), biggest gap first.
+function Evidence({ inc }: { inc: Schemas['IncidentDetail'] }) {
+  const [all, setAll] = useState(false)
+  const lift = [...inc.lift].sort((a, b) => (b.share_affected - b.share_baseline) - (a.share_affected - a.share_baseline))
+  return (
+    <Panel title="Evidence" subtitle="What the failed payments have in common. Orange is the share of affected payments, dark grey the share normally.">
+      <Box display="flex" flexDirection="column">
+        {(all ? lift : lift.slice(0, SHOWN)).map((l) => {
+          const name = `${sentence(l.dimension)}: ${l.value.replace(/\bupi\b/g, 'UPI')}`
+          const aff = Math.round(l.share_affected * 100), base = Number((l.share_baseline * 100).toFixed(1))
+          return (
+            <Box key={l.dimension + l.value} display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', m: 'minmax(0, 1fr) minmax(0, 1fr)' }} gap={{ base: 'spacing.2', m: 'spacing.6' }} alignItems="center" paddingY="spacing.4" borderBottomWidth="thin" borderBottomColor="surface.border.gray.subtle">
+              <Text>{name}</Text>
+              <Box display="flex" flexDirection="column" gap="spacing.2">
+                <ProgressBar value={aff} color="notice" size="medium" showPercentage={false} accessibilityLabel={`${name}: ${aff}% of affected`} />
+                <ProgressBar value={base} color="neutral" size="medium" showPercentage={false} accessibilityLabel={`${name}: ${base}% normally`} />
+                <Text size="small" color="surface.text.gray.muted">{aff}% of affected vs {base}% normally</Text>
+              </Box>
+            </Box>
+          )
+        })}
+      </Box>
+      {lift.length > SHOWN && <Box><Button variant="tertiary" size="small" onClick={() => setAll(!all)}>{all ? 'Show fewer' : `Show all ${lift.length}`}</Button></Box>}
+      {inc.verdict.what_we_cannot_see.map((s) => <Text key={s} size="small" color="surface.text.gray.muted">We cannot see: {s}</Text>)}
+    </Panel>
+  )
+}
 
 // What happened, in order, in the dashboard's Timeline style. The last step is where the founder's fix lands.
-function Milestones({ inc, pack, atAlert }: { inc: Schemas['IncidentDetail']; pack?: Schemas['EvidencePack']; atAlert: number | null }) {
+function Milestones({ inc, pack, atAlert, fix }: { inc: Schemas['IncidentDetail']; pack?: Schemas['EvidencePack']; atAlert: number | null; fix: RefObject<HTMLDivElement> }) {
   const v = inc.verdict
   const off = inc.timeline.find((b) => b.markers.some((m) => m.startsWith('Razorpay turns the webhook off')))
   const steps: { at?: string; title: string; text?: string; stamp?: string; tone: 'neutral' | 'negative' | 'information' | 'notice' | 'positive' }[] = [
@@ -55,6 +87,7 @@ function Milestones({ inc, pack, atAlert }: { inc: Schemas['IncidentDetail']; pa
           ]}
         </StepGroup>
       </Box>
+      <StartFix to={fix} closed={done} />
       </CardBody>
     </Card>
   )
@@ -69,8 +102,9 @@ export default function Incident() {
   const { data: sample } = useGet<Schemas['SampleTimeline'][]>(`/api/incidents/${id}/sample`, version)
   const { data: pack } = useGet<Schemas['EvidencePack']>(`/api/incidents/${id}/evidence_pack`)
   const [tier, setTier] = useState<(typeof TIERS)[number]>('exact')
+  const fix = useRef<HTMLDivElement>(null)
   if (error) return <Text color="feedback.text.negative.intense">Could not load {id}: {error}</Text>
-  if (!inc) return <Text color="surface.text.gray.muted">Loading</Text>
+  if (!inc) return <PageSkeleton />
   if (inc.zone === 'before') return <Zone1View id={id} />
   if (inc.mismatch_type === 'E') return <DuplicateView id={id} />   // customers charged twice: the webhook worked, only the second charge is wrong
   if (inc.mismatch_type === 'G') return <RenewalView id={id} />   // renewals that failed on Razorpay's side: no webhook to show
@@ -101,16 +135,14 @@ export default function Incident() {
         </CardBody>
       </Card>
 
-      <Box display="grid" gridTemplateColumns={{ base: 'repeat(2, minmax(0, 1fr))', m: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
-        <Box gridColumn="1 / -1">
-          <Stat label="Affected" value={String(inc.affected)} hint={`customers paid and have no access · ${rupees(inc.at_risk_paise)} at risk`} icon={AlertTriangleIcon} tone="notice" />
-        </Box>
+      {/* Four across, as on the other incident views (DuplicateView, RenewalView, Zone1View). */}
+      <Box display="grid" gridTemplateColumns={{ base: 'repeat(2, minmax(0, 1fr))', l: 'repeat(4, minmax(0, 1fr))' }} gap="spacing.5">
+        <Stat label="Affected" value={String(inc.affected)} hint={`paid, no access · ${rupees(inc.at_risk_paise)} at risk`} icon={AlertTriangleIcon} tone="notice" />
         <Stat label="Complained" value={String(inc.complained)} icon={MessageCircleIcon} />
         <Stat label="Silent" value={String(inc.silent)} hint="never complained" icon={BellOffIcon} />
-        <Box gridColumn={{ base: '1 / -1', m: 'auto' }}>
-          <Stat label="Already fixed" value={String(inc.fixed)} hint="by hand, before this" icon={CheckCircleIcon} tone="positive" />
-        </Box>
+        <Stat label="Already fixed" value={String(inc.fixed)} hint="by hand, before this" icon={CheckCircleIcon} tone="positive" />
       </Box>
+      <StartFix to={fix} closed={inc.status === 'closed'} top />
 
       <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(0, 1fr) 320px' }} gap="spacing.6" alignItems="start">
         <Box display="flex" flexDirection="column" gap="spacing.6" minWidth="0px">
@@ -122,17 +154,7 @@ export default function Incident() {
             <TimelineChart buckets={inc.timeline} />
           </Panel>
 
-          <Panel title="Evidence" subtitle="What the failed payments have in common">
-            <Box display="flex" flexDirection="column">
-              {inc.lift.map((l) => (
-                <Box key={l.dimension + l.value} display="flex" flexDirection={{ base: 'column', m: 'row' }} justifyContent="space-between" gap={{ base: 'spacing.1', m: 'spacing.5' }} paddingY="spacing.3" borderBottomWidth="thin" borderBottomColor="surface.border.gray.subtle">
-                  <Text>{sentence(l.dimension)}: {l.value.replace(/\bupi\b/g, 'UPI')}</Text>
-                  <Text color="surface.text.gray.muted">{Math.round(l.share_affected * 100)}% of affected vs {(l.share_baseline * 100).toFixed(1)}% normally</Text>
-                </Box>
-              ))}
-            </Box>
-            {v.what_we_cannot_see.map((s) => <Text key={s} size="small" color="surface.text.gray.muted">We cannot see: {s}</Text>)}
-          </Panel>
+          <Evidence inc={inc} />
 
           <Panel title="Can Razorpay replay these?" subtitle="Support can replay one event at a time">
             <Text>
@@ -167,7 +189,7 @@ export default function Incident() {
                         <TableRow key={m.payment_id} item={m}>
                           <TableCell>{two(m.customer_masked, m.payment_id)}</TableCell>
                           <TableCell>{two(rupees(m.amount_paise), m.plan)}</TableCell>
-                          <TableCell>{two(m.delivery_outcome, `${when(m.captured_at)} · ${m.exclusion_reason ?? m.replay_eligibility.replaceAll('_', ' ')}`)}</TableCell>
+                          <TableCell>{two(m.delivery_outcome, `${when(m.captured_at)} · ${m.exclusion_reason ?? m.replay_eligibility.replaceAll('_', ' ')}`, true)}</TableCell>
                           <TableCell>
                             <Box display="flex" gap="spacing.2" flexWrap="wrap">
                               <Badge size="medium" color={m.merchant_state === 'active' ? 'positive' : 'negative'}>{sentence(m.merchant_state)}</Badge>
@@ -197,13 +219,13 @@ export default function Incident() {
               ))}
             </Panel>
           )}
-          <FixPanel inc={inc} members={members ?? []} onChanged={() => setVersion((n) => n + 1)} />
+          <Box ref={fix}><FixPanel inc={inc} members={members ?? []} onChanged={() => setVersion((n) => n + 1)} /></Box>
           <FeedbackPanel incidentId={inc.id} />
 
         </Box>
 
         <Box position={{ base: 'static', l: 'sticky' }} top="spacing.5">
-          <Milestones inc={inc} pack={pack} atAlert={atAlert} />
+          <Milestones inc={inc} pack={pack} atAlert={atAlert} fix={fix} />
         </Box>
       </Box>
     </Box>

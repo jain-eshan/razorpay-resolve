@@ -71,7 +71,7 @@ test('S-15 email: a customer writes, the agent asks for the reference in the sam
 
 test('S-04 a complaint becomes a case: what the customer says, what Razorpay says, what your records say', async ({ page }) => {
   await page.goto('/threads')
-  await page.getByText('Complaints').scrollIntoViewIfNeeded()
+  await page.getByText('Complaints', { exact: true }).scrollIntoViewIfNeeded()
   await page.locator('a[href^="/cases/cs_"]').first().click()
   await expect(page.getByText(/Matched to pay_\w+ by an exact identifier\. Part of INC-1/)).toBeVisible()
   await expect(page.getByText('Customer says')).toBeVisible()

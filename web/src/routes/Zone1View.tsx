@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Alert, AlertTriangleIcon, Badge, BellOffIcon, Box, Button, Card, CardBody, CheckCircleIcon, Heading, MessageCircleIcon, StepGroup, StepItem, StepItemIndicator, Table, TableBody,
@@ -8,10 +8,12 @@ import { Crumbs } from '../components/Crumbs'
 import { FeedbackPanel } from '../components/FeedbackPanel'
 import { OrdersChart, type Hour } from '../components/OrdersChart'
 import { Panel } from '../components/Panel'
+import { StartFix } from '../components/StartFix'
 import { Stat } from '../components/Stat'
 import { Zone1Fix } from '../components/Zone1Fix'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { CHANNEL, OWNER, sentence, when } from '../lib/format'
+import { PageSkeleton } from '../components/PageSkeleton'
 
 type Sig = { kind: 'probe' | 'gap' | 'complaints'; hourly: Hour[]; normal_zero_share?: number; alert_at?: string; end?: string | null; event_at?: string | null }
 const STATUS_TONE = { open: 'notice', fixing: 'information', verifying: 'information', closed: 'positive' } as const
@@ -38,11 +40,12 @@ function sentenceFor(e: Schemas['EvidenceItem'], inc: Schemas['IncidentDetail'],
 export default function Zone1View({ id }: { id: string }) {
   const nav = useNavigate()
   const [version, setVersion] = useState(0)
+  const fix = useRef<HTMLDivElement>(null)
   const { data: inc, error } = useGet<Schemas['IncidentDetail']>(`/api/incidents/${id}`, version)
   const { data: members } = useGet<Schemas['Member'][]>(`/api/incidents/${id}/members`, version)
   const { data: sample } = useGet<Schemas['SampleTimeline'][]>(`/api/incidents/${id}/sample`, version)
   if (error) return <Text color="feedback.text.negative.intense">Could not load {id}: {error}</Text>
-  if (!inc) return <Text color="surface.text.gray.muted">Loading</Text>
+  if (!inc) return <PageSkeleton />
   const v = inc.verdict
   const sig = v.signature as unknown as Sig
   const s = v.cause_summary_slots
@@ -90,6 +93,7 @@ export default function Zone1View({ id }: { id: string }) {
         <Stat label="Can be messaged now" value={String(ready)} hint={`${rupees(inc.at_risk_paise)} waiting`} icon={BellOffIcon} />
         <Stat label="Paid since" value={String(inc.fixed)} hint="got through another way" icon={CheckCircleIcon} tone="positive" />
       </Box>
+      <StartFix to={fix} closed={inc.status === 'closed'} top />
 
       <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(0, 1fr) 320px' }} gap="spacing.6" alignItems="start">
         <Box display="flex" flexDirection="column" gap="spacing.6" minWidth="0px">
@@ -171,7 +175,7 @@ export default function Zone1View({ id }: { id: string }) {
             </Panel>
           )}
 
-          <Zone1Fix inc={inc} onChanged={() => setVersion((n) => n + 1)} />
+          <Box ref={fix}><Zone1Fix inc={inc} onChanged={() => setVersion((n) => n + 1)} /></Box>
           <FeedbackPanel incidentId={inc.id} />
         </Box>
 
@@ -188,6 +192,7 @@ export default function Zone1View({ id }: { id: string }) {
                   ]}
                 </StepGroup>
               </Box>
+              <StartFix to={fix} closed={inc.status === 'closed'} />
             </CardBody>
           </Card>
         </Box>

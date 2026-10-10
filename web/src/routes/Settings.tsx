@@ -3,6 +3,7 @@ import { Alert, Badge, Box, Button, SegmentedControl, SegmentedControlItem, Swit
 import { Panel } from '../components/Panel'
 import { isLive, rupees, send, useGet, type Schemas } from '../lib/api'
 import { PageHeader } from '../components/PageHeader'
+import { PageSkeleton } from '../components/PageSkeleton'
 
 type Settings = Schemas['Settings']
 
@@ -28,7 +29,7 @@ export default function SettingsPage() {
   const s = edited ?? data
   const [saved, setSaved] = useState<string>()
   const [error, setError] = useState<string>()
-  if (!s) return <Text color="surface.text.gray.muted">Loading</Text>
+  if (!s) return <PageSkeleton />
 
   // A disabled input reads as an empty placeholder, so the read-only demo shows the value as text.
   const ro = (label: string, value: string, hint?: string): ReactNode => (

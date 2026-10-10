@@ -1,5 +1,6 @@
 import { Alert, Box, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text, AlertTriangleIcon, CheckCircleIcon, ClockIcon, UnlockIcon } from '@razorpay/blade/components'
 import { PageHeader } from '../components/PageHeader'
+import { PageSkeleton } from '../components/PageSkeleton'
 import { Panel } from '../components/Panel'
 import { Stat } from '../components/Stat'
 import { rupees, useGet, type Schemas } from '../lib/api'
@@ -51,11 +52,11 @@ function RowsTable({ rows, third }: { rows: Row[]; third: (r: Row) => { top: str
 // J6. UPI renewals that failed on the customer's side while access stayed on past the merchant's own rule. A report: nothing here changes anything.
 export default function Leakage() {
   const { data, error } = useGet<Schemas['LeakageReport']>('/api/leakage')
+  if (!data && !error) return <PageSkeleton />
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
       <PageHeader title="Access without payment" description="Customers whose UPI renewal failed and who still have access after your own grace rule. Nothing here has been changed." />
       {error && <Text color="feedback.text.negative.intense">Could not load the report: {error}. Reload the page, and if it keeps failing check that the API is running.</Text>}
-      {!data && !error && <Text color="surface.text.gray.muted">Loading.</Text>}
       {data && (
         <>
           <Alert isFullWidth isDismissible={false} color="information" title="A report, not an action" description="Blindspot never takes access away. To act, cut access in your own system, or send the customer your own payment link." />

@@ -120,7 +120,8 @@ test('messaging stays off until the founder switches it on, in the demo as in th
 // ---------- Hero B: customers who could not reach the pay page. Inferred, so the fix is the developer's and links wait for the founder ----------
 test('Hero B plays end to end with no server: infer, check the page, fix, links in stages, what happened, close', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByText(/Your pay page is not answering/)).toBeVisible()
+  await page.getByText('Could not pay at all', { exact: true }).click({ force: true })  // the home shows one clip at a time; pick this problem first
+  await expect(page.getByText(/Your pay page stopped answering/)).toBeVisible()
   await page.getByRole('button', { name: 'View evidence' }).click()
   await expect(page).toHaveURL(/\/incidents\/INC-4$/)
   await expect(page.getByText('Inferred. Your side · Code').first()).toBeVisible()
@@ -272,7 +273,8 @@ test('Learning: reporting a missed incident is a live-demo feature, and says so'
 // ---------- INC-3: card renewals that failed on Razorpay's side. Not inferred, not the merchant's: keep access on, tell the customers, send the evidence ----------
 test('INC-3 plays end to end with no server: why it is Razorpay\'s, access kept in stages, customers told, evidence sent, closed', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByText(/Card renewals are failing with the same gateway error/)).toBeVisible()
+  await page.getByText('Razorpay\'s side', { exact: true }).click({ force: true })  // the home shows one clip at a time; pick this problem first
+  await expect(page.getByText(/Card renewals are failing with a gateway error/)).toBeVisible()
   await page.getByRole('button', { name: 'See what failed' }).click()
   await expect(page).toHaveURL(/\/incidents\/INC-3$/)
   await expect(page.getByText("This one is on Razorpay's side")).toBeVisible()
@@ -345,7 +347,8 @@ test('INC-3: the extension can be undone before the customers are told, and plan
 // ---------- INC-2: customers charged twice. On the merchant's side (the app), the second charge is refunded one customer at a time, and a refund cannot be undone ----------
 test('INC-2 plays end to end with no server: why, who was left out, refunds one by one, the bank, customers told, the fix, closed', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByText(/Customers are being charged twice for the same plan/)).toBeVisible()
+  await page.getByText('Charged twice', { exact: true }).click({ force: true })  // the home shows one clip at a time; pick this problem first
+  await expect(page.getByText(/Customers are being charged twice/)).toBeVisible()
   await page.getByRole('button', { name: 'See who was charged twice' }).click()
   await expect(page).toHaveURL(/\/incidents\/INC-2$/)
   await expect(page.getByText('Your webhook was fine. The second charge is the problem')).toBeVisible()
