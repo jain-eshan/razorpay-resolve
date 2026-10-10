@@ -4,7 +4,7 @@ What it would cost Razorpay to run Blindspot in production, what to charge, what
 
 **Status.** The base case in section 2 is frozen. It is deliberately not stretched: it assumes better pickup than Agent Studio saw in its gated beta, and nothing more. Change it only through the change log in section 11.
 
-**Evidence tags.** `[src]` taken from a named public source (section 10). `[derived]` computed from sourced figures. `[assumed]` our estimate, with the reason. Sources for what Razorpay people said in interviews and talks are in `docs/INTERVIEWS.md`.
+**Evidence tags.** `[src]` taken from a named public source (section 10). `[derived]` computed from sourced figures. `[assumed]` our estimate, with the reason. Sources for what Razorpay people said in interviews and talks are in `docs/INTERVIEWS.md` (digest) and `docs/RAZORPAY_TRANSCRIPTS.docx` (full text).
 
 **Scope of the model.** It prices the production product, not the prototype. Everything the prototype mocks (merchant data, channels, refunds, payment links) is real in production, so it has a cost. The prototype's rules-only engine is the specification (SPEC section 21).
 
@@ -307,7 +307,7 @@ Two or more gates failed: stop the paid layer and keep Watch (about **₹0.46 cr
 
 Razorpay pricing: https://razorpay.com/pricing/ ; https://razorpay.com/blog/razorpay-payment-gateway-pricing-explained/ ; the margins guide and the enterprise pricing guide (blog, Apr and May 2026); the RazorpayX billing doc (`razorpay.com/docs/x`). Agent Studio: the launch blog (12 Mar 2026) and the principles blog (30 Mar 2026). Razorpay FY25: Business Standard, 16 Oct 2025 (revenue ₹3,783 cr, gross profit ₹1,277 cr). Plugins: `razorpay.com/docs/payments/payment-gateway/ecommerce-plugins`. Salaries: AmbitionBox Razorpay page (updated 8 Oct 2026) and Levels.fyi; ISB placements 2026 (average ₹37.29 lakh, via secondary summaries) and the AIPM and full-stack builder compensation range told to us on 10 Oct. Model prices: Anthropic's model pages. WhatsApp: Meta's pricing page and a secondary rate summary. Competitor pricing: Intercom, Zendesk and Salesforce pricing pages and a vendor comparison (the Intercom page is Intercom's own). DORA bands: 2024 report via secondary summaries. DIY tools: Hookdeck, Sentry and Better Stack pricing pages.
 
-Most statements by Razorpay people come from talks and interviews: see `docs/INTERVIEWS.md`.
+Most statements by Razorpay people come from talks and interviews: the digest is `docs/INTERVIEWS.md` and the **full transcripts are in `docs/RAZORPAY_TRANSCRIPTS.docx`**. The figures in this file that rest on them: Agent Studio's "about a couple of thousand merchants live" and "still in beta" (S2), the small AI team and "unlimited tokens" (S1, S2), token cost approaching zero (S2), Razorpay's money rule for workflows (S4), NPS as the primary internal goal and about 80 percent of new merchants coming organically (S3), and the agents already in Agent Studio (S2, S5).
 
 ---
 

@@ -366,7 +366,7 @@ Keep the verify list and the evidence log current. Draft the founder call script
 
 ## 13. After submission: production cuts, pilot and gates (10 Oct 2026)
 
-Added from the business case (`docs/BUSINESS_CASE.md`) and the Razorpay interviews (`docs/INTERVIEWS.md`). No release above changes. The prototype is the specification for what follows.
+Added from the business case (`docs/BUSINESS_CASE.md`) and the Razorpay interviews (digest in `docs/INTERVIEWS.md`, full transcripts in `docs/RAZORPAY_TRANSCRIPTS.docx`). No release above changes. The prototype is the specification for what follows.
 
 **Cut or hand off in production.** Refunds, recovery links and renewal links go to Razorpay's existing tools and agents. The investigation agent waits for pilot data. Instagram, Messenger and public-post handovers have no real integration and wait. Voice is out. The learning loop stays minimal.
 

@@ -450,7 +450,7 @@ Sizing is the formula in v1 section 21.2 with every input a placeholder for Razo
 | Three-year total with ₹50 avoided cost per detected incident | +₹0.28 cr |
 | Break-even | 6.1% connected, or 4.5% Guard uptake |
 
-Scenarios (Cautious, Stretch, Downside), the sensitivity tables and the pilot gates are in the same file. Tokens are about 3 percent of cost, so model choice is not a business question.
+Scenarios (Cautious, Stretch, Downside), the sensitivity tables and the pilot gates are in the same file. Tokens are about 3 percent of cost, so model choice is not a business question. What Razorpay's own people have said (digest `docs/INTERVIEWS.md`, full transcripts `docs/RAZORPAY_TRANSCRIPTS.docx`) is the evidence behind D15 to D18.
 
 ---
 
