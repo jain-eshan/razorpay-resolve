@@ -718,7 +718,7 @@ blindspot/
 
 ## 21. Production mapping and tech calls (10 Oct 2026)
 
-Not a contract change. The prototype in this repo is the specification. Production would re-express it on Razorpay's own agent stack: skills, three tools (GraphQL, REST, workflow) and an orchestrator, with Blade for the interface (`docs/INTERVIEWS.md` S4; full text of the talk in `docs/RAZORPAY_TRANSCRIPTS.docx`). Money and access changes are always deterministic workflow tools, never a model decision. This is the same rule as SPEC section 0.
+Not a contract change. The prototype in this repo is the specification. Production would re-express it on Razorpay's own agent stack: skills, three tools (GraphQL, REST, workflow) and an orchestrator, with Blade for the interface (`docs/INTERVIEWS.md` S4; full text of the talk in `docs/RAZORPAY_TRANSCRIPTS.md`). Money and access changes are always deterministic workflow tools, never a model decision. This is the same rule as SPEC section 0.
 
 | Prototype part | Production form |
 |---|---|

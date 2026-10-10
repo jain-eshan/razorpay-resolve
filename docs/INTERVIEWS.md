@@ -2,13 +2,13 @@
 
 A digest of the interviews, talks, posts and pages we have read, written in our own words, with the tech and product calls each one supports. It exists so that decisions about the demo and about production are made with these facts in front of us, not from memory.
 
-**Full text.** The unabridged transcripts of S1 to S5 are in **`docs/RAZORPAY_TRANSCRIPTS.docx`** (a Word file, about 25,000 words, with a table of contents). Read it, not only this digest, before relying on a detail, a figure or a speaker's exact words. From a terminal: `pandoc -t plain docs/RAZORPAY_TRANSCRIPTS.docx | grep -i "<word>"`. The file is third-party material kept for private research in this private repository: do not publish or send it outside the team.
+**Full text.** The unabridged transcripts of S1 to S5 are in **`docs/RAZORPAY_TRANSCRIPTS.md`** (about 25,000 words). Read it, not only this digest, before relying on a detail, a figure or a speaker's exact words. Search it with `grep -n -i "<word>" docs/RAZORPAY_TRANSCRIPTS.md`. The file is third-party material kept for private research in this private repository: do not publish or send it outside the team.
 
-**How to read this digest.** Spoken sources are auto-captions with errors, so names and figures spoken aloud are marked "as spoken". This file paraphrases. The Word file holds the words. Tags: `[spoken]` an interview or talk, `[post]` a social post, `[page]` a Razorpay web page or doc, `[third]` a third party. Business numbers built from these facts are in `docs/BUSINESS_CASE.md`.
+**How to read this digest.** Spoken sources are auto-captions with errors, so names and figures spoken aloud are marked "as spoken". This file paraphrases. The transcripts file holds the words. Tags: `[spoken]` an interview or talk, `[post]` a social post, `[page]` a Razorpay web page or doc, `[third]` a third party. Business numbers built from these facts are in `docs/BUSINESS_CASE.md`.
 
 **Sources**
 
-S1 to S5 are in the Word file under the same IDs. S6 to S9 are web pages, documents and data that we cite but do not hold as transcripts.
+S1 to S5 are in the transcripts file under the same IDs. S6 to S9 are web pages, documents and data that we cite but do not hold as transcripts.
 
 | ID | Source | When | Speakers | Tag |
 |---|---|---|---|---|
