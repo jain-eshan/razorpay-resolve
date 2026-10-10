@@ -529,3 +529,28 @@ Checks: 412 backend tests (was 397), 69 hosted-demo browser tests and 15 live on
 Design review: the `design-reviewer` agent is not offered in this session, so its checks were run by hand. Mechanical: `tsc -b`, oxlint, no hex colours, inline styles, raw tags, fixed widths or `repeat(N, 1fr)` in the diff, no em dashes. Looked at: the new steps at 375, 768 and 1440 px by screenshot, which were tall element captures with the sticky top bar over them, so layout was judged by the no-sideways-overflow check at all three widths and by reading the text. Not looked at by eye: 768 px, dark mode, the phone width after the clock moves.
 
 Address change (10 Oct 2026): Eshan renamed the Vercel domain. The hosted demo is now https://razorpay-blindspot.vercel.app/ and razorsense-starter.vercel.app returns 404. Checked: the new address and a deep link (`/incidents/INC-3`) answer 200. Updated in `README.md`, `docs/HANDOFF.md` (three places) and `docs/SUBMISSION.md` (two places). No code, CI file or config held the old address.
+
+## 10 Oct 2026, data retention (integrator)
+
+Goal: make "Kept for 30 days" on the Channels screen true. F-54 (redaction, retention, suppression) is a Must feature, and the handoff listed retention as "stored, not enforced". No model, no new account, no screen or contract change. Chosen after reading all of `docs/`: the other open items need a model account (investigation agent, three-way eval) or real rails (R6), so they wait for Eshan.
+
+Built (`backend/app/conversation/retention.py`, one hook in `main.advance_clock`):
+- A sweep, run whenever the demo clock moves. A conversation with no activity for the retention period of its channel (the latest consent's `retention_days`, 30 if none) loses its transcript text and its `token_vault` rows (the real phone, email, UPI handle and bank reference). One audit line (kind `policy`) with the counts. Idempotent.
+- Kept: redacted complaint text, case, each message's template id and policy decision, the audit log.
+- Skipped: conversations on an incident that is not closed, and conversations with a reply waiting for approval.
+- A conversation still marked open is set to "resolved", so a returning customer starts a new one.
+
+Decisions:
+- Complaint text is not blanked. The pipeline rebuilds every case, extraction and match from `complaints.raw_text`, so blanking it would change which customers count as having complained. Live conversations already store only the redacted text there, so the sensitive part is the vault. The cost is that redacted text stays forever: stated in the handoff, not hidden.
+- Raw attachments (SPEC 3.4 says 7 days): none exist in this build (screenshots are simulated text), so there is nothing to purge and no rule was written for them.
+- It runs on the clock move, not a timer, because the demo clock is the only time source the engine has.
+
+What checks caught:
+- First run of the "no number moves" test failed for two reasons that were mine: a pipeline rebuild reopens every incident (the sweep correctly skipped it), and my baseline compared a hand-set flag against a rebuilt one. The test is now a control experiment: copy the database, sweep one copy, rebuild both, compare incident members and cases.
+- A rebuild also leaves a live thread pointing at a case id that no longer exists, so the thread page crashes. Pre-existing and independent of this change (it happens without a sweep). Not fixed here; written in the handoff.
+- Six rules broken on purpose, each caught by a test: ignore open incidents, ignore pending drafts, keep the vault, ignore the granted period, leave the thread open, keep the transcript.
+
+Result: 8 new tests, backend 420 pass, web build, lint and secret scan clean. No eval gate added: retention is policy behaviour with no ground truth to score against.
+
+Not built: a real timer, deleting redacted complaint text (needs the pipeline to stop rebuilding from it), a "delete this customer's data" action, retention shown anywhere except the one line on Channels. Not touched: `web/`, so no design review.
+

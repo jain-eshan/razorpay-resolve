@@ -1,4 +1,4 @@
-# Handoff: where Blindspot stands (9 Oct 2026: R0 to R5 on `main` except the items marked "not started" below; R7 submission kit, INC-3 and INC-2 with the guarded refund merged; the INC-3 renewal link is on a branch, in review)
+# Handoff: where Blindspot stands (10 Oct 2026: R0 to R5 on `main` except the items marked "not started" below; R7 submission kit, INC-3, INC-2 with the guarded refund and the INC-3 renewal link are merged as PRs #16, #19, #25 and #26; data retention is enforced, in review)
 
 Read this first in a new chat, then `docs/PRD.md`. Everything below is true as of the last commit on `main`.
 
@@ -31,7 +31,8 @@ Blindspot (working name) is Eshan Jain's entry for the Razorpay x ISB AI PM Buil
 | R4 rest: escalation to Razorpay | Done with INC-3, contracts v0.8. Merged as PR #19. Section 2f. |
 | R4 rest: investigation agent, three-way eval (need a model) | Not started |
 | R4 rest: duplicate-charge monitor and guarded refund (INC-2, F-03, F-39) | Done, contracts v0.9. Merged as PR #25. Section 2g. |
-| R4 rest: renewal link for INC-3 | Built, contracts v0.10. On a branch, in review. Section 2h. |
+| R4 rest: renewal link for INC-3 | Done, contracts v0.10. Merged as PR #26. Section 2h. |
+| Data retention enforced (F-54) | Built, no contract change. In review. Section 2i. |
 | R5 first slice: handovers (Instagram and Messenger control passing, public posts to private) | Done, contracts v0.6. Merged as PR #9. Section 2d. |
 | R5 second slice: learning loop, weekly card, screen S-18 (no model) | Done, contracts v0.7. Merged as PR #15. Section 2e. |
 | R5 rest: renewal anomaly (F-08, INC-3) | Done, contracts v0.8. Merged as PR #19. Section 2f. |
@@ -75,7 +76,7 @@ The hosted site (https://razorpay-blindspot.vercel.app/, on Vercel, Root Directo
 - **The scripted threads are friendly to the rules.** They are generated from templates close to the patterns the extractor knows, so 1.0 is optimistic. K4 is not settled until real founders show real messages.
 - **Screenshots are simulated:** a script supplies the text a screenshot reader would return (`context.screenshot_text`). No image is read.
 - **Fuzzy matching is weak by design:** on generated complaints the true payment is in the top 3 suggestions 72 percent of the time, top 1 only 45 percent, and no threshold reaches 95 percent precision, so it never decides anything.
-- **Retention is stored, not enforced:** consents record 30 days, but nothing purges threads or attachments yet.
+- **Retention** is enforced for the transcript and the saved identifiers (section 2i). Raw attachments are never stored, so there is nothing to purge for them.
 - **Public mentions, Instagram and Messenger** (R5) have no adapter. A public thread gets a held draft that the public filter blocks.
 - **Not measured:** time to first useful reply under 60 seconds, cost per resolved case.
 - **The conversation dial is per channel** (Channels screen). The Settings dial is global and governs grants and incident messages.
@@ -125,12 +126,19 @@ Merged as PR #25. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/C
 - **World changes to know about:** INC-2 adds 40 orders and relabels 83 existing android orders to the new version. Its times are kept to 13:00 to 17:00 and away from every other incident, because INC-4's and INC-5's baselines are measured over evening and overnight hours: with other hours INC-4's lost-order estimate moved from 13 to 14 and, with orders inside its outage, from 13 to 8. INC-1's "what they have in common" shares and INC-4's average order value moved slightly. The amount reader learned "599 do baar kat gaye".
 
 ### The renewal link for INC-3, 9 Oct 2026 (section 2h)
-On a branch, in review. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.10).
+Merged as PR #26. Full account in `docs/BUILD_LOG.md`, contract notes in `docs/CONTRACT_CHANGES.md` (v0.10).
 - **What it does:** `T-G1` promised each of the 24 customers one renewal link once it is fixed. `recovery_link` now runs on INC-3: one link (`T-G2`) each to customers who were sent `T-G1` and have not paid since, only after card renewals work again, 10 percent held back by a hash (2 of 24) to measure what the link adds, every stage approved by the founder at every autonomy level, never unsent. Verify reports who renewed against the held-back group; a half-sent run keeps the incident open.
 - **Code:** `act/executor.py` (`_do_renewal_link`, `_record_offer`, `_nobody_renewal`), `renewal/read.py` (`link_candidates`, `recovery_block`, `told`, `paid_since`, verify line), `synth/renewals.py` (simulated behaviour), `eval/run_eval.py` (7 gates, 3 reported figures). Web: two steps in `components/RenewalFix.tsx`. Demo frames: `record_renewal` in `scripts/demo_script.py`, `c3.l` and `c3.lh` in `web/src/lib/demo.ts`.
 - **Results (invented data):** 22 links, 12 of 22 renewed after 48 demo hours (Rs 3,588), 0 of 2 held back. Too few customers to say what the link adds. Eval 130 pass, 0 fail.
 - **Limits:** simulated customers, no real payment link (a mock, R6). Hosted demo sends links once everyone has been told and moves the clock only after. Customers who never got `T-G1` get no link. Not built: the "failed but access still on" report (J6).
 - **Trap:** never run `eval.run_eval` twice on the same database before `make snapshot`. The match calibration shifts and 26 unrelated case files change. Use `make snapshot` (it rebuilds first).
+
+### Data retention, 10 Oct 2026 (section 2i)
+In review. Full account in `docs/BUILD_LOG.md`. No contract change and no screen change: the Channels screen already says "Kept for 30 days", and this makes that true.
+- **What it does:** `backend/app/conversation/retention.py`. When the demo clock moves (`POST /api/clock/advance`), a sweep finds conversations with no activity for the channel's retention period (the days the founder granted, 30 by default) and removes the transcript text and the real identifiers behind the tokens (`token_vault`: phone, email, UPI handle, bank reference). A conversation still marked open is set to "resolved", so a customer who writes again starts a new one. One line goes in the audit log (kind `policy`) with the counts. Running it twice changes nothing.
+- **What it keeps on purpose:** the redacted complaint text (the pipeline rebuilds every case from it, so removing it would move incident numbers; tested against a control copy that is never swept), the case, each message's template id and send decision, and the audit log.
+- **What it skips:** a conversation whose incident is not closed (the founder needs the evidence), and one with a reply waiting for approval (approving it would send the removed text). Both are tested.
+- **Limits:** it runs when the demo clock moves, not on a real timer. Redacted complaint text stays indefinitely. Disconnecting a channel still only stops processing and deletes nothing. The hosted demo never reaches 30 days, so it does not show this. Found while writing the tests and not caused by this change: after `pipeline.run` on a database that has live conversations, a live thread points at a case id that no longer exists and the thread page errors. The API starts on a fresh world, so normal use does not hit it.
 
 ### UX review, 7 Oct 2026 (PR #6)
 Eshan asked for a designer's review of the whole web app. Method: Playwright with the installed Chrome at 1440 and 390 wide (full-resolution screenshots, computed styles, overflow, text size and contrast checks on 13 routes), because the in-app browser shrinks screenshots.
@@ -258,7 +266,7 @@ Needs the next session:
 Order of work, with what each needs:
 1. **Start clean.** Fix any `ci-failure` issue first (section 0), `git fetch`, cut a branch from `origin/main`, `make setup`, `cd web && npm ci`. The accessibility task from 6b may have opened its own PR; check `gh pr list`.
 2. **Pick the next slice** (one PR per slice):
-   - **INC-2 is built** (section 2g). Left over from it: refunds that the bank rejects (`failed`) have no path yet, the refund-not-received conversation (`T-F1`) is not wired to a real refund record, and a real Razorpay test-mode refund waits for R6 (`RZP_REFUNDS_TEST_MODE` is still off).
+   - **INC-2 is built and merged** (section 2g). Left over from it: refunds that the bank rejects (`failed`) have no path yet, the refund-not-received conversation (`T-F1`) is not wired to a real refund record, and a real Razorpay test-mode refund waits for R6 (`RZP_REFUNDS_TEST_MODE` is still off).
    - **The investigation agent and the three-way eval (rules, agent, no signal).** Needs the model decision above. Goes behind the existing interfaces (`ingest/extract.py` for reading messy text, `investigate/` for causes nobody listed, a response-body reader for free-text server errors). `AgentTrace` already has `model_id` and `rule_based`. Cache every model output for tests (BUILD_PLAN section 10). The hosted demo stays on recorded frames.
    - **The "failed but access still on" report (V1_SPEC J6):** UPI renewals that failed for insufficient funds while access stayed on past the merchant's grace rule. Report only, no revoke. Needs a new world block, a monitor and a read-only screen.
 3. **Finish R7.** Decide whether the note and the video should mention INC-3 (the note is 545 words of a 450 to 550 limit, so something has to go), then the items in `docs/SUBMISSION.md` section 4.
