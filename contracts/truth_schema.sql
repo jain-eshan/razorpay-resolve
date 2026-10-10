@@ -7,3 +7,4 @@ CREATE TABLE truth_threads (thread_id TEXT PRIMARY KEY, script_id TEXT, expected
 CREATE TABLE truth_zone1 (incident_id TEXT PRIMARY KEY, onset_at TEXT, resolved_at TEXT, cause_code TEXT, expected_lost_orders INTEGER, kind TEXT);   -- kind: positive | negative
 CREATE TABLE truth_recovery (order_id TEXT PRIMARY KEY, would_pay INTEGER);
 CREATE TABLE truth_zone1_members (incident_id TEXT, customer_id TEXT, role TEXT, PRIMARY KEY (incident_id, customer_id));   -- role: affected | affected_paid_since
+CREATE TABLE truth_leakage (payment_id TEXT PRIMARY KEY, subscription_id TEXT, state TEXT);   -- J6, contracts-v0.11. state: leak | inside_grace | access_cut | paid_since | not_theirs

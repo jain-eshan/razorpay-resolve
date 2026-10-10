@@ -1,0 +1,205 @@
+{
+  "as_of": "2026-10-02T10:40:00+05:30",
+  "grace_hours": 48,
+  "headline": "9 customers failed a UPI renewal, are past your 48 hour rule and still have access. \u20b92,691 in renewals is unpaid.",
+  "customers": 9,
+  "owed_paise": 269100,
+  "longest_over_hours": 236.4,
+  "rows": [
+    {
+      "subscription_id": "sub_4EuqySnsBne67U",
+      "payment_id": "pay_zhmUdfKi5bFT2W",
+      "customer_masked": "K. B***",
+      "plan": "Premium Monthly",
+      "amount_paise": 29900,
+      "reason": "Insufficient funds in account",
+      "failed_at": "2026-09-20T14:17:45+05:30",
+      "rule_ends_at": "2026-09-22T14:17:45+05:30",
+      "hours_over_rule": 236.4,
+      "access_until": "2026-10-20T14:17:45+05:30"
+    },
+    {
+      "subscription_id": "sub_SLbeWlyuJBJhTV",
+      "payment_id": "pay_lMLm8RKNm5YAww",
+      "customer_masked": "D. S****",
+      "plan": "Premium Monthly",
+      "amount_paise": 29900,
+      "reason": "Insufficient funds in account",
+      "failed_at": "2026-09-21T14:12:30+05:30",
+      "rule_ends_at": "2026-09-23T14:12:30+05:30",
+      "hours_over_rule": 212.5,
+      "access_until": "2026-10-21T14:12:30+05:30"
+    },
+    {
+      "subscription_id": "sub_BmKE1icyZN3uja",
+      "payment_id": "pay_jbCfjvqhUmYTfW",
+      "customer_masked": "N. S****",
+      "plan": "Premium Monthly",
+      "amount_paise": 29900,
+      "reason": "Insufficient funds in account",
+      "failed_at": "2026-09-21T15:51:44+05:30",
+      "rule_ends_at": "2026-09-23T15:51:44+05:30",
+      "hours_over_rule": 210.8,
+      "access_until": "2026-10-21T15:51:44+05:30"
+    },
+    {
+      "subscription_id": "sub_0IvEEM80boZDaf",
+      "payment_id": "pay_7pLIA6VumKtvmv",
+      "customer_masked": "V. G****",
+      "plan": "Premium Monthly",
+      "amount_paise": 29900,
+      "reason": "Insufficient funds in account",
+      "failed_at": "2026-09-21T16:55:35+05:30",
+      "rule_ends_at": "2026-09-23T16:55:35+05:30",
+      "hours_over_rule": 209.7,
+      "access_until": "2026-10-21T16:55:35+05:30"
+    },
+    {
+      "subscription_id": "sub_2RZuqdpldNqdGT",
+      "payment_id": "pay_Fkj8mz7WDgQuc9",
+      "customer_masked": "A. I***",
+      "plan": "Premium Monthly",
+      "amount_paise": 29900,
+      "reason": "Insufficient funds in account",
+      "failed_at": "2026-09-23T10:26:27+05:30",
+      "rule_ends_at": "2026-09-25T10:26:27+05:30",
+      "hours_over_rule": 168.2,
+      "access_until": "2026-10-23T10:26:27+05:30"
+    },
+    {
+      "subscription_id": "sub_y6aRw7BwuGcdA8",
+      "payment_id": "pay_cIBnmKsGCY654K",
+      "customer_masked": "K. G****",
+      "plan": "Premium Monthly",
+      "amount_paise": 29900,
+      "reason": "Insufficient funds in account",
+      "failed_at": "2026-09-23T10:57:45+05:30",
+      "rule_ends_at": "2026-09-25T10:57:45+05:30",
+      "hours_over_rule": 167.7,
+      "access_until": "2026-10-23T10:57:45+05:30"
+    },
+    {
+      "subscription_id": "sub_esfho2UeRgDbhB",
+      "payment_id": "pay_gd7Rvvda0r2m7m",
+      "customer_masked": "M. R**",
+      "plan": "Premium Monthly",
+      "amount_paise": 29900,
+      "reason": "Insufficient funds in account",
+      "failed_at": "2026-09-24T09:28:08+05:30",
+      "rule_ends_at": "2026-09-26T09:28:08+05:30",
+      "hours_over_rule": 145.2,
+      "access_until": "2026-10-24T09:28:08+05:30"
+    },
+    {
+      "subscription_id": "sub_iv2ocEok3NpDcX",
+      "payment_id": "pay_9d5E9KZZG1qcAG",
+      "customer_masked": "A. J***",
+      "plan": "Premium Monthly",
+      "amount_paise": 29900,
+      "reason": "Insufficient funds in account",
+      "failed_at": "2026-09-24T16:01:17+05:30",
+      "rule_ends_at": "2026-09-26T16:01:17+05:30",
+      "hours_over_rule": 138.6,
+      "access_until": "2026-10-24T16:01:17+05:30"
+    },
+    {
+      "subscription_id": "sub_iOi0WLlNWPNzTR",
+      "payment_id": "pay_GS1ZzWeza3pHwU",
+      "customer_masked": "Y. P****",
+      "plan": "Premium Monthly",
+      "amount_paise": 29900,
+      "reason": "Insufficient funds in account",
+      "failed_at": "2026-09-26T13:01:09+05:30",
+      "rule_ends_at": "2026-09-28T13:01:09+05:30",
+      "hours_over_rule": 93.6,
+      "access_until": "2026-10-26T13:01:09+05:30"
+    }
+  ],
+  "inside_rule": [
+    {
+      "subscription_id": "sub_67iKnlrZRB6iJU",
+      "payment_id": "pay_PLujVCDmOgT5Zh",
+      "customer_masked": "S. G***",
+      "plan": "Premium Monthly",
+      "amount_paise": 29900,
+      "reason": "Insufficient funds in account",
+      "failed_at": "2026-10-01T15:19:48+05:30",
+      "rule_ends_at": "2026-10-03T15:19:48+05:30",
+      "hours_over_rule": -28.7,
+      "access_until": "2026-10-31T15:19:48+05:30"
+    },
+    {
+      "subscription_id": "sub_BULFqjrrZsXgJz",
+      "payment_id": "pay_UXfj36pej4dXUw",
+      "customer_masked": "V. K*******",
+      "plan": "Premium Monthly",
+      "amount_paise": 29900,
+      "reason": "Insufficient funds in account",
+      "failed_at": "2026-10-01T15:43:56+05:30",
+      "rule_ends_at": "2026-10-03T15:43:56+05:30",
+      "hours_over_rule": -29.1,
+      "access_until": "2026-10-31T15:43:56+05:30"
+    },
+    {
+      "subscription_id": "sub_PHaGEpmezhSSDu",
+      "payment_id": "pay_mEOsTJsvkbZwFX",
+      "customer_masked": "N. N***",
+      "plan": "Premium Monthly",
+      "amount_paise": 29900,
+      "reason": "Insufficient funds in account",
+      "failed_at": "2026-10-01T17:01:33+05:30",
+      "rule_ends_at": "2026-10-03T17:01:33+05:30",
+      "hours_over_rule": -30.4,
+      "access_until": "2026-10-31T17:01:33+05:30"
+    },
+    {
+      "subscription_id": "sub_sf5ayPIC9x8u9B",
+      "payment_id": "pay_N6QhhouhmQ9cUH",
+      "customer_masked": "A. N***",
+      "plan": "Premium Monthly",
+      "amount_paise": 29900,
+      "reason": "Insufficient funds in account",
+      "failed_at": "2026-10-02T07:01:08+05:30",
+      "rule_ends_at": "2026-10-04T07:01:08+05:30",
+      "hours_over_rule": -44.4,
+      "access_until": "2026-11-01T07:01:08+05:30"
+    }
+  ],
+  "left_out": [
+    {
+      "label": "6 failed and had access cut when your rule ran out. That is the rule working.",
+      "count": 6
+    },
+    {
+      "label": "3 failed, then paid again on their own.",
+      "count": 3
+    },
+    {
+      "label": "3 failed on the bank's or Razorpay's side. The customer owes nothing, so they are not counted.",
+      "count": 3
+    }
+  ],
+  "funnel": [
+    {
+      "label": "UPI AutoPay renewals that failed",
+      "count": 25
+    },
+    {
+      "label": "Failed on the customer's side and not paid since",
+      "count": 19
+    },
+    {
+      "label": "Still have access",
+      "count": 13
+    },
+    {
+      "label": "Past your 48 hour rule",
+      "count": 9
+    }
+  ],
+  "cannot_see": [
+    "Whether you extended access on purpose, for example a goodwill month or an annual deal. Those rows are not leaks.",
+    "Whether you have already told the customer. Blindspot reads payments and your access records, not your email.",
+    "Whether another renewal attempt is still due. It reads the payments it has been given."
+  ]
+}

@@ -27,6 +27,8 @@ from .schemas import (
     IncidentDetail,
     IncidentSummary,
     LaneEvent,
+    LeakageReport,
+    LeakageRow,
     LearningChange,
     LearningParam,
     LearningReplay,
@@ -242,6 +244,12 @@ LEARN_PARAMS = [LearningParam(key="order_dip_p_threshold", version=2, value=0.00
 LEARN_REPLAY = LearningReplay(note="No replay has been run. Run make eval.", rows=[])
 SCAN = ScanResult(days=30, headline="I found 38 customers in the last 30 days who paid and have no access.", leaked_customers=38,
                   leaked_paise=1_854_000, incidents=[INC1])
+LEAKAGE = LeakageReport(
+    as_of=NOW, grace_hours=48, headline="1 customer failed a UPI renewal, is past your 48 hour rule and still has access. ₹299 in renewals is unpaid.", customers=1, owed_paise=29_900, longest_over_hours=30.0,
+    rows=[LeakageRow(subscription_id="sub_001", payment_id="pay_001", customer_masked="A. S****", plan="Premium Monthly", amount_paise=29_900, reason="Insufficient funds in account",
+                     failed_at=NOW - timedelta(hours=78), rule_ends_at=NOW - timedelta(hours=30), hours_over_rule=30.0, access_until=NOW + timedelta(days=20))],
+    inside_rule=[], left_out=[], funnel=[], cannot_see=[],
+)
 STEP = ThreadStep(thread=THR1, drafted_reply=None, auto_sent=True)
 
 # ids the snapshot build expands path parameters with

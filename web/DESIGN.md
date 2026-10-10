@@ -382,7 +382,7 @@ Source of truth for the shell: `src/components/Shell.tsx`. Read it before touchi
 
 **Side nav** (Blade `SideNav`, in this order)
 1. Home, Transactions, Settlements, Reports: production, inert.
-2. `BLINDSPOT` section: Ray, Incidents, Conversations, Channels, Day-0 scan. Ours, live.
+2. `BLINDSPOT` section: Ray, Incidents, Conversations, Channels, Day-0 scan, Access report. Ours, live.
 3. `PROOF AND CONTROL` section: Audit log, How we know, Learning, Settings. Ours, live.
 4. `PAYMENT PRODUCTS` section: Payment Links, Payment Pages, Razorpay.me Link, then "+11 More" (`maxVisibleItems={3}`). Production, inert.
 5. Footer: Test Mode switch (on, inert) and Account & Settings (inert).

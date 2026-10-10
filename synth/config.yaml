@@ -117,3 +117,15 @@ inc2:
   complaints: 4
   gap_seconds: [3, 90]
   reversal_error: {code: GATEWAY_ERROR, description: "Payment failed after the bank debited the account. The bank reverses it automatically", source: bank, step: payment_authorization, reason: debit_reversal_pending}
+# ---- J6, UPI AutoPay renewals that failed for insufficient funds while access stayed on (contracts-v0.11, additive). Report only: no revoke action exists. ----
+# Failures are drawn in office hours between 20 and 26 Sep (before the INC-1 deploy, so the webhook was healthy, and clear of INC-3's UPI control hours and every Zone 1 evening window).
+# The inside-grace ones come after the INC-1 fix, within 48 hours of the snapshot, so the merchant's rule has not run out for them yet.
+leakage:
+  past_grace: {from: "2026-09-20", to: "2026-09-26", hours: [9, 17]}
+  inside_window: ["2026-10-01T12:00:00", "2026-10-02T08:00:00"]
+  access_on: 9         # failed for insufficient funds, access still on after the 48 hour rule: the report
+  access_cut: 5        # failed for insufficient funds, access cut when the rule ran out: correct, left out
+  paid_since: 3        # failed, then paid again on their own: left out
+  inside_grace: 4      # failed in the last 48 hours: not yet past the rule, shown as "will cross"
+  not_theirs: 2        # failed on the bank's side with access on: left out, the customer owes nothing
+  paid_back_hours: [20, 44]
