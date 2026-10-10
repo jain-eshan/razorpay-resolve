@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Alert, AlertTriangleIcon, Badge, BellOffIcon, Box, Button, Card, CardBody, CheckCircleIcon, Heading, MessageCircleIcon, SegmentedControl, SegmentedControlItem, StepGroup, StepItem,
@@ -9,6 +9,7 @@ import { DuplicateChart } from '../components/DuplicateChart'
 import { DuplicateFix } from '../components/DuplicateFix'
 import { Lane } from '../components/Lane'
 import { Panel } from '../components/Panel'
+import { StartFix } from '../components/StartFix'
 import { Stat } from '../components/Stat'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { OWNER, sentence, when } from '../lib/format'
@@ -31,6 +32,7 @@ const two = (top: string, bottom: string) => (
 export default function DuplicateView({ id }: { id: string }) {
   const nav = useNavigate()
   const [version, setVersion] = useState(0)
+  const fix = useRef<HTMLDivElement>(null)
   const [tier, setTier] = useState<(typeof TIERS)[number]>('exact')
   const { data: inc, error } = useGet<Schemas['IncidentDetail']>(`/api/incidents/${id}`, version)
   const { data: members } = useGet<Schemas['Member'][]>(`/api/incidents/${id}/members`, version)
@@ -81,6 +83,7 @@ export default function DuplicateView({ id }: { id: string }) {
         <Stat label="Silent" value={String(inc.silent)} hint="have not written" icon={BellOffIcon} />
         <Stat label="Refunds started" value={String(inc.fixed)} hint="the bank takes time to pay them out" icon={CheckCircleIcon} tone="positive" />
       </Box>
+      <StartFix to={fix} closed={done} top />
 
       <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(0, 1fr) 320px' }} gap="spacing.6" alignItems="start">
         <Box display="flex" flexDirection="column" gap="spacing.6" minWidth="0px">
@@ -163,7 +166,7 @@ export default function DuplicateView({ id }: { id: string }) {
             </Panel>
           )}
 
-          <DuplicateFix inc={inc} onChanged={() => setVersion((n) => n + 1)} />
+          <Box ref={fix}><DuplicateFix inc={inc} onChanged={() => setVersion((n) => n + 1)} /></Box>
         </Box>
 
         <Box position={{ base: 'static', l: 'sticky' }} top="spacing.5">
@@ -179,6 +182,7 @@ export default function DuplicateView({ id }: { id: string }) {
                   ]}
                 </StepGroup>
               </Box>
+              <StartFix to={fix} closed={done} />
               <Box marginTop="spacing.5"><Button variant="tertiary" size="small" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Open the evidence page</Button></Box>
             </CardBody>
           </Card>

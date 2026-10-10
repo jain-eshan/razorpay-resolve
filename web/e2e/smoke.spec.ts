@@ -83,3 +83,13 @@ test('S-19 access report: the stat is the list, the inside-rule customers are ap
   await expect(page.getByRole('button', { name: /revoke|remove|cut|send|approve|refund|grant|fix|message|extend/i })).toHaveCount(0)  // nothing here changes anything (the page has no main landmark to scope to, so the check is by name)
   await expect(page.getByRole('link', { name: 'Access report' }).first()).toBeVisible()  // reachable from the side nav
 })
+
+test('incident list adds up the incidents and says why a zone is empty; an incident page jumps to its fix', async ({ page }) => {
+  await page.goto('/incidents')
+  await expect(page.getByText('Customers affected', { exact: true })).toBeVisible()
+  await expect(page.getByText(/Razorpay's own dashboard, so Blindspot does not look here/)).toBeVisible()
+  await page.goto('/incidents/INC-1')
+  await expect(page.getByRole('heading', { name: 'Fix it' })).not.toBeInViewport()
+  await page.getByRole('button', { name: 'Start the fix' }).click()
+  await expect(page.getByRole('heading', { name: 'Fix it' })).toBeInViewport()
+})

@@ -617,3 +617,35 @@ Design review: the `design-reviewer` agent is not offered in this session, so a 
 Five low ones came with them: a bordered Box in place of a Card, "Ray reads and replies" on Channels, a scene that looped forever, a hand-drawn radio circle, and the clip below the picker on phones. All seven are fixed. Second verdict: pass with notes. Taken: the picker column now fills the clip's height. Left as is: the Autonomy scene plays for about 10s per choice (three short plays, then it rests). Not checked: dark mode, reduced motion by eye (code paths read only), live-mode Channels by eye (the 15 live tests pass), skeletons on every page by eye.
 
 Not in this batch (batches 2 and 3, listed for Eshan): incident pages (stat row, a "Start the fix" button on the timeline, evidence as bars, a lighter customer table, a summary on the incident list, phone cards for it), How we know summary, a Learning chart, a Conversations table, the Audit log empty state, the WhatsApp demo layout, and the Explore cards.
+
+## 10 Oct 2026, design pass batch 2: incident pages (web)
+
+Goal: the second design batch from Eshan's review. On the incident pages the fix sat at the bottom of a 4,000px page, INC-1's figures were laid out unlike the other three views, the evidence was a wall of percentages, and the list cut titles off and hid its figures on a phone. Built on top of batch 1 (PR #30).
+
+Built:
+- `components/StartFix.tsx`: "Start the fix" (or "See how it was fixed" once closed) at the bottom of every incident's Timeline. It is the detail template's one call to action and scrolls down to the fix steps. It is shown from `l`, where the Timeline stays in view beside the content. Below that the Timeline sits under the fix steps, so the button sits under the stat row instead.
+- INC-1: the full-width "Affected" card and three uneven ones are now four across, as on INC-2 to INC-5. `Stat` fills its grid cell, so every stat row is one height even when a hint wraps.
+- INC-1 evidence: each pattern is a pair of Blade `ProgressBar`s, orange for the share of affected payments and grey for the share normally, with the figures under them, biggest gap first. Four are shown, then "Show all 9".
+- INC-1 customers table: "What happened" is no longer bold, so 85 rows of long text read lighter.
+- Fix panel: "Change it" is Blade's `Link`, not the browser's default underlined one.
+- Incidents list:
+  - Three stat cards added up from the rows: open incidents, at risk, customers affected. The hint says how many of the customers are estimated, from inferred incidents.
+  - The empty "Inside the payment" group now says why: bank and UPI failures are on Razorpay's own dashboard (the Incidents guide says the same).
+  - "Could have known" shows only the time when it is the same day.
+  - Titles wrap in place of being cut off. Blade's `Link` is `max-content` on purpose, so the title is the router's link around Blade `Text`, as the Explore cards do. This is noted in web/CLAUDE.md.
+  - Below `l` (phones and tablets) each incident is a card with its figures, in place of a table that pushed Affected and At risk off the screen.
+- Docs: DESIGN.md section 15 (list and detail templates) and the Link quirk in web/CLAUDE.md.
+
+Tests: a new smoke test covers the stat cards, the empty-group note, and "Start the fix" bringing "Fix it" into view.
+
+Checks: `tsc -b`, oxlint, `npm run build`, and all 87 browser tests (72 hosted-demo, 15 live) pass.
+
+Design review: a general-purpose agent ran `.claude/agents/design-reviewer.md` on the diff, since the agent itself is not offered in this session. Verdict: pass with notes. Six notes, all taken:
+- The table only becomes cards below `l`, not `m`, because at 768px it still cut the figures off.
+- Below `l` there is a "Start the fix" button under the stat row.
+- Stat icons no longer shrink.
+- The list's stat cards stack below `l`.
+- The evidence legend says "dark grey", which is what Blade's neutral bar draws.
+- "At risk" says how much of it is estimated, as the customer count does.
+
+Not checked: dark mode, reduced motion, INC-2 to INC-5 by eye at 375 and 768, the expanded "Show all" state by eye, live mode by eye.

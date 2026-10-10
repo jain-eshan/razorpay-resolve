@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Alert, AlertTriangleIcon, Badge, BellOffIcon, Box, Button, Card, CardBody, CheckCircleIcon, Heading, MessageCircleIcon, StepGroup, StepItem, StepItemIndicator, Table, TableBody,
@@ -9,6 +9,7 @@ import { Lane } from '../components/Lane'
 import { Panel } from '../components/Panel'
 import { RenewalChart, type RenewalHour } from '../components/RenewalChart'
 import { RenewalFix } from '../components/RenewalFix'
+import { StartFix } from '../components/StartFix'
 import { Stat } from '../components/Stat'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { OWNER, sentence, when } from '../lib/format'
@@ -28,6 +29,7 @@ const two = (top: string, bottom: string) => (
 export default function RenewalView({ id }: { id: string }) {
   const nav = useNavigate()
   const [version, setVersion] = useState(0)
+  const fix = useRef<HTMLDivElement>(null)
   const { data: inc, error } = useGet<Schemas['IncidentDetail']>(`/api/incidents/${id}`, version)
   const { data: members } = useGet<Schemas['Member'][]>(`/api/incidents/${id}/members`, version)
   const { data: sample } = useGet<Schemas['SampleTimeline'][]>(`/api/incidents/${id}/sample`, version)
@@ -78,6 +80,7 @@ export default function RenewalView({ id }: { id: string }) {
         <Stat label="Silent" value={String(inc.silent)} hint="never wrote" icon={BellOffIcon} />
         <Stat label="Paid again" value={String(inc.fixed)} hint="on their own, left alone" icon={CheckCircleIcon} tone="positive" />
       </Box>
+      <StartFix to={fix} closed={inc.status === 'closed'} top />
 
       <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(0, 1fr) 320px' }} gap="spacing.6" alignItems="start">
         <Box display="flex" flexDirection="column" gap="spacing.6" minWidth="0px">
@@ -158,7 +161,7 @@ export default function RenewalView({ id }: { id: string }) {
             </Panel>
           )}
 
-          <RenewalFix inc={inc} members={members ?? []} onChanged={() => setVersion((n) => n + 1)} />
+          <Box ref={fix}><RenewalFix inc={inc} members={members ?? []} onChanged={() => setVersion((n) => n + 1)} /></Box>
         </Box>
 
         <Box position={{ base: 'static', l: 'sticky' }} top="spacing.5">
@@ -174,6 +177,7 @@ export default function RenewalView({ id }: { id: string }) {
                   ]}
                 </StepGroup>
               </Box>
+              <StartFix to={fix} closed={inc.status === 'closed'} />
               <Box marginTop="spacing.5"><Button variant="tertiary" size="small" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Open the evidence page</Button></Box>
             </CardBody>
           </Card>

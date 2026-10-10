@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Alert, Badge, Box, Button, Card, CardBody, Heading, ProgressBar, SegmentedControl, SegmentedControlItem, Text } from '@razorpay/blade/components'
+import { useNavigate } from 'react-router-dom'
+import { Alert, Badge, Box, Button, Card, CardBody, Heading, Link, ProgressBar, SegmentedControl, SegmentedControlItem, Text } from '@razorpay/blade/components'
 import { SuccessMoment } from './SuccessMoment'
 import { Approved, Label, NextSteps, Turn } from './AgentAnswer'
 import { Accent } from './Accent'
@@ -94,7 +94,7 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
       <Box display="flex" flexDirection="column" gap="spacing.2">
         <Heading size="medium">Fix it</Heading>
         <Text size="small" color="surface.text.gray.muted">
-          Autonomy: {LEVEL[level]}. {LEVEL_NOTE[level]} <Link to="/settings">Change it</Link>
+          Autonomy: {LEVEL[level]}. {LEVEL_NOTE[level]} <Link size="small" href="/settings" onClick={(e) => { e.preventDefault(); nav('/settings') }}>Change it</Link>
         </Text>
       </Box>
 

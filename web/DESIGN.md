@@ -407,9 +407,9 @@ Every screen is one of these. Pick one before you write any layout code.
 - Vertical rhythm: `spacing.6` between blocks on data pages, `spacing.7` on pages with explainers, `spacing.9` between major sections of a home page.
 - Cards are white, radius 12, padding 24, with Blade's own border and shadow. Never draw a card from a `Box` with a border. Use `Card`, or `Panel` (`components/Panel.tsx`) for a card with a grey header band.
 
-**List page** (Incidents, Conversations, Audit log): PageHeader, optional stat cards, then a `Panel` containing a Blade `Table`. Rows are 48px, cells have 12px side padding, a second line under a value is 12px muted. The row's identifying text is a real link. Status goes in a `Badge`.
+**List page** (Incidents, Conversations, Audit log): PageHeader, optional stat cards (added up from the rows, with a hint when part of a total is an estimate), then a `Panel` containing a Blade `Table`. Below `l` a table whose key figures sit on the right becomes one card per row (Incidents), so the figures are not pushed off the side. An empty group says why it is empty. Rows are 48px, cells have 12px side padding, a second line under a value is 12px muted. The row's identifying text is a real link. Status goes in a `Badge`.
 
-**Detail page** (Incident): breadcrumb or a "Go back" link, one summary card (status tile, headline, status pill), then two columns: Details cards on the left, a sticky Timeline on the right, one call to action at the bottom of the timeline.
+**Detail page** (Incident): breadcrumb or a "Go back" link, one summary card (status tile, headline, status pill), then two columns: Details cards on the left, a sticky Timeline on the right, one call to action at the bottom of the timeline (`components/StartFix.tsx`, "Start the fix", which takes you down to the fix steps; beside the content from `l`; below that, under the stat row, because the Timeline drops under the fix steps). Stat cards sit four across from `l` and fill their cell, so a row is one height.
 
 **Settings page**: one `Panel` per topic, label above value, the control on the right, one Save button at the end. Read-only snapshots say so in an `Alert`.
 

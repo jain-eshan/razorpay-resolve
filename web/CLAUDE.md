@@ -54,5 +54,6 @@ A starter for building Razorpay products in Razorpay's own design language, Razo
 - `npm run dev` and the e2e config use port 5173, shared with every other worktree. If another chat has it, a test run hits their code. Use a different `--port` locally and do not commit that change.
 - Blade's `Table` logs a React "Cannot update a component while rendering" warning in dev. It comes from Blade, not our code.
 - Blade's `Table` logs "Cannot update a component (`_Table`) while rendering `_TableHeaderRow`" in dev. It is Blade's own, not ours.
+- Blade's `Link` sets its text to `width: max-content`, so a long label never wraps and is cut off. Use it for short labels only. For a long title that must be a link (an incident in the list), use the router's `Link` around Blade `Text`, as `routes/Incidents.tsx` and the Explore cards do.
 - Blade's `ChatMessage` with an array `loadingText` logs a `validateDOMNesting` warning in dev. It comes from Blade, not our code.
 - In a hidden or background browser tab, Blade's frame-rate guard switches the RazorSense canvas off, and you'll see the static fallback. That's expected.
