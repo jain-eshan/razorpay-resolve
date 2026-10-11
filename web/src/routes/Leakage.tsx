@@ -26,7 +26,7 @@ function RowsTable({ rows, third }: { rows: Row[]; third: (r: Row) => { top: str
           <TableHeader>
             <TableHeaderRow>
               <TableHeaderCell>Customer</TableHeaderCell>
-              <TableHeaderCell>Your rule</TableHeaderCell>
+              <TableHeaderCell>Grace period</TableHeaderCell>
               <TableHeaderCell>Renewal failed</TableHeaderCell>
               <TableHeaderCell>Unpaid</TableHeaderCell>
               <TableHeaderCell>Access runs to</TableHeaderCell>
@@ -49,29 +49,35 @@ function RowsTable({ rows, third }: { rows: Row[]; third: (r: Row) => { top: str
   )
 }
 
+// The engine calls the merchant's grace period a "rule". The page says grace period everywhere, so its sentences are reworded here, the way headline() rewords an issue title.
+const grace = (t: string) => t
+  .replace(/your (\d+) hour rule/gi, (_, h: string) => `your ${h} hour grace period`)
+  .replace(/when your rule ran out\. That is the rule working\./, 'when their grace period ended. That is your grace period working.')
+  .replace('Those rows are not leaks.', 'Those customers are not a problem.')
+
 // J6. UPI renewals that failed on the customer's side while access stayed on past the merchant's own rule. A report: nothing here changes anything.
 export default function Leakage() {
   const { data, error } = useGet<Schemas['LeakageReport']>('/api/leakage')
   if (!data && !error) return <PageSkeleton />
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <PageHeader title="Access without payment" description="Customers whose UPI renewal failed and who still have access after your own grace rule. Nothing here has been changed." />
-      {error && <Text color="feedback.text.negative.intense">Could not load the report: {error}. Reload the page, and if it keeps failing check that the API is running.</Text>}
+      <PageHeader guide="access" title="Unpaid access" description="Customers whose UPI AutoPay renewal failed but who still have access after your own grace period ran out. A list for you to act on. Blindspot changes nothing here." />
+      {error && <Text color="feedback.text.negative.intense">Could not load unpaid access: {error}. Reload the page, and if it keeps failing check that the API is running.</Text>}
       {data && (
         <>
-          <Alert isFullWidth isDismissible={false} color="information" title="A report, not an action" description="Blindspot never takes access away. To act, cut access in your own system, or send the customer your own payment link." />
+          <Alert isFullWidth isDismissible={false} color="information" title="Blindspot never takes access away" description="To act, end access in your own system, or send the customer your own payment link." />
           <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
-            <Stat label="Customers past your rule" value={String(data.customers)} hint={`still have access, as of ${when(data.as_of)}`} icon={UnlockIcon} tone={data.customers ? 'notice' : 'positive'} />
+            <Stat label="Past their grace period" value={String(data.customers)} hint={`still have access, as of ${when(data.as_of)}`} icon={UnlockIcon} tone={data.customers ? 'notice' : 'positive'} />
             <Stat label="Renewals unpaid" value={rupees(data.owed_paise)} hint="the failed renewals, added up" icon={AlertTriangleIcon} tone={data.customers ? 'notice' : 'positive'} />
-            <Stat label="Longest over your rule" value={data.customers ? span(data.longest_over_hours) : 'None'} hint={`your rule is ${data.grace_hours} hours`} icon={ClockIcon} />
+            <Stat label="Longest past it" value={data.customers ? span(data.longest_over_hours) : 'None'} hint={`your grace period is ${data.grace_hours} hours`} icon={ClockIcon} />
           </Box>
 
-          <Panel title={data.headline} pad={false}>
+          <Panel title={data.customers ? `${data.customers} customers failed a UPI renewal, are past your ${data.grace_hours} hour grace period and still have access. ${rupees(data.owed_paise)} in renewals is unpaid.` : 'Nobody is past their grace period with access still on.'} pad={false}>
             {data.rows.length > 0 && <RowsTable rows={data.rows} third={(r) => ({ top: `Ended ${when(r.rule_ends_at)}`, sub: `${span(r.hours_over_rule)} ago` })} />}
           </Panel>
 
           {data.inside_rule.length > 0 && (
-            <Panel title={`${data.inside_rule.length} more are inside your rule`} subtitle="Not yet a problem. Each one joins the report when its rule runs out." pad={false}>
+            <Panel title={`${data.inside_rule.length} more are still inside their grace period`} subtitle="Not yet a problem. Each one joins the list above when their grace period ends." pad={false}>
               <RowsTable rows={data.inside_rule} third={(r) => ({ top: `Ends ${when(r.rule_ends_at)}`, sub: `in ${span(-r.hours_over_rule)}` })} />
             </Panel>
           )}
@@ -79,18 +85,18 @@ export default function Leakage() {
           <Panel title="How I checked" subtitle="Each step keeps only the customers who still fit">
             <Box display="flex" flexDirection="column" gap="spacing.3">
               {data.funnel.map((s) => (
-                <Box key={s.label} display="flex" justifyContent="space-between" gap="spacing.4"><Text>{s.label}</Text><Text weight="semibold">{String(s.count)}</Text></Box>
+                <Box key={s.label} display="flex" justifyContent="space-between" gap="spacing.4"><Text>{grace(s.label)}</Text><Text weight="semibold">{String(s.count)}</Text></Box>
               ))}
             </Box>
             {data.left_out.length > 0 && (
               <Box display="flex" flexDirection="column" gap="spacing.2" paddingTop="spacing.4" borderTopWidth="thin" borderTopColor="surface.border.gray.subtle">
                 <Text size="small" weight="semibold" color="surface.text.gray.subtle">Left out, and why</Text>
-                {data.left_out.map((l) => <Box key={l.label} display="flex" gap="spacing.3" alignItems="flex-start"><CheckCircleIcon size="small" color="surface.icon.gray.muted" /><Text size="small">{l.label}</Text></Box>)}
+                {data.left_out.map((l) => <Box key={l.label} display="flex" gap="spacing.3" alignItems="flex-start"><CheckCircleIcon size="small" color="surface.icon.gray.muted" /><Text size="small">{grace(l.label)}</Text></Box>)}
               </Box>
             )}
             <Box display="flex" flexDirection="column" gap="spacing.2" paddingTop="spacing.4" borderTopWidth="thin" borderTopColor="surface.border.gray.subtle">
               <Text size="small" weight="semibold" color="surface.text.gray.subtle">What I cannot see</Text>
-              {data.cannot_see.map((c) => <Text key={c} size="small" color="surface.text.gray.muted">{c}</Text>)}
+              {data.cannot_see.map((c) => <Text key={c} size="small" color="surface.text.gray.muted">{grace(c)}</Text>)}
             </Box>
           </Panel>
         </>

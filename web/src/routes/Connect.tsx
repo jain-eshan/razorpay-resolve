@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Alert, Box, Button, Code, CopyIcon, CheckIcon, ShieldIcon, Text } from '@razorpay/blade/components'
 import { PageHeader } from '../components/PageHeader'
+import { IntegrationSteps } from '../components/IntegrationSteps'
 import { Panel } from '../components/Panel'
 import { CONNECT_PROMPT, CONNECT_WHY } from '../lib/connectPrompt'
 
@@ -25,8 +26,9 @@ export default function Connect() {
   }
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <PageHeader title="Connect by prompt" description="Paste one prompt into your coding agent. It wires your webhook so a customer who pays gets access, and so Blindspot can see when one does not. Then run the release check to confirm it." />
-      <Alert isFullWidth isDismissible={false} color="information" title="A proposal, shown as a prototype" description="Razorpay already gives merchants a prompt for the integration. This is the part Blindspot would add to it. The acknowledgement route in the prompt is a placeholder, because nothing like it exists at Razorpay yet. Blindspot never asks for your webhook secret, and the prompt keeps it in your environment." />
+      <PageHeader guide="integration" title="Integration" description="Paste one prompt into your coding agent. It sets up your webhook so every customer who pays gets access, and so Blindspot can tell when one does not. Then run the go-live check." />
+      <IntegrationSteps />
+      <Alert isFullWidth isDismissible={false} color="information" title="Prototype" description="Razorpay already gives a prompt for the integration; this is the part Blindspot would add. The confirmation address in it is a placeholder, because nothing like it exists at Razorpay yet. Blindspot never asks for your webhook secret." />
 
       <Panel title="1. Paste this into your coding agent" subtitle="Claude Code, Cursor, Replit or any agent that can edit your project"
         trailing={<Box flexShrink={0} whiteSpace="nowrap"><Button variant="secondary" icon={copied === 'yes' ? CheckIcon : CopyIcon} onClick={copy}>{copied === 'yes' ? 'Copied' : 'Copy the prompt'}</Button></Box>}>
@@ -36,9 +38,9 @@ export default function Connect() {
         </Box>
       </Panel>
 
-      <Panel title="2. Check it" subtitle="The release check sends your webhook a test event and tells you if it grants access and says so">
-        <Box maxWidth="720px"><Text>When the agent is done, run the tests it wrote, deploy to a place where you can reach it, and run the release check. If a step fails it says what it means and what to do.</Text></Box>
-        <Box><Button variant="secondary" icon={ShieldIcon} onClick={() => nav('/release-check')}>Open the release check</Button></Box>
+      <Panel title="2. Check it" subtitle="The go-live check sends your webhook a test payment and tells you whether access was given">
+        <Box maxWidth="720px"><Text>When the agent is done, run the tests it wrote, deploy to a place where you can reach it, and run the go-live check. If a step fails it says what it means and what to do.</Text></Box>
+        <Box><Button variant="secondary" icon={ShieldIcon} onClick={() => nav('/release-check')}>Open the go-live check</Button></Box>
       </Panel>
 
       <Panel title="What each rule closes" subtitle="Every line of the prompt is there because Blindspot finds the failure it prevents">

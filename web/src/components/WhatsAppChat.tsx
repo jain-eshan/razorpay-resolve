@@ -78,13 +78,13 @@ export function WhatsAppChat({ name, subtitle = 'Business account', messages, no
 }) {
   return (
     <div data-testid={testID} role="group" aria-label={`WhatsApp chat with ${name}. ${messages.length} message${messages.length === 1 ? '' : 's'}.`}
-      style={{ width: '100%', maxWidth: compact ? 340 : 400, borderRadius: compact ? 12 : 16, overflow: 'hidden', border: `1px solid ${WA.chip}`, boxShadow: '0 2px 12px rgba(11, 20, 26, 0.12)', fontFamily: WA.font, background: WA.wallpaper, backgroundImage: wallpaper, backgroundBlendMode: 'multiply', backgroundSize: '640px auto' }}>
+      style={{ width: '100%', maxWidth: compact ? 380 : 400, borderRadius: compact ? 12 : 16, overflow: 'hidden', border: `1px solid ${WA.chip}`, boxShadow: '0 2px 12px rgba(11, 20, 26, 0.12)', fontFamily: WA.font, background: WA.wallpaper, backgroundImage: wallpaper, backgroundBlendMode: 'multiply', backgroundSize: '640px auto' }}>
       <div style={{ background: WA.header, color: WA.headerText, display: 'flex', alignItems: 'center', gap: 8, padding: compact ? '8px 10px' : '10px 10px 10px 6px' }}>
         {!compact && svg(ICON.back)}
         <div style={{ width: 36, height: 36, borderRadius: '50%', background: WA.bubbleIn, color: WA.header, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 16, flexShrink: 0 }}>{avatar === 'razorpay' ? <RazorpayMark /> : name.slice(0, 1).toUpperCase()}</div>
         <div style={{ flex: 1, minWidth: 0, lineHeight: '18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 16, fontWeight: 500 }}><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span><Verified /></div>
-          <div style={{ fontSize: 12, opacity: 0.85 }}>{subtitle}</div>
+          <div style={{ fontSize: 12 }}>{subtitle}</div>
         </div>
         {!compact && <>{svg(ICON.video)}{svg(ICON.call)}{svg(ICON.more)}</>}
       </div>

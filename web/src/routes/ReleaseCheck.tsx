@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Alert, Badge, Box, Button, Code, Text, CheckCircleIcon, ClockIcon, MinusCircleIcon, RefreshIcon, ShieldIcon, XCircleIcon } from '@razorpay/blade/components'
 import { PageHeader } from '../components/PageHeader'
+import { IntegrationSteps } from '../components/IntegrationSteps'
 import { PageSkeleton } from '../components/PageSkeleton'
 import { Panel } from '../components/Panel'
 import { Stat } from '../components/Stat'
@@ -38,19 +39,21 @@ export default function ReleaseCheck() {
   const passed = data?.steps.filter((s) => s.status === 'pass').length ?? 0
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <PageHeader title="Release check" description="Run it before you ship. It sends your webhook a signed test event and opens your pay page, so a break shows up before a customer finds it."
+      <PageHeader guide="integration" title="Integration" description="Run the go-live check before every release. It sends your webhook a signed test payment and opens your pay page, so a break shows up before a customer finds it."
         actions={<Button variant="secondary" icon={RefreshIcon} isLoading={busy} isDisabled={busy} onClick={() => setVersion((v) => v + 1)}>Run the check again</Button>} />
+      <IntegrationSteps />
       {error && <Text color="feedback.text.negative.intense">Could not run the check: {error}. Reload the page, and if it keeps failing check that the API is running.</Text>}
       {data && (
         <>
-          <Alert isFullWidth isDismissible={false} color="information" title="A Guard feature, shown as a prototype" description="Guard is the paid prevention tier: checks that run before a customer is hurt. If your webhook is not wired yet, use Connect by prompt first. Your server and pay page are simulated here, and the release-script call is a proposed API. Nothing in your account changes. A real check would send your server one signed test event, marked as a test." />
+          <Alert isFullWidth isDismissible={false} color="information" title="Prototype of a paid add-on" description="Your server and pay page are simulated here and nothing in your account changes. A real check sends your server one test payment, marked as a test, so it never gives a real customer anything." />
           <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
             <Stat label="Verdict" value={data.safe_to_release ? 'Safe to release' : 'Hold the release'} hint="from the checks below" icon={ShieldIcon} tone={data.safe_to_release ? 'positive' : 'negative'} />
             <Stat label="Checks passed" value={`${passed} of ${data.steps.length}`} hint={data.failed ? `${data.failed} failed` : 'none failed'} icon={CheckCircleIcon} tone={data.failed ? 'notice' : 'positive'} />
             <Stat label="Checked" value={when(data.checked_at)} hint="when the test event was sent" icon={ClockIcon} />
           </Box>
 
-          <Panel title={data.headline} />
+          {/* The verdict is already the first card, so the line says only what failed first. */}
+          <Panel title={data.headline.replace(/^(Hold the release|Safe to release)\. /, '')} />
 
           <Panel title="Your webhook" subtitle="The test event is signed like a real payment and carries a marker, so it never grants a real customer anything">
             <Box display="flex" flexDirection="column" gap="spacing.5">{webhook.map((s) => <StepRow key={s.key} step={s} />)}</Box>

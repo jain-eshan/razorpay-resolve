@@ -1,3 +1,4 @@
+import { Crumbs } from '../components/Crumbs'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Alert, Box, Button, Card, CardBody, Text, TextArea, TextInput } from '@razorpay/blade/components'
@@ -27,8 +28,9 @@ export default function EmailDemo() {
   const mails = (t?.messages ?? []).filter((m) => m.direction === 'inbound' || m.policy.status === 'sent')
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7">
+      <Crumbs items={[{ label: 'Customer complaints', to: '/threads' }, { label: 'Try it: Email', to: '/email-demo' }]} />
       <PageHeader title="Email" description="The merchant sets one forwarding rule: mail with payment words goes to the agent. Replies go back in the same thread, from the merchant's own domain once it is set up." />
-      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Sending any text plays the recorded reply.`} />}
+      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Demo" description={`${demoNote} Sending any text plays the recorded reply.`} />}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="Not delivered" description={error} />}
       <Card><CardBody>
         <Box display="flex" flexDirection="column" gap="spacing.4">
@@ -48,7 +50,7 @@ export default function EmailDemo() {
           <Text>{plainTokens(m.body)}</Text>
         </CardBody></Card>
       ))}
-      {tid && <Link to={`/threads/${tid}`}><Text size="small" color="interactive.text.primary.normal">See it as the founder</Text></Link>}
+      {tid && <Link to={`/threads/${tid}`}><Text size="small" color="interactive.text.primary.normal">See it as you would</Text></Link>}
     </Box>
   )
 }

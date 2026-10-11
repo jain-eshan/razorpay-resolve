@@ -96,13 +96,13 @@ export function RenewalFix({ inc, members, onChanged }: { inc: Schemas['Incident
   return (
     <Box display="flex" flexDirection="column" gap="spacing.5" testID="fix-panel">
       <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="medium">What you can do</Heading>
+        <Heading as="h2" size="medium">What you can do</Heading>
         <Text size="small" color="surface.text.gray.muted">
-          The cause is Razorpay's, so Blindspot cannot fix it. It can keep these customers' access on while Razorpay looks, give Razorpay the evidence, and send each customer a renewal link once cards work again. Every step waits for your approval, at every autonomy level. <Link to="/settings">Settings</Link>
+          The cause is Razorpay's, so Blindspot cannot fix it. It can keep these customers' access on while Razorpay looks, give Razorpay the evidence, and send each customer a renewal link once cards work again. Every step waits for your approval, at every approval level. <Link to="/settings">Settings</Link>
         </Text>
       </Box>
 
-      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Click through the steps. Each one is the engine's real answer.`} />}
+      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Demo" description={`${demoNote} Click through the steps. Each answer comes from the real engine.`} />}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="That did not go through" description={error} />}
 
       <Turn n={1} analyzing={busy === 'plan' || busy === 'undo' || busy === `${grant?.id}:${grant?.next_stage}`} you={grant && grant.status !== 'drafted' ? (grant.status === 'reverted' ? 'Undo the extension' : 'Looks right, continue') : undefined}
@@ -231,7 +231,7 @@ export function RenewalFix({ inc, members, onChanged }: { inc: Schemas['Incident
               ))}
               <Text size="small" color="surface.text.gray.muted">Written from a template. The link is made through Razorpay's payment link API (simulated here), valid for {String((rec.params as { valid_hours?: number }).valid_hours ?? 48)} hours, no discount, one per customer. Messages cannot be unsent.</Text>
               {rec.blocked_reason && <Alert isFullWidth color="notice" isDismissible={false} title="Not yet" description={rec.blocked_reason} />}
-              {rec.status === 'failed' && <Alert isFullWidth color="negative" isDismissible={false} title="Stopped" description="A message was refused, so nothing more went out. Check the audit log for the reason." />}
+              {rec.status === 'failed' && <Alert isFullWidth color="negative" isDismissible={false} title="Stopped" description="A message was refused, so nothing more went out. Check the audit trail for the reason." />}
               {stageButton(rec, setRec, SEND)}
             </Box>
           )}
@@ -254,19 +254,19 @@ export function RenewalFix({ inc, members, onChanged }: { inc: Schemas['Incident
       )}
 
       {(done > 0 || inc.status === 'closed') && (
-        <Turn n={nVerify} analyzing={busy === 'verify'} you={result ? 'Verify and close' : undefined} title="Verify and close" badge={inc.status === 'closed' ? ['Closed', 'positive'] : undefined}>
-          <Text size="small">Checks every customer against your records again, and that card renewals have gone through again since the last failure. If renewal links went out, it also counts who renewed, and a link send that is half done keeps the incident open. Collecting the renewals of customers without a link is not part of this step.</Text>
+        <Turn n={nVerify} analyzing={busy === 'verify'} you={result ? 'Check it held and close' : undefined} title="Check it held and close" badge={inc.status === 'closed' ? ['Closed', 'positive'] : undefined}>
+          <Text size="small">Checks every customer against your records again, and that card renewals have gone through again since the last failure. If renewal links went out, it also counts who renewed, and a link send that is half done keeps the payment issue open. Collecting the renewals of customers without a link is not part of this step.</Text>
           <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
             <Button variant="secondary" isLoading={busy === 'verify'} isDisabled={!grant || !!busy} onClick={() => run('verify', async () => { setResult(await send<Schemas['VerifyResult']>('POST', `/api/incidents/${inc.id}/verify`)); onChanged() })}>
-              Verify and close
+              Check it held and close
             </Button>
             {result && <Text weight="semibold" color={result.closeable ? 'feedback.text.positive.intense' : 'feedback.text.notice.intense'}>{result.line}</Text>}
           </Box>
-          {result?.closeable && inc.status === 'closed' && <SuccessMoment heading={`${result.verified} customers kept their access`} detail="Cards work again. This incident is closed." />}
+          {result?.closeable && inc.status === 'closed' && <SuccessMoment heading={`${result.verified} customers kept their access`} detail="Cards work again. This payment issue is closed." />}
         </Turn>
       )}
 
-      {result?.closeable && inc.status === 'closed' && <NextSteps next={[{ label: 'Open the audit log', onClick: () => nav('/audit') }, { label: 'See all incidents', onClick: () => nav('/incidents') }, { label: 'Run the Day-0 scan', onClick: () => nav('/scan') }]} />}
+      {result?.closeable && inc.status === 'closed' && <NextSteps next={[{ label: 'Open the audit trail', onClick: () => nav('/audit') }, { label: 'See all payment issues', onClick: () => nav('/incidents') }, { label: 'See the first check', onClick: () => nav('/scan') }]} />}
     </Box>
   )
 }

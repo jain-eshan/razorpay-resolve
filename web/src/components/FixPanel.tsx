@@ -11,10 +11,10 @@ import { get, isLive, rupees, send, type Schemas } from '../lib/api'
 type Action = Schemas['Action']
 type Hook = { webhook_mode: string; healthy_hours: number; signal_healthy: boolean }
 
-const LEVEL = { suggest: 'Suggest', assist: 'Assist', autopilot_reversible: 'Autopilot' } as const
+const LEVEL = { suggest: 'Review first', assist: 'Approve once', autopilot_reversible: 'Full automation' } as const
 const LEVEL_NOTE = {
   suggest: 'You approve every step.',
-  assist: 'You approve the dry run once. The first 5 and the rest then run by themselves, and stop if anything fails.',
+  assist: 'You approve the test run once. The first 5 and the rest then run by themselves, and stop if anything fails.',
   autopilot_reversible: 'Steps run by themselves within your limits, and can be undone.',
 }
 const BUTTON: Record<string, string> = { dry_run: 'Looks right, continue', first_5: 'Grant the first 5', rest: 'Grant the rest' }
@@ -92,25 +92,25 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
   return (
     <Box display="flex" flexDirection="column" gap="spacing.5" testID="fix-panel">
       <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="medium">Fix it</Heading>
+        <Heading as="h2" size="medium">Fix it</Heading>
         <Text size="small" color="surface.text.gray.muted">
-          Autonomy: {LEVEL[level]}. {LEVEL_NOTE[level]} <Link size="small" href="/settings" onClick={(e) => { e.preventDefault(); nav('/settings') }}>Change it</Link>
+          Approvals: {LEVEL[level]}. {LEVEL_NOTE[level]} <Link size="small" href="/settings" onClick={(e) => { e.preventDefault(); nav('/settings') }}>Change it</Link>
         </Text>
       </Box>
 
-      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Click through the steps. Each one is the engine's real answer.`} />}
+      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Demo" description={`${demoNote} Click through the steps. Each answer comes from the real engine.`} />}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="That did not go through" description={error} />}
 
-      <Turn n={1} analyzing={busy === 'test'} title="Test your access hook" badge={tested ? ['Reachable', 'positive'] : grant ? ['Skipped, plan already exists', 'neutral'] : undefined}>
-        <Text size="small">Before anything changes, check that your side answers. Blindspot only switches access on through this hook. It cannot switch it off.</Text>
+      <Turn n={1} analyzing={busy === 'test'} title="Check your app can give access" badge={tested ? ['Reachable', 'positive'] : grant ? ['Skipped, plan already exists', 'neutral'] : undefined}>
+        <Text size="small">Before anything changes, check that your app answers. Blindspot can only give access through your app. It can never take access away.</Text>
         <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
-          <Button variant="secondary" isLoading={busy === 'test'} isDisabled={!!busy} onClick={() => run('test', async () => { await refreshHook(); setTested(true) })}>Test hook</Button>
-          {tested && hook && <Text size="small">Your hook answered. Your webhook {hook.webhook_mode === 'ok' ? 'is answering normally' : `is returning ${hook.webhook_mode}`}.</Text>}
+          <Button variant="secondary" isLoading={busy === 'test'} isDisabled={!!busy} onClick={() => run('test', async () => { await refreshHook(); setTested(true) })}>Run the check</Button>
+          {tested && hook && <Text size="small">Your app answered. Your webhook {hook.webhook_mode === 'ok' ? 'is answering normally' : `is returning ${hook.webhook_mode}`}.</Text>}
         </Box>
       </Turn>
 
       {(tested || !!grant) && (
-        <Turn n={2} analyzing={busy === 'plan'} you={'Test hook'} title="Dry run" badge={grant && grant.status !== 'reverted' ? [grant.status === 'drafted' ? 'Waiting for you' : 'Reviewed', grant.status === 'drafted' ? 'notice' : 'positive'] : undefined}>
+        <Turn n={2} analyzing={busy === 'plan'} you={'Run the check'} title="Test run" badge={grant && grant.status !== 'reverted' ? [grant.status === 'drafted' ? 'Waiting for you' : 'Reviewed', grant.status === 'drafted' ? 'notice' : 'positive'] : undefined}>
         {!grant || grant.status === 'reverted' ? (
           <Box display="flex" flexDirection="column" gap="spacing.3" alignItems="flex-start">
             <Text size="small">Lists who would be switched on. Changes nothing.</Text>
@@ -126,14 +126,14 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
               <Text key={m.payment_id} size="small">{m.customer_masked} · {m.plan} · {rupees(m.amount_paise)}{grant.status === 'drafted' ? ` · your records: ${m.merchant_state}` : ''}{m.complained ? ' · complained' : ''}</Text>
             ))}
             {total > 5 && <Text size="small" color="surface.text.gray.muted">and {total - 5} more</Text>}
-            {grant.status === 'drafted' ? stageButton(grant, setGrant) : <Approved>Dry run approved</Approved>}
+            {grant.status === 'drafted' ? stageButton(grant, setGrant) : <Approved>Test run approved</Approved>}
           </Box>
         )}
       </Turn>
       )}
 
       {!!grant && grant.status !== 'drafted' && (
-        <Turn n={3} analyzing={busy === 'undo' || busy === `${grant.id}:${grant.next_stage}`} you={grant.status === 'reverted' ? 'Undo the grants' : 'Looks right, continue'} title="Switch access on, 5 then the rest" badge={grant.status !== 'reverted' ? [grant.status === 'done' ? 'Done' : grant.status === 'failed' ? 'Stopped' : `${done} of ${total}`, grant.status === 'done' ? 'positive' : grant.status === 'failed' ? 'negative' : 'notice'] : undefined}>
+        <Turn n={3} analyzing={busy === 'undo' || busy === `${grant.id}:${grant.next_stage}`} you={grant.status === 'reverted' ? 'Undo the grants' : 'Looks right, continue'} title="Give access: 5 first, then the rest" badge={grant.status !== 'reverted' ? [grant.status === 'done' ? 'Done' : grant.status === 'failed' ? 'Stopped' : `${done} of ${total}`, grant.status === 'done' ? 'positive' : grant.status === 'failed' ? 'negative' : 'notice'] : undefined}>
         {grant.status === 'reverted' ? (
           <Text size="small">Undone. Every record is back to how it was. Plan again whenever you are ready.</Text>
         ) : (
@@ -172,7 +172,7 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
               </SegmentedControl>
             )}
             <Label>Nothing is sent without your approval</Label>
-            <Heading size="medium">Send this to {msg.items.length} customers on <Accent>WhatsApp</Accent>?</Heading>
+            <Heading as="h2" size="medium">Send this to {msg.items.length} customers on <Accent>WhatsApp</Accent>?</Heading>
             <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(min(100%, 280px), 1fr))" gap="spacing.5" justifyItems="center">
               {previews.slice(0, 2).map((p) => (
                 <Box key={p.template_id + p.language} display="flex" flexDirection="column" gap="spacing.3" width="100%" alignItems="center">
@@ -205,25 +205,25 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
       )}
 
       {(done > 0 || inc.status === 'closed') && (
-        <Turn n={5} analyzing={busy === 'verify'} you={result ? 'Verify and close' : undefined} title="Verify and close" badge={inc.status === 'closed' ? ['Closed', 'positive'] : undefined}>
+        <Turn n={5} analyzing={busy === 'verify'} you={result ? 'Check it held and close' : undefined} title="Check it held and close" badge={inc.status === 'closed' ? ['Closed', 'positive'] : undefined}>
         <Text size="small">Checks every restored customer against your records again, and that your webhook has answered normally for 24 hours.</Text>
         <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
           <Button variant="secondary" isLoading={busy === 'verify'} isDisabled={!grant || !!busy} onClick={() => run('verify', async () => { setResult(await send<Schemas['VerifyResult']>('POST', `/api/incidents/${inc.id}/verify`)); await refreshHook(); onChanged() })}>
-            Verify and close
+            Check it held and close
           </Button>
           {result && <Text weight="semibold" color={result.closeable ? 'feedback.text.positive.intense' : 'feedback.text.notice.intense'}>{result.line}</Text>}
         </Box>
-        {result?.closeable && inc.status === 'closed' && <SuccessMoment heading={`${result.verified} customers have access again`} detail={`${rupees(restoredPaise)} restored. This incident is closed.`} />}
+        {result?.closeable && inc.status === 'closed' && <SuccessMoment heading={`${result.verified} customers have access again`} detail={`${rupees(restoredPaise)} restored. This payment issue is closed.`} />}
       </Turn>
       )}
 
-      {result?.closeable && inc.status === 'closed' && <NextSteps next={[{ label: 'Open the audit log', onClick: () => nav('/audit') }, { label: 'See all incidents', onClick: () => nav('/incidents') }, { label: 'Run the Day-0 scan', onClick: () => nav('/scan') }]} />}
+      {result?.closeable && inc.status === 'closed' && <NextSteps next={[{ label: 'Open the audit trail', onClick: () => nav('/audit') }, { label: 'See all payment issues', onClick: () => nav('/incidents') }, { label: 'See the first check', onClick: () => nav('/scan') }]} />}
 
       <Card>
         <CardBody>
           <Box display="flex" flexDirection="column" gap="spacing.3">
             <Box display="flex" gap="spacing.3" alignItems="center">
-              <Heading size="small">Demo controls</Heading>
+              <Heading as="h3" size="small">Demo controls</Heading>
               <Badge color="neutral">Simulated merchant</Badge>
             </Box>
             <Text size="small" color="surface.text.gray.muted">

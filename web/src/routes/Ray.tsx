@@ -4,7 +4,7 @@ import { m } from 'framer-motion'
 import { Box, Card, CardBody, CheckCircleIcon, CircleIcon, Heading, Text } from '@razorpay/blade/components'
 import { WhatsAppChat } from '../components/WhatsAppChat'
 import { rupees, useGet, type Schemas } from '../lib/api'
-import { when } from '../lib/format'
+import { cause, when } from '../lib/format'
 import { waTime } from '../lib/whatsapp'
 import { prefersReducedMotion } from '../razorsense'
 
@@ -31,26 +31,26 @@ export default function Ray() {
 
   const chats: Chat[] = []
   const at = (i: Schemas['IncidentSummary']) => i.would_have_alerted_at ?? i.onset_at
-  if (inc && card) chats.push({ key: 'A', caption: 'Paid, and no access', card, line: `${card.affected} customers · ${rupees(card.at_risk_paise)} at risk`, day: when(at(inc)), time: waTime(at(inc)),
-    text: `Heads up · ${card.owner_chip}\n\nYour webhook is failing, so paid customers are not getting access.${atAlert === null ? '' : ` ${atAlert} customer${atAlert === 1 ? '' : 's'} affected so far.`}` })
+  if (inc && card) chats.push({ key: 'A', caption: 'Paid, and no access', card, line: `${card.affected} customers paid, no access`, day: when(at(inc)), time: waTime(at(inc)),
+    text: `Heads up · Cause: ${cause(inc)}\n\nYour webhook is failing, so paid customers are not getting access.${atAlert === null ? '' : ` ${atAlert} customer${atAlert === 1 ? '' : 's'} affected so far.`}` })
   if (incB && cardB) chats.push({ key: 'B', caption: 'Could not pay at all', card: cardB, line: `About ${cardB.affected} orders lost${cardB.at_risk_paise ? ` · ${rupees(cardB.at_risk_paise)} still reachable` : ''}`, day: when(at(incB)), time: waTime(at(incB)),
-    text: `Heads up · ${cardB.owner_chip}\n\nYour pay page stopped answering minutes after a deploy. Razorpay cannot see this, so I am telling you.` })
-  if (incC && cardC) chats.push({ key: 'C', caption: "Razorpay's side", card: cardC, line: `${cardC.affected} renewals failed · ${rupees(cardC.at_risk_paise)} to collect`, day: when(at(incC)), time: waTime(at(incC)),
-    text: `Heads up · ${cardC.owner_chip}\n\nCard renewals are failing with a gateway error. Nothing changed on your side.` })
+    text: `Heads up · Cause: ${cause(incB)}\n\nYour pay page stopped answering minutes after a deploy. Razorpay cannot see this, so I am telling you.` })
+  if (incC && cardC) chats.push({ key: 'C', caption: 'Renewals failed at Razorpay', card: cardC, line: `${cardC.affected} renewals failed · ${rupees(cardC.at_risk_paise)} to collect`, day: when(at(incC)), time: waTime(at(incC)),
+    text: `Heads up · Cause: ${cause(incC)}\n\nCard renewals are failing with a gateway error. Nothing changed on your side.` })
   if (incD && cardD) chats.push({ key: 'D', caption: 'Charged twice', card: cardD, line: `${cardD.affected} customers · ${rupees(cardD.at_risk_paise)} to refund`, day: when(at(incD)), time: waTime(at(incD)),
-    text: `Heads up · ${cardD.owner_chip}\n\nCustomers are being charged twice, all from one Android release. Your webhook is fine.` })
+    text: `Heads up · Cause: ${cause(incD)}\n\nCustomers are being charged twice, all from one Android release. Your webhook is fine.` })
   const shown = chats.find((c) => c.key === pick) ?? chats[0]
   const go = (c: RayCard, label: string) => nav(label === c.buttons[1] ? `/incidents/${c.incident_id}/dev` : `/incidents/${c.incident_id}`)
 
   return (
     <Box display="flex" flexDirection="column" gap="spacing.5" testID="ray-whatsapp">
       <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="large">Ray on WhatsApp</Heading>
+        <Heading as="h2" size="large">Ray on WhatsApp</Heading>
         <Text color="surface.text.gray.muted">Simulated. The first message you would get, before a customer tells you. Pick a problem to see it.</Text>
       </Box>
       {error && <Text color="feedback.text.negative.intense">Could not load: {error}</Text>}
       {shown && (
-        <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'minmax(0, 1fr) minmax(0, 1fr)' }} gap="spacing.5">
+        <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'minmax(0, 1fr) minmax(0, 1fr)', xl: 'minmax(0, 3fr) minmax(0, 2fr)' }} gap="spacing.5">
           <Box display="flex" flexDirection="column" justifyContent="space-between" gap="spacing.3" order={{ base: 2, l: 1 }}>
             {chats.map((c) => {
               const on = c.key === shown.key
@@ -59,7 +59,7 @@ export default function Ray() {
                   <CardBody>
                     <Box display="flex" justifyContent="space-between" alignItems="center" gap="spacing.4">
                       <Box display="flex" flexDirection="column" gap="spacing.1">
-                        <Heading size="small">{c.caption}</Heading>
+                        <Heading as="h3" size="small">{c.caption}</Heading>
                         <Text size="small" color="surface.text.gray.muted">{c.line}</Text>
                       </Box>
                       {on ? <CheckCircleIcon size="large" color="surface.icon.primary.normal" /> : <CircleIcon size="large" color="surface.icon.gray.muted" />}
@@ -70,12 +70,19 @@ export default function Ray() {
             })}
           </Box>
           {/* Below l the clip comes first, so picking a problem changes what is on screen, not something below it. */}
-          <Box order={{ base: 1, l: 2 }}><Card height="100%" padding="spacing.5"><CardBody><Box display="flex" alignItems="center" justifyContent="center" height="100%">
-            <m.div key={shown.key} initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: [0, 0, 0.2, 1] }} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-              <WhatsAppChat name="Ray by Razorpay" avatar="razorpay" compact notice={false} testID={`ray-chat-${shown.key}`}
-                messages={[{ from: 'business', day: shown.day, time: shown.time, text: shown.text, buttons: shown.card.buttons.slice(0, 2) }]}
-                onButton={(label) => go(shown.card, label)} />
-            </m.div>
+          {/* Every clip is laid in the same grid cell and only the picked one is visible, so the card is always as tall as the longest clip and nothing moves when you pick another. */}
+          <Box order={{ base: 1, l: 2 }}><Card height="100%" padding="spacing.4"><CardBody><Box display="grid" alignItems="center" height="100%">
+            {chats.map((c) => {
+              const on = c.key === shown.key
+              return (
+                <m.div key={c.key} aria-hidden={!on} initial={false} animate={on ? { opacity: 1, y: 0 } : { opacity: 0, y: prefersReducedMotion ? 0 : 8 }} transition={{ duration: prefersReducedMotion ? 0 : 0.28, ease: [0, 0, 0.2, 1] }}
+                  style={{ gridArea: '1 / 1', visibility: on ? 'visible' : 'hidden', width: '100%', display: 'flex', justifyContent: 'center' }}>
+                  <WhatsAppChat name="Ray by Razorpay" avatar="razorpay" compact notice={false} testID={`ray-chat-${c.key}`}
+                    messages={[{ from: 'business', day: c.day, time: c.time, text: c.text, buttons: c.card.buttons.slice(0, 2) }]}
+                    onButton={(label) => go(c.card, label)} />
+                </m.div>
+              )
+            })}
           </Box></CardBody></Card></Box>
         </Box>
       )}

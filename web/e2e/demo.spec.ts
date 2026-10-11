@@ -10,21 +10,21 @@ test('Hero A plays end to end with no server: fix in stages, undo, message, veri
   await page.goto('/')
   await page.getByRole('button', { name: 'View list' }).click()
   await expect(page).toHaveURL(/\/incidents\/INC-1$/)
-  await expect(panel(page).getByText('Guided demo', { exact: true })).toBeVisible()
-  const exact = Number((await page.getByText(/^Exact \(\d+\)/).innerText()).match(/\d+/)![0])
+  await expect(panel(page).getByText('Demo', { exact: true })).toBeVisible()
+  const exact = Number((await page.getByText(/^Certain \(\d+\)/).innerText()).match(/\d+/)![0])
 
-  await btn(page, 'Test hook').click()
-  await expect(panel(page).getByText(/Your hook answered. Your webhook is returning 401/)).toBeVisible()
+  await btn(page, 'Run the check').click()
+  await expect(panel(page).getByText(/Your app answered. Your webhook is returning 401/)).toBeVisible()
   await btn(page, 'Plan the fix').click()
   await expect(panel(page).getByText(new RegExp(`^${exact} customers, ₹`))).toBeVisible()
   await btn(page, 'Looks right, continue').click()
   await btn(page, 'Grant the first 5').click()
   await expect(panel(page).getByText(new RegExp(`^5 of ${exact} confirmed active by your records`))).toBeVisible()
-  await expect(page.getByText(new RegExp(`^Exact \\(${exact - 5}\\)`))).toBeVisible() // the page's own numbers move with the fix
+  await expect(page.getByText(new RegExp(`^Certain \\(${exact - 5}\\)`))).toBeVisible() // the page's own numbers move with the fix
 
   await btn(page, 'Undo these changes').click()
   await expect(panel(page).getByText(/Undone\. Every record is back to how it was/)).toBeVisible()
-  await expect(page.getByText(new RegExp(`^Exact \\(${exact}\\)`))).toBeVisible()
+  await expect(page.getByText(new RegExp(`^Certain \\(${exact}\\)`))).toBeVisible()
   await btn(page, 'Plan the fix').click()
   await btn(page, 'Looks right, continue').click()
   await btn(page, 'Grant the first 5').click()
@@ -45,13 +45,13 @@ test('Hero A plays end to end with no server: fix in stages, undo, message, veri
   await expect(panel(page).getByTestId('approved').filter({ hasText: /^Sent to \d+ customers/ })).toBeVisible() // the button became a green tick
   await expect(page.getByText('Undo these changes')).toHaveCount(0) // customers were told
 
-  await btn(page, 'Verify and close').click()
+  await btn(page, 'Check it held and close').click()
   await expect(panel(page).getByText(/still answers 401/)).toBeVisible()
   await btn(page, 'Your developer ships the fix').click()
-  await btn(page, 'Verify and close').click()
+  await btn(page, 'Check it held and close').click()
   await expect(panel(page).getByText(/0\.0 of 24 hours/)).toBeVisible()
   await btn(page, 'Move the clock forward 24 hours').click()
-  await btn(page, 'Verify and close').click()
+  await btn(page, 'Check it held and close').click()
   await expect(panel(page).getByText(/Your webhook has answered normally for 24 hours\. ₹[\d,]+ restored/)).toBeVisible()
   await expect(page.getByTestId('success-moment')).toBeVisible()
 
@@ -63,9 +63,9 @@ test('Hero A plays end to end with no server: fix in stages, undo, message, veri
 
 test('the stages cannot be skipped in the demo either', async ({ page }) => {
   await page.goto('/incidents/INC-1')
-  await btn(page, 'Test hook').click()
+  await btn(page, 'Run the check').click()
   await btn(page, 'Plan the fix').click()
-  await expect(btn(page, 'Grant the first 5')).toHaveCount(0) // the dry run has to be approved first
+  await expect(btn(page, 'Grant the first 5')).toHaveCount(0) // the test run has to be approved first
   await expect(btn(page, 'Looks right, continue')).toBeVisible()
 })
 
@@ -102,7 +102,7 @@ test('help button on a receipt, and email, both play their recorded conversation
   await page.goto('/help-demo/receipt')
   await page.getByRole('button', { name: 'Need help with this payment?' }).click()
   await page.getByTestId('customer-chat').getByRole('button', { name: 'access nahi mila' }).click()
-  await page.getByText('See it as the founder').click()
+  await page.getByText('See it as you would').click()
   await expect(page.getByTestId('thread-view').getByText('Waiting for the fix')).toBeVisible()
   await page.goto('/email-demo')
   await page.getByRole('button', { name: 'Send email' }).click()
@@ -111,7 +111,7 @@ test('help button on a receipt, and email, both play their recorded conversation
 
 test('messaging stays off until the founder switches it on, in the demo as in the live product', async ({ page }) => {
   await page.goto('/incidents/INC-1')
-  await btn(page, 'Test hook').click()
+  await btn(page, 'Run the check').click()
   await btn(page, 'Plan the fix').click()
   await btn(page, 'Looks right, continue').click()
   await btn(page, 'Grant the first 5').click()
@@ -126,10 +126,10 @@ test('Hero B plays end to end with no server: infer, check the page, fix, links 
   await expect(page.getByText(/Your pay page stopped answering/)).toBeVisible()
   await page.getByRole('button', { name: 'View evidence' }).click()
   await expect(page).toHaveURL(/\/incidents\/INC-4$/)
-  await expect(page.getByText('Inferred. Your side · Code').first()).toBeVisible()
-  await expect(page.getByText('Razorpay did not see this')).toBeVisible()
-  await expect(page.getByText(/Inferred from 4 pieces of evidence, 5 points/)).toBeVisible()
-  await expect(page.getByText(/We cannot see: Anything between the customer's device/)).toBeVisible()
+  await expect(page.getByText('Your code · estimated').first()).toBeVisible()
+  await expect(page.getByText('Razorpay could not see this')).toBeVisible()
+  await expect(page.getByText('4 signals, strongest first')).toBeVisible()
+  await expect(page.getByText(/What Blindspot cannot see: Anything between the customer's device/)).toBeVisible()
   await expect(page.getByTestId('orders-chart')).toBeVisible()
   await expect(page.getByText('Instagram replies arrive in a later release.').first()).toBeVisible()
 
@@ -148,7 +148,7 @@ test('Hero B plays end to end with no server: infer, check the page, fix, links 
   await btn(page, 'Looks right, continue').click()
   await btn(page, 'Send the first 5').click()
   await expect(panel(page).getByText('5 of 7', { exact: true })).toBeVisible()
-  await btn(page, 'Verify and close').click()
+  await btn(page, 'Check it held and close').click()
   await expect(panel(page).getByText(/Paid since: 0 of 5 customers/)).toBeVisible() // half sent: stays open
   await expect(page.getByText('Still open')).toBeVisible()
   await btn(page, /^Send the rest/).click()
@@ -160,7 +160,7 @@ test('Hero B plays end to end with no server: infer, check the page, fix, links 
   await expect(panel(page).getByText(/^4 of 7 customers with a link have paid/)).toBeVisible()
   await expect(panel(page).getByText(/Held back on purpose: 0 of 1 paid on their own. Too few customers to say what the link adds/)).toBeVisible()
   await expect(panel(page).getByText(/simulated, with behaviour set in the synthetic world/)).toBeVisible()
-  await btn(page, 'Verify and close').click()
+  await btn(page, 'Check it held and close').click()
   await expect(page.getByTestId('success-moment')).toBeVisible()
   await expect(panel(page).getByText(/4 of 8 customers paid/).or(panel(page).getByText(/customers paid/)).first()).toBeVisible()
 
@@ -177,14 +177,15 @@ test('Hero B: links cannot be sent before the page has held for two hours, and a
   await btn(page, 'Your developer fixes the pay page').click()
   await expect(panel(page).getByText(/0 of 2 hours/).first()).toBeVisible()
   await btn(page, 'Move the clock forward 2 hours').click()
-  await expect(btn(page, 'Send the first 5')).toHaveCount(0) // the dry run has to be approved first
+  await expect(btn(page, 'Send the first 5')).toHaveCount(0) // the test run has to be approved first
   await expect(btn(page, 'Looks right, continue')).toBeEnabled()
 })
 
-test('the checkout incident (INC-5) reads from the orders, and a pay-page check cannot see it', async ({ page }) => {
+test('the checkout issue (INC-5) reads from the orders, and a pay-page check cannot see it', async ({ page }) => {
   await page.goto('/incidents')
-  await page.getByRole('link', { name: 'Checkout would not open after the Razorpay key changed' }).click()
-  await expect(page.getByText('Inferred. Your side · Setup').first()).toBeVisible()
+  await page.getByRole('link', { name: 'About 12 customers could not pay' }).click()
+  await expect(page.getByText('Checkout would not open after the Razorpay key changed', { exact: false }).first()).toBeVisible()
+  await expect(page.getByText('Your settings · estimated').first()).toBeVisible()
   await expect(page.getByText(/orders were created and nobody tried to pay for them/)).toBeVisible()
   await expect(panel(page).getByText(/A page check cannot see a checkout that will not open/)).toBeVisible()
   await expect(btn(page, 'Check the pay page now')).toHaveCount(0)
@@ -251,8 +252,8 @@ test('public post: a real post from the research is watched and never answered, 
 test('Learning: a false alarm makes the alerts stricter at the review, with the reason, the version and an audit line', async ({ page }) => {
   await page.goto('/incidents/INC-4')
   await page.getByRole('button', { name: 'This was a false alarm' }).click()
-  await expect(page.getByText(/Noted\. It is counted at the next review/)).toBeVisible()
-  await page.getByRole('link', { name: 'Learning screen' }).click()
+  await expect(page.getByText(/Noted\. It is counted at the next weekly review/)).toBeVisible()
+  await page.getByRole('link', { name: 'Alert tuning' }).last().click()
   await expect(page.getByText('No changes this week')).toBeVisible()
   await expect(page.getByText('You told me 1 false alarm this week.')).toBeVisible()
   await page.getByRole('button', { name: 'Review this week now' }).click()
@@ -260,28 +261,28 @@ test('Learning: a false alarm makes the alerts stricter at the review, with the 
   await expect(page.getByText(/I made the order-dip alert stricter: .* about 1 in 200 times \(it was 1 in 100\), because 1 order-dip alert was marked false\./)).toBeVisible()
   await expect(page.getByText('v1: 1 in 200').first()).toBeVisible()
   await expect(page.getByText('Simulated', { exact: true })).toBeVisible()
-  await expect(page.getByText(/Over six weeks: .* false alerts with no learning/)).toBeVisible()
-  await page.getByRole('link', { name: 'Audit log' }).click()
+  await expect(page.getByText(/Over six weeks: .* false alerts with no tuning/)).toBeVisible()
+  await page.getByRole('link', { name: 'Audit trail' }).first().click()
   await expect(page.getByText(/Changed order_dip_p_threshold from 0.01 to 0.005/)).toBeVisible()
   await expect(page.getByText('Feedback: false alarm')).toBeVisible()
 })
 
-test('Learning: reporting a missed incident is a live-demo feature, and says so', async ({ page }) => {
+test('Alert tuning: reporting a missed alert is a live feature, and the demo says so', async ({ page }) => {
   await page.goto('/learning')
   await page.getByRole('button', { name: 'Orders dropped and nothing alerted' }).click()
-  await expect(page.getByText(/works in the live demo/)).toBeVisible()
+  await expect(page.getByText(/works in the live version/)).toBeVisible()
 })
 
 // ---------- INC-3: card renewals that failed on Razorpay's side. Not inferred, not the merchant's: keep access on, tell the customers, send the evidence ----------
 test('INC-3 plays end to end with no server: why it is Razorpay\'s, access kept in stages, customers told, evidence sent, closed', async ({ page }) => {
   await page.goto('/')
-  await page.getByText('Razorpay\'s side', { exact: true }).click({ force: true })  // the home shows one clip at a time; pick this problem first
+  await page.getByText('Renewals failed at Razorpay', { exact: true }).click({ force: true })  // the home shows one clip at a time; pick this problem first
   await expect(page.getByText(/Card renewals are failing with a gateway error/)).toBeVisible()
   await page.getByRole('button', { name: 'See what failed' }).click()
   await expect(page).toHaveURL(/\/incidents\/INC-3$/)
   await expect(page.getByText("This one is on Razorpay's side")).toBeVisible()
-  await expect(page.getByText(/Pointing at Razorpay: 6 pieces of evidence, 10 points/)).toBeVisible()
-  await expect(page.getByText(/We cannot see: Why the gateway returned the error/)).toBeVisible()
+  await expect(page.getByText('6 signals pointing at Razorpay, strongest first')).toBeVisible()
+  await expect(page.getByText(/What Blindspot cannot see: Why the gateway returned the error/)).toBeVisible()
   await expect(page.getByTestId('renewal-chart')).toBeVisible()
   await expect(page.getByText(/Paid since/).first()).toBeVisible() // the customers who paid again are listed, with the reason, and left out
 
@@ -290,7 +291,7 @@ test('INC-3 plays end to end with no server: why it is Razorpay\'s, access kept 
   await btn(page, 'Looks right, continue').click()
   await btn(page, 'Keep access on for the first 5').click()
   await expect(panel(page).getByText('5 of 24', { exact: true })).toBeVisible()
-  await btn(page, 'Verify and close').click()
+  await btn(page, 'Check it held and close').click()
   await expect(panel(page).getByText(/19 are still waiting for the next step/)).toBeVisible() // half done stays open
   await expect(page.getByText('Still open')).toBeVisible()
   await btn(page, /^Keep access on for the rest/).click()
@@ -324,7 +325,7 @@ test('INC-3 plays end to end with no server: why it is Razorpay\'s, access kept 
   await expect(panel(page).getByText(/^12 of 22 customers with a link have renewed, ₹3,588 collected/)).toBeVisible()
   await expect(panel(page).getByText(/Too few customers to say what the link adds/)).toBeVisible()
 
-  await btn(page, 'Verify and close').click()
+  await btn(page, 'Check it held and close').click()
   await expect(page.getByTestId('success-moment')).toBeVisible()
   await expect(panel(page).getByText(/24 of 24 confirmed to have access by your records/).first()).toBeVisible()
   await expect(panel(page).getByText(/Renewed since: 12 of 24 customers/).first()).toBeVisible()
@@ -354,8 +355,8 @@ test('INC-2 plays end to end with no server: why, who was left out, refunds one 
   await page.getByRole('button', { name: 'See who was charged twice' }).click()
   await expect(page).toHaveURL(/\/incidents\/INC-2$/)
   await expect(page.getByText('Your webhook was fine. The second charge is the problem')).toBeVisible()
-  await expect(page.getByText(/On your side: 6 pieces of evidence, 11 points/)).toBeVisible()
-  await expect(page.getByText(/We cannot see: Whether the customer meant to buy twice/)).toBeVisible()
+  await expect(page.getByText('6 signals pointing at your side, strongest first')).toBeVisible()
+  await expect(page.getByText(/What Blindspot cannot see: Whether the customer meant to buy twice/)).toBeVisible()
   await expect(page.getByTestId('duplicate-chart')).toBeVisible()
   await page.getByText(/^Left out \(5\)/).click()
   await expect(page.getByText(/Two seats for two people/).first()).toBeVisible() // the look-alikes are listed, with the reason, and not touched
@@ -365,7 +366,7 @@ test('INC-2 plays end to end with no server: why, who was left out, refunds one 
   await expect(panel(page).getByText(/^15 customers, ₹4,985 to go back/)).toBeVisible()
   await expect(btn(page, /^Refund ₹/).first()).toBeDisabled() // nothing can be refunded before the list is approved
   await btn(page, 'Looks right, continue').click()
-  await expect(panel(page).getByText('Dry run approved')).toBeVisible()
+  await expect(panel(page).getByText('Test run approved')).toBeVisible()
   await expect(btn(page, /^Refund ₹/).nth(1)).toBeDisabled() // the hosted demo goes in the order shown
   for (let i = 1; i <= 15; i++) {
     await btn(page, /^Refund ₹/).first().click()
@@ -375,7 +376,7 @@ test('INC-2 plays end to end with no server: why, who was left out, refunds one 
   await expect(btn(page, /^Refund ₹/)).toHaveCount(0)
   await expect(btn(page, /undo/i)).toHaveCount(0) // a refund cannot be undone, so there is no button for it
 
-  await btn(page, 'Verify and close').click()
+  await btn(page, 'Check it held and close').click()
   await expect(panel(page).getByText(/The app still lets the Pay button be tapped twice/)).toBeVisible()
   await btn(page, 'Preview the message').click()
   await expect(panel(page).getByText(/hosted demo, tell the customers once every refund has its bank reference/)).toBeVisible()
@@ -392,11 +393,11 @@ test('INC-2 plays end to end with no server: why, who was left out, refunds one 
   await expect(panel(page).getByText('Sent to 15 customers')).toBeVisible()
 
   await btn(page, 'Your developer ships the fix').click()
-  await btn(page, 'Verify and close').click()
+  await btn(page, 'Check it held and close').click()
   await expect(panel(page).getByText(/Verify again later/)).toBeVisible()
   await expect(page.getByText('Still open')).toBeVisible()
   await btn(page, 'Move the clock forward 24 hours').click()
-  await btn(page, 'Verify and close').click()
+  await btn(page, 'Check it held and close').click()
   await expect(page.getByTestId('success-moment')).toBeVisible()
   await expect(panel(page).getByText(/₹4,985 returned/).first()).toBeVisible()
 
@@ -419,15 +420,16 @@ test('the release check turns green for the webhook once its developer ships the
   await page.goto('/')
   await page.getByRole('button', { name: 'View list' }).click()
   await expect(page).toHaveURL(/\/incidents\/INC-1$/)
-  await btn(page, 'Test hook').click()
+  await btn(page, 'Run the check').click()
   await btn(page, 'Plan the fix').click()
   await btn(page, 'Looks right, continue').click()
   await btn(page, 'Grant the first 5').click()
   await btn(page, /^Grant the rest/).click()
-  await btn(page, 'Verify and close').click()
+  await btn(page, 'Check it held and close').click()
   await expect(panel(page).getByText(/still answers 401/)).toBeVisible()
   await btn(page, 'Your developer ships the fix').click()
-  await page.getByRole('link', { name: 'Release check' }).first().click()
+  await page.getByRole('link', { name: 'Integration' }).first().click()
+  await page.getByText('2. Go-live check').click()
   await expect(page).toHaveURL(/\/release-check$/)
   await expect(page.getByText('Passed', { exact: true })).toHaveCount(3)  // answers, accepts, acknowledges
   await expect(page.getByText('Failed', { exact: true })).toHaveCount(1)  // the pay page is still a 404

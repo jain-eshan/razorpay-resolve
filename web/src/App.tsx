@@ -29,7 +29,9 @@ import { ThreadPage, Threads } from './routes/Threads'
 export default function App() {
   return (
     <Shell>
-        <Box flex="1" overflow="auto" minWidth="0px" backgroundColor="surface.background.gray.moderate">
+        <Box flex="1" overflow="auto" minWidth="0px" backgroundColor="surface.background.gray.moderate" testID="scroller">
+          {/* A plain <main>: Blade's Box does not take an element type, and screen readers need one main region per page to jump to. */}
+          <main>
           <Alert color="neutral" isFullWidth isDismissible={false} description="Synthetic data. The merchant (Kaksha), its customers and every payment here are fictional." />
           <Box maxWidth="1120px" marginX="auto" testID="page" padding={{ base: 'spacing.5', m: 'spacing.7' }} paddingBottom="spacing.11">
             <Routes>
@@ -59,6 +61,7 @@ export default function App() {
               <Route path="/reference" element={<Reference />} />
             </Routes>
           </Box>
+          </main>
         </Box>
     </Shell>
   )

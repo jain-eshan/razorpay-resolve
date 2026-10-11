@@ -10,7 +10,7 @@ export function Stat({ label, value, hint, icon: Icon, tone = 'neutral' }: { lab
           {Icon && <Box flexShrink={0} display="flex"><Icon size="large" color={tone === 'neutral' ? 'surface.icon.gray.muted' : `feedback.icon.${tone}.intense`} /></Box>}
           <Box display="flex" flexDirection="column">
             <Text size="small" weight="semibold" color="surface.text.gray.subtle">{label}</Text>
-            <Heading size="large">{value}</Heading>
+            <Heading as="h2" size="large">{value}</Heading>
             {hint && <Text size="small" color="surface.text.gray.muted">{hint}</Text>}
           </Box>
         </Box>

@@ -24,16 +24,33 @@ export const sentence = (s: string) => {
 export const CHANNEL: Record<string, string> = { help_button: 'Help button on Razorpay pages', whatsapp_payments: 'WhatsApp payments number', email: 'Email', ig_dm: 'Instagram DMs', fb_dm: 'Messenger',
   public_mention: 'Public mentions', ray_forward: 'Forward from Ray', paste: 'Paste a complaint', csv: 'Upload a CSV' }
 
+// Whose side the cause is on, in the merchant's words.
 export const OWNER: Record<string, string> = {
-  merchant_code: 'Your side · Code',
-  merchant_config: 'Your side · Setup',
-  razorpay: 'Razorpay side',
-  bank: 'Bank side',
-  customer: 'Customer side',
+  merchant_code: 'Your code',
+  merchant_config: 'Your settings',
+  razorpay: 'Razorpay',
+  bank: 'The bank',
+  customer: 'The customer',
   unknown: 'Not sure yet',
 }
+// "Estimated" when no payment exists to look up (the customer never reached checkout), so the cause is worked out from other signals.
+export const cause = (i: { owner: string; inferred: boolean }) => `${OWNER[i.owner]}${i.inferred ? ' · estimated' : ''}`
 
-export const ZONE: Record<string, string> = { before: 'Before Razorpay', during: 'Inside the payment', after: 'After the payment' }
+export const ZONE: Record<string, string> = { before: 'Before payment', during: 'During payment', after: 'After payment' }
+export const ZONE_LINE: Record<string, string> = {
+  before: 'Customers could not pay, so Razorpay never saw an attempt',
+  during: 'Bank and UPI failures',
+  after: 'Customers paid, then something went wrong',
+}
+
+// What happened to customers, as a merchant would say it. The engine's title says the technical cause and sits under this one.
+export const headline = (i: { mismatch_type: string; affected: number; title: string }) =>
+  ({
+    A: `${i.affected} customers paid and did not get access`,
+    E: `${i.affected} customers were charged twice`,
+    G: `${i.affected} card renewals failed on Razorpay's side`,
+    Z1: `About ${i.affected} customers could not pay`,
+  })[i.mismatch_type] ?? i.title
 
 export const dayLabel = (iso: string) =>
   new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: '2-digit', month: 'short', timeZone: IST }).format(new Date(iso)).replace(',', '').replace('Sept', 'Sep')

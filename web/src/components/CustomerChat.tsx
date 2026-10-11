@@ -45,7 +45,7 @@ export function CustomerChat({ channel, who, context, title, onThread, placehold
     <Box backgroundColor="surface.background.gray.subtle" borderRadius="xlarge" borderWidth="thin" borderColor="surface.border.gray.normal" padding="spacing.5" display="flex" flexDirection="column" gap="spacing.4" width="100%" testID="customer-chat">
       <Box display="flex" alignItems="center" gap="spacing.3">
         <RayIcon size="large" color="surface.icon.onSea.onSubtle" />
-        <Box><Text weight="semibold">{title}</Text><Text size="small" color="surface.text.gray.muted">Simulated. You are the customer.</Text></Box>
+        <Box><Text weight="semibold">{title}</Text><Text size="small" color="surface.text.gray.muted">You are the customer.</Text></Box>
       </Box>
       {(() => {
         const body = (m: (typeof shown)[number], i: number) => (m.direction === 'inbound' ? (typed[shown.slice(0, i).filter((x) => x.direction === 'inbound').length - (inbound - typed.length)] ?? m.body) : m.body)

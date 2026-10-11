@@ -23,7 +23,7 @@ export function FeedbackPanel({ incidentId }: { incidentId: string }) {
     <Panel title="Was this a real problem?" subtitle="If it was not, say so. Alerts like this one get a little stricter at the next weekly review.">
       <Box display="flex" alignItems="center" gap="spacing.4" flexWrap="wrap">
         <Button variant="secondary" isLoading={state === 'busy'} isDisabled={state !== 'idle'} onClick={tell}>This was a false alarm</Button>
-        {state === 'done' && <Text color="feedback.text.positive.intense">Noted. It is counted at the next review on the <Link to="/learning">Learning screen</Link>.</Text>}
+        {state === 'done' && <Text color="feedback.text.positive.intense">Noted. It is counted at the next weekly review in <Link to="/learning">Alert tuning</Link>.</Text>}
         {error && <Text color="feedback.text.negative.intense">{error}</Text>}
       </Box>
     </Panel>

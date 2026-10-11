@@ -1,3 +1,4 @@
+import { Crumbs } from '../components/Crumbs'
 import { useState } from 'react'
 import { Alert, Badge, Box, Text } from '@razorpay/blade/components'
 import { CustomerChat } from '../components/CustomerChat'
@@ -22,10 +23,11 @@ export default function IgDemo() {
   const [label, tone] = control(t)
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7">
+      <Crumbs items={[{ label: 'Customer complaints', to: '/threads' }, { label: 'Try it: Instagram', to: '/ig-demo' }]} />
       <PageHeader title="Instagram: control passes and returns" description="The merchant's Meta inbox stays in charge of every Instagram conversation. When a message is about a payment it passes the thread to Blindspot, and it takes the thread back when the conversation is over or a person is needed. A message that is not about a payment never leaves the inbox, and Blindspot says nothing and keeps nothing." />
       <Alert isFullWidth color="information" isDismissible={false} title="Meta's window rules apply"
         description="Blindspot can reply for 24 hours after the customer's last message. After that only a person can reply, with Meta's Human Agent tag, for up to 7 days. Blindspot never uses that tag." />
-      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Pick a message below. The founder's view on the right is the same screen the live version uses.`} />}
+      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Demo" description={`${demoNote} Pick a message below. Your view on the right is the same screen the live version uses.`} />}
       <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(320px, 400px) minmax(0, 1fr)' }} gap="spacing.7" alignItems="start">
         <CustomerChat channel="ig_dm" who="igsid_demo_a" title="kaksha on Instagram" onThread={setTid} placeholder="Send the merchant a direct message." />
         <Box minWidth="0px" display="flex" flexDirection="column" gap="spacing.4">
@@ -33,7 +35,7 @@ export default function IgDemo() {
             <Text weight="semibold">Control of this thread:</Text>
             <Badge color={tone} size="medium">{label}</Badge>
           </Box>
-          {t ? <ThreadView thread={t} onChanged={() => setV((n) => n + 1)} /> : <Text color="surface.text.gray.muted">The founder's view appears when the customer writes.</Text>}
+          {t ? <ThreadView thread={t} onChanged={() => setV((n) => n + 1)} /> : <Text color="surface.text.gray.muted">Your view appears when the customer writes.</Text>}
         </Box>
       </Box>
     </Box>

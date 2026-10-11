@@ -16,7 +16,7 @@ type AppHealth = { app_mode: string; healthy_hours: number; signal_healthy: bool
 const SEND: Record<string, string> = { dry_run: 'Looks right, continue', first_5: 'Send the first 5', rest: 'Send the rest' }
 
 // INC-2. Two things get fixed and neither is Blindspot's to do alone: the merchant's developer ships an app release that cannot double submit, and the founder
-// refunds each second charge to the original payment method. A refund is approved one customer at a time, at every autonomy level, and cannot be undone.
+// refunds each second charge to the original payment method. A refund is approved one customer at a time, at every approval level, and cannot be undone.
 export function DuplicateFix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; onChanged: () => void }) {
   const nav = useNavigate()
   const [plan, setPlan] = useState<Action>()
@@ -103,13 +103,13 @@ export function DuplicateFix({ inc, onChanged }: { inc: Schemas['IncidentDetail'
   return (
     <Box display="flex" flexDirection="column" gap="spacing.5" testID="fix-panel">
       <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="medium">What you can do</Heading>
+        <Heading as="h2" size="medium">What you can do</Heading>
         <Text size="small" color="surface.text.gray.muted">
-          Refund each second charge to the customer's original payment method, and have your developer fix the Pay button. A refund is approved one customer at a time, at every autonomy level, and it cannot be undone. <Link to="/settings">Settings</Link>
+          Refund each second charge to the customer's original payment method, and have your developer fix the Pay button. A refund is approved one customer at a time, at every approval level, and it cannot be undone. <Link to="/settings">Settings</Link>
         </Text>
       </Box>
 
-      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Click through the steps. Each one is the engine's real answer. Refund the customers in the order shown.`} />}
+      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Demo" description={`${demoNote} Click through the steps. Each answer comes from the real engine. Refund the customers in the order shown.`} />}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="That did not go through" description={error} />}
 
       <Turn n={1} analyzing={busy === 'plan' || busy?.startsWith(`${plan?.id}:`)} you={!plan ? undefined : reviewed ? 'Looks right, continue' : 'Plan the refunds'}
@@ -129,7 +129,7 @@ export function DuplicateFix({ inc, onChanged }: { inc: Schemas['IncidentDetail'
               <Text size="small">Looks right? Then approve the list. After that each customer has their own Refund button. Nothing is refunded by approving the list.</Text>
               <Button isLoading={busy === `${plan.id}:dry_run`} isDisabled={!!busy} onClick={() => approve(plan, 'dry_run')}>Looks right, continue</Button>
             </Box>}
-            {reviewed && <Approved>Dry run approved</Approved>}
+            {reviewed && <Approved>Test run approved</Approved>}
             {reviewed && <ProgressBar label="Refunded" value={total ? Math.round((refunded / total) * 100) : 0} />}
             {reviewed && refunded < total && <Text size="small" weight="semibold">Each Refund button sends that customer's refund now. It cannot be undone.</Text>}
             <Box display="flex" flexDirection="column">
@@ -180,7 +180,7 @@ export function DuplicateFix({ inc, onChanged }: { inc: Schemas['IncidentDetail'
                 </SegmentedControl>
               )}
               <Label>Nothing is sent without your approval</Label>
-              <Heading size="medium">Send this to {msg.items.length} customers on WhatsApp?</Heading>
+              <Heading as="h2" size="medium">Send this to {msg.items.length} customers on WhatsApp?</Heading>
               <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(min(100%, 280px), 1fr))" gap="spacing.5" justifyItems="center">
                 {previews.slice(0, 2).map((p) => (
                   <Box key={p.template_id + p.language} display="flex" flexDirection="column" gap="spacing.3" width="100%" alignItems="center">
@@ -215,25 +215,25 @@ export function DuplicateFix({ inc, onChanged }: { inc: Schemas['IncidentDetail'
       )}
 
       {(refunded > 0 || inc.status === 'closed') && (
-        <Turn n={refunded > 0 ? 3 : 2} analyzing={busy === 'verify'} you={result ? 'Verify and close' : undefined} title="Verify and close" badge={inc.status === 'closed' ? ['Closed', 'positive'] : undefined}>
+        <Turn n={refunded > 0 ? 3 : 2} analyzing={busy === 'verify'} you={result ? 'Check it held and close' : undefined} title="Check it held and close" badge={inc.status === 'closed' ? ['Closed', 'positive'] : undefined}>
           <Text size="small">Checks every refund against Razorpay's refund records again, and that the fixed app has run for 24 hours with no new double charge.</Text>
           <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
             <Button variant="secondary" isLoading={busy === 'verify'} isDisabled={!plan || !!busy} onClick={() => run('verify', async () => { setResult(await send<Schemas['VerifyResult']>('POST', `/api/incidents/${inc.id}/verify`)); await refresh(); onChanged() })}>
-              Verify and close
+              Check it held and close
             </Button>
             {result && <Text weight="semibold" color={result.closeable ? 'feedback.text.positive.intense' : 'feedback.text.notice.intense'}>{result.line}</Text>}
           </Box>
-          {result?.closeable && inc.status === 'closed' && <SuccessMoment heading={`${result.verified} customers got their money back`} detail={`${rupees(result.restored_paise)} returned. This incident is closed.`} />}
+          {result?.closeable && inc.status === 'closed' && <SuccessMoment heading={`${result.verified} customers got their money back`} detail={`${rupees(result.restored_paise)} returned. This payment issue is closed.`} />}
         </Turn>
       )}
 
-      {result?.closeable && inc.status === 'closed' && <NextSteps next={[{ label: 'Open the audit log', onClick: () => nav('/audit') }, { label: 'See all incidents', onClick: () => nav('/incidents') }, { label: 'Run the Day-0 scan', onClick: () => nav('/scan') }]} />}
+      {result?.closeable && inc.status === 'closed' && <NextSteps next={[{ label: 'Open the audit trail', onClick: () => nav('/audit') }, { label: 'See all payment issues', onClick: () => nav('/incidents') }, { label: 'See the first check', onClick: () => nav('/scan') }]} />}
 
       <Card>
         <CardBody>
           <Box display="flex" flexDirection="column" gap="spacing.3">
             <Box display="flex" gap="spacing.3" alignItems="center">
-              <Heading size="small">Demo controls</Heading>
+              <Heading as="h3" size="small">Demo controls</Heading>
               <Badge color="neutral">Simulated merchant</Badge>
             </Box>
             <Text size="small" color="surface.text.gray.muted">

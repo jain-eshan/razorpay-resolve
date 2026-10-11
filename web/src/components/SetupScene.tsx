@@ -1,8 +1,25 @@
 import type { ReactNode } from 'react'
 import { m } from 'framer-motion'
-import { Box, CheckCircleIcon, HeadsetIcon, MailIcon, RayIcon, UserCheckIcon, UsersIcon, WhatsAppIcon, type IconComponent } from '@razorpay/blade/components'
-import { useFlatPalette } from './FlatArt'
+import { Box, CheckCircleIcon, HeadsetIcon, MailIcon, RayIcon, UserCheckIcon, UsersIcon, useTheme, WhatsAppIcon, type IconComponent } from '@razorpay/blade/components'
 import { prefersReducedMotion } from '../razorsense'
+
+// The colours of the moving setup picture, from Blade tokens so it follows the theme.
+function useFlatPalette() {
+  const { theme } = useTheme()
+  const c = theme.colors
+  return {
+    line: c.interactive.border.primary.default,
+    paper: c.surface.background.gray.intense,
+    wash: c.surface.background.primary.moderate,
+    grey: c.surface.border.gray.normal,
+    soft: c.surface.background.gray.moderate,
+    mint: c.feedback.background.positive.subtle,
+    green: c.feedback.background.positive.intense,
+    peach: c.feedback.background.notice.subtle,
+    orange: c.feedback.background.notice.intense,
+    blue: c.interactive.background.primary.default,
+  }
+}
 
 // The picture in Setup's left card. It answers the question on the right as you answer it: on Channels the places you tick light up and send
 // messages to Ray, on Autonomy the messages stop at you, pass after one approval, or run on their own inside a limit, and on First scan a line sweeps
@@ -109,7 +126,7 @@ export function SetupScene({ step, channels, level }: { step: number; channels: 
   // The sweep crosses in two 960ms steps and holds for one, a few times, and ends on the result. Each customer changes colour as the line passes it.
   const sweep = 2 * T, cycle = 3 * T, x0 = 16, x1 = 224
   return (
-    <Stage label="A scan passes over every customer. The ones who paid and have no access turn orange." tiles={null}>
+    <Stage label="A check passes over every customer. The ones who paid and have no access turn orange." tiles={null}>
       {PEOPLE.map(([x, y], i) => {
         const bad = STUCK.has(i)
         const fill = bad ? p.peach : p.mint, stroke = bad ? p.orange : p.green

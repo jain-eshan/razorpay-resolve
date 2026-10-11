@@ -17,6 +17,7 @@ I cannot code. AI wrote all of the code. I did the product work: choosing the pr
 | Playwright, pytest, ruff, GitHub Actions | Browser tests at phone, tablet and desktop widths, backend tests, lint, CI on every pull request, and an alert issue when CI fails on `main` | Caught bugs before I saw them. CI runs the whole suite in about seven minutes |
 | Supabase and Vercel | A webhook receiver that recorded what Razorpay really sends, and the hosted demo | The one real observation in the build: Razorpay's delivery behaviour from a real test payment |
 | CodeRabbit | Automatic pull request review | A second opinion on diffs, until it reached its free limit |
+| An image generation model, from briefs Claude wrote | The 18 pictures in the product (guide heroes, card pictures, the welcome pop-up), in Razorpay's own illustration style: flat isometric, Razorpay blue, one orange accent, no text | Replaced pictures the agent had drawn in code, which test viewers did not read at a glance. Briefs and the style are in `web/DESIGN.md` section 16 |
 | Graphify, and a memory layer I built | A map of the code for the agents, and notes from earlier sessions so a new session does not start from nothing | Saved re-explaining the project to each of the 26 sessions |
 
 ## How AI sped the work up
@@ -37,6 +38,7 @@ AI proposed. These were mine.
 6. **Business case.** I froze it at what the evidence supports, made detection free, and asked for a pilot with stop rules before any claim of revenue.
 7. **Cuts.** For example the investigation agent, which needs a model, and a monthly report that would be wrong in a demo with no server.
 8. **One branch, one pull request per batch, merged by me after CI.**
+9. **Names and copy from Razorpay, after a user test.** On 11 October I showed the product to people without explaining it, and they could not tell what it was. I had every page, name and picture redone so a merchant understands it at a glance, and told the agent to take names from how Razorpay names its own products rather than invent them. A research agent read Razorpay's docs and my dashboard screenshots; the menu went from 12 items to 10 (`web/DESIGN.md` section 22).
 
 ## What AI got wrong, and how it was caught
 
@@ -45,6 +47,7 @@ AI proposed. These were mine.
 - It wrote "nothing is changed" on a screen that sends a test event. An independent reviewer caught it.
 - It stored a customer's card number, CVV and OTP if the customer typed them, and its "never ask for a secret" check let through 27 of 30 new ways of asking. An independent reviewer tried to break the hard rules on 10 October and found both. Both are fixed, with tests that fail without the fix.
 - It showed "Razorpay turns the webhook off" as fact after my own test showed it does not. It now says "Razorpay's docs say".
+- While rewriting the copy, it put ₹56,319 next to all 85 affected customers on the INC-1 page. The amount belongs to the 81 still without access, as another page said. The independent design reviewer caught the contradiction; the customer data settled which page was right.
 
 ## What is real and what is not
 

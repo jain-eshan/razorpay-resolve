@@ -29,7 +29,7 @@ export default function Dev() {
 
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7" testID="dev-handoff">
-      <Crumbs items={[{ label: 'Incidents', to: '/incidents' }, { label: id, to: `/incidents/${id}` }, { label: 'For your developer', to: `/incidents/${id}/dev` }]} />
+      <Crumbs items={[{ label: 'Payment issues', to: '/incidents' }, { label: id, to: `/incidents/${id}` }, { label: 'For your developer', to: `/incidents/${id}/dev` }]} />
       <PageHeader title="For your developer" description={`Reference ${pack.ref}. Read-only. Opening this page changes nothing.`} />
 
       <Alert isFullWidth color="notice" isDismissible={false} title={OWNER[inc.owner]} description={inc.title} />
@@ -60,7 +60,7 @@ export default function Dev() {
         </Box>
         <Card>
           <CardBody>
-            <Box display="flex" flexDirection="column" gap="spacing.2" maxHeight="320px" overflow="auto">
+            <Box display="flex" flexDirection="column" gap="spacing.2" maxHeight="320px" overflow="auto" tabIndex={0}>
               {pack.affected_payment_ids.map((p) => <Text key={p} size="small">{p}</Text>)}
             </Box>
           </CardBody>

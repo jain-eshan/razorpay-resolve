@@ -10,7 +10,7 @@ const STATE: Record<string, [string, 'positive' | 'notice' | 'neutral' | 'negati
   human: ['Needs you', 'negative'], handoff: ['Needs you', 'negative'], pass_back: ['Not about a payment', 'neutral'], closed: ['Closed', 'neutral'],
 }
 
-// The founder's view of one conversation: what the customer wrote (identifiers already replaced by tokens), what the agent said or is holding for approval, and the brief when a person is needed.
+// Your view of one conversation: what the customer wrote (identifiers already replaced by tokens), what the agent said or is holding for approval, and the brief when a person is needed.
 export function ThreadView({ thread, onChanged }: { thread: Thread; onChanged: () => void }) {
   const [own, setOwn] = useState('')
   const [error, setError] = useState<string>()
@@ -33,7 +33,7 @@ export function ThreadView({ thread, onChanged }: { thread: Thread; onChanged: (
   return (
     <Box display="flex" flexDirection="column" gap="spacing.5" testID="thread-view">
       <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
-        <Heading size="medium">{thread.channel.replaceAll('_', ' ')}</Heading>
+        <Heading as="h2" size="medium">{thread.channel.replaceAll('_', ' ')}</Heading>
         <Badge color={tone}>{label}</Badge>
         {thread.incident_id && <Badge color="neutral">{thread.incident_id}</Badge>}
         <Text size="small" color="surface.text.gray.muted">{thread.customer_ref} · {thread.language.replace('_', ' ')} · {thread.question_count} of 3 questions</Text>

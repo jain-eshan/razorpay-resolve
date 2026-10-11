@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 // Layout guard: every screen at phone, tablet and desktop width must render without errors, and its content must not spill sideways.
 // Tables scroll inside their own box and carousels slide, so they are not counted. A failure means a fixed width or an unwrapped row (web/DESIGN.md section 19).
 // One test per screen: it loads the screen once, then resizes through the three widths. A slow runner fails one screen, not all of them.
-const ROUTES = ['/', '/guides/blindspot', '/guides/incidents', '/guides/conversations', '/guides/channels', '/guides/scan', '/guides/autonomy', '/guides/learning', '/guides/how', '/setup', '/incidents', '/incidents/INC-1', '/incidents/INC-2', '/incidents/INC-3', '/incidents/INC-4', '/incidents/INC-5', '/incidents/INC-1/dev', '/threads', '/channels', '/scan', '/access', '/release-check', '/connect', '/audit', '/how', '/learning', '/settings', '/chat-demo', '/help-demo/receipt', '/email-demo', '/ig-demo', '/public-demo', '/cases/first']
+const ROUTES = ['/', '/guides/blindspot', '/guides/access', '/guides/integration', '/guides/incidents', '/guides/conversations', '/guides/channels', '/guides/scan', '/guides/autonomy', '/guides/learning', '/guides/how', '/setup', '/incidents', '/incidents/INC-1', '/incidents/INC-2', '/incidents/INC-3', '/incidents/INC-4', '/incidents/INC-5', '/incidents/INC-1/dev', '/threads', '/channels', '/scan', '/access', '/release-check', '/connect', '/audit', '/how', '/learning', '/settings', '/chat-demo', '/help-demo/receipt', '/email-demo', '/ig-demo', '/public-demo', '/cases/first']
 const WIDTHS = [375, 768, 1440]
 
 for (const route of ROUTES) {
@@ -67,7 +67,7 @@ test('phone: the open menu is reachable, traps focus and hides the page, closing
   const menu = page.getByRole('dialog', { name: 'Main menu' })
   await expect(menu).toBeVisible()
   await expect(page.locator('#root')).toHaveAttribute('aria-hidden', 'true')
-  await expect(menu.getByRole('link', { name: 'Channels' })).toBeVisible()
+  await expect(menu.getByRole('link', { name: 'Connectors' })).toBeVisible()
   await expect(menu.getByText('Transactions')).toBeVisible() // production items stay in the menu, greyed and not links
   await expect(menu.getByRole('link', { name: 'Transactions' })).toHaveCount(0)
   const focusInMenu = () => page.evaluate(() => !!document.activeElement?.closest('[role="dialog"]'))
@@ -88,10 +88,10 @@ test('phone: the open menu is reachable, traps focus and hides the page, closing
 test('phone width: page is exposed to assistive technology and the menu works', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 900 })
   await page.goto('/incidents/INC-1')
-  await expect(page.getByRole('button', { name: 'Test hook' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Run the check' })).toBeVisible()
   await expect(page.locator('#root')).not.toHaveAttribute('aria-hidden', 'true')
   await page.getByRole('button', { name: 'Open menu' }).click()
-  await page.getByRole('dialog', { name: 'Main menu' }).getByRole('link', { name: 'Conversations' }).click()
+  await page.getByRole('dialog', { name: 'Main menu' }).getByRole('link', { name: 'Customer complaints' }).click()
   await expect(page).toHaveURL(/\/threads$/)
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Open menu' })).toBeVisible()

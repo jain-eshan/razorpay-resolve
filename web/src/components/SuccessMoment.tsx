@@ -27,7 +27,7 @@ export function SuccessMoment({ heading, detail }: { heading: string; detail: st
           <Box backgroundColor="feedback.background.positive.subtle" borderRadius="max" width="64px" height="64px" display="flex" alignItems="center" justifyContent="center">
             <CheckIcon size="2xlarge" color="feedback.icon.positive.intense" />
           </Box>
-          <Heading size="large">{heading}</Heading>
+          <Heading as="h2" size="large">{heading}</Heading>
           <Text color="surface.text.gray.subtle">{detail}</Text>
         </Box>
       </m.div>

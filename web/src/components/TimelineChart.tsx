@@ -24,7 +24,7 @@ export function TimelineChart({ buckets }: { buckets: Schemas['TimelineBucket'][
       <Box display="flex" flexDirection="column" gap="spacing.2">
         {marked.map((b) => (
           <Text key={b.bucket_start} size="small">
-            {hourLabel(b.bucket_start)} · {b.markers.join(' · ')}
+            {hourLabel(b.bucket_start)} · {b.markers.join(' · ').replace('change point · alert would fire at', 'Blindspot would have alerted at')}
           </Text>
         ))}
       </Box>

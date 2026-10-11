@@ -8,7 +8,7 @@ import { when } from '../lib/format'
 const NAME: Record<string, string> = { order_dip_p_threshold: 'Order-dip alert strictness', complaint_spike_p_threshold: 'Complaint-spike alert strictness', message_variant: 'Default message language' }
 const LANG: Record<string, string> = { en: 'English', hi_latn: 'Hinglish' }
 const MISSED = [['order_volume_dip', 'Orders dropped and nothing alerted'], ['complaint_spike', 'Customers wrote in and nothing alerted']] as const
-const ARM_TITLE = { off: 'No learning', baseline: 'Weekly baseline only', loop: 'With learning' } as const
+const ARM_TITLE = { off: 'No tuning', baseline: 'Weekly baseline only', loop: 'With tuning' } as const
 
 // A strictness is a chance: how often noise alone would look this bad. 0.01 is 1 in 100.
 const show = (key: string, v: unknown) => (key === 'message_variant' ? LANG[String(v)] ?? String(v) : `1 in ${Math.round(1 / Number(v)).toLocaleString('en-IN')}`)
@@ -52,14 +52,14 @@ export default function Learning() {
 
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <PageHeader guide="learning" title="Learning" description="What I changed about myself this week, and why. A setting moves one step at most, once a week, inside fixed limits. Every change is in the audit log."
+      <PageHeader guide="learning" title="Alert tuning" description="Tell Blindspot when an alert was wrong. Once a week it moves one alert setting by one step, inside fixed limits, and says why. Every change is in the audit trail."
         actions={<Button isLoading={busy === 'review'} isDisabled={!!busy} onClick={review}>Review this week now</Button>} />
       {(error || weekly.error) && <Text color="feedback.text.negative.intense">Could not do that: {error ?? weekly.error}</Text>}
 
       <Panel title={changes ? `${changes} ${changes === 1 ? 'change' : 'changes'} this week` : 'No changes this week'} subtitle="Worked out from the feedback you gave in the last 7 days">
         {weekly.data ? weekly.data.lines.map((l) => <Text key={l}>{l}</Text>) : <Skeleton height="20px" width="min(420px, 80%)" borderRadius="medium" />}
         <Box display="flex" flexDirection="column" gap="spacing.3" paddingTop="spacing.4" borderTopWidth="thin" borderTopColor="surface.border.gray.subtle">
-          <Text size="small" color="surface.text.gray.muted">Did I miss something? Tell me what it looked like.</Text>
+          <Text size="small" color="surface.text.gray.muted">Did Blindspot miss something? Tell it what happened.</Text>
           <Box display="flex" gap="spacing.3" flexWrap="wrap">
             {MISSED.map(([m, t]) => <Button key={m} variant="secondary" isLoading={busy === m} isDisabled={!!busy} onClick={() => missed(m)}>{t}</Button>)}
           </Box>
@@ -67,7 +67,7 @@ export default function Learning() {
         </Box>
       </Panel>
 
-      <Panel title="In force now" subtitle="Strictness is how unlikely a pattern must be to happen by chance before I alert. 1 in 100 is the starting point, 1 in 1,000 the strictest I will go." pad={false}>
+      <Panel title="In force now" subtitle="Strictness is how unusual something must be before Blindspot alerts you. It starts at 1 in 100 and never goes past 1 in 1,000." pad={false}>
         <Table data={{ nodes: Object.values(current).map(withId) }} gridTemplateColumns="minmax(220px, 2fr) minmax(120px, 1fr) minmax(80px, 0.6fr) minmax(260px, 3fr)" isHeaderSticky={false}>
           {(items) => (
             <>
@@ -89,7 +89,7 @@ export default function Learning() {
 
       <Panel title="History" subtitle="Every version of every setting, newest first" pad={false}>
         {history.length === 0 ? (
-          <Box padding="spacing.6"><Text color="surface.text.gray.muted">Nothing has changed yet. Mark an incident as a false alarm, then press Review this week now.</Text></Box>
+          <Box padding="spacing.6"><Text color="surface.text.gray.muted">Nothing has changed yet. Mark a payment issue as a false alarm, then press Review this week now.</Text></Box>
         ) : (
           <Table data={{ nodes: history }} gridTemplateColumns="minmax(120px, 1fr) minmax(220px, 2fr) minmax(160px, 1.4fr) minmax(260px, 3fr)" isHeaderSticky={false}>
             {(items) => (
@@ -131,8 +131,8 @@ export default function Learning() {
               </ChartLineWrapper>
             </Box>
             <Box padding="spacing.6" display="flex" flexDirection="column" gap="spacing.2">
-              <Text>{`Over six weeks: ${num(total('off', 'false_alerts'))} false alerts with no learning, ${num(total('baseline', 'false_alerts'))} with only the weekly baseline, ${num(total('loop', 'false_alerts'))} with learning.`}</Text>
-              <Text>{`Real outages missed: ${num(total('off', 'missed'))} with no learning, ${num(total('loop', 'missed'))} with learning. Stricter alerts can miss a weak outage; a missed incident you report makes them looser again.`}</Text>
+              <Text>{`Over six weeks: ${num(total('off', 'false_alerts'))} false alerts with no tuning, ${num(total('baseline', 'false_alerts'))} with only the weekly baseline, ${num(total('loop', 'false_alerts'))} with tuning.`}</Text>
+              <Text>{`Real outages missed: ${num(total('off', 'missed'))} with no tuning, ${num(total('loop', 'missed'))} with tuning. Stricter alerts can miss a weak outage; a missed alert you report makes them looser again.`}</Text>
               <Text size="small" color="surface.text.gray.muted">{replay.data?.note}</Text>
             </Box>
           </>

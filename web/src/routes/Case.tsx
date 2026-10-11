@@ -34,7 +34,7 @@ export default function Case() {
       </CardBody></Card>
 
       <Box display="flex" flexDirection="column" gap="spacing.3">
-        <Heading size="medium">What the agent understood</Heading>
+        <Heading as="h2" size="medium">What the agent understood</Heading>
         <Text size="small">
           {String(x.claim ?? 'unknown').replaceAll('_', ' ')}
           {x.amount_paise ? ` · ₹${Number(x.amount_paise) / 100}` : ''}{x.method && x.method !== 'unknown' ? ` · ${String(x.method)}` : ''}
@@ -45,20 +45,20 @@ export default function Case() {
 
       {exact.length > 0 && (
         <Box display="flex" flexDirection="column" gap="spacing.3">
-          <Heading size="medium">Found by an exact identifier</Heading>
+          <Heading as="h2" size="medium">Found by an exact identifier</Heading>
           {exact.map((k) => <Text key={k.payment_id}>{k.payment_id} · {k.method.replace('exact_', '').replace('_', ' ')} · confidence {Math.round(k.calibrated_score * 100)}%</Text>)}
         </Box>
       )}
       {guesses.length > 0 && (
         <Box display="flex" flexDirection="column" gap="spacing.3">
-          <Heading size="medium">Closest guesses</Heading>
+          <Heading as="h2" size="medium">Closest guesses</Heading>
           <Text size="small" color="surface.text.gray.muted">For you only. Never shown to the customer, and never used to act.</Text>
           {guesses.map((k) => <Text key={k.payment_id}>{k.payment_id} · {Math.round(k.calibrated_score * 100)}%</Text>)}
         </Box>
       )}
       {c.reply_draft && (
         <Box display="flex" flexDirection="column" gap="spacing.3">
-          <Heading size="medium">Reply waiting for you</Heading>
+          <Heading as="h2" size="medium">Reply waiting for you</Heading>
           <Text>{c.reply_draft}</Text>
         </Box>
       )}

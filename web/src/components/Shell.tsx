@@ -2,28 +2,28 @@ import { forwardRef, useEffect, useState, type ComponentProps, type ReactNode } 
 import { Link, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 import {
-  ActivityIcon, AtSignIcon, Avatar, Badge, BellIcon, Box, ChevronDownIcon, ClipboardIcon, CodeSnippetIcon, CreditCardIcon, Drawer, DrawerBody, DrawerHeader, FileIcon, FileTextIcon, FlaskIcon, HomeIcon, IconButton, LinkIcon, MenuIcon, RadioIcon, RayIcon, RepeatIcon, SearchIcon, SearchInput, SettingsIcon, ShieldIcon, SideNav, SideNavBody, SideNavFooter, SideNavLink, SideNavSection, Switch, TabNav, TabNavItem, TabNavItems, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent, TrendingUpIcon, UnlockIcon, UsersIcon, useTheme, WalletIcon,
+  ActivityIcon, AtSignIcon, Avatar, Badge, BellIcon, Box, ChevronDownIcon, ClipboardIcon, CodeSnippetIcon, CreditCardIcon, Drawer, DrawerBody, DrawerHeader, FileIcon, FileTextIcon, FlaskIcon, HomeIcon, IconButton, LinkIcon, MenuIcon, RadioIcon, RayIcon, RepeatIcon, SearchInput, SettingsIcon, SideNav, SideNavBody, SideNavFooter, SideNavLink, SideNavSection, Switch, TabNav, TabNavItem, TabNavItems, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent, TrendingUpIcon, UnlockIcon, UsersIcon, useTheme, WalletIcon,
   type IconComponent,
 } from '@razorpay/blade/components'
 
 // The shell copies the live Razorpay dashboard (web/DESIGN.md section 14). Everything Razorpay already ships is shown but inert: greyed, not clickable.
 // Blindspot is one more product tab and two more nav sections. To add a screen, add an item to BLINDSPOT or PROOF below.
-type Item = { title: string; to: string; icon: IconComponent }
+// Names follow Razorpay's own (researched 11 Oct 2026, web/DESIGN.md section 22): short nouns a merchant would use, no "incident", "scan" or "log".
+// `also` lists other paths that light the same item: Integration covers its two steps, Build with AI and the go-live check.
+type Item = { title: string; to: string; icon: IconComponent; also?: string[] }
 const BLINDSPOT: Item[] = [
-  { title: 'Ray', to: '/', icon: RayIcon },
-  { title: 'Incidents', to: '/incidents', icon: ActivityIcon },
-  { title: 'Conversations', to: '/threads', icon: UsersIcon },
-  { title: 'Channels', to: '/channels', icon: RadioIcon },
-  { title: 'Day-0 scan', to: '/scan', icon: SearchIcon },
-  { title: 'Access report', to: '/access', icon: UnlockIcon },
-  { title: 'Release check', to: '/release-check', icon: ShieldIcon },
-  { title: 'Connect by prompt', to: '/connect', icon: CodeSnippetIcon },
+  { title: 'Overview', to: '/', icon: RayIcon },
+  { title: 'Payment issues', to: '/incidents', icon: ActivityIcon, also: ['/scan'] },
+  { title: 'Customer complaints', to: '/threads', icon: UsersIcon, also: ['/cases', '/chat-demo', '/help-demo', '/email-demo', '/ig-demo', '/public-demo'] },
+  { title: 'Unpaid access', to: '/access', icon: UnlockIcon },
+  { title: 'Integration', to: '/connect', icon: CodeSnippetIcon, also: ['/release-check'] },
 ]
 const PROOF: Item[] = [
-  { title: 'Audit log', to: '/audit', icon: ClipboardIcon },
-  { title: 'How we know', to: '/how', icon: FileTextIcon },
-  { title: 'Learning', to: '/learning', icon: TrendingUpIcon },
+  { title: 'Connectors', to: '/channels', icon: RadioIcon },
   { title: 'Settings', to: '/settings', icon: SettingsIcon },
+  { title: 'Alert tuning', to: '/learning', icon: TrendingUpIcon },
+  { title: 'Audit trail', to: '/audit', icon: ClipboardIcon },
+  { title: 'Accuracy', to: '/how', icon: FileTextIcon },
 ]
 
 const CORE: [string, IconComponent][] = [['Home', HomeIcon], ['Transactions', RepeatIcon], ['Settlements', WalletIcon], ['Reports', FileTextIcon]]
@@ -67,8 +67,8 @@ export function Shell({ children }: { children: ReactNode }) {
     wide.addEventListener('change', close)
     return () => wide.removeEventListener('change', close)
   }, [theme.breakpoints.m])
-  const on =(to: string) => (to === '/' ? pathname === '/' : pathname.startsWith(to))
-  const link = (i: Item) => <SideNavLink key={i.to} title={i.title} icon={i.icon} href={i.to} isActive={on(i.to)} as={Link} onClick={() => setOpen(false)} />
+  const on = (i: Item) => (i.to === '/' ? pathname === '/' : [i.to, ...(i.also ?? [])].some((p) => pathname.startsWith(p)))
+  const link = (i: Item) => <SideNavLink key={i.to} title={i.title} icon={i.icon} href={i.to} isActive={on(i)} as={Link} onClick={() => setOpen(false)} />
   const inert = (title: string, icon: IconComponent) => <SideNavLink key={title} title={title} icon={icon} as={InertItem} />
   // One set of items, shown by the desktop SideNav (hidden below `m`) and by the phone menu below.
   // The phone menu is a plain Blade Drawer, not SideNav's own phone mode: that mode (SideNav given `onDismiss`) keeps two modal drawers mounted even while closed. Their focus managers hide the whole page from assistive technology, and fight over Tab when the menu is open. A Drawer mounts only while open.
@@ -77,7 +77,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <SideNavBody>
         <SideNavSection>{CORE.map(([t, i]) => inert(t, i))}</SideNavSection>
         <SideNavSection title="BLINDSPOT">{BLINDSPOT.map(link)}</SideNavSection>
-        <SideNavSection title="PROOF AND CONTROL">{PROOF.map(link)}</SideNavSection>
+        <SideNavSection title="CONTROL">{PROOF.map(link)}</SideNavSection>
         <SideNavSection title="PAYMENT PRODUCTS" maxVisibleItems={3}>{PAYMENT_PRODUCTS.map((t) => inert(t, PRODUCT_ICONS[t] ?? LinkIcon))}</SideNavSection>
       </SideNavBody>
       <SideNavFooter>

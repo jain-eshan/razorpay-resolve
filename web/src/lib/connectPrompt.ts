@@ -24,9 +24,9 @@ When you are done, show me the diff and the command that runs the tests. Do not 
 
 // What each rule is for, in the order of the prompt: the failure it closes and where the product shows that failure.
 export const CONNECT_WHY: { rule: string; closes: string; seen: string }[] = [
-  { rule: 'Verify the signature with the secret from the environment', closes: 'A handler that rejects real payments with a 401 because the secret is wrong or missing.', seen: 'The release check step "It accepts a signed event"' },
+  { rule: 'Verify the signature with the secret from the environment', closes: 'A handler that rejects real payments with a 401 because the secret is wrong or missing.', seen: 'The go-live check step "It accepts a signed event"' },
   { rule: 'Make each event id safe to repeat', closes: 'Razorpay sends two events per payment and retries a failure for about 23 hours, so the same payment arrives several times.', seen: 'Nowhere yet. It is a safety rule, not something the product shows' },
-  { rule: 'Grant first, then reply 200', closes: 'A handler that answers 200 and grants nothing. Razorpay sees a success, so nobody is alerted.', seen: 'The release check step "It grants access and says so", and the customers in INC-1 where the server said OK and granted nothing' },
+  { rule: 'Grant first, then reply 200', closes: 'A handler that answers 200 and grants nothing. Razorpay sees a success, so nobody is alerted.', seen: 'The go-live check step "It grants access and says so", and the customers in INC-1 where the server said OK and granted nothing' },
   { rule: 'Send the fulfilment acknowledgement', closes: 'Silence. With it, Blindspot sees the gap between a captured payment and access within minutes, not from a ticket.', seen: 'The webhook-health monitor and the access reconciler' },
-  { rule: 'Treat a marked event as a test', closes: 'A check that would otherwise give a real customer access.', seen: 'The release check, which says its test event never grants anyone anything' },
+  { rule: 'Treat a marked event as a test', closes: 'A check that would otherwise give a real customer access.', seen: 'The go-live check, which says its test event never grants anyone anything' },
 ]

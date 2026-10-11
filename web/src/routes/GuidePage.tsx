@@ -3,7 +3,7 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeftIcon, ArrowRightIcon, Badge, Box, Button, Card, CardBody, Carousel, CarouselItem, Heading, Link, Text, VisuallyHidden } from '@razorpay/blade/components'
 import { GuideArt } from '../components/GuideArt'
 import { GuideHero } from '../components/GuideHero'
-import type { ArtId } from '../components/FlatArt'
+import type { ArtId } from '../lib/art'
 import { guideById } from '../lib/guides'
 import { useGuideStats } from '../lib/guideStats'
 
@@ -30,7 +30,7 @@ function ArtCard({ art, title, text, chip }: { art: ArtId; title: string; text: 
           <GuideArt art={art} />
           <Box display="flex" flexDirection="column" alignItems="flex-start" gap="spacing.3">
             {chip && <Badge size="medium" color="neutral">{chip}</Badge>}
-            <Heading size="medium">{title}</Heading>
+            <Heading as="h2" size="medium">{title}</Heading>
             <Text color="surface.text.gray.subtle">{text}</Text>
           </Box>
         </Box>
@@ -65,13 +65,13 @@ export default function GuidePage() {
             <Box width="24px" height="2px" backgroundColor="feedback.background.positive.intense" />
             <Text weight="semibold">Razorpay</Text>
           </Box>
-          <Heading size="2xlarge">{g.title}</Heading>
+          <Heading as="h1" size="2xlarge">{g.title}</Heading>
           <Text size="large" color="surface.text.gray.subtle">{g.description}</Text>
           {stats && (
             <Box display="grid" gridTemplateColumns={`repeat(${stats.length}, minmax(0, 1fr))`} gap="spacing.5" testID="guide-stats">
               {stats.map((s) => (
                 <Box key={s.label} display="flex" flexDirection="column" gap="spacing.1">
-                  <Heading size="large">{s.value}</Heading>
+                  <Heading as="h2" size="large">{s.value}</Heading>
                   <Text size="small" color="surface.text.gray.muted">{s.label}</Text>
                 </Box>
               ))}
@@ -85,7 +85,7 @@ export default function GuidePage() {
     (
       <Box key="why" display="flex" flexDirection="column" gap="spacing.7" padding={{ base: 'spacing.6', xl: 'spacing.9' }} paddingBottom={{ base: 'spacing.6', xl: 'spacing.5' }} minHeight={SLIDE_H}>
         <Box display="flex" flexDirection={{ base: 'column', xl: 'row' }} justifyContent="space-between" alignItems={{ base: 'flex-start', xl: 'center' }} gap="spacing.4">
-          <Heading size="xlarge">What makes {g.title} great?</Heading>
+          <Heading as="h2" size="xlarge">{g.why ?? 'Why it helps'}</Heading>
           <Box display="flex" flexWrap="wrap" gap="spacing.5">
             {g.links.map((l) => <Link key={l.to} href={l.to} onClick={(e) => { e.preventDefault(); nav(l.to) }}>{l.label}</Link>)}
           </Box>
@@ -101,7 +101,7 @@ export default function GuidePage() {
     ),
     (
       <Box key="how" display="flex" flexDirection="column" gap="spacing.7" padding={{ base: 'spacing.6', xl: 'spacing.9' }} paddingBottom={{ base: 'spacing.6', xl: 'spacing.5' }} minHeight={SLIDE_H} testID="guide-steps">
-        <Heading size="xlarge">How to use {g.title}</Heading>
+        <Heading as="h2" size="xlarge">{g.how ?? 'How to use it'}</Heading>
         <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', xl: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
           {g.steps.map((st, i) => <ArtCard key={st.title} art={st.art} title={st.title} text={st.text} chip={`Step ${i + 1}`} />)}
         </Box>

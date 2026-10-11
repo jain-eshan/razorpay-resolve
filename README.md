@@ -17,9 +17,11 @@ make run-web      # http://localhost:5173
 
 No server is needed. The hosted demo replays frames recorded from the real engine on a synthetic merchant (Kaksha, fictional). A page reload starts it over.
 
+Page names follow Razorpay's own (`web/DESIGN.md` section 22): Overview, Payment issues, Customer complaints, Unpaid access, Integration, Connectors, Settings, Alert tuning, Audit trail, Accuracy. The first check (`/scan`) ends Setup.
+
 | Open | What you see |
 |---|---|
-| `/` (Home, the Ray page) | A welcome card and product guides, then both stories as a WhatsApp alert: customers who paid and have no access (Hero A), and customers who could not reach the pay page (Hero B). |
+| `/` (Overview) | A welcome pop-up, what Blindspot is and what is wrong right now, Ray, the pages, then both stories as a WhatsApp alert: customers who paid and have no access (Hero A), and customers who could not reach the pay page (Hero B). |
 | Hero A, `INC-1` | A webhook broke after a deploy. 85 customers affected, 68 never complained. Fix them in stages (dry run, first 5, the rest), message them, undo, verify, close. |
 | Hero B, `INC-4` | Razorpay saw nothing, because no payment existed. Blindspot infers it from orders, a pay-page check and complaints, says it is inferred, shows the evidence, and offers recovery links with a few customers held back to measure the effect. |
 | `/chat-demo`, `/email-demo`, `/help-demo/receipt` | A customer talks to the agent. It says it is an AI, finds the payment from an exact identifier, and holds its reply for the founder. |
@@ -27,11 +29,11 @@ No server is needed. The hosted demo replays frames recorded from the real engin
 | `/public-demo` | A public post gets one generic reply with a private link, held for the founder. Nothing about a payment is said in public. |
 | Razorpay side, `INC-3` | Card renewals failed inside Razorpay's gateway while UPI AutoPay was fine and nothing changed on the merchant's side. Blindspot says it is Razorpay's, how sure it is and what it cannot see, keeps customers' access on for 3 days, tells them, and drafts an evidence pack that only goes (simulated) when the founder approves. |
 | `INC-2` | Customers charged twice after an Android release: the merchant's app, not the webhook. Look-alikes are left out with the reason. The founder refunds each second charge to the original method, one customer at a time, under a daily limit, with no undo. |
-| `/access` | A report, not an action: customers whose UPI renewal failed on their side and who still have access past the merchant's own rule. |
-| `/release-check` | Guard's check before a release: a test event to the merchant's webhook and a pay-page check, with what each failure means and what to do. The merchant is simulated. |
-| `/connect` | Connect by prompt: the text a merchant pastes into a coding agent to wire the webhook and the fulfilment acknowledgement. A proposal. |
-| `/learning` | What the product changed about itself this week and why. On an incident, press "This was a false alarm", then "Review this week now": the alerts that raised it get one step stricter, with a reason, a version and an audit line. A simulated six-week table shows whether it helps. |
-| `/how` | Every eval check against hidden ground truth, and what a fix asks of a founder and what it costs. |
+| `/access` | Unpaid access. A list, not an action: customers whose UPI renewal failed on their side and who still have access past the merchant's own rule. |
+| `/release-check` | Integration, step 2, the go-live check before a release: a test event to the merchant's webhook and a pay-page check, with what each failure means and what to do. The merchant is simulated. |
+| `/connect` | Integration, step 1 (Build with AI; was Connect by prompt): the text a merchant pastes into a coding agent to wire the webhook and the fulfilment acknowledgement. A proposal. |
+| `/learning` | Alert tuning: what the product changed about its alerts this week and why. On an incident, press "This was a false alarm", then "Review this week now": the alerts that raised it get one step stricter, with a reason, a version and an audit line. A simulated six-week table shows whether it helps. |
+| `/how` | Accuracy: every eval check against hidden ground truth, and what a fix asks of a founder and what it costs. |
 
 ## Commands
 
