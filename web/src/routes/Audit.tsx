@@ -20,18 +20,18 @@ export default function Audit() {
   if (!data && !error) return <PageSkeleton />
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <PageHeader title="Audit log" description="Every approval, change and check, with who did it. Nothing here can be edited." />
+      <PageHeader title="Audit trail" description="Every approval, change and check, with who did it and when. Nothing here can be edited." />
       {error && <Text color="feedback.text.negative.intense">Could not load: {error}</Text>}
       {data?.length === 0 ? (
         <Card>
           <CardBody>
             <EmptyState size="large" asset={<Box width="120px"><GuideArt art="approve" height="80px" /></Box>} title="Nothing to show yet"
-              description="Every plan, approval and check lands here with who did it and when. Open an incident and approve a step of its fix to see the first entry.">
-              <Button variant="primary" size="medium" icon={ArrowRightIcon} iconPosition="right" onClick={() => nav('/incidents')}>Open incidents</Button>
+              description="Every plan, approval and check lands here with who did it and when. Open a payment issue and approve a step of its fix to see the first entry.">
+              <Button variant="primary" size="medium" icon={ArrowRightIcon} iconPosition="right" onClick={() => nav('/incidents')}>Open payment issues</Button>
             </EmptyState>
           </CardBody>
         </Card>
-      ) : <Panel title="Log" pad={false} trailing={<Text size="small" color="surface.text.gray.muted">{rows.length} entries</Text>}>
+      ) : <Panel title="Entries" subtitle="Newest first" pad={false} trailing={<Text size="small" color="surface.text.gray.muted">{rows.length} entries</Text>}>
         <Box padding="spacing.5">
           <SegmentedControl label="Kind" name="kind" value={kind} onChange={({ value }) => setKind(value as (typeof KINDS)[number])}>
             {KINDS.map((k) => <SegmentedControlItem key={k} value={k}>{sentence(k)}</SegmentedControlItem>)}

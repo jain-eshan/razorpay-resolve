@@ -14,15 +14,19 @@ import { StartFix } from '../components/StartFix'
 import { Stat } from '../components/Stat'
 import { TimelineChart } from '../components/TimelineChart'
 import { rupees, useGet, type Schemas } from '../lib/api'
-import { OWNER, sentence, when } from '../lib/format'
+import { cause, headline, sentence, when } from '../lib/format'
 import DuplicateView from './DuplicateView'
 import RenewalView from './RenewalView'
 import Zone1View from './Zone1View'
 import { PageSkeleton } from '../components/PageSkeleton'
 
-const TIERS = ['exact', 'likely', 'check', 'excluded'] as const
-const TIER_LABEL = { exact: 'Exact', likely: 'Likely', check: 'Check manually', excluded: 'Excluded' }
-const OWNER_TONE = { merchant_code: 'notice', merchant_config: 'notice', razorpay: 'negative', bank: 'information', customer: 'neutral', unknown: 'neutral' } as const
+// Restored is not one of the engine's tiers: the engine files a customer Blindspot gave access back to as excluded, "restored by Blindspot". A merchant reads
+// "left out" as skipped, so restored customers get their own tab, and Left out keeps only the ones really left out (given access by hand, refunded).
+const TIERS = ['exact', 'likely', 'check', 'restored', 'excluded'] as const
+const TIER_LABEL = { exact: 'Certain', likely: 'Likely', check: 'By hand', restored: 'Restored', excluded: 'Left out' }
+const RESTORED = 'restored by Blindspot'
+const inTier = (m: Schemas['Member'], t: (typeof TIERS)[number]) => t === 'restored' ? m.exclusion_reason === RESTORED : t === 'excluded' ? m.tier === 'excluded' && m.exclusion_reason !== RESTORED : m.tier === t
+const OWNER_TONE = { merchant_code: 'notice', merchant_config: 'notice', razorpay: 'neutral', bank: 'neutral', customer: 'neutral', unknown: 'neutral' } as const
 const STATUS_TONE = { open: 'notice', fixing: 'information', verifying: 'information', closed: 'positive' } as const
 const STATUS_LABEL = { open: 'Open', fixing: 'Fixing', verifying: 'Verifying', closed: 'Closed' }
 
@@ -30,16 +34,31 @@ const STATUS_LABEL = { open: 'Open', fixing: 'Fixing', verifying: 'Verifying', c
 const two = (top: string, bottom: string, plain = false) => (
   <Box display="flex" flexDirection="column"><Text weight={plain ? 'regular' : 'semibold'} color="surface.text.gray.subtle">{top}</Text><Text size="small" color="surface.text.gray.muted">{bottom}</Text></Box>
 )
-const SHOWN = 4  // evidence rows shown before "Show all"
+const SHOWN = 4  // evidence rows shown at most before "Show all"
+const STRONG = 0.2  // a pattern shown by default must cover at least 20 points more of the affected payments than it does normally; weaker ones wait behind "Show all"
+
+// One line that makes the counts add up: everyone found, who is still waiting, and who was left out and why.
+const LEFT_OUT: Record<string, string> = { 'already active (manual grant)': 'already given access by hand', refunded: 'already refunded' }
+function reconcile(inc: Schemas['IncidentDetail'], members: Schemas['Member'][]) {
+  if (!members.length) return `${inc.affected} customers`
+  const waiting = members.filter((m) => m.tier !== 'excluded' && m.merchant_state !== 'active').length
+  const restored = members.filter((m) => m.exclusion_reason === RESTORED).length
+  const reasons = Object.entries(members.filter((m) => m.tier === 'excluded' && m.exclusion_reason !== RESTORED).reduce<Record<string, number>>((a, m) => {
+    const r = LEFT_OUT[m.exclusion_reason ?? ''] ?? m.exclusion_reason ?? 'other'
+    return { ...a, [r]: (a[r] ?? 0) + 1 }
+  }, {})).map(([r, n]) => `${n} ${r}`)
+  return `${members.length} found · ${waiting} still without access${restored ? ` · ${restored} restored by Blindspot` : ''}${reasons.length ? ` · left out: ${reasons.join(', ')}` : ''}`
+}
 
 // What the failed payments have in common, as bars: the share of affected payments (orange) against the share normally (grey), biggest gap first.
 function Evidence({ inc }: { inc: Schemas['IncidentDetail'] }) {
   const [all, setAll] = useState(false)
   const lift = [...inc.lift].sort((a, b) => (b.share_affected - b.share_baseline) - (a.share_affected - a.share_baseline))
+  const strong = Math.max(1, Math.min(SHOWN, lift.filter((l) => l.share_affected - l.share_baseline >= STRONG).length))
   return (
-    <Panel title="Evidence" subtitle="What the failed payments have in common. Orange is the share of affected payments, dark grey the share normally.">
+    <Panel title="What the affected payments have in common" subtitle="Orange: share of affected payments. Grey: share of all payments on a normal day.">
       <Box display="flex" flexDirection="column">
-        {(all ? lift : lift.slice(0, SHOWN)).map((l) => {
+        {(all ? lift : lift.slice(0, strong)).map((l) => {
           const name = `${sentence(l.dimension)}: ${l.value.replace(/\bupi\b/g, 'UPI')}`
           const aff = Math.round(l.share_affected * 100), base = Number((l.share_baseline * 100).toFixed(1))
           return (
@@ -54,8 +73,8 @@ function Evidence({ inc }: { inc: Schemas['IncidentDetail'] }) {
           )
         })}
       </Box>
-      {lift.length > SHOWN && <Box><Button variant="tertiary" size="small" onClick={() => setAll(!all)}>{all ? 'Show fewer' : `Show all ${lift.length}`}</Button></Box>}
-      {inc.verdict.what_we_cannot_see.map((s) => <Text key={s} size="small" color="surface.text.gray.muted">We cannot see: {s}</Text>)}
+      {lift.length > strong && <Box><Button variant="tertiary" size="small" onClick={() => setAll(!all)}>{all ? 'Show fewer' : `Show all ${lift.length}`}</Button></Box>}
+      {inc.verdict.what_we_cannot_see.map((s) => <Text key={s} size="small" color="surface.text.gray.muted">What Blindspot cannot see: {s}</Text>)}
     </Panel>
   )
 }
@@ -67,7 +86,7 @@ function Milestones({ inc, pack, atAlert, fix }: { inc: Schemas['IncidentDetail'
   const steps: { at?: string; title: string; text?: string; stamp?: string; tone: 'neutral' | 'negative' | 'information' | 'notice' | 'positive' }[] = [
     { at: v.onset_at, title: 'Your change went live', text: String(v.cause_summary_slots.change ?? ''), tone: 'neutral' as const },
     ...(pack?.first_failure_at ? [{ at: pack.first_failure_at, title: 'First failed delivery', text: `Your server answered ${v.signature.status ?? 'with an error'}`, tone: 'negative' as const }] : []),
-    ...(inc.would_have_alerted_at ? [{ at: inc.would_have_alerted_at, title: 'You could have known', text: `${atAlert ?? 1} customer affected`, tone: 'information' as const }] : []),
+    ...(inc.would_have_alerted_at ? [{ at: inc.would_have_alerted_at, title: 'Blindspot would have alerted', text: `${atAlert ?? 1} customer affected by then`, tone: 'information' as const }] : []),
     ...(off ? [{ at: off.bucket_start, title: "Razorpay's docs say it turns the webhook off", text: 'After 24 hours of failures. In our own test the retries stopped and the webhook stayed switched on, so this step is documented, not observed', stamp: `Around ${when(off.bucket_start)}`, tone: 'notice' as const }] : []),
     ...(v.resolved_at ? [{ at: v.resolved_at, title: 'Your server answered again', tone: 'positive' as const }] : []),
   ].sort((a, b) => a.at!.localeCompare(b.at!))
@@ -75,7 +94,7 @@ function Milestones({ inc, pack, atAlert, fix }: { inc: Schemas['IncidentDetail'
   return (
     <Card padding="spacing.7">
       <CardBody>
-      <Heading size="medium">Timeline</Heading>
+      <Heading as="h2" size="medium">Timeline</Heading>
       <Box marginTop="spacing.5">
         <StepGroup size="medium">
           {[
@@ -109,12 +128,15 @@ export default function Incident() {
   if (inc.mismatch_type === 'E') return <DuplicateView id={id} />   // customers charged twice: the webhook worked, only the second charge is wrong
   if (inc.mismatch_type === 'G') return <RenewalView id={id} />   // renewals that failed on Razorpay's side: no webhook to show
   const v = inc.verdict
-  const rows = (members ?? []).filter((m) => m.tier === tier).map((m) => ({ ...m, id: m.payment_id }))
+  const count = (t: (typeof TIERS)[number]) => (members ?? []).filter((m) => inTier(m, t)).length
+  // Once customers are restored and none is left to fix, open on Restored rather than an empty Certain tab.
+  const shown = tier === 'exact' && count('exact') === 0 && count('restored') > 0 ? 'restored' : tier
+  const rows = (members ?? []).filter((m) => inTier(m, shown)).map((m) => ({ ...m, id: m.payment_id }))
   const atAlert = inc.would_have_alerted_at && members ? members.filter((m) => m.captured_at <= inc.would_have_alerted_at!).length : null
 
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <Crumbs items={[{ label: 'Incidents', to: '/incidents' }, { label: inc.id, to: `/incidents/${inc.id}` }]} />
+      <Crumbs items={[{ label: 'Payment issues', to: '/incidents' }, { label: inc.id, to: `/incidents/${inc.id}` }]} />
 
       <Card padding="spacing.5">
         <CardBody>
@@ -123,11 +145,12 @@ export default function Incident() {
             <AlertTriangleIcon size="xlarge" color="feedback.icon.notice.intense" />
           </Box>
           <Box display="flex" flexDirection="column" gap="spacing.2" flex="1" minWidth="240px">
-            <Heading size="medium">{inc.title}</Heading>
+            <Heading as="h1" size="medium">{headline(inc)}</Heading>
+            <Text size="small" color="surface.text.gray.muted">{`Cause: ${inc.title}`}</Text>
             <Box display="flex" gap="spacing.3" alignItems="center" flexWrap="wrap">
-              <Badge color={OWNER_TONE[inc.owner]} size="medium">{`${inc.inferred ? 'Inferred. ' : ''}${OWNER[inc.owner]}`}</Badge>
+              <Badge color={OWNER_TONE[inc.owner]} size="medium">{cause(inc)}</Badge>
               <Badge color={STATUS_TONE[inc.status]} size="medium">{STATUS_LABEL[inc.status]}</Badge>
-              <Text size="small" color="surface.text.gray.muted">Confidence {v.confidence} · started {when(inc.onset_at)} · {inc.id}</Text>
+              <Text size="small" color="surface.text.gray.muted">{sentence(v.confidence)} confidence · started {when(inc.onset_at)} · {inc.id}</Text>
             </Box>
           </Box>
           <Button variant="secondary" size="small" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Send to your developer</Button>
@@ -137,18 +160,18 @@ export default function Incident() {
 
       {/* Four across, as on the other incident views (DuplicateView, RenewalView, Zone1View). */}
       <Box display="grid" gridTemplateColumns={{ base: 'repeat(2, minmax(0, 1fr))', l: 'repeat(4, minmax(0, 1fr))' }} gap="spacing.5">
-        <Stat label="Affected" value={String(inc.affected)} hint={`paid, no access · ${rupees(inc.at_risk_paise)} at risk`} icon={AlertTriangleIcon} tone="notice" />
-        <Stat label="Complained" value={String(inc.complained)} icon={MessageCircleIcon} />
-        <Stat label="Silent" value={String(inc.silent)} hint="never complained" icon={BellOffIcon} />
-        <Stat label="Already fixed" value={String(inc.fixed)} hint="by hand, before this" icon={CheckCircleIcon} tone="positive" />
+        <Stat label="Paid, no access" value={String(inc.affected)} hint={`${inc.tier_counts.exact ?? 0} still without access · ${rupees(inc.at_risk_paise)}`} icon={AlertTriangleIcon} tone="notice" />
+        <Stat label="Wrote to you" value={String(inc.complained)} icon={MessageCircleIcon} />
+        <Stat label="Silent" value={String(inc.silent)} hint="never wrote in" icon={BellOffIcon} />
+        <Stat label="Fixed by hand" value={String(inc.fixed)} hint="your team gave access before Blindspot" icon={CheckCircleIcon} tone="positive" />
       </Box>
       <StartFix to={fix} closed={inc.status === 'closed'} top />
 
       <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(0, 1fr) 320px' }} gap="spacing.6" alignItems="start">
         <Box display="flex" flexDirection="column" gap="spacing.6" minWidth="0px">
-          {inc.would_have_alerted_at && atAlert !== null && (
-            <Alert isFullWidth color="information" isDismissible={false} title="With this on" description={`You would have known ${when(inc.would_have_alerted_at)}, when ${atAlert} customer was affected. The first complaint came days later.`} />
-          )}
+          {/* The answer first, in plain words, as on the other issue pages. Slots are the engine's, not typed here. */}
+          <Alert isFullWidth color="information" isDismissible={false} title="Your app never heard about these payments"
+            description={`Since ${v.cause_summary_slots.change ? `your release ${String(v.cause_summary_slots.change).split(':')[0]} (${when(v.onset_at)})` : 'a change on your side'}, your server has answered Razorpay's payment messages with an error${v.signature.status ? ` (${v.signature.status})` : ''}. Customers were charged, but your app was never told, so it never gave them access.${inc.would_have_alerted_at && atAlert !== null ? ` With Blindspot on, you would have known ${when(inc.would_have_alerted_at)}, when ${atAlert} customer was affected.` : ''}`} />
 
           <Panel title="What your server did" subtitle="Webhook outcomes, hour by hour">
             <TimelineChart buckets={inc.timeline} />
@@ -163,11 +186,10 @@ export default function Incident() {
             <Text size="small" color="surface.text.gray.muted">{inc.replay.note}</Text>
           </Panel>
 
-          <Panel title="Affected customers" pad={false}
-            trailing={<Text size="small" color="surface.text.gray.muted">{members?.length ?? 0} customers in this incident</Text>}>
+          <Panel title="Affected customers" subtitle={reconcile(inc, members ?? [])} pad={false}>
             <Box padding="spacing.5">
-              <SegmentedControl label="Confidence group" name="tier" value={tier} onChange={({ value }) => setTier(value as (typeof TIERS)[number])}>
-                {TIERS.map((t) => <SegmentedControlItem key={t} value={t}>{TIER_LABEL[t]} ({inc.tier_counts[t] ?? 0})</SegmentedControlItem>)}
+              <SegmentedControl label="How sure Blindspot is" name="tier" value={shown} onChange={({ value }) => setTier(value as (typeof TIERS)[number])}>
+                {TIERS.filter((t) => t !== 'restored' || count('restored') > 0).map((t) => <SegmentedControlItem key={t} value={t}>{TIER_LABEL[t]} ({count(t)})</SegmentedControlItem>)}
               </SegmentedControl>
             </Box>
             {rows.length === 0 ? (
@@ -206,21 +228,31 @@ export default function Incident() {
           </Panel>
 
           {sample && sample.length > 0 && (
-            <Panel title={`Look at ${sample.length} before acting`} subtitle="Customer, Razorpay and your records, side by side">
-              {sample.map((s) => (
+            <Panel title={`${sample.length} customers, side by side`} subtitle="What the customer said, what Razorpay recorded and what your records show. Check a few before you fix.">
+              {sample.map((s) => {
+                const m = members?.find((x) => x.payment_id === s.payment_id)
+                return (
                 <Box key={s.payment_id} display="flex" flexDirection="column" gap="spacing.3" paddingBottom="spacing.4" borderBottomWidth="thin" borderBottomColor="surface.border.gray.subtle">
-                  <Text size="small" color="surface.text.gray.muted">{s.payment_id}</Text>
+                  <Box display="flex" gap="spacing.3" alignItems="center" flexWrap="wrap">
+                    <Text size="small" weight="semibold">{m ? `${m.customer_masked} · ${rupees(m.amount_paise)}` : s.payment_id}</Text>
+                    {m && (m.exclusion_reason === RESTORED
+                      ? <Badge size="small" color="positive">Restored by Blindspot</Badge>
+                      : <Badge size="small" color={m.tier === 'excluded' ? 'neutral' : 'notice'}>{m.tier === 'excluded' ? `Left out: ${LEFT_OUT[m.exclusion_reason ?? ''] ?? m.exclusion_reason}` : 'Still without access'}</Badge>)}
+                    <Text size="small" color="surface.text.gray.muted">{s.payment_id}</Text>
+                  </Box>
                   <Box display="flex" gap="spacing.5" flexWrap="wrap">
-                    <Lane title="Customer says" items={s.lanes.customer} />
+                    <Lane title="Customer says" items={s.lanes.customer} empty="Did not write in" />
                     <Lane title="Razorpay says" items={s.lanes.razorpay} />
                     <Lane title="Your records say" items={s.lanes.merchant} />
                   </Box>
                 </Box>
-              ))}
+                )
+              })}
             </Panel>
           )}
           <Box ref={fix}><FixPanel inc={inc} members={members ?? []} onChanged={() => setVersion((n) => n + 1)} /></Box>
-          <FeedbackPanel incidentId={inc.id} />
+          {/* Asking "was this a real problem?" under a verified fix sends a mixed message, so it goes once the issue is closed. */}
+          {inc.status !== 'closed' && <FeedbackPanel incidentId={inc.id} />}
 
         </Box>
 

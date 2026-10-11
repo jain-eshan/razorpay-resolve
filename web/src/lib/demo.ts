@@ -247,7 +247,7 @@ export async function demoSend(method: string, path: string, body: Record<string
   const zt = d.zone1
   if (path === '/api/feedback') {
     const id = String(body.subject_id)
-    if (body.kind !== 'false_alarm' || !d.learning[id]) throw new Error('Reporting a missed incident works in the live demo.')
+    if (body.kind !== 'false_alarm' || !d.learning[id]) throw new Error('Reporting a missed alert works in the live version, not in this demo.')
     if (learn.stage !== 'none' && learn.incident !== id) throw new Error('The hosted demo takes one piece of feedback. Run it live to give more.')
     if (learn.stage === 'none') {
       learn.stage = 'told'
@@ -330,7 +330,7 @@ export async function demoSend(method: string, path: string, body: Record<string
   const one = path.match(/^\/api\/actions\/act_2_refund\/items\/([^/]+)\/approve$/)
   if (one) {
     const dd = d.duplicate
-    if (dp.plan !== 'approved') throw new Error('Review the list first: approve the dry run, then refund customers one by one.')
+    if (dp.plan !== 'approved') throw new Error('Review the list first: approve the test run, then refund customers one by one.')
     const i = dd.k[0].board.rows.findIndex((r) => r.payment_id === one[1])
     if (i < 0) throw new Error(`${one[1]} is not in this plan.`)
     if (i < dp.k) return dpRefund(d)!.data   // a repeat click: already refunded, nothing changes
@@ -590,4 +590,4 @@ export async function demoSuggestions(channel: string, tid?: string): Promise<st
 
 export const demoHelpPayment = async () => (await demo()).chat.help.payment_id as string
 
-export const demoNote = 'Replayed from a real run of the engine on the synthetic world. Nothing here is live.'
+export const demoNote = 'A replay of the real engine on made-up data. Nothing here is live.'

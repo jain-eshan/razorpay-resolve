@@ -382,8 +382,10 @@ Source of truth for the shell: `src/components/Shell.tsx`. Read it before touchi
 
 **Side nav** (Blade `SideNav`, in this order)
 1. Home, Transactions, Settlements, Reports: production, inert.
-2. `BLINDSPOT` section: Ray, Incidents, Conversations, Channels, Day-0 scan, Access report, Release check, Connect by prompt. Ours, live.
-3. `PROOF AND CONTROL` section: Audit log, How we know, Learning, Settings. Ours, live.
+2. `BLINDSPOT` section: Overview, Payment issues, Customer complaints, Unpaid access, Integration. Ours, live. Integration is one item with two steps, Build with AI (`/connect`) and the go-live check (`/release-check`), shown at the top of both pages by `components/IntegrationSteps.tsx`.
+3. `CONTROL` section: Connectors, Settings, Alert tuning, Audit trail, Accuracy. Ours, live.
+
+The first check (`/scan`, once called Day-0 scan) is not in the menu: it is the end of Setup and a link from Overview and Ray. The names come from Razorpay's own (section 22). Routes kept their old paths so links keep working.
 4. `PAYMENT PRODUCTS` section: Payment Links, Payment Pages, Razorpay.me Link, then "+11 More" (`maxVisibleItems={3}`). Production, inert.
 5. Footer: Test Mode switch (on, inert) and Account & Settings (inert).
 
@@ -407,13 +409,13 @@ Every screen is one of these. Pick one before you write any layout code.
 - Vertical rhythm: `spacing.6` between blocks on data pages, `spacing.7` on pages with explainers, `spacing.9` between major sections of a home page.
 - Cards are white, radius 12, padding 24, with Blade's own border and shadow. Never draw a card from a `Box` with a border. Use `Card`, or `Panel` (`components/Panel.tsx`) for a card with a grey header band.
 
-**List page** (Incidents, Conversations, Audit log): PageHeader, optional stat cards (added up from the rows, with a hint when part of a total is an estimate), then a `Panel` containing a Blade `Table`. Below `l` a table whose key figures sit on the right becomes one card per row (Incidents), so the figures are not pushed off the side. An empty group says why it is empty. Rows are 48px, cells have 12px side padding, a second line under a value is 12px muted. The row's identifying text is a real link. Status goes in a `Badge`.
+**List page** (Payment issues, Customer complaints, Audit trail): PageHeader, optional stat cards (added up from the rows, with a hint when part of a total is an estimate), then a `Panel` containing a Blade `Table`. Below `l` a table whose key figures sit on the right becomes one card per row (Payment issues), so the figures are not pushed off the side. An empty group says why it is empty. Rows are 48px, cells have 12px side padding, a second line under a value is 12px muted. The row's identifying text is a real link. Status goes in a `Badge`.
 
 **Detail page** (Incident): breadcrumb or a "Go back" link, one summary card (status tile, headline, status pill), then two columns: Details cards on the left, a sticky Timeline on the right, one call to action at the bottom of the timeline (`components/StartFix.tsx`, "Start the fix", which takes you down to the fix steps; beside the content from `l`; below that, under the stat row, because the Timeline drops under the fix steps). Stat cards sit four across from `l` and fill their cell, so a row is one height.
 
 **Settings page**: one `Panel` per topic, label above value, the control on the right, one Save button at the end. Read-only snapshots say so in an `Alert`.
 
-**Home page** (Ray): Ray hero, the "Take the tour" welcome card, setup card, Explore cards, then supporting content (section 16).
+**Home page** (Overview): the hero that says what Blindspot is and what is wrong right now, Ray's input, the setup card, Explore cards, then Ray on WhatsApp (section 16).
 
 **Agent answer**: section 17.
 
@@ -423,36 +425,37 @@ Every screen is one of these. Pick one before you write any layout code.
 
 **Numbers.** Rupees with Indian grouping through `rupees()` in `lib/api.ts`. Counts are plain integers. A figure that the agent states must come from the data, not from a model.
 
-**Loading, empty and error.** A page loading its data shows `components/PageSkeleton.tsx` (Blade `Skeleton` shapes where the title, a row of figures and the first card will be), never a bare "Loading" word. Ray working shows `Analyzing` with the turning glyph. Never a spinner next to a skeleton. Empty says what is missing and what to do: a page with nothing in it yet uses Blade `EmptyState` (size `large`) with a flat picture from `FlatArt.tsx` and one button to where the first entry comes from (Audit log, the founder's side of the WhatsApp demo). An empty group inside a page says why it is empty in one muted line. Error names the cause and the next step.
+**Loading, empty and error.** A page loading its data shows `components/PageSkeleton.tsx` (Blade `Skeleton` shapes where the title, a row of figures and the first card will be), never a bare "Loading" word. Ray working shows `Analyzing` with the turning glyph. Never a spinner next to a skeleton. Empty says what is missing and what to do: a page with nothing in it yet uses Blade `EmptyState` (size `large`) with a picture from `lib/art.ts` (`GuideArt`) and one button to where the first entry comes from (Audit trail, your side of the WhatsApp demo). An empty group inside a page says why it is empty in one muted line. Error names the cause and the next step.
 
-**Proof pages lead with the answer.** A page that proves something (How we know) opens with the score as a heading in a card, then a few checks in plain words as stat cards, then the full table behind "Show all".
+**Proof pages lead with the answer.** A page that proves something (Accuracy) opens with the score as a heading in a card, then a few checks in plain words as stat cards, then the full table behind "Show all".
 
 ---
 
-## 16. Guides, onboarding and the Ray home
+## 16. Guides, onboarding and the Overview
 
 **Product guide** (`routes/GuidePage.tsx`, content in `lib/guides.ts`). Copied from Razorpay's Smart Collect and Checkout Rewards guides, plus the "Get started" strip from the Subscriptions page. A guide answers three questions for someone who has never heard of the product: what is it, why use it, how do I use it. One slide each.
 - Slide 1, what it is: on the left a picture on a soft blue-to-green wash (`GuideHero`), on the right a short green rule and "Razorpay", the product name, one paragraph that starts from the merchant's problem, two or three figures read from the data (`lib/guideStats.ts`), a line saying the data is simulated, and a primary "Read more".
-- Slide 2, why: "What makes X great?", three cards in the shape of the product cards on the dashboard home ("Ready-to-use products"): a white Blade `Card`, a light panel inset in it with a flat picture, a bold title, one line of darker body text. Two links at the top right; then a tertiary "Back" and a primary "See how to use it".
-- Slide 3, how: "How to use X", three cards in the same shape as slide 2, each with a neutral chip ("Step 1") between the picture and the title, then "Back" and a primary "Get started".
+- Slide 2, why: "What makes X great?" for the product, "Why it helps" for a page, three cards in the shape of the product cards on the dashboard home ("Ready-to-use products"): a white Blade `Card`, a light panel inset in it with a picture, a bold title, one line of darker body text. Two links at the top right; then a tertiary "Back" and a primary "See how to use it".
+- Slide 3, how: "How to use X" (or "How to use it"), three cards in the same shape as slide 2, each with a neutral chip ("Step 1") between the picture and the title, then "Back" and a primary "Get started".
 - From 1280px (Blade's xl) the guide is a carousel and all three slides are the same height (548px), so the card does not change height as you slide. Back and Get started sit at the bottom of the slide, and the arrows have room inside the card. Below 1280px the content column is too narrow for columns (about 480px at 768px and about 780px at 1024px with the side nav showing) and the three slides are very different heights, so the guide shows only the active slide, one column, as tall as its content, with dots under it and the same in-slide buttons. A carousel there left a blank band of 300 to 500px. Content that is short and tall means the pictures are too small or the card is too big; fix that rather than leaving a gap.
 - Below the card: "Skip and get started". Dots under the carousel.
-- The big picture on slide 1 is an isometric scene drawn in code (`components/IsoScenes.tsx`, kit in `components/iso.tsx`), one per guide, on a mint-to-blue wash (`useHeroWash`), as Smart Collect's hero is isometric on a tinted panel. The pictures on the cards are flat, in the style of the illustrations on the dashboard home: rounded shapes, blue outline, pale fill, mint for what is fine, a warm tone for the problem (`components/FlatArt.tsx`, shown in an inset panel by `GuideArt.tsx`). 19 pictures, chosen per card with an `art` id in `lib/guides.ts`, so one picture serves every card with that idea. If an illustrator draws a set later, replace the entries in `FlatArt.tsx`; the cards need nothing else. Blue is a person or thing that acts, orange the problem, grey quiet or unseen, green a passed check or the AI assistant. No text in the picture; the aria-label says it in words. Real screens in a device frame (as on Razorpay's agent pages) were dropped: they go stale and are not themed. Blade's `RazorSense` surface was dropped from the guide hero: in testing it painted opaque white over the wash until its animation started.
-- Finding it: the Ray home shows a "New" welcome card with one button, "Take the tour". It always shows, because this is a demo and a judge may take the tour again and again; a real launch would hide it once the overview has been finished. Every guide is also an Explore card on the home. Pages open their own guide from `<PageHeader guide="..." />` (Incidents, Conversations, Channels, Day-0 scan, Settings, Learning, How we know).
-- To add a guide: an entry in `GUIDES` (each card and step names an `art` id from `FlatArt.tsx`), a scene in `IsoScenes.tsx` and `SCENES` in `GuideHero.tsx`, and a figure rule in `guideStats.ts` if it has one. Every sentence must be true of the product today. Every figure comes from the data, never typed.
+- **Pictures** are images, not drawings (Eshan's call, 11 Oct 2026: no illustrations drawn by the agent). Eighteen were made by an image model from briefs in Razorpay's illustration style, matched to Smart Collect's hero: flat isometric vector, Razorpay blue with an azure-to-cyan gradient, white surfaces, one orange accent for the problem, no text. They live in `public/art` as WebP at display size (1.7 MB in all; the originals are about 27 MB and stay out of the repo), listed with alt text in `lib/art.ts`. Heroes (4:3) lead each guide (`GuideHero`), the welcome pop-up and the first check. Spots (2:1) fill a card's picture panel (`GuideArt`) and empty states; a card names its picture by idea, so one picture serves every card about it. Every panel sits on the same mint-to-blue wash (`useHeroWash` in `components/iso.tsx`), so pictures with and without their own background look alike. A new picture: write a brief in the same style, save it as WebP at 1200px wide, add it to `lib/art.ts`.
+- **Welcome pop-up** (`components/WelcomeTour.tsx`, a Blade `Modal`): three slides (what it catches, whose side the cause is on, nothing happens until you approve), then "Set up in 3 steps", which goes to Setup, then the first check, then the biggest payment issue. It replaced the "Take the tour" card. It opens once each time the app is opened or reloaded (Eshan's call; production would show it once per merchant), and "Take the tour" on the setup card opens it again. The picture and text keep one height on every slide so the window never jumps. Automated browsers skip it unless the address has `?welcome` (`lib/setup.ts`).
+- Every page in the side menu opens its own guide from `<PageHeader guide="..." />`. Slides 2 and 3 use Razorpay's headings ("What makes X great?", "How to use X") only for the product name; a page named with a plain noun says "Why it helps" and "How to use it", or its own `why` and `how`.
+- To add a guide: an entry in `GUIDES` (each card and step names an `art` id from `lib/art.ts`), a hero in `HERO` in `lib/art.ts`, and a figure rule in `guideStats.ts` if it has one. Every sentence must be true of the product today. Every figure comes from the data, never typed.
 
 **First-run setup** (`routes/Setup.tsx`). Copied from Razorpay's merchant onboarding.
 - Left card: "Setup:" and the product name, then a vertical `StepGroup` (done is green, current is blue, later is grey).
 - Right card: a Back link, a large heading, one muted line, the one question for this step, a full-width blue Continue at the bottom, a small muted note under it.
 - One question per screen. Three steps at most.
-- The choices are cards you can pick (Blade `Card` with `isSelected`; three across from 1280px, stacked below): channels (pick any) each with its own Blade icon, autonomy levels (pick one) with "Start here" on Suggest. Step 3 shows the scan result as two large figures and an alert. A short note under the choices says what stays true whatever you pick.
+- The choices are cards you can pick (Blade `Card` with `isSelected`; three across from 1280px, stacked below): channels (pick any) each with its own Blade icon, approval levels (pick one: Review first, Approve once, Full automation) with "Start here" on Review first. Step 3 shows the scan result as two large figures and an alert. A short note under the choices says what stays true whatever you pick.
 - The two cards stretch to one height, and the left card ends with a moving picture for the current step that answers the question as you answer it (`components/SetupScene.tsx`): the channels you tick light up and send messages to Ray, the autonomy level decides whether messages stop at you, and the first scan sweeps the customers. Still for people who ask for less motion. The heading stays in the same place on every step.
 - It never asks for a password, PAN, OTP, card number or any other credential. The recording of Razorpay's onboarding asks for those; ours does not. This is a hard rule from SPEC section 0.
 - Progress is remembered in the browser only (`lib/setup.ts`), because settings are read-only in the demo.
 
-**Ray home** (`routes/Home.tsx`). From Razorpay's Ray home.
-- Hero on a soft tinted panel: "Hello, {name}" in muted text, then the Ray glyph in AI green beside "What can I do for you today?", then the Blade `ChatInput`, then four topic buttons.
-- Under it: the welcome card (a mint-to-blue panel, a green "NEW" badge, the guide's headline, one line, one blue "Take the tour" button, the overview picture from 1280px up), then the setup card ("Set up Blindspot in 3 easy steps", a `0/3 COMPLETED` badge, a blue button), then "Explore Blindspot" cards, then Ray on WhatsApp: the four problems as cards you can pick, one line of figures each, and beside them one short clip of the first heads-up for the one picked. The full story is on the incident page.
+**Overview** (`routes/Home.tsx`, the side menu's first item). From Razorpay's Ray home, with what the product is put first, because a merchant who has never heard of Blindspot could not tell from "What can I do for you today?" (feedback from Eshan's test viewers, 11 Oct 2026).
+- Hero on a soft tinted panel: "Hello, {name}" in muted text, the heading "Catch payment problems before your customers do", one line on what it watches, a "Right now" strip with the open payment issues, customers and amount (read from the data) and "See them", then "Ask Ray" with the Blade `ChatInput`, then three questions a merchant would ask (not page names, which the menu already lists).
+- Under it: the setup card ("Set up Blindspot in 3 easy steps", a `0/3 COMPLETED` badge, "Take the tour" and a blue "Start setup"), then "Explore Blindspot": nine cards in the menu's order, each opening its page, three across from `l`. Then Ray on WhatsApp: the four problems as cards you can pick, one line of figures each, and beside them one clip of the first heads-up for the one picked. The left column is wider (3 to 2 from `xl`), the clip fills its card, and every clip sits in one grid cell with only the picked one visible, so the card is as tall as the longest clip and nothing moves when you pick another.
 - Asking a question turns the page into a conversation (section 17).
 
 **Help bubble.** Razorpay's upload screens show a small blue question pill ("What is a Power of Attorney document?") that opens a short answer card. Use the same for any field a merchant may not understand. Not built yet.
@@ -472,7 +475,7 @@ Observed 7 Oct 2026 in Razorpay's own agents (Payout, Receivables, Bookkeeping, 
 6. **Offer the next step.** A divider, the Ray glyph and "How can I help you next?", then numbered options as plain rows ("1. Call TechCorp now").
 7. **Stay available.** The input ("Ask Ray anything related to Razorpay...") stays pinned at the bottom of the page on a faint gradient. A hamburger and a "+" (new chat) sit in a thin rail on the left.
 
-**Mapping to Blindspot.** Detect (Day-0 scan, incidents) is step 2. Whose side and who is affected is step 3. Fix in stages with approval is step 4. Verify and close is step 5. The next-step list is step 6. The Ray home runs steps 1 to 3 and 6. The fix flow on the incident page runs steps 4 to 7 as turns (`Turn`, `UserBubble`, `Analyzing`, `NextSteps` in `components/AgentAnswer.tsx`, used by `FixPanel.tsx` and `Zone1Fix.tsx`): each step is a titled card with one blue button, pressing it adds the founder's bubble above the next step, steps appear as the founder reaches them, and a closed incident ends with "How can I help you next?". There is no OTP and no feedback row yet.
+**Mapping to Blindspot.** Detect (the first check, payment issues) is step 2. Whose side and who is affected is step 3. Fix in stages with approval is step 4. Verify and close is step 5. The next-step list is step 6. The Ray home runs steps 1 to 3 and 6. The fix flow on the incident page runs steps 4 to 7 as turns (`Turn`, `UserBubble`, `Analyzing`, `NextSteps` in `components/AgentAnswer.tsx`, used by `FixPanel.tsx` and `Zone1Fix.tsx`): each step is a titled card with one blue button, pressing it adds the founder's bubble above the next step, steps appear as the founder reaches them, and a closed incident ends with "How can I help you next?". There is no OTP and no feedback row yet.
 
 **Rules**
 - The title states the number. The sentence under it says what was analysed. No filler greeting.
@@ -524,7 +527,7 @@ Run through this for every screen you add or change.
 2. Does it start with `PageHeader`, and is it one of the templates in section 15?
 3. Blade components and tokens only? No hex, no pixel padding, no `style=` where a token exists. (`grep -rn "#[0-9a-fA-F]\{3,8\}" src --include='*.tsx'` should find nothing.)
 4. One blue primary button per view or card? Blue only on things the user does, green only on Ray and success?
-5. Copy: leads with the number, sentence case, names the cause and the next step, no em dashes, no "Oops".
+5. Copy: an issue headline leads with what happened to customers, and a stat or answer title with the number (section 22); sentence case, names the cause and the next step, no em dashes, no "Oops".
 6. Amounts in rupees with Indian grouping, every figure from the data?
 7. Does it ask a customer or merchant for a credential anywhere? It must not.
 8. Production items still inert, none removed, none made clickable?
@@ -551,7 +554,7 @@ Production items we do not build stay visible and greyed, so the page still look
 Every flow is a conversation: one recommended action per answer, one blue button, the founder's choice echoed as their own message, then the proof, then the next job. Nothing that moves money or messages customers happens without an explicit approve. The agent never asks for credentials.
 
 **5. Every number comes from the data, and leads the sentence.**
-Titles state the figure ("₹73,198 at risk across 3 incidents"). No model writes a number or a status. Rupees use Indian grouping. A line that says what was analysed sits under the title, so the founder can see how the answer was reached.
+Titles state the figure ("5 payment issues, ₹85,359 involved"). No model writes a number or a status. Rupees use Indian grouping. A line that says what was analysed sits under the title, so the founder can see how the answer was reached.
 
 **6. Tokens and Blade, always; wrappers only with a reason.**
 No hardcoded colour, spacing, radius or duration when a token exists. Use Blade components. If Blade cannot do something (an inert nav link, a tab strip that does not crash), write one small wrapper, put the reason in a comment, and note it in `web/CLAUDE.md`. Do not rebuild Blade components by hand.
@@ -591,7 +594,7 @@ Added 8 Oct 2026 after Eshan shared the launch recording of Razorpay Engage (ads
 
 **Rules**
 1. The italic accent goes on one phrase in a hero or launch heading. Never in tables, labels, buttons or body text. Never two in a view.
-2. The Day-0 scan replays as a checklist on every visit, and again on "Run it again", so anyone testing the demo sees how it works each time (Eshan's call). It says it is a replay of the saved result. Every count on it is read from the scan data; a line with no count in the data shows none. People who ask for less motion get the result at once.
+2. The first check (once Day-0 scan) replays as a checklist on every visit, and again on "Run it again", so anyone testing the demo sees how it works each time (Eshan's call). It says it is a replay of the saved result. Every count on it is read from the scan data; a line with no count in the data shows none. People who ask for less motion get the result at once.
 3. One blue primary button per view still holds. On the scan result the blue button is the dark banner's.
 4. The dark banner is drawn in a nested `BladeProvider colorScheme="dark"`, so every colour in it is a Blade token.
 5. Figures may count up on first show (`lib/useCountUp.ts`), always ending on the data's number, even when animation frames are paused.
@@ -603,6 +606,38 @@ Added 8 Oct 2026 after Eshan shared the launch recording of Razorpay Engage (ads
 - The wallpaper is the real WhatsApp doodle image (`public/whatsapp-wallpaper.jpg`, supplied by Eshan), multiplied over the beige. Chats that come from Razorpay (Ray's alerts) use the Razorpay mark as the profile picture (`avatar="razorpay"`).
 - The same rule applies to email and Instagram when they get a preview: copy the real app first, then build. Email and Instagram previews are not built yet; `EmailDemo` and `IgDemo` still use plain cards.
 
-**Charts** use Blade's chart components (`ChartBarWrapper`, `ChartBar`, axes, legend, tooltip), never hand-drawn bars: a chart needs axis labels and a tooltip on hover. First one: `components/TimelineChart.tsx` (webhook outcomes by hour). `DuplicateChart` follows it (INC-2, orders by day). `OrdersChart` (three lines: orders that arrived, normal for the hour, orders nobody tried to pay for) and `RenewalChart` (stacked card renewals) follow it as of 10 Oct 2026, and nothing is hand-drawn any more. A line says what a chart cannot: how many hours the pay page failed, how many UPI renewals went through. Learning's six-week replay is a `ChartLine` with `type="linear"`: the weeks are points, and the default curve draws values between them that the data does not have.
+**Charts** use Blade's chart components (`ChartBarWrapper`, `ChartBar`, axes, legend, tooltip), never hand-drawn bars: a chart needs axis labels and a tooltip on hover. First one: `components/TimelineChart.tsx` (webhook outcomes by hour). `DuplicateChart` follows it (INC-2, orders by day). `OrdersChart` (three lines: orders that arrived, normal for the hour, orders nobody tried to pay for) and `RenewalChart` (stacked card renewals) follow it as of 10 Oct 2026, and nothing is hand-drawn any more. A line says what a chart cannot: how many hours the pay page failed, how many UPI renewals went through. Alert tuning's six-week replay is a `ChartLine` with `type="linear"`: the weeks are points, and the default curve draws values between them that the data does not have.
 
-**Control must be visible in the demo.** Where the real product lets you switch something off, the demo shows it working and shows the undo, with the change held in the browser tab only. First one: Channels (Disconnect, then "Undo, connect it again").
+**Control must be visible in the demo.** Where the real product lets you switch something off, the demo shows it working and shows the undo, with the change held in the browser tab only. First one: Connectors (Disconnect, then "Undo, connect it again").
+
+
+---
+
+## 22. Names and words (researched 11 Oct 2026)
+
+Test viewers could not tell what the product was without Eshan explaining it, and named the copy as the reason. So the names and the words were checked against how Razorpay names its own products: its docs (razorpay.com/docs), the dashboard screenshots and recordings in Eshan's UI Reference folder, and the Agent Studio pages. Razorpay's names are short plural nouns or brand names, never verbs. It uses "incident" only for bank downtime history, and never says "scan", "learning", "autonomy", "autopilot", "at risk", "audit log" or "ground truth".
+
+| Was | Now | Why |
+|---|---|---|
+| Ray (menu item) | Overview | "Ray AI" is already a top tab in Razorpay's dashboard; "Home" is taken by Razorpay's own item |
+| Incidents | Payment issues | Razorpay keeps "incident" for bank downtime |
+| Conversations | Customer complaints | a real Razorpay page name, with Open, In progress, Resolved |
+| Channels | Connectors | Agent Studio's tab for the tools an agent can use |
+| Day-0 scan | First check, off the menu, the end of Setup | no "scan" anywhere in Razorpay |
+| Access report / Access without payment | Unpaid access | "Report" means a download in Razorpay |
+| Release check + Connect by prompt | Integration: 1. Build with AI, 2. Go-live check | Razorpay's guides number "Build Integration, Test Integration, Go-live Checklist" |
+| Learning | Alert tuning | "Alert" is a Razorpay word ("Alert Email"); "learning" read as tutorials |
+| How we know | Accuracy | no Razorpay precedent; a plain noun |
+| Audit log | Audit trail | Razorpay's word |
+| Suggest / Assist / Autopilot | Review first / Approve once / Full automation | "review-first mode" and "full automation" are Razorpay's words for agents |
+| Your side · Code, Razorpay side | Cause: Your code, Your settings, Razorpay, The bank | merchant words; Razorpay's own "Business related" reads two ways |
+| Inferred | estimated | the word a merchant uses for a number that is not counted |
+| At risk | Amount, Amount involved | Razorpay frames money as an amount or "pending" |
+| Before Razorpay / Inside / After the payment | Before payment, During payment, After payment | one rhythm, and each says what happened in a line under it |
+| Dry run / Verify and close / access hook | Test run / Check it held and close / your app | the verb a merchant would use |
+
+**Headlines lead with what happened to customers.** An issue's title is built in the screen from its kind and count ("85 customers paid and did not get access", `headline()` in `lib/format.ts`), and the engine's technical title sits under it as "Cause: ...". The contracts did not change.
+
+**One answer box per page.** An issue page has one blue box that says what happened in plain words, with "With Blindspot on, you would have known ..." at its end, not a second box.
+
+**Disclaimers are short.** The top banner says the data is made up. A page adds one short "Demo" or "Prototype" note only where it differs from what production would do.

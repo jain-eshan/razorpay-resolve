@@ -11,14 +11,14 @@ const CHANNELS: [string, string, string, IconComponent][] = [
   ['email', 'Email', 'Customers write to your payments address.', MailIcon],
 ]
 const LEVELS: [string, string, string, IconComponent][] = [
-  ['suggest', 'Suggest', 'You approve every step: the dry run, the first 5, the rest, and every message.', UserCheckIcon],
-  ['assist', 'Assist', 'You approve a fix once. It then runs in stages by itself and stops if anything fails. Messages still need you.', SlidersIcon],
-  ['autopilot_reversible', 'Autopilot', 'Fixes and messages run by themselves within your limits. Use it only when you trust the wording.', ZapIcon],
+  ['suggest', 'Review first', 'You approve every step: the test run, the first 5, the rest, and every message.', UserCheckIcon],
+  ['assist', 'Approve once', 'You approve a fix once. It then goes out in steps by itself and stops if anything fails. Messages still need you.', SlidersIcon],
+  ['autopilot_reversible', 'Full automation', 'Fixes and messages go out by themselves within your limits. Use it only when you trust the wording.', ZapIcon],
 ]
-const STEPS = ['Channels', 'Autonomy', 'First scan']
+const STEPS = ['Where customers write', 'Approvals', 'First check']
 // A line under the choices on the first two steps: what stays true whatever you pick.
 const NOTE = ['Blindspot reads only messages about a payment, says it is an AI in every reply, and never asks a customer for a password, card details or an OTP.', 'Whatever you pick, switching a customer’s access off is never available.', '']
-const STEP_HELP = ['Where customers can reach you', 'How much it does on its own', 'What is already stuck']
+const STEP_HELP = ['Where customers can reach you', 'How much it does on its own', 'What is already broken']
 
 // A card you can pick, with an icon, a title, one line and a tick. Used for channels (pick any) and autonomy levels (pick one).
 function Choice({ icon: Icon, title, text, selected, onPick, badge }: { icon: IconComponent; title: string; text: string; selected: boolean; onPick: () => void; badge?: string }) {
@@ -32,7 +32,7 @@ function Choice({ icon: Icon, title, text, selected, onPick, badge }: { icon: Ic
             </Box>
             {selected ? <CheckCircleIcon size="large" color="surface.icon.primary.normal" /> : <Box width="20px" height="20px" borderRadius="max" borderWidth="thin" borderColor="surface.border.gray.normal" />}
           </Box>
-          <Box display="flex" alignItems="center" gap="spacing.3" flexWrap="wrap"><Heading size="small">{title}</Heading>{badge && <Badge size="small" color="positive">{badge}</Badge>}</Box>
+          <Box display="flex" alignItems="center" gap="spacing.3" flexWrap="wrap"><Heading as="h2" size="small">{title}</Heading>{badge && <Badge size="small" color="positive">{badge}</Badge>}</Box>
           <Text color="surface.text.gray.muted">{text}</Text>
         </Box>
       </CardBody>
@@ -77,9 +77,9 @@ export default function Setup() {
     ) : <Text key="s" color="surface.text.gray.muted">Checking Razorpay's records against your access records</Text>,
   ]
   const copy = [
-    ['Where can customers reach you?', 'Blindspot only listens where you connect it. Pick any you want. You can change this any time in Channels.'],
-    ['How much should it do on its own?', 'Start with Suggest. You can raise it later in Settings.'],
-    ['Run your first scan', "It compares Razorpay's records with yours. It only looks."],
+    ['Where can customers reach you?', 'Blindspot only listens where you connect it. Pick any you want. You can change this any time in Connectors.'],
+    ['How much should it do on its own?', 'Start with Review first. You can change it later in Settings.'],
+    ['See what is already broken', "Blindspot compares the last 30 days of Razorpay's records with yours. It only looks."],
   ]
 
   return (
@@ -88,7 +88,7 @@ export default function Setup() {
         <Card height="100%">
           <CardBody>
             <Box display="flex" flexDirection="column" gap="spacing.6" height="100%">
-              <Box display="flex" flexDirection="column"><Text color="surface.text.gray.muted">Setup:</Text><Heading size="medium">Blindspot</Heading></Box>
+              <Box display="flex" flexDirection="column"><Text color="surface.text.gray.muted">Setup:</Text><Heading as="h2" size="medium">Blindspot</Heading></Box>
               <StepGroup size="large">
                 {STEPS.map((t, i) => <StepItem key={t} title={t} description={STEP_HELP[i]} stepProgress={i < step ? 'full' : 'none'} marker={<StepItemIndicator color={i < step ? 'positive' : i === step ? 'primary' : 'neutral'} />} />)}
               </StepGroup>
@@ -106,7 +106,7 @@ export default function Setup() {
               <Text size="small" weight="semibold" color="surface.text.gray.muted">{`Step ${step + 1} of ${STEPS.length}: ${STEPS[step]}`}</Text>
             </Box>
             <Box display="flex" flexDirection="column" gap="spacing.2">
-              <Heading size="xlarge">{copy[step][0]}</Heading>
+              <Heading as="h1" size="xlarge">{copy[step][0]}</Heading>
               <Text color="surface.text.gray.muted">{copy[step][1]}</Text>
             </Box>
             {body[step]}

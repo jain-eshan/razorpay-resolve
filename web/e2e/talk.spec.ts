@@ -48,7 +48,7 @@ test('S-13 a help button on a receipt already knows the payment', async ({ page 
   await page.getByRole('button', { name: 'Need help with this payment?' }).click()
   await expect(chat(page).getByText(/This page already knows the payment/)).toBeVisible()
   await say(page, 'access nahi mila')
-  await page.getByText('See it as the founder').click()
+  await page.getByText('See it as you would').click()
   await expect(founder(page).getByText('Waiting for the fix')).toBeVisible()
   await expect(founder(page).getByText('Held for you')).toBeVisible()
   await expect(founder(page).getByText(/12 digit|UPI ref/)).toHaveCount(0) // it never had to ask
@@ -88,7 +88,7 @@ test('S-12 channels: consent is shown, autonomy is set per channel, and disconne
   await expect(page.getByText('Public mentions')).toBeVisible() // Instagram, Messenger and public posts are in the list too, as simulated channels
   await expect(page.getByText('Read payment-related messages').first()).toBeVisible()
   await page.getByRole('button', { name: 'Disconnect' }).nth(1).click() // the WhatsApp number is the second conversational channel
-  await expect(page.getByText('Consent withdrawn, so nothing from this channel is being processed.')).toBeVisible()
+  await expect(page.getByText('Consent withdrawn, so nothing from here is being read.')).toBeVisible()
   const blocked = await request.post(`${API}/api/inbound/whatsapp_payments`, { data: { customer_ref: '+919800099999', text: 'paisa kat gaya 299 ka' } })
   expect(blocked.status()).toBe(409)
   await page.getByRole('button', { name: 'Allow it' }).click()
@@ -98,7 +98,7 @@ test('S-12 channels: consent is shown, autonomy is set per channel, and disconne
   expect(ok.status()).toBe(200)
 
   // the dial is per channel: on Assist, the status reply goes out by itself
-  await page.getByText('Assist', { exact: true }).nth(1).click()
+  await page.getByText('Approve once', { exact: true }).nth(1).click()
   const members = await (await request.get(`${API}/api/incidents/INC-1/members?tier=exact`)).json()
   const pay = members.filter((m: { complained: boolean }) => !m.complained)[0].payment_id as string
   const step = await (await request.post(`${API}/api/inbound/whatsapp_payments`, { data: { customer_ref: '+919800099997', text: `paisa kat gaya 299 ka, UPI ref ${pay}` } })).json()

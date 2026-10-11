@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&display=swap" />
     <style>*,*::before,*::after{box-sizing:border-box}</style>
+    <!-- The page scrolls inside App.tsx's scroller. Reserving the scrollbar's room keeps content from jumping sideways when a short page has no scrollbar. -->
+    <style>[data-testid="scroller"] { scrollbar-gutter: stable; }</style>
     <style>html, body, #root { margin: 0; height: 100%; } body { font-family: Inter, 'Inter Fallback Arial', Arial, sans-serif; font-size: 14px; line-height: 20px; }</style>
   </head>
   <body>

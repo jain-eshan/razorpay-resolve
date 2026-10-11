@@ -9,7 +9,7 @@ export function PageHeader({ title, description, actions, guide }: { title: stri
   return (
     <Box display="flex" flexDirection={{ base: 'column', m: 'row' }} justifyContent="space-between" alignItems={{ base: 'flex-start', m: 'center' }} gap="spacing.4">
       <Box display="flex" flexDirection="column" gap="spacing.2" maxWidth="720px">
-        <Heading size="xlarge">{title}</Heading>
+        <Heading as="h1" size="xlarge">{title}</Heading>
         {description && <Text color="surface.text.gray.muted">{description}</Text>}
       </Box>
       {(guide || actions) && (

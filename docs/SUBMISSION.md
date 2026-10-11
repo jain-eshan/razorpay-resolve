@@ -51,7 +51,7 @@ Record the hosted demo (the guided one). Keep a small caption on screen for the 
 | 0:10 to 0:35 | RAY alert on the home page, then the incident page for INC-1 | "Tuesday 29 September, a deploy breaks the webhook. At 3:15 the alert fires, with one customer affected. Without it, the founder finds out days later. By then 85 customers have paid and have no access. 17 complained. 68 never said a word. That is ₹56,319." |
 | 0:35 to 0:55 | WhatsApp thread at `/chat-demo` beside the incident it joined | "A customer writes in Hinglish. The assistant says it is an AI, asks for the UPI reference, finds the payment, and joins the complaint to the incident. The founder approves the reply. Nobody asks for a card number or an OTP." |
 | 0:55 to 1:15 | INC-4 page: the "Inferred" label, the orders chart, the evidence list | "Here Razorpay saw nothing, because no payment existed. The pay page returned a 404. Blindspot saw the page check fail and 12 customers write in, flagged it five minutes after the page broke, and says plainly that this is inferred. It moves no money." |
-| 1:15 to 1:25 | Fix stepper: first 5, the rest, verify, the one RazorSense moment, then `/how` | "One approval fixes 81 customers in stages. After 24 healthy hours: 81 of 81 confirmed active, ₹56,319 restored. Every number here is on the How we know page, checked against hidden ground truth." |
+| 1:15 to 1:25 | Fix stepper: first 5, the rest, verify, the one RazorSense moment, then Accuracy (`/how`) | "One approval fixes 81 customers in stages. After 24 healthy hours: 81 of 81 confirmed active, ₹56,319 restored. Every number here is on the How we know page, checked against hidden ground truth." |
 | 1:25 to 1:30 | Title card | "Razorpay owns the payment. Blindspot owns the before and the after." |
 
 Do not say in the video: that a model reads the messages; that the replies take seconds (only the engine's own time is measured, under a millisecond, and a model call would add a few seconds); anything about RAY's behaviour; the Meta message prices.
@@ -122,23 +122,24 @@ An independent reviewer walked the script above, click by click, on the local bu
 **Wording that does not match the screen**
 - **0:10 to 0:35.** The ₹56,319 is the 81 customers still locked out, not the 85 affected. Say "85 affected, 81 still locked out, ₹56,319 at risk".
 - **0:55 to 1:15 (INC-4).** The voice-over says Blindspot "saw the page check fail and 12 customers write in, flagged it five minutes after the page broke". The page says you would have known at 20:15, before any customer wrote (the first wrote at 20:25). Better: "Blindspot saw the page check fail five minutes after the page broke, before anyone wrote in. Twelve customers later did."
-- **1:15 to 1:25.** "Every number here is on the How we know page" is not true for 85, 17, 68, ₹56,319 or 12. The page now shows the measured ones (4.0 silent per complaint, 55 minutes to alert, 5 minutes for the pay page, 100 percent identified in 3 questions, 147 of 147 checks). Say "The measured numbers are on the How we know page."
+- **1:15 to 1:25.** "Every number here is on the Accuracy page" is not true for 85, 17, 68, ₹56,319 or 12. The page now shows the measured ones (4.0 silent per complaint, 55 minutes to alert, 5 minutes for the pay page, 100 percent identified in 3 questions, 147 of 147 checks). Say "The measured numbers are on the Accuracy page." (The page was called How we know until 11 Oct.)
 - **0:35 to 0:55.** "Beside the incident it joined" is a small `INC-1` chip on the thread, not a link and not a split screen.
 
 **What is not in the app**
 - The title card at 1:25 to 1:30. Make it in editing.
-- The three-zone graphic at 0:00. The unlabelled art is on `/guides/blindspot`. The labelled Before, Inside and After view is on `/incidents`.
+- The three-zone graphic at 0:00. The unlabelled art is on `/guides/blindspot`. The labelled Before payment and After payment groups are on Payment issues (`/incidents`), with During payment as one line under them. The 11 Oct pictures (`web/public/art`) are better for the opening: `01-overview` is the three places a payment breaks.
 
 **Timing.** Narration is about 78 seconds at 150 words a minute, and the clicks overrun 90 seconds by 8 to 10. The 1:15 row is the densest: 33 words and about 8 clicks in 10 seconds. Trim the INC-4 hold or speed up the stepper in editing.
 
-**State.** A full page reload (F5) restarts the demo, and in-app links keep what you did. Reload before every take. After the success surface the incident list and Home still show INC-1 as open, so go straight to How we know. The Home alert is about 1,300 pixels down the page, so scroll to it. The success surface showed ragged edges in headless Chrome: look at it in real Chrome on the recording machine.
+**State.** A full page reload (F5) restarts the demo, and in-app links keep what you did. Reload before every take. After the success surface the Payment issues list and Overview still show INC-1 as open, so go straight to Accuracy. The Ray on WhatsApp alert is near the bottom of Overview, so scroll to it. The welcome pop-up opens the first time Overview shows after a load: close it with "Look around first", or use it as the opening shot. The success surface showed ragged edges in headless Chrome: look at it in real Chrome on the recording machine.
 
 **A path that fits (1440 wide, hosted site)**
-1. 0:00 full load of `/guides/blindspot`, hold 10 seconds.
-2. 0:10 sidebar Ray, scroll to the alert, "View list", hold on the INC-1 tiles and the "With this on" banner.
-3. 0:35 sidebar Conversations, the WhatsApp card, the first message, then the "UPI ref" message, then "Approve and send".
-4. 0:55 sidebar Incidents, INC-4: the banner, the tiles, one scroll for the evidence, then the chart.
-5. 1:08 sidebar Incidents, INC-1, "Start the fix", then: Test hook, Plan the fix, Looks right continue, Grant the first 5, Grant the rest, Your developer ships the fix, Move the clock forward 24 hours, Verify and close. Hold on the success surface, then sidebar How we know.
+Updated 11 Oct for the renamed pages (web/DESIGN.md section 22).
+1. 0:00 full load of `/` (Overview). The welcome pop-up opens: hold on slide 1 ("Find customers who paid and got nothing") for 10 seconds, then "Look around first".
+2. 0:10 scroll to Ray on WhatsApp, "View list", hold on the INC-1 headline ("85 customers paid and did not get access"), the tiles and the blue answer box.
+3. 0:35 sidebar Customer complaints, "Talk to it on WhatsApp", the first message, then the "UPI ref" message, then "Approve and send".
+4. 0:55 sidebar Payment issues, "About 13 customers could not pay" (INC-4): the answer box, the tiles, one scroll for the evidence, then the chart.
+5. 1:08 sidebar Payment issues, INC-1, "Start the fix", then: Run the check, Plan the fix, Looks right continue, Grant the first 5, Grant the rest, Your developer ships the fix, Move the clock forward 24 hours, Check it held and close. Hold on the success surface, then sidebar Accuracy.
 
 **Not checked by the reviewer:** real-GPU rendering of the success surface, audio pacing, Safari and Firefox.
 

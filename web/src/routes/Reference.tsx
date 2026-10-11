@@ -111,7 +111,7 @@ function Hero() {
 function States() {
   return (
     <Box display="flex" flexDirection="column" gap="spacing.5">
-      <Heading size="large">How each state sounds</Heading>
+      <Heading as="h2" size="large">How each state sounds</Heading>
       <Box display="grid" gridTemplateColumns={{ base: '1fr', m: '1fr 1fr' }} gap="spacing.5">
         <Alert color="information" isDismissible={false} title="Calm" description="₹2,40,000 settles tomorrow by 11 AM." />
         <Alert color="positive" isDismissible={false} title="Joyful" description="Payment received. ₹94,600 from Kiran Stores." />
@@ -171,7 +171,7 @@ function AskRay() {
   return (
     <Box display="flex" flexDirection="column" gap="spacing.5">
       <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="large">Ask Ray</Heading>
+        <Heading as="h2" size="large">Ask Ray</Heading>
         <Text color="surface.text.gray.muted">Blue is for what you do. Green is for what Ray thinks.</Text>
       </Box>
       <Card>
@@ -237,7 +237,7 @@ function SuccessMoment() {
   return (
     <Box display="flex" flexDirection="column" gap="spacing.5">
       <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="large">Joyful, in full</Heading>
+        <Heading as="h2" size="large">Joyful, in full</Heading>
         <Text color="surface.text.gray.muted">
           The living surface is rationed for moments like this one: success, AI loading, login, hero.
         </Text>

@@ -12,13 +12,13 @@ const pct = (x: number) => `${Math.round(x * 100)}%`
 const num = (t: string) => Number(t.match(/[\d.]+/)?.[0] ?? 0)  // the first number in a target, which is the limit itself
 // The checks a founder would ask about first, in their words. Each value and target is read from the report; only the wording is ours.
 const HEADLINE: [string, string, (v: number, t: string) => [string, string]][] = [
-  ['day0_customers_found_vs_truth', 'Stuck customers the Day\u20110 scan found', (v, t) => [String(v), `out of ${num(t)} in the hidden truth`]],
+  ['day0_customers_found_vs_truth', 'Stuck customers the first check found', (v, t) => [String(v), `out of ${num(t)} in the known answers`]],
   ['silent_victim_precision_exact_tier', 'Customers named who were really affected', (v, t) => [pct(v), `target ${pct(num(t))} or more`]],
   ['grants_that_ground_truth_says_were_not_owed', 'Access given to someone not owed it', (v) => [String(v), 'target none']],
   ['never_ask_violations_in_agent_replies', 'Replies that asked for a password, card or OTP', (v) => [String(v), 'target none']],
-  ['silent_to_complained_ratio', 'Silent customers for each one who complained (webhook incident)', (v, t) => [v.toFixed(1), `kill line ${num(t)}`]],
-  ['alert_latency_minutes_from_deploy', 'Minutes from the deploy to the alert (webhook incident)', (v) => [`${Math.round(v)} min`, 'when the first customer was hit']],
-  ['zone1_inc4_minutes_from_start_to_alert', 'Minutes from the pay page breaking to the alert (pay page incident)', (v) => [`${Math.round(v)} min`, 'with the pay-page check switched on']],
+  ['silent_to_complained_ratio', 'Customers who never wrote in, for each one who did (webhook issue)', (v, t) => [v.toFixed(1), `we stop if it falls under ${num(t)}`]],
+  ['alert_latency_minutes_from_deploy', 'Minutes from the release to the alert (webhook issue)', (v) => [`${Math.round(v)} min`, 'when the first customer was hit']],
+  ['zone1_inc4_minutes_from_start_to_alert', 'Minutes from the pay page breaking to the alert (pay page issue)', (v) => [`${Math.round(v)} min`, 'with the pay-page check switched on']],
   ['identified_within_3_questions_cooperative', 'Customers whose payment was found in 3 questions', (v) => [pct(v), 'on scripted, friendly threads']],
 ]
 
@@ -46,7 +46,7 @@ export default function How() {
   const effort = typical && cost && reply ? { typical, cost, reply, longest: longest ? `${minutes(longest.value ?? 0)} for the refunds` : 'n/a', longestNote: 'each one approved one customer at a time on purpose' } : undefined
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <PageHeader guide="how" title="How we know it works" description={`Synthetic world, seed ${data.seed}. The pipeline never sees the ground truth. This world is clean, so near-perfect scores are expected here. Real traffic is messier, and reading that mess is the job of the production model.`} />
+      <PageHeader guide="how" title="Accuracy" description={`Every number on these pages is tested against a made-up merchant whose real problems are known and hidden from Blindspot. That merchant is tidy, so near-perfect scores are expected here. Real traffic is messier.`} />
       {/* The answer first: the score, then four checks in plain words, then every check for anyone who wants them. */}
       <Card>
         <CardBody>
@@ -55,8 +55,8 @@ export default function How() {
               {passed === gates.length ? <CheckCircleIcon size="xlarge" color="feedback.icon.positive.intense" /> : <AlertTriangleIcon size="xlarge" color="feedback.icon.negative.intense" />}
             </Box>
             <Box display="flex" flexDirection="column" gap="spacing.1">
-              <Heading size="xlarge">{`${passed} of ${gates.length} scored checks pass`}</Heading>
-              <Text color="surface.text.gray.muted">{`Each one compares Blindspot's answer with the hidden truth of this synthetic world. ${reported} more are reported, not scored.`}</Text>
+              <Heading as="h2" size="xlarge">{`${passed} of ${gates.length} scored checks pass`}</Heading>
+              <Text color="surface.text.gray.muted">{`Each one compares Blindspot's answer with the known answers for the made-up merchant. ${reported} more are shown but not counted.`}</Text>
             </Box>
           </Box>
         </CardBody>
@@ -72,11 +72,11 @@ export default function How() {
       {effort && (
         <Box display="flex" flexDirection="column" gap="spacing.4">
           <Box display="flex" flexDirection="column" maxWidth="720px">
-            <Heading size="medium">What it asks of a founder, and what it costs</Heading>
-            <Text size="small" color="surface.text.gray.muted">Three numbers the plan said to measure and had not. Counted from the engine's own plans and runs. The seconds per approval is an assumption.</Text>
+            <Heading as="h2" size="medium">What it asks of you, and what it costs</Heading>
+            <Text size="small" color="surface.text.gray.muted">Counted from Blindspot's own plans and runs. The time per approval is an estimate, not timed.</Text>
           </Box>
           <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
-            <Stat label="Founder time, typical incident" value={minutes(effort.typical.value ?? 0)} hint={`estimated at ${perApproval} per approval, not timed. Target ${minutes(num(effort.typical.target))} or less. Longest: ${effort.longest}, ${effort.longestNote}`} icon={ClockIcon} tone={effort.typical.status === 'pass' ? 'positive' : 'negative'} />
+            <Stat label="Your time, typical payment issue" value={minutes(effort.typical.value ?? 0)} hint={`estimated at ${perApproval} per approval, not timed. Target ${minutes(num(effort.typical.target))} or less. Longest: ${effort.longest}, ${effort.longestNote}`} icon={ClockIcon} tone={effort.typical.status === 'pass' ? 'positive' : 'negative'} />
             <Stat label="Cost per resolved case" value={money(effort.cost.value ?? 0)} hint="messages only. No model is used here, and a model would add its own cost" icon={CheckCircleIcon} />
             <Stat label="Time to first reply" value={(effort.reply.value ?? 0) < 1 ? 'Under 1 second' : `${(effort.reply.value ?? 0).toFixed(1)} s`} hint="engine only, no network. A model call adds a few seconds" icon={ClockIcon} tone={effort.reply.status === 'pass' ? 'positive' : 'negative'} />
           </Box>
@@ -95,7 +95,7 @@ export default function How() {
               <TableBody>
                 {rows.map((m) => (
                   <TableRow key={m.name} item={m}>
-                    <TableCell><Text weight="semibold" color="surface.text.gray.subtle">{sentence(m.name).replace('Day0', 'Day-0')}</Text></TableCell>
+                    <TableCell><Text weight="semibold" color="surface.text.gray.subtle">{sentence(m.name).replace(/^Day0 /, 'First check ')}</Text></TableCell>
                     <TableCell><Text>{m.value ?? 'n/a'}</Text></TableCell>
                     <TableCell><Text size="small" color="surface.text.gray.muted">{m.target}</Text></TableCell>
                     <TableCell><Badge size="medium" color={TONE[m.status]}>{m.status}</Badge></TableCell>

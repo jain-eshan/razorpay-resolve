@@ -8,8 +8,8 @@ const btn = (page: Page, name: string | RegExp) => panel(page).getByRole('button
 const total = async (page: Page) => Number((await panel(page).getByText(/^\d+ customers, ₹/).innerText()).match(/^(\d+)/)![1])
 
 async function planAndRunFirstFive(page: Page) {
-  await btn(page, 'Test hook').click()
-  await expect(panel(page).getByText(/Your hook answered/)).toBeVisible()
+  await btn(page, 'Run the check').click()
+  await expect(panel(page).getByText(/Your app answered/)).toBeVisible()
   await btn(page, 'Plan the fix').click()
   await expect(panel(page).getByText(/^\d+ customers, ₹/)).toBeVisible()
   await btn(page, 'Looks right, continue').click()
@@ -22,15 +22,15 @@ test('S-05 undo puts every record back, and a second plan runs again', async ({ 
   await expect(panel(page).getByText(/^5 of \d+ confirmed active by your records/)).toBeVisible()
   await btn(page, 'Undo these changes').click()
   await expect(panel(page).getByText(/Undone\. Every record is back to how it was/)).toBeVisible()
-  await page.getByText(/^Exact \(/).click()
-  await expect(page.getByText(/^Exact \(\d+\)/)).not.toHaveText('Exact (0)')
+  await page.getByText(/^Certain \(/).click()
+  await expect(page.getByText(/^Certain \(\d+\)/)).not.toHaveText('Certain (0)')
 })
 
 test('S-05 to S-08 Hero A runs end to end in under 90 seconds of clicking', async ({ page }) => {
   await page.goto('/incidents/INC-1')
   const start = Date.now()
-  await btn(page, 'Test hook').click()
-  await expect(panel(page).getByText(/Your hook answered/)).toBeVisible()
+  await btn(page, 'Run the check').click()
+  await expect(panel(page).getByText(/Your app answered/)).toBeVisible()
   await btn(page, 'Plan the fix').click()
   const n = await total(page)
   await btn(page, 'Looks right, continue').click()
@@ -53,11 +53,11 @@ test('S-05 to S-08 Hero A runs end to end in under 90 seconds of clicking', asyn
   await expect(panel(page).getByText('Sent', { exact: true })).toBeVisible()
 
   // Closing needs the webhook fix and 24 healthy hours. Until then the page says what is missing.
-  await btn(page, 'Verify and close').click()
+  await btn(page, 'Check it held and close').click()
   await expect(panel(page).getByText(/still answers 401/)).toBeVisible()
   await btn(page, 'Your developer ships the fix').click()
   await btn(page, 'Move the clock forward 24 hours').click()
-  await btn(page, 'Verify and close').click()
+  await btn(page, 'Check it held and close').click()
   await expect(panel(page).getByText(new RegExp(`^${n} of ${n} confirmed active by your records. Your webhook has answered normally for 24 hours. ₹[\\d,]+ restored`))).toBeVisible()
 
   // S-08 the one RazorSense moment, with its static tint behind it
@@ -107,7 +107,7 @@ test('INC-3 live: grace in stages, the pack waits for the founder, and it closes
   await btn(page, 'Send to Razorpay').click()
   await expect(panel(page).getByText(/Sent to Razorpay \(simulated\) as MG-INC-3-/)).toBeVisible()
 
-  await btn(page, 'Verify and close').click()
+  await btn(page, 'Check it held and close').click()
   await expect(page.getByTestId('success-moment')).toBeVisible()
   await expect(panel(page).getByText(/24 of 24 confirmed to have access by your records/).first()).toBeVisible()
 })
@@ -133,7 +133,7 @@ test('INC-3 live: the renewal link follows the message, goes out in stages, and 
   await expect(panel(page).getByText(/^0 of 22 customers with a link have renewed/)).toBeVisible()
   await btn(page, 'Move the demo clock forward 48 hours').click()
   await expect(panel(page).getByText(/^12 of 22 customers with a link have renewed, ₹3,588 collected/)).toBeVisible()
-  await btn(page, 'Verify and close').click()
+  await btn(page, 'Check it held and close').click()
   await expect(panel(page).getByText(/Renewed since: 12 of 24 customers/).first()).toBeVisible()
 })
 
@@ -174,15 +174,15 @@ test('INC-2 live: refunds one customer at a time, the daily limit holds, and it 
   await btn(page, 'Your developer ships the fix').click()
   for (const h of [72, 24]) await btn(page, `Move the clock forward ${h} hours`).click()
   await expect(panel(page).getByText('Processed', { exact: true })).toHaveCount(15)
-  await btn(page, 'Verify and close').click()
+  await btn(page, 'Check it held and close').click()
   await expect(page.getByTestId('success-moment')).toBeVisible()
   await expect(panel(page).getByText(/₹4,985 returned/).first()).toBeVisible()
 })
 
 test('S-11 autonomy dial and limits are saved', async ({ page }) => {
   await page.goto('/settings')
-  await expect(page.getByText('You approve every step: the dry run, the first 5, the rest, and every message.')).toBeVisible()
-  await page.getByText('Assist', { exact: true }).click()
+  await expect(page.getByText('You approve every step: the test run, the first 5, the rest, and every message.')).toBeVisible()
+  await page.getByText('Approve once', { exact: true }).click()
   await expect(page.getByText(/You approve a fix once/)).toBeVisible()
   await page.getByRole('button', { name: 'Save settings' }).click()
   await expect(page.getByText(/Saved/)).toBeVisible()

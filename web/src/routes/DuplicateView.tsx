@@ -12,7 +12,7 @@ import { Panel } from '../components/Panel'
 import { StartFix } from '../components/StartFix'
 import { Stat } from '../components/Stat'
 import { rupees, useGet, type Schemas } from '../lib/api'
-import { OWNER, sentence, when } from '../lib/format'
+import { cause, headline, sentence, when } from '../lib/format'
 import { PageSkeleton } from '../components/PageSkeleton'
 
 type Sig = { app_version: string; release_at: string | null; first_at: string; alert_at: string; pairs: number }
@@ -29,6 +29,9 @@ const two = (top: string, bottom: string) => (
 // INC-2: customers charged twice after an Android release. Both charges reached the merchant's server and both orders got access, so the only harm is the
 // second charge. The cause is the merchant's app. The screen shows the evidence, what was left out and why, and the two things the founder can do:
 // refund each second charge to the original payment method, one customer at a time, and tell the developer what to fix.
+// How much a signal weighs, in words: the engine scores each one 1 to 3.
+const strength = (w: number) => (w >= 3 ? 'Strong' : w === 2 ? 'Medium' : 'Supporting')
+
 export default function DuplicateView({ id }: { id: string }) {
   const nav = useNavigate()
   const [version, setVersion] = useState(0)
@@ -47,13 +50,14 @@ export default function DuplicateView({ id }: { id: string }) {
   const steps = [
     ...(sig.release_at ? [{ at: sig.release_at, title: `${sig.app_version} released`, text: 'The Pay button could be tapped twice', tone: 'neutral' as const }] : []),
     { at: sig.first_at, title: 'First customer charged twice', text: `Two orders for the same plan, seconds apart`, tone: 'negative' as const },
-    { at: sig.alert_at, title: 'You could have known', text: atAlert ? `After ${atAlert} double charges from ${sig.app_version}` : undefined, tone: 'information' as const },
+    { at: sig.alert_at, title: 'Blindspot would have alerted', text: atAlert ? `After ${atAlert} double charges from ${sig.app_version}` : undefined, tone: 'information' as const },
   ].sort((a, b) => a.at.localeCompare(b.at))
   const done = inc.status === 'closed'
 
+  const early = inc.would_have_alerted_at ? ` With Blindspot on, you would have known ${when(inc.would_have_alerted_at)}${atAlert ? `, after ${atAlert} customers were charged twice` : ''}.` : ''
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <Crumbs items={[{ label: 'Incidents', to: '/incidents' }, { label: inc.id, to: `/incidents/${inc.id}` }]} />
+      <Crumbs items={[{ label: 'Payment issues', to: '/incidents' }, { label: inc.id, to: `/incidents/${inc.id}` }]} />
 
       <Card padding="spacing.5">
         <CardBody>
@@ -62,11 +66,12 @@ export default function DuplicateView({ id }: { id: string }) {
               <AlertTriangleIcon size="xlarge" color="feedback.icon.notice.intense" />
             </Box>
             <Box display="flex" flexDirection="column" gap="spacing.2" flex="1" minWidth="240px">
-              <Heading size="medium">{inc.title}</Heading>
+              <Heading as="h1" size="medium">{headline(inc)}</Heading>
+              <Text size="small" color="surface.text.gray.muted">{`Cause: ${inc.title}`}</Text>
               <Box display="flex" gap="spacing.3" alignItems="center" flexWrap="wrap">
-                <Badge color="notice" size="medium">{OWNER[inc.owner]}</Badge>
+                <Badge color="notice" size="medium">{cause(inc)}</Badge>
                 <Badge color={STATUS_TONE[inc.status]} size="medium">{sentence(inc.status)}</Badge>
-                <Text size="small" color="surface.text.gray.muted">Confidence {v.confidence} · started {when(inc.onset_at)} · {inc.id}</Text>
+                <Text size="small" color="surface.text.gray.muted">{sentence(v.confidence)} confidence · started {when(inc.onset_at)} · {inc.id}</Text>
               </Box>
             </Box>
             <Button variant="secondary" size="small" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Send to your developer</Button>
@@ -75,23 +80,20 @@ export default function DuplicateView({ id }: { id: string }) {
       </Card>
 
       <Alert isFullWidth color="information" isDismissible={false} title="Your webhook was fine. The second charge is the problem"
-        description={`Both charges reached your server and both orders got access. The Pay button in ${sig.app_version} lets a second tap place a second order, so the customer pays twice for one plan. Blindspot can refund the second charge to the original payment method, one customer at a time, once you approve each.`} />
+        description={`Both charges reached your server and both orders got access. The Pay button in ${sig.app_version} lets a second tap place a second order, so the customer pays twice for one plan. Blindspot can refund the second charge to the original payment method, one customer at a time, once you approve each.${early}`} />
 
       <Box display="grid" gridTemplateColumns={{ base: 'repeat(2, minmax(0, 1fr))', l: 'repeat(4, minmax(0, 1fr))' }} gap="spacing.5">
         <Stat label="Charged twice" value={String(inc.affected)} hint={`${rupees(inc.at_risk_paise)} still to refund`} icon={AlertTriangleIcon} tone="notice" />
         <Stat label="Wrote to you" value={String(inc.complained)} icon={MessageCircleIcon} />
-        <Stat label="Silent" value={String(inc.silent)} hint="have not written" icon={BellOffIcon} />
+        <Stat label="Silent" value={String(inc.silent)} hint="never wrote in" icon={BellOffIcon} />
         <Stat label="Refunds started" value={String(inc.fixed)} hint="the bank takes time to pay them out" icon={CheckCircleIcon} tone="positive" />
       </Box>
       <StartFix to={fix} closed={done} top />
 
       <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(0, 1fr) 320px' }} gap="spacing.6" alignItems="start">
         <Box display="flex" flexDirection="column" gap="spacing.6" minWidth="0px">
-          {inc.would_have_alerted_at && (
-            <Alert isFullWidth color="information" isDismissible={false} title="With this on" description={`You would have known ${when(inc.would_have_alerted_at)}${atAlert ? `, after ${atAlert} customers were charged twice` : ''}.`} />
-          )}
 
-          <Panel title="What we saw" subtitle={`On your side: ${v.evidence.length} pieces of evidence, ${v.evidence.reduce((a, e) => a + e.weight, 0)} points`}>
+          <Panel title="What we saw" subtitle={`${v.evidence.length} signals pointing at your side, strongest first`}>
             <Box display="flex" flexDirection="column">
               {v.evidence.map((e) => (
                 <Box key={e.kind + e.ref} display="flex" flexDirection={{ base: 'column', m: 'row' }} justifyContent="space-between" gap={{ base: 'spacing.1', m: 'spacing.5' }} paddingY="spacing.3" borderBottomWidth="thin" borderBottomColor="surface.border.gray.subtle">
@@ -99,11 +101,11 @@ export default function DuplicateView({ id }: { id: string }) {
                     <Text weight="semibold">{LABEL[e.kind] ?? sentence(e.kind)}</Text>
                     <Text size="small" color="surface.text.gray.muted">{e.ref}</Text>
                   </Box>
-                  <Box><Badge color="neutral" size="medium">{`${e.weight} ${e.weight === 1 ? 'point' : 'points'}`}</Badge></Box>
+                  <Box><Badge color="neutral" size="medium">{strength(e.weight)}</Badge></Box>
                 </Box>
               ))}
             </Box>
-            {v.what_we_cannot_see.map((t) => <Text key={t} size="small" color="surface.text.gray.muted">We cannot see: {t}</Text>)}
+            {v.what_we_cannot_see.map((t) => <Text key={t} size="small" color="surface.text.gray.muted">What Blindspot cannot see: {t}</Text>)}
           </Panel>
 
           <Panel title={`Orders from ${sig.app_version} by day`} subtitle="The red part is the second order of a double tap">
@@ -152,12 +154,12 @@ export default function DuplicateView({ id }: { id: string }) {
           </Panel>
 
           {sample && sample.length > 0 && (
-            <Panel title={`Look at ${sample.length} before acting`} subtitle="Customer, Razorpay and your records, side by side">
+            <Panel title={`${sample.length} customers, side by side`} subtitle="What the customer said, what Razorpay recorded and what your records show. Check a few before you fix.">
               {sample.map((x) => (
                 <Box key={x.payment_id} display="flex" flexDirection="column" gap="spacing.3" paddingBottom="spacing.4" borderBottomWidth="thin" borderBottomColor="surface.border.gray.subtle">
                   <Text size="small" color="surface.text.gray.muted">{x.payment_id}</Text>
                   <Box display="flex" gap="spacing.5" flexWrap="wrap">
-                    <Lane title="Customer says" items={x.lanes.customer} />
+                    <Lane title="Customer says" items={x.lanes.customer} empty="Did not write in" />
                     <Lane title="Razorpay says" items={x.lanes.razorpay} />
                     <Lane title="Your records say" items={x.lanes.merchant} />
                   </Box>
@@ -172,7 +174,7 @@ export default function DuplicateView({ id }: { id: string }) {
         <Box position={{ base: 'static', l: 'sticky' }} top="spacing.5">
           <Card padding="spacing.7">
             <CardBody>
-              <Heading size="medium">Timeline</Heading>
+              <Heading as="h2" size="medium">Timeline</Heading>
               <Box marginTop="spacing.5">
                 <StepGroup size="medium">
                   {[

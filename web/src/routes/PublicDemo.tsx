@@ -1,3 +1,4 @@
+import { Crumbs } from '../components/Crumbs'
 import { useEffect, useState } from 'react'
 import { Alert, Badge, Box, Button, Card, CardBody, Heading, Link, Text } from '@razorpay/blade/components'
 import { ThreadView } from '../components/ThreadView'
@@ -46,8 +47,9 @@ export default function PublicDemo() {
   }
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7">
+      <Crumbs items={[{ label: 'Customer complaints', to: '/threads' }, { label: 'Try it: A public post', to: '/public-demo' }]} />
       <PageHeader title="A public post" description="When someone posts about a payment problem in public, Blindspot does not discuss it there. It drafts one generic reply with a private link, with no amount, name or status in it, and holds it for the founder. Nothing in the post is looked up, and the handle is never tied to a payment until the customer writes privately." />
-      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Pick a post. Real posts from the research are watched and never answered.`} />}
+      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Demo" description={`${demoNote} Pick a post. Real posts from the research are watched and never answered.`} />}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="Not done" description={error} />}
       <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(320px, 440px) minmax(0, 1fr)' }} gap="spacing.7" alignItems="start">
         <Box display="flex" flexDirection="column" gap="spacing.4" testID="public-posts">
@@ -67,7 +69,7 @@ export default function PublicDemo() {
           ))}
         </Box>
         <Box minWidth="0px" display="flex" flexDirection="column" gap="spacing.5">
-          {t ? <ThreadView thread={t} onChanged={() => setV((n) => n + 1)} /> : <Text color="surface.text.gray.muted">The founder's view appears when you pick a post.</Text>}
+          {t ? <ThreadView thread={t} onChanged={() => setV((n) => n + 1)} /> : <Text color="surface.text.gray.muted">Your view appears when you pick a post.</Text>}
           {t && sel?.follow_up && !ptid && t.messages.some((m) => m.sender_role === 'agent' && m.policy.status === 'sent') && (
             <Box display="flex" flexDirection="column" gap="spacing.3" alignItems="flex-start">
               <Text size="small" color="surface.text.gray.muted">The reply is posted. The customer follows the private link and writes:</Text>
@@ -77,7 +79,7 @@ export default function PublicDemo() {
           )}
           {priv && (
             <Box display="flex" flexDirection="column" gap="spacing.3">
-              <Heading size="medium">The private conversation</Heading>
+              <Heading as="h2" size="medium">The private conversation</Heading>
               <ThreadView thread={priv} onChanged={() => setV((n) => n + 1)} />
             </Box>
           )}

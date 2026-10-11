@@ -12,7 +12,7 @@ import { StartFix } from '../components/StartFix'
 import { Stat } from '../components/Stat'
 import { Zone1Fix } from '../components/Zone1Fix'
 import { rupees, useGet, type Schemas } from '../lib/api'
-import { CHANNEL, OWNER, sentence, when } from '../lib/format'
+import { CHANNEL, cause, headline, sentence, when } from '../lib/format'
 import { PageSkeleton } from '../components/PageSkeleton'
 
 type Sig = { kind: 'probe' | 'gap' | 'complaints'; hourly: Hour[]; normal_zero_share?: number; alert_at?: string; end?: string | null; event_at?: string | null }
@@ -37,6 +37,9 @@ function sentenceFor(e: Schemas['EvidenceItem'], inc: Schemas['IncidentDetail'],
   }
 }
 
+// How much a signal weighs, in words: the engine scores each one 1 to 3.
+const strength = (w: number) => (w >= 3 ? 'Strong' : w === 2 ? 'Medium' : 'Supporting')
+
 export default function Zone1View({ id }: { id: string }) {
   const nav = useNavigate()
   const [version, setVersion] = useState(0)
@@ -57,14 +60,15 @@ export default function Zone1View({ id }: { id: string }) {
   const steps = [
     ...(v.linked_event_id ? [{ at: sig.event_at ?? v.onset_at, title: 'The change went live', text: String(s.change), tone: 'neutral' as const }] : []),
     { at: v.onset_at, title: sig.kind === 'probe' ? 'Your pay page started failing' : 'Orders started going unpaid', text: sig.kind === 'probe' ? `Status ${s.status}` : `${s.zero_attempts} orders so far`, tone: 'negative' as const },
-    ...(inc.would_have_alerted_at ? [{ at: inc.would_have_alerted_at, title: 'You could have known', text: 'Enough evidence from independent places', tone: 'information' as const }] : []),
+    ...(inc.would_have_alerted_at ? [{ at: inc.would_have_alerted_at, title: 'Blindspot would have alerted', text: 'Enough evidence from independent places', tone: 'information' as const }] : []),
     ...(firstWrote ? [{ at: firstWrote, title: 'The first customer wrote in', tone: 'notice' as const, text: undefined }] : []),
     ...(v.resolved_at ? [{ at: v.resolved_at, title: sig.kind === 'probe' ? 'Your pay page answered again' : 'Orders got payment attempts again', tone: 'positive' as const, text: undefined }] : []),
   ].sort((a, b) => a.at.localeCompare(b.at))
 
+  const early = inc.would_have_alerted_at ? (sig.kind === 'probe' ? ` With Blindspot on, you would have known ${when(inc.would_have_alerted_at)}, minutes after the change and before any customer wrote. This needs the pay-page check switched on.` : ` With Blindspot on, you would have known ${when(inc.would_have_alerted_at)}, from the orders and the first complaints.`) : ''
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <Crumbs items={[{ label: 'Incidents', to: '/incidents' }, { label: inc.id, to: `/incidents/${inc.id}` }]} />
+      <Crumbs items={[{ label: 'Payment issues', to: '/incidents' }, { label: inc.id, to: `/incidents/${inc.id}` }]} />
 
       <Card padding="spacing.5">
         <CardBody>
@@ -73,11 +77,12 @@ export default function Zone1View({ id }: { id: string }) {
               <AlertTriangleIcon size="xlarge" color="feedback.icon.notice.intense" />
             </Box>
             <Box display="flex" flexDirection="column" gap="spacing.2" flex="1" minWidth="240px">
-              <Heading size="medium">{inc.title}</Heading>
+              <Heading as="h1" size="medium">{headline(inc)}</Heading>
+              <Text size="small" color="surface.text.gray.muted">{`Cause: ${inc.title}`}</Text>
               <Box display="flex" gap="spacing.3" alignItems="center" flexWrap="wrap">
-                <Badge color={OWNER_TONE[inc.owner]} size="medium">{`Inferred. ${OWNER[inc.owner]}`}</Badge>
+                <Badge color={OWNER_TONE[inc.owner]} size="medium">{cause(inc)}</Badge>
                 <Badge color={STATUS_TONE[inc.status]} size="medium">{sentence(inc.status)}</Badge>
-                <Text size="small" color="surface.text.gray.muted">Confidence {v.confidence} · started {when(inc.onset_at)} · {inc.id}</Text>
+                <Text size="small" color="surface.text.gray.muted">{sentence(v.confidence)} confidence · started {when(inc.onset_at)} · {inc.id}</Text>
               </Box>
             </Box>
             <Button variant="secondary" size="small" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Send to your developer</Button>
@@ -85,7 +90,7 @@ export default function Zone1View({ id }: { id: string }) {
         </CardBody>
       </Card>
 
-      <Alert isFullWidth color="information" isDismissible={false} title="Razorpay did not see this" description="It happened before any payment existed. Blindspot inferred it from your orders, your pay page and what customers wrote." />
+      <Alert isFullWidth color="information" isDismissible={false} title="Razorpay could not see this" description={`Customers never reached a payment, so Razorpay has no record of it. Blindspot worked it out from your orders, your pay page and what customers wrote.${early}`} />
 
       <Box display="grid" gridTemplateColumns={{ base: 'repeat(2, minmax(0, 1fr))', l: 'repeat(4, minmax(0, 1fr))' }} gap="spacing.5">
         <Stat label="Orders lost" value={`about ${s.lost_orders}`} hint={`${rupees(Number(s.lost_paise))} · an estimate`} icon={AlertTriangleIcon} tone="notice" />
@@ -97,12 +102,8 @@ export default function Zone1View({ id }: { id: string }) {
 
       <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(0, 1fr) 320px' }} gap="spacing.6" alignItems="start">
         <Box display="flex" flexDirection="column" gap="spacing.6" minWidth="0px">
-          {inc.would_have_alerted_at && (
-            <Alert isFullWidth color="information" isDismissible={false} title="With this on"
-              description={sig.kind === 'probe' ? `You would have known ${when(inc.would_have_alerted_at)}, minutes after the change and before any customer wrote. This needs the pay-page check switched on.` : `You would have known ${when(inc.would_have_alerted_at)}, from the orders and the first complaints.`} />
-          )}
 
-          <Panel title="What we saw" subtitle={`Inferred from ${v.evidence.length} pieces of evidence, ${v.evidence.reduce((a, e) => a + e.weight, 0)} points`}>
+          <Panel title="What we saw" subtitle={`${v.evidence.length} signals, strongest first`}>
             <Box display="flex" flexDirection="column">
               {v.evidence.map((e) => (
                 <Box key={e.kind + e.ref} display="flex" flexDirection={{ base: 'column', m: 'row' }} justifyContent="space-between" gap={{ base: 'spacing.1', m: 'spacing.5' }} paddingY="spacing.3" borderBottomWidth="thin" borderBottomColor="surface.border.gray.subtle">
@@ -110,11 +111,11 @@ export default function Zone1View({ id }: { id: string }) {
                     <Text weight="semibold">{LABEL[e.kind] ?? sentence(e.kind)}</Text>
                     <Text size="small" color="surface.text.gray.muted">{sentenceFor(e, inc, sig)}</Text>
                   </Box>
-                  <Box><Badge color="neutral" size="medium">{`${e.weight} ${e.weight === 1 ? 'point' : 'points'}`}</Badge></Box>
+                  <Box><Badge color="neutral" size="medium">{strength(e.weight)}</Badge></Box>
                 </Box>
               ))}
             </Box>
-            {v.what_we_cannot_see.map((t) => <Text key={t} size="small" color="surface.text.gray.muted">We cannot see: {t}</Text>)}
+            {v.what_we_cannot_see.map((t) => <Text key={t} size="small" color="surface.text.gray.muted">What Blindspot cannot see: {t}</Text>)}
           </Panel>
 
           <Panel title="Orders and pay-page checks" subtitle="Hour by hour, against what is normal for each hour">
@@ -158,7 +159,7 @@ export default function Zone1View({ id }: { id: string }) {
           </Panel>
 
           {sample && sample.length > 0 && (
-            <Panel title={`Look at ${sample.length} before acting`} subtitle="Customer, Razorpay and your own pay page, side by side">
+            <Panel title={`${sample.length} customers, side by side`} subtitle="What the customer said, what Razorpay recorded and what your pay page did. Check a few before you fix.">
               {sample.map((x) => (
                 <Box key={x.payment_id} display="flex" flexDirection="column" gap="spacing.3" paddingBottom="spacing.4" borderBottomWidth="thin" borderBottomColor="surface.border.gray.subtle">
                   <Text size="small" color="surface.text.gray.muted">{x.payment_id}</Text>
@@ -176,13 +177,13 @@ export default function Zone1View({ id }: { id: string }) {
           )}
 
           <Box ref={fix}><Zone1Fix inc={inc} onChanged={() => setVersion((n) => n + 1)} /></Box>
-          <FeedbackPanel incidentId={inc.id} />
+          {inc.status !== 'closed' && <FeedbackPanel incidentId={inc.id} />}
         </Box>
 
         <Box position={{ base: 'static', l: 'sticky' }} top="spacing.5">
           <Card padding="spacing.7">
             <CardBody>
-              <Heading size="medium">Timeline</Heading>
+              <Heading as="h2" size="medium">Timeline</Heading>
               <Box marginTop="spacing.5">
                 <StepGroup size="medium">
                   {[

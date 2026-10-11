@@ -9,7 +9,7 @@ export const WA = {
   text: '#111B21',
   time: '#667781',
   tick: '#53BDEB',
-  link: '#00A5F4',
+  link: '#027EB5', // WhatsApp's own #00A5F4 is 2.7:1 on white; this is the nearest blue that passes 4.5:1
   chip: '#FFFFFF',
   chipText: '#54656F',
   notice: '#FFEECD',

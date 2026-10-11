@@ -17,26 +17,34 @@ export function useGuideStats(id: string): Stat[] | undefined {
   const scan = useGet<Schemas['ScanResult']>(needs('scan') ? '/api/scan/day0' : null)
   const replay = useGet<Schemas['LearningReplay']>(needs('learning') ? '/api/learning/replay' : null)
   const settings = useGet<Schemas['Settings']>(needs('autonomy') ? '/api/settings' : null)
+  const access = useGet<Schemas['LeakageReport']>(needs('access') ? '/api/leakage' : null)
 
   const metric = (name: string) => evalReport.data?.metrics.find((m) => m.name === name)?.value
 
+  if (id === 'access' && access.data) {
+    return [
+      { value: num(access.data.customers), label: 'customers past your grace period, still with access' },
+      { value: rupees(access.data.owed_paise), label: 'in renewals not paid' },
+      { value: `${access.data.grace_hours} hours`, label: 'your grace period' },
+    ]
+  }
   if (id === 'blindspot' && incidents.data) {
     const hero = incidents.data.find((i) => i.id === 'INC-1')
     const mins = minutes(hero?.onset_at, hero?.would_have_alerted_at)
     if (!hero) return undefined
     return [
-      { value: num(hero.affected), label: 'customers paid and got nothing in the first incident' },
+      { value: num(hero.affected), label: 'customers paid and got nothing in the biggest payment issue' },
       { value: num(hero.silent), label: 'of them never wrote in' },
-      ...(mins === undefined ? [] : [{ value: `${mins} min`, label: 'from the deploy to the first alert' }]),
+      ...(mins === undefined ? [] : [{ value: `${mins} min`, label: 'from the release to the first alert' }]),
     ]
   }
   if (id === 'incidents' && incidents.data) {
     const largest = incidents.data.reduce((a, b) => (b.at_risk_paise > a.at_risk_paise ? b : a))
     const noPayment = incidents.data.filter((i) => i.inferred).length
     return [
-      { value: rupees(largest.at_risk_paise), label: 'at risk in the largest incident' },
-      ...(largest.complained ? [{ value: `${Math.round(largest.silent / largest.complained)}x`, label: 'as many customers stayed silent as complained' }] : []),
-      { value: String(noPayment), label: 'incidents where no payment existed' },
+      { value: rupees(largest.at_risk_paise), label: 'involved in the biggest payment issue' },
+      ...(largest.complained ? [{ value: `${Math.round(largest.silent / largest.complained)}x`, label: 'as many customers stayed quiet as wrote in' }] : []),
+      { value: String(noPayment), label: 'issues where customers never reached a payment' },
     ]
   }
   if (id === 'conversations' && evalReport.data) {
@@ -59,7 +67,7 @@ export function useGuideStats(id: string): Stat[] | undefined {
   if (id === 'autonomy' && settings.data) {
     return [
       { value: num(settings.data.max_bulk_customers), label: 'customers at most in one action' },
-      { value: `${settings.data.holdout_percent}%`, label: 'of recovery links held back to measure the effect' },
+      { value: `${settings.data.holdout_percent}%`, label: 'of payment links held back to measure what they add' },
     ]
   }
   if (id === 'learning' && replay.data) {
@@ -67,7 +75,7 @@ export function useGuideStats(id: string): Stat[] | undefined {
     const off = total('off')
     const loop = total('loop')
     return [
-      { value: off.toFixed(1), label: 'false alerts over six weeks with no learning' },
+      { value: off.toFixed(1), label: 'false alerts over six weeks with no tuning' },
       { value: loop.toFixed(1), label: 'false alerts with the weekly review' },
       { value: '1', label: 'change per setting, per week' },
     ]

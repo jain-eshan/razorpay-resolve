@@ -68,14 +68,14 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
   return (
     <Box display="flex" flexDirection="column" gap="spacing.5" testID="fix-panel">
       <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="medium">Fix it</Heading>
+        <Heading as="h2" size="medium">Fix it</Heading>
         <Text size="small" color="surface.text.gray.muted">
-          This is inferred, not seen by Razorpay, so Blindspot never changes your site or moves money. Recovery links always wait for your approval, at every autonomy level.{' '}
+          This is estimated, not seen by Razorpay, so Blindspot never changes your site or moves money. Payment links always wait for your approval, at every approval level.{' '}
           <Link to="/settings">Settings</Link>
         </Text>
       </Box>
 
-      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Guided demo" description={`${demoNote} Click through the steps. Each one is the engine's real answer.`} />}
+      {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Demo" description={`${demoNote} Click through the steps. Each answer comes from the real engine.`} />}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="That did not go through" description={error} />}
 
       <Turn n={1} title="Send the evidence to your developer">
@@ -86,7 +86,7 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
       <Turn n={2} analyzing={busy === 'probe'} you={probe ? 'Check the pay page now' : undefined} title={kind === 'probe' ? 'Check your pay page' : 'Confirm checkout works again'} badge={health?.signal_healthy ? ['Healthy', 'positive'] : health ? [health.page_mode === 'ok' ? `Healthy ${health.healthy_hours} of ${NEED_HOURS} h` : `Answers ${health.page_status}`, health.page_mode === 'ok' ? 'notice' : 'negative'] : undefined}>
         {kind === 'probe' ? (
           <>
-            <Text size="small">Blindspot requests your pay page every 5 minutes. Two failed checks in a row raised this. Recovery links go out only after the page has answered normally for {NEED_HOURS} hours.</Text>
+            <Text size="small">Blindspot requests your pay page every 5 minutes. Two failed checks in a row raised this. Payment links go out only after the page has answered normally for {NEED_HOURS} hours.</Text>
             <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
               <Button variant="secondary" isLoading={busy === 'probe'} isDisabled={!!busy} onClick={() => run('probe', async () => { setProbe(await send<Schemas['ProbeResult']>('POST', '/api/probes/run')); await refreshHealth() })}>
                 Check the pay page now
@@ -99,7 +99,7 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
         )}
       </Turn>
 
-      <Turn n={3} analyzing={busy === 'plan'} you={rec ? 'Plan the links' : undefined} title="Recovery links, in stages" badge={rec ? [rec.status === 'done' ? 'Sent' : rec.status === 'drafted' ? 'Draft' : rec.status === 'failed' ? 'Stopped' : `${sent} of ${planned - holdout}`, rec.status === 'done' ? 'positive' : rec.status === 'failed' ? 'negative' : 'neutral'] : undefined}>
+      <Turn n={3} analyzing={busy === 'plan'} you={rec ? 'Plan the links' : undefined} title="Payment links, a few at a time" badge={rec ? [rec.status === 'done' ? 'Sent' : rec.status === 'drafted' ? 'Draft' : rec.status === 'failed' ? 'Stopped' : `${sent} of ${planned - holdout}`, rec.status === 'done' ? 'positive' : rec.status === 'failed' ? 'negative' : 'neutral'] : undefined}>
         {!rec ? (
           <Box display="flex" flexDirection="column" gap="spacing.3" alignItems="flex-start">
             <Text size="small">Lists who could be sent the link for the same plan and amount: customers who wrote in, never paid, and can be messaged on the channel they used. Changes nothing yet.</Text>
@@ -128,7 +128,7 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
               </Button>
             )}
             {rec.blocked_reason && !rec.blocked_reason.startsWith('Messaging') && <Alert isFullWidth color="notice" isDismissible={false} title="Not yet" description={rec.blocked_reason} />}
-            {rec.status === 'failed' && <Alert isFullWidth color="negative" isDismissible={false} title="Stopped" description="A message was refused, so nothing more went out. Check the audit log for the reason." />}
+            {rec.status === 'failed' && <Alert isFullWidth color="negative" isDismissible={false} title="Stopped" description="A message was refused, so nothing more went out. Check the audit trail for the reason." />}
             {rec.next_stage && (
               <Box>
                 <Button isLoading={busy === `${rec.id}:${rec.next_stage}`} isDisabled={!!rec.blocked_reason || !!busy} onClick={() => approve(rec, rec.next_stage!)}>
@@ -154,26 +154,26 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
       </Turn>
       )}
 
-      <Turn n={5} analyzing={busy === 'verify'} you={result ? 'Verify and close' : undefined} title="Verify and close" badge={inc.status === 'closed' ? ['Closed', 'positive'] : undefined}>
-        <Text size="small">{kind === 'probe' ? `Checks that your pay page has answered normally for ${NEED_HOURS} hours.` : 'Checks that orders are getting payment attempts again.'} A recovery that is half sent keeps the incident open.</Text>
+      <Turn n={5} analyzing={busy === 'verify'} you={result ? 'Check it held and close' : undefined} title="Check it held and close" badge={inc.status === 'closed' ? ['Closed', 'positive'] : undefined}>
+        <Text size="small">{kind === 'probe' ? `Checks that your pay page has answered normally for ${NEED_HOURS} hours.` : 'Checks that orders are getting payment attempts again.'} A recovery that is half sent keeps the payment issue open.</Text>
         <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
           <Button variant="secondary" isLoading={busy === 'verify'} isDisabled={!!busy} onClick={() => run('verify', async () => { setResult(await send<Schemas['VerifyResult']>('POST', `/api/incidents/${inc.id}/verify`)); await refreshHealth(); onChanged() })}>
-            Verify and close
+            Check it held and close
           </Button>
           {result && <Text weight="semibold" color={result.closeable ? 'feedback.text.positive.intense' : 'feedback.text.notice.intense'}>{result.line}</Text>}
         </Box>
         {result?.closeable && inc.status === 'closed' && (
-          <SuccessMoment heading={result.total ? `${result.verified} of ${result.total} customers paid` : 'Your pay page works again'} detail={result.total ? `${rupees(result.restored_paise)} came back. This incident is closed.` : 'This incident is closed.'} />
+          <SuccessMoment heading={result.total ? `${result.verified} of ${result.total} customers paid` : 'Your pay page works again'} detail={result.total ? `${rupees(result.restored_paise)} came back. This payment issue is closed.` : 'This payment issue is closed.'} />
         )}
       </Turn>
 
-      {result?.closeable && inc.status === 'closed' && <NextSteps next={[{ label: 'Open the audit log', onClick: () => nav('/audit') }, { label: 'See all incidents', onClick: () => nav('/incidents') }, { label: 'Run the Day-0 scan', onClick: () => nav('/scan') }]} />}
+      {result?.closeable && inc.status === 'closed' && <NextSteps next={[{ label: 'Open the audit trail', onClick: () => nav('/audit') }, { label: 'See all payment issues', onClick: () => nav('/incidents') }, { label: 'See the first check', onClick: () => nav('/scan') }]} />}
 
       <Card>
         <CardBody>
           <Box display="flex" flexDirection="column" gap="spacing.3">
             <Box display="flex" gap="spacing.3" alignItems="center">
-              <Heading size="small">Demo controls</Heading>
+              <Heading as="h3" size="small">Demo controls</Heading>
               <Badge color="neutral">Simulated merchant</Badge>
             </Box>
             <Text size="small" color="surface.text.gray.muted">Your developer and the clock are simulated here.{health ? ` Pay page: ${health.page_mode === 'ok' ? `answering normally for ${health.healthy_hours} h` : `answering ${health.page_status}`}.` : ''}</Text>

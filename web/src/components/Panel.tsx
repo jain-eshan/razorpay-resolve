@@ -6,14 +6,15 @@ export function Panel({ title, subtitle, trailing, children, pad = true }: { tit
   return (
     <Card padding="spacing.0">
       <CardBody>
-      <Box display="flex" alignItems="center" justifyContent="space-between" gap="spacing.4" paddingX="spacing.6" paddingY="spacing.5" backgroundColor="surface.background.gray.subtle"
+      <Box display="flex" flexWrap="wrap" alignItems="center" justifyContent="space-between" gap="spacing.4" paddingX="spacing.6" paddingY="spacing.5" backgroundColor="surface.background.gray.subtle"
         borderRadius="medium" borderBottomLeftRadius={children === undefined ? 'medium' : 'none'} borderBottomRightRadius={children === undefined ? 'medium' : 'none'}
         borderWidth="thin" borderColor="surface.border.gray.subtle">
         <Box display="flex" flexDirection="column">
-          <Heading size="small">{title}</Heading>
+          <Heading as="h2" size="small">{title}</Heading>
           {subtitle && <Text size="small" color="surface.text.gray.muted">{subtitle}</Text>}
         </Box>
-        {trailing}
+        {/* The tag on the right keeps its size (a "3 found" badge was cut to "3..." at 375px); a long note wraps under the title instead. */}
+        {trailing && <Box flexShrink={0} maxWidth="100%">{trailing}</Box>}
       </Box>
       {children !== undefined && <Box padding={pad ? 'spacing.6' : 'spacing.0'} display="flex" flexDirection="column" gap="spacing.4">{children}</Box>}
       </CardBody>

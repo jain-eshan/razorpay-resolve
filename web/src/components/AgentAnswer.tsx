@@ -9,7 +9,7 @@ export function AgentAnswer({ title, text, children, next }: { title: ReactNode;
   return (
     <Box display="flex" flexDirection="column" gap="spacing.5" testID="agent-answer">
       <Box display="flex" flexDirection="column" gap="spacing.2">
-        <Heading size="medium">{title}</Heading>
+        <Heading as="h2" size="medium">{title}</Heading>
         <Text color="surface.text.gray.muted">{text}</Text>
       </Box>
       {children}
@@ -78,7 +78,7 @@ export function Turn({ n, title, badge, you, analyzing, children }: { n: number;
       {analyzing && <Analyzing />}
       <Box display="flex" flexDirection="column" gap="spacing.3">
         <Box display="flex" justifyContent="space-between" alignItems="center" gap="spacing.4">
-          <Box display="flex" flexDirection="column"><Label>{`Step ${n}`}</Label><Heading size="small">{title}</Heading></Box>
+          <Box display="flex" flexDirection="column"><Label>{`Step ${n}`}</Label><Heading as="h3" size="small">{title}</Heading></Box>
           {badge && <Badge color={badge[1]} size="medium">{badge[0]}</Badge>}
         </Box>
         <Card><CardBody><Box display="flex" flexDirection="column" gap="spacing.4">{children}</Box></CardBody></Card>
