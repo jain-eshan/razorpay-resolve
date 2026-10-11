@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Product (working name) | Blindspot. The name is a placeholder and lives in one constant (`PRODUCT_NAME`). |
-| Version | 2.1, 10 Oct 2026 (2.0 was 6 Oct) |
+| Version | 2.1, 10 Oct 2026 (2.0 was 6 Oct). **Superseded in part by v3 (`docs/PRD_V3.md`, 12 Oct): where they disagree, v3 wins.** |
 | Status | Working draft, updated 10 Oct 2026 (D12 to D21 and F-55, F-80 to F-83 added that day). **The prototype has no language model (decision T1).** Sections that name a model describe the production design. |
 | Owner and builder | Eshan Jain (product owner). Implementation by coding agents. |
 | Context | Razorpay x ISB AI PM Build Challenge, Track 2 "Recover and Grow with AI". Judges are Razorpay PMs who built RAY and Agent Studio. |
