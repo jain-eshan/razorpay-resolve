@@ -18,6 +18,18 @@ import { inRange, parseRange, RANGES, type RangeId } from '../lib/range'
 import { markWelcomed, resetSetup, setupDone, SETUP_STEPS, welcomeDue } from '../lib/setup'
 import Ray from './Ray'
 
+// One short line for each page, in the product's words (docs/PRD_V3.md). Eight words or fewer.
+const EXPLORE_LINE: Record<string, string> = {
+  incidents: 'Every customer a problem hit, and what it cost',
+  conversations: 'What customers wrote, and how Ray replied',
+  access: 'Customers still in after a failed renewal',
+  integration: 'Connect your webhook, then check it before go-live',
+  channels: 'Choose where customers can reach you',
+  autonomy: 'Decide how much Blindspot does on its own',
+  learning: 'Tell Blindspot which alerts were false',
+  how: 'See how often Blindspot gets it right',
+  scan: 'Who paid and got nothing in the last 30 days',
+}
 const EXPLORE = ['incidents', 'conversations', 'access', 'integration', 'channels', 'autonomy', 'learning', 'how', 'scan']
 // Orange when the fix is yours, neutral when it is someone else's (the same as the Payment issues page).
 const OWNER_TONE = { merchant_code: 'notice', merchant_config: 'notice', razorpay: 'neutral', bank: 'neutral', customer: 'neutral', unknown: 'neutral' } as const
@@ -119,14 +131,14 @@ export default function Home() {
               <Box testID="home-issues" flexGrow="1" minHeight="spacing.0" overflow="auto">
                 {[...open].sort((a, b) => b.at_risk_paise - a.at_risk_paise).map((i, n, all) => (
                   <RouterLink key={i.id} to={`/incidents/${i.id}`} style={{ textDecoration: 'none' }}>
-                    <Box padding="spacing.5" display="flex" alignItems="center" justifyContent="space-between" gap="spacing.4" borderBottomWidth={n < all.length - 1 ? 'thin' : 'none'} borderBottomColor="surface.border.gray.subtle">
+                    <Box paddingX="spacing.5" paddingY="spacing.4" display="flex" alignItems="center" justifyContent="space-between" gap="spacing.4" borderBottomWidth={n < all.length - 1 ? 'thin' : 'none'} borderBottomColor="surface.border.gray.subtle">
                       <Box display="flex" flexDirection="column" gap="spacing.1" minWidth="spacing.0">
                         <Text weight="semibold" color="interactive.text.primary.normal">{headline(i)}</Text>
-                        <Text size="small" color="surface.text.gray.muted" truncateAfterLines={2}>{i.title}</Text>
+                        <Text size="small" color="surface.text.gray.muted" truncateAfterLines={1}>{i.title}</Text>
                       </Box>
                       {/* The amount over its owner, so the headline keeps the width. */}
                       <Box display="flex" alignItems="center" gap="spacing.3" flexShrink={0}>
-                        <Box display="flex" flexDirection="column" alignItems="flex-end" gap="spacing.2">
+                        <Box display="flex" flexDirection="column" alignItems="flex-end" gap="spacing.1">
                           <Text weight="semibold">{rupees(i.at_risk_paise)}</Text>
                           <Badge size="small" color={OWNER_TONE[i.owner]}>{cause(i)}</Badge>
                         </Box>
@@ -159,15 +171,13 @@ export default function Home() {
               <RouterLink to={g.to} style={{ textDecoration: 'none' }}>
                 <Card height="100%">
                   <CardBody>
-                    <Box display="flex" flexDirection="column" gap="spacing.3" height="100%">
-                      <Box display="flex" alignItems="center" gap="spacing.3"><g.icon size="medium" color="surface.icon.gray.muted" /><Text color="surface.text.gray.muted">{g.title}</Text></Box>
-                      <Heading as="h3" size="small">{g.tagline}</Heading>
-                      {/* The page in one line. Not on phones, where seven cards are already a long scroll. */}
-                      <Box display={{ base: 'none', m: 'block' }}><Text size="small" color="surface.text.gray.muted" truncateAfterLines={3}>{g.summary ?? `${g.description.split('. ')[0].replace(/\.$/, '')}.`}</Text></Box>
-                      {/* A grey footer band with a grey chevron, as on Agent Studio's cards: the whole card is the link, so the footer is not blue. */}
-                      <Box marginTop="auto" backgroundColor="surface.background.gray.subtle" borderRadius="medium" paddingX="spacing.4" paddingY="spacing.3" display="flex" justifyContent="space-between" alignItems="center">
-                        <Text size="small" weight="semibold" color="surface.text.gray.muted">{`Open ${g.title}`}</Text><ChevronRightIcon size="medium" color="surface.icon.gray.muted" />
+                    {/* A name and one line. The whole card is the link, so it has a chevron and no button. The guide pages keep the long text. */}
+                    <Box display="flex" flexDirection="column" gap="spacing.2" height="100%">
+                      <Box display="flex" alignItems="center" justifyContent="space-between" gap="spacing.3">
+                        <Box display="flex" alignItems="center" gap="spacing.3"><g.icon size="medium" color="surface.icon.gray.muted" /><Text weight="semibold">{g.title}</Text></Box>
+                        <ChevronRightIcon size="medium" color="surface.icon.gray.muted" />
                       </Box>
+                      <Text size="small" color="surface.text.gray.muted">{EXPLORE_LINE[g.id]}</Text>
                     </Box>
                   </CardBody>
                 </Card>

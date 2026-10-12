@@ -71,9 +71,9 @@ test('H4 the legend stays inside its card and below the axis labels, at phone, t
     const m = await chart.evaluate((el) => {
       const bottom = (n: Element) => n.getBoundingClientRect().bottom
       const labels = [...el.querySelectorAll('.recharts-xAxis .recharts-cartesian-axis-tick-value')]
-      const items = [...el.querySelectorAll('.recharts-legend-wrapper button')]
+      const items = [...(el.querySelector('[data-testid="chart-legend"]')?.children ?? [])]
       const card = el.closest('[data-blade-component="card"]')!
-      return { lowestLabel: Math.max(...labels.map(bottom)), legendTop: el.querySelector('.recharts-legend-wrapper')!.getBoundingClientRect().top, lowestItem: Math.max(...items.map(bottom)), cardBottom: bottom(card), items: items.length }
+      return { lowestLabel: Math.max(...labels.map(bottom)), legendTop: el.querySelector('[data-testid="chart-legend"]')!.getBoundingClientRect().top, lowestItem: Math.max(...items.map(bottom)), cardBottom: bottom(card), items: items.length }
     })
     expect(m.items, `every group is in the legend at ${width}px`).toBe(4)
     expect(m.legendTop, `legend starts below the axis labels at ${width}px`).toBeGreaterThanOrEqual(m.lowestLabel)

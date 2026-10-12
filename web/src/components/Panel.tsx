@@ -20,7 +20,7 @@ export function Panel({ title, subtitle, trailing, children, pad = true, fill = 
         {/* The tag on the right keeps its size (a "3 found" badge was cut to "3..." at 375px); a long note wraps under the title instead. */}
         {trailing && <Box flexShrink={0} maxWidth="100%">{trailing}</Box>}
       </Box>
-      {children !== undefined && <Box padding={pad ? 'spacing.6' : 'spacing.0'} display="flex" flexDirection="column" gap="spacing.4" flexGrow={fill ? '1' : undefined}>{children}</Box>}
+      {children !== undefined && <Box padding={pad ? 'spacing.6' : 'spacing.0'} display="flex" flexDirection="column" gap="spacing.4" flexGrow={fill ? '1' : undefined} minHeight={fill ? 'spacing.0' : undefined}>{children}</Box>}
         </Box>
       </CardBody>
     </Card>
