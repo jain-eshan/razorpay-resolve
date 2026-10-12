@@ -10,10 +10,12 @@ import { useHeroWash } from './iso'
 // A mask, not a colour: only its opacity matters. An ellipse fades every edge, so a spot's own background melts into the wash whether the strip is wider than the picture (desktop) or taller (phone).
 const FADE = 'radial-gradient(ellipse 50% 50% at center, black 62%, transparent 100%)'
 
+// The three cards use the product's own words (docs/PRD_V3.md, section 1): the problem, then the five things it does, then the approval rule. Each claim is
+// something Blindspot does today. A new line is checked against the PRD first.
 const STEPS: { art: ArtId | 'hero'; title: string; text: string }[] = [
-  { art: 'hero', title: 'Find customers who paid and got nothing', text: 'Razorpay sees the payment. Blindspot also watches your pay page before it and your app after it. When something breaks, it finds every customer it hit, including the ones who never wrote in.' },
-  { art: 'proof', title: 'See whose side the cause is on', text: 'Your code, your settings, Razorpay or the bank, with the records that show it, the customers affected and the amount involved.' },
-  { art: 'approve', title: 'Nothing happens until you approve it', text: 'Blindspot plans the fix in small steps and you approve each one. Every step is kept in the audit trail. It never asks you or your customers for a password, card number or OTP.' },
+  { art: 'hero', title: 'Find every customer a payment problem hit', text: 'Most customers who fail once never try again, and most never complain. Blindspot hears about a problem from your customers or your own alerts, then finds everyone it hit, including the ones who never wrote in.' },
+  { art: 'proof', title: 'Know whose side it is, with proof', text: 'Before it blames anyone, Blindspot checks where the failures cluster: one app version, one payment method, one error code. It then says whether the cause is your code, your settings, Razorpay or the bank, and what it cost in rupees.' },
+  { art: 'approve', title: 'Fix it and win customers back, with your approval', text: 'Blindspot fixes what Razorpay can fix, in small steps, and messages the customers who dropped off. Nothing moves money or reaches a customer until you approve it, and it never asks anyone for a password, card number or OTP.' },
 ]
 
 export function WelcomeTour({ open, onClose }: { open: boolean; onClose: () => void }) {

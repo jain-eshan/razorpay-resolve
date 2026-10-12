@@ -1,10 +1,12 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Box, Drawer, DrawerBody, DrawerHeader, Text } from '@razorpay/blade/components'
-import { chats } from '../lib/rayChats'
+import { Box, Button, Drawer, DrawerBody, DrawerHeader, Text } from '@razorpay/blade/components'
+import { chats, clearChats } from '../lib/rayChats'
 import { when } from '../lib/format'
 
 // The list of Ray chats, opened from the hamburger in the chat rail or from "History" on the Overview. Razorpay's own Ray keeps its chats behind the same hamburger.
 export function RayHistory({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [, bump] = useState(0)
   const all = isOpen ? chats() : []
   return (
     <Drawer isOpen={isOpen} onDismiss={onClose} accessibilityLabel="Chat history">
@@ -22,7 +24,10 @@ export function RayHistory({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                 </Box>
               </Link>
             ))}
-            <Box paddingTop="spacing.4"><Text size="small" color="surface.text.gray.muted">Chats are kept in this browser only.</Text></Box>
+            <Box paddingTop="spacing.4" display="flex" alignItems="center" justifyContent="space-between" gap="spacing.4">
+              <Text size="small" color="surface.text.gray.muted">Chats are kept in this browser only.</Text>
+              <Button variant="tertiary" size="small" onClick={() => { clearChats(); bump((n) => n + 1) }}>Clear history</Button>
+            </Box>
           </Box>
         )}
       </DrawerBody>

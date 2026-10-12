@@ -129,20 +129,29 @@ test('H1 and H6 no tinted panel; the tour and reset links sit in the header; a q
   await expect(page.getByRole('heading', { level: 1, name: 'Overview' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Take a tour' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Reset setup' })).toBeVisible()
-  await page.getByRole('button', { name: 'What is broken right now?' }).click()
+  await page.getByRole('textbox', { name: 'Ask Ray' }).fill('What is broken right now?')
+  await page.getByRole('textbox', { name: 'Ask Ray' }).press('Enter')
   await expect(page).toHaveURL(/\/ray\/\w+$/)
   await expect(page.getByTestId('ray-thread')).toBeVisible()
   await expect(page.getByText('What is broken right now?').first()).toBeVisible()  // the merchant's own bubble
 })
 
-test('Ray chat: laid out as Ray, a question is kept in the history, and the history reopens it', async ({ page }) => {
+test('Overview order: Ask Ray, then setup, then the four cards, then the issues, then the pages', async ({ page }) => {
+  await page.goto('/')
+  const top = async (loc: ReturnType<Page['getByTestId']>) => (await loc.boundingBox())!.y
+  const order = [await top(page.getByRole('textbox', { name: 'Ask Ray' })), await top(page.getByTestId('setup-card')), await top(page.getByTestId('home-cards')), await top(page.getByTestId('home-issues')), await top(page.getByRole('heading', { name: 'Explore Blindspot' }))]
+  expect(order, 'each block starts below the one before it').toEqual([...order].sort((a, b) => a - b))
+})
+
+test('Ray chat: a question is kept in the history, the history reopens it, and the way back and the side menu are there', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('textbox', { name: 'Ask Ray' }).fill('Who paid and did not get access?')
   await page.getByRole('textbox', { name: 'Ask Ray' }).press('Enter')
   await expect(page).toHaveURL(/\/ray\/\w+$/)
   await expect(page.getByRole('heading', { name: /customers paid and have no access/ })).toBeVisible({ timeout: 10_000 })
-  // No side menu on this page, only the thin rail: a hamburger for the history and a plus for a new chat.
-  await expect(page.getByRole('link', { name: 'Payment issues' })).toHaveCount(0)
+  // The side menu stays, with Overview marked as where you are; "Overview" at the top of the page goes back.
+  await expect(page.getByRole('link', { name: 'Payment issues' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Overview' }).first()).toHaveAttribute('aria-current', 'page')
   await page.getByRole('textbox', { name: 'Ask Ray' }).fill('What is broken right now?')  // a second question joins the same chat
   await page.getByRole('textbox', { name: 'Ask Ray' }).press('Enter')
   await expect(page.getByText(/payment issues?, ₹[\d,]+ involved/)).toBeVisible({ timeout: 10_000 })
@@ -150,13 +159,36 @@ test('Ray chat: laid out as Ray, a question is kept in the history, and the hist
   await page.getByRole('button', { name: 'New chat' }).click()
   await expect(page).toHaveURL(/\/ray$/)
   await expect(page.getByRole('heading', { name: 'How can I help you?' })).toBeVisible()
-  await page.getByRole('button', { name: 'Chat history' }).click()
+  await page.getByRole('button', { name: 'History' }).click()
   const drawer = page.getByRole('dialog', { name: 'Chat history' })
   await expect(drawer.getByText('Who paid and did not get access?')).toBeVisible()
   await expect(drawer.getByText(/2 questions/)).toBeVisible()
   await drawer.getByText('Who paid and did not get access?').click()
   await expect(page).toHaveURL(url)
   await expect(page.getByText('What is broken right now?').first()).toBeVisible()
+  await page.getByRole('button', { name: 'Overview' }).click()  // the way back
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByRole('heading', { level: 1, name: 'Overview' })).toBeVisible()
+})
+
+test('Ray chat edge cases: a question Ray cannot answer, an address from another browser, and clearing the history', async ({ page }) => {
+  await page.goto('/ray')
+  await page.getByRole('textbox', { name: 'Ask Ray' }).fill('rrr')
+  await page.getByRole('textbox', { name: 'Ask Ray' }).press('Enter')
+  await expect(page.getByText('I can answer from your payment data')).toBeVisible()  // Ray says so, and offers what it can answer
+  await page.getByText('Who paid and did not get access?').last().click()  // an offered question runs in the same chat
+  await expect(page.getByRole('heading', { name: /customers paid and have no access/ })).toBeVisible({ timeout: 10_000 })
+  await page.getByRole('textbox', { name: 'Ask Ray' }).fill('   ')  // an empty question does nothing
+  await page.getByRole('textbox', { name: 'Ask Ray' }).press('Enter')
+  await expect(page.getByTestId('ray-thread').getByText('rrr')).toHaveCount(1)
+  await page.goto('/ray/not-a-chat')
+  await expect(page.getByText(/That chat is not saved in this browser/)).toBeVisible()
+  await page.getByRole('textbox', { name: 'Ask Ray' }).fill('What is broken right now?')  // and asking from there starts a real chat
+  await page.getByRole('textbox', { name: 'Ask Ray' }).press('Enter')
+  await expect(page).toHaveURL(/\/ray\/(?!not-a-chat)\w+$/)
+  await page.getByRole('button', { name: 'History' }).click()
+  await page.getByRole('dialog', { name: 'Chat history' }).getByRole('button', { name: 'Clear history' }).click()
+  await expect(page.getByRole('dialog', { name: 'Chat history' }).getByText(/No chats yet/)).toBeVisible()
 })
 
 test('Ray chat: History on the Overview lists the chats, and an empty history says so', async ({ page }) => {
@@ -199,24 +231,42 @@ test('Continue setup resumes at the next step, not step 1', async ({ page }) => 
   await expect(page.getByText('Step 3 of 3: First check')).toBeVisible()
 })
 
-test('Ray chat rail: stays in view while a long thread scrolls, with 36px buttons, and there is a way out of the page', async ({ page }) => {
+test('Ray chat: the toolbar stays in view while a long thread scrolls, and nothing is drawn over the toolbar or the input', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 700 })
   await page.goto('/ray')
-  for (const q of ['What is broken right now?', 'Who paid and did not get access?', 'What is broken right now?']) {
+  const ask = async (q: string, answers: RegExp, count: number) => {
     await page.getByRole('textbox', { name: 'Ask Ray' }).fill(q)
     await page.getByRole('textbox', { name: 'Ask Ray' }).press('Enter')
-    await expect(page.getByText(q).last()).toBeVisible()
+    await expect(page.getByRole('heading', { name: answers })).toHaveCount(count, { timeout: 10_000 })  // wait for the answer, not for the words of the question (the chips use them too)
   }
-  await expect(page.getByRole('heading', { name: /customers paid and have no access/ })).toBeVisible({ timeout: 10_000 })
-  await page.getByTestId('scroller').evaluate((el) => { el.scrollTop = el.scrollHeight })
-  for (const name of ['Chat history', 'New chat']) {
-    const box = (await page.getByRole('button', { name }).boundingBox())!
+  await ask('What is broken right now?', /payment issues?, ₹[\d,]+ involved/, 1)
+  await ask('Who paid and did not get access?', /customers paid and have no access/, 1)
+  await ask('What is broken right now?', /payment issues?, ₹[\d,]+ involved/, 2)
+  const scroller = page.getByTestId('scroller')
+  // Scroll the thread in steps. At every step, whatever sits under the middle of a button in the thread that overlaps the toolbar or the dock must be that bar, not the button.
+  const covered = new Set<string>()
+  for (let top = 0; top < 4000; top += 150) {
+    await scroller.evaluate((el, y) => { el.scrollTop = y }, top)
+    const bad = await page.evaluate(() => {
+      const bars = [...document.querySelectorAll('[data-testid="ray-dock"]')].concat([...document.querySelectorAll('[data-testid="ray-thread"] > div')].filter((d) => getComputedStyle(d).position === 'sticky' && getComputedStyle(d).top === '0px'))
+      const out: string[] = []
+      for (const b of document.querySelectorAll('[data-testid="ray-thread"] button')) {
+        if (bars.some((bar) => bar.contains(b))) continue
+        const r = b.getBoundingClientRect()
+        const x = r.left + r.width / 2, y = r.top + r.height / 2
+        const bar = bars.find((q) => { const k = q.getBoundingClientRect(); return y > k.top && y < k.bottom && x > k.left && x < k.right })
+        if (bar && !bar.contains(document.elementFromPoint(x, y))) out.push(b.textContent ?? '')
+      }
+      return out
+    })
+    bad.forEach((t) => covered.add(t))
+  }
+  expect([...covered], 'no thread button paints over the toolbar or the input').toEqual([])
+  await scroller.evaluate((el) => { el.scrollTop = el.scrollHeight })
+  for (const name of ['Overview', 'History', 'New chat']) {
+    const box = (await page.getByRole('button', { name, exact: true }).first().boundingBox())!
     expect(box.y, `${name} is on screen after scrolling to the end`).toBeGreaterThanOrEqual(0)
     expect(box.y + box.height).toBeLessThanOrEqual(700)
-    expect(box.width, `${name} is at least 36px wide`).toBeGreaterThanOrEqual(36)
     expect(box.height, `${name} is at least 36px high`).toBeGreaterThanOrEqual(36)
   }
-  await page.setViewportSize({ width: 768, height: 900 })  // no side menu here, so the top bar's menu button is the way to the rest of the app
-  await page.getByRole('button', { name: 'Open menu' }).click()
-  await expect(page.getByRole('dialog', { name: 'Main menu' })).toBeVisible()
 })

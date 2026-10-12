@@ -12,7 +12,7 @@ import {
 // `also` lists other paths that light the same item: Integration covers its two steps, Build with AI and the go-live check.
 type Item = { title: string; to: string; icon: IconComponent; also?: string[] }
 const BLINDSPOT: Item[] = [
-  { title: 'Overview', to: '/', icon: RayIcon },
+  { title: 'Overview', to: '/', icon: RayIcon, also: ['/ray'] },
   { title: 'Payment issues', to: '/incidents', icon: ActivityIcon, also: ['/scan'] },
   { title: 'Customer complaints', to: '/threads', icon: UsersIcon, also: ['/cases', '/chat-demo', '/help-demo', '/email-demo', '/ig-demo', '/public-demo'] },
   { title: 'Unpaid access', to: '/access', icon: UnlockIcon },
@@ -67,7 +67,7 @@ export function Shell({ children }: { children: ReactNode }) {
     wide.addEventListener('change', close)
     return () => wide.removeEventListener('change', close)
   }, [theme.breakpoints.m])
-  const on = (i: Item) => (i.to === '/' ? pathname === '/' : [i.to, ...(i.also ?? [])].some((p) => pathname.startsWith(p)))
+  const on = (i: Item) => (i.to === '/' ? pathname === '/' || (i.also ?? []).some((p) => pathname.startsWith(p)) : [i.to, ...(i.also ?? [])].some((p) => pathname.startsWith(p)))
   const link = (i: Item) => <SideNavLink key={i.to} title={i.title} icon={i.icon} href={i.to} isActive={on(i)} as={Link} onClick={() => setOpen(false)} />
   const inert = (title: string, icon: IconComponent) => <SideNavLink key={title} title={title} icon={icon} as={InertItem} />
   // One set of items, shown by the desktop SideNav (hidden below `m`) and by the phone menu below.
@@ -95,7 +95,7 @@ export function Shell({ children }: { children: ReactNode }) {
         {/* Blade centres the brand with its own paddingY (16px) when the bar has no padding, and the bar adds 8px of padding below the m breakpoint, so the brand takes 8px there. */}
         <TopNavBrand paddingY={{ base: 'spacing.3', m: 'spacing.5' }}>
           <Box display="flex" alignItems="center" gap="spacing.4">
-            <Box display={pathname.startsWith('/ray') ? 'block' : { base: 'block', m: 'none' }}><IconButton icon={MenuIcon} accessibilityLabel="Open menu" onClick={() => setOpen(true)} /></Box>
+            <Box display={{ base: 'block', m: 'none' }}><IconButton icon={MenuIcon} accessibilityLabel="Open menu" onClick={() => setOpen(true)} /></Box>
             <Link to="/" aria-label="Razorpay home" style={{ display: 'flex', alignItems: 'center', gap: 'inherit', textDecoration: 'none', color: 'inherit' }}>
               {/* The official lockup, blue and white for the black bar, as the live dashboard shows it. A file, not Blade's single-colour glyph plus text: the real logo is one drawing with its own spacing. */}
               <img src="/razorpay-logo.svg" alt="" width="112" height="24" style={{ display: 'block' }} />
@@ -128,8 +128,7 @@ export function Shell({ children }: { children: ReactNode }) {
         </TopNavActions>
       </TopNav>
       <Box display="flex" flex="1" minHeight="0px">
-        {/* Ray's chat page has no side menu, as on Razorpay's Ray page: it has its own rail. The phone menu in the top bar still opens the full menu. */}
-        {!pathname.startsWith('/ray') && <SideNav position="relative">{nav}</SideNav>}
+        <SideNav position="relative">{nav}</SideNav>
         {children}
       </Box>
       <Drawer isOpen={open} onDismiss={() => setOpen(false)} accessibilityLabel="Main menu">

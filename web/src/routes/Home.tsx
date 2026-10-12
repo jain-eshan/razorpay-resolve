@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom'
-import { Alert, AlertTriangleIcon, Badge, Box, Button, Card, CardBody, CheckCircleIcon, ChevronRightIcon, Heading, HistoryIcon, Link, Modal, ModalBody, ModalFooter, ModalHeader, RayIcon, RupeesIcon, Text, TextInput, UnlockIcon, UsersIcon, type IconComponent } from '@razorpay/blade/components'
+import { Alert, AlertTriangleIcon, Badge, Box, Button, Card, CardBody, CheckCircleIcon, ChevronRightIcon, Heading, HistoryIcon, Link, Modal, ModalBody, ModalFooter, ModalHeader, RayIcon, RupeesIcon, Text, TextInput, UsersIcon } from '@razorpay/blade/components'
 import { IssuesChart } from '../components/IssuesChart'
 import { MenuPick } from '../components/MenuPick'
 import { PageHeader } from '../components/PageHeader'
@@ -18,14 +18,13 @@ import { inRange, parseRange, RANGES, type RangeId } from '../lib/range'
 import { markWelcomed, resetSetup, setupDone, SETUP_STEPS, welcomeDue } from '../lib/setup'
 import Ray from './Ray'
 
-// Questions a merchant would ask, not page names: the side menu already lists the pages.
 const EXPLORE = ['incidents', 'conversations', 'access', 'integration', 'channels', 'autonomy', 'learning', 'how', 'scan']
-const QUESTIONS: [string, IconComponent][] = [['Who paid and did not get access?', UnlockIcon], ['What is broken right now?', AlertTriangleIcon], ['Which customers wrote in?', UsersIcon]]
 // Orange when the fix is yours, neutral when it is someone else's (the same as the Payment issues page).
 const OWNER_TONE = { merchant_code: 'notice', merchant_config: 'notice', razorpay: 'neutral', bank: 'neutral', customer: 'neutral', unknown: 'neutral' } as const
 
-// The Blindspot overview, laid out like the dashboard's own home: a date range, Ray's bar, the setup card until setup is done, four cards, one chart,
-// the open issues by money at stake, then the pages. Every figure is added up in the browser from the issue summaries the API returns.
+// The Blindspot overview, laid out like the dashboard's own home and in the order a merchant asks: Ray one tap away; the setup card, only until setup is done
+// (it is the one thing to do first); what is wrong and how bad (four cards); what to act on (the open payment issues, biggest first) beside the trend (the chart);
+// then the pages and what Ray sends. Every figure is added up in the browser from the issue summaries the API returns.
 export default function Home() {
   const nav = useNavigate()
   const [value, setValue] = useState('')
@@ -81,18 +80,14 @@ export default function Home() {
             </Box>
           } />
 
-        {/* One line, with the Ray glyph inside the field. A question opens Ray's chat page; History lists the earlier chats. */}
-        <Box display="flex" flexDirection="column" gap="spacing.3">
-          <TextInput accessibilityLabel="Ask Ray" placeholder="Ask Ray anything about your payments" leadingIcon={RayIcon} value={value} onChange={({ value }) => setValue(value ?? '')} onKeyDown={({ key }) => { if (key === 'Enter') ask({ value }) }}
-            trailingButton={<Link variant="button" size="large" onClick={() => ask({ value })}>Ask</Link>} />
-          <Box display="flex" flexWrap="wrap" alignItems="center" justifyContent="space-between" gap="spacing.3">
-            {/* Questions a merchant would ask. Each one runs as if typed. Only where there is room: stacked rows on a phone or tablet would push the data down. */}
-            <Box display={{ base: 'none', l: 'flex' }} flexWrap="wrap" gap="spacing.3">
-              {QUESTIONS.map(([q, icon]) => <Button key={q} variant="secondary" size="small" icon={icon} onClick={() => ask({ value: q })}>{q}</Button>)}
-            </Box>
-            {/* Set apart from the questions, at the end of the row. */}
-            <Box marginLeft="auto"><Button variant="tertiary" size="small" icon={HistoryIcon} onClick={() => setHistory(true)}>History</Button></Box>
+        {/* Ray is one tap away and takes one line: the field with the Ray glyph inside it, and History at its end. The three starter questions live on Ray's own
+            page, where they can be tapped without being a second row of buttons above the data. */}
+        <Box display="flex" alignItems="center" gap="spacing.4">
+          <Box flexGrow="1" minWidth="spacing.0">
+            <TextInput accessibilityLabel="Ask Ray" placeholder="Ask Ray anything about your payments" leadingIcon={RayIcon} value={value} onChange={({ value }) => setValue(value ?? '')} onKeyDown={({ key }) => { if (key === 'Enter') ask({ value }) }}
+              trailingButton={<Link variant="button" size="large" onClick={() => ask({ value })}>Ask</Link>} />
           </Box>
+          <Button variant="secondary" size="medium" icon={HistoryIcon} onClick={() => setHistory(true)}>History</Button>
         </Box>
 
         {done < SETUP_STEPS ? (
