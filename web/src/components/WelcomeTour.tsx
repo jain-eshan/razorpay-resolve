@@ -13,7 +13,7 @@ const FADE = 'radial-gradient(ellipse 50% 50% at center, black 62%, transparent 
 // The three cards use the product's own words (docs/PRD_V3.md, section 1): the problem, then the five things it does, then the approval rule. Each claim is
 // something Blindspot does today. A new line is checked against the PRD first.
 const STEPS: { art: ArtId | 'hero'; title: string; text: string }[] = [
-  { art: 'hero', title: 'Find every customer a payment problem hit', text: 'Most customers who fail once never try again, and most never complain. Blindspot hears about a problem from your customers or your own alerts, then finds everyone it hit, including the ones who never wrote in.' },
+  { art: 'hero', title: 'Find every customer a payment problem hit', text: 'Most customers who fail once never try again, and most never complain. Blindspot hears about a problem from your customers or your payment data, then finds everyone it hit, including the ones who never wrote in.' },
   { art: 'proof', title: 'Know whose side it is, with proof', text: 'Before it blames anyone, Blindspot checks where the failures cluster: one app version, one payment method, one error code. It then says whether the cause is your code, your settings, Razorpay or the bank, and what it cost in rupees.' },
   { art: 'approve', title: 'Fix it and win customers back, with your approval', text: 'Blindspot fixes what Razorpay can fix, in small steps, and messages the customers who dropped off. Nothing moves money or reaches a customer until you approve it, and it never asks anyone for a password, card number or OTP.' },
 ]

@@ -5,7 +5,7 @@ import { Box, Button, Heading, PlayCircleIcon, Text } from '@razorpay/blade/comp
 // The title block every page starts with: a heading, one muted line, actions on the right.
 // The actions sit beside the title from `l`: below that the page column is narrow (the side nav takes about 250px), so they go under it.
 // `guide` adds a "How it works" button that opens that product guide (lib/guides.ts).
-export function PageHeader({ title, description, actions, guide }: { title: string; description?: string; actions?: ReactNode; guide?: string }) {
+export function PageHeader({ title, description, actions, guide }: { title: string; description?: ReactNode; actions?: ReactNode; guide?: string }) {
   const nav = useNavigate()
   return (
     <Box display="flex" flexDirection={{ base: 'column', l: 'row' }} justifyContent="space-between" alignItems={{ base: 'flex-start', l: 'center' }} gap="spacing.4">

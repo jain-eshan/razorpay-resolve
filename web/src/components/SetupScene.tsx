@@ -85,7 +85,7 @@ export function SetupScene({ step, channels, level }: { step: number; channels: 
     const hub: Pt = [184, 80]
     const on = CH.filter(([k]) => channels.includes(k)).map(([k]) => k)
     return (
-      <Stage key={channels.join()} label={on.length ? `${on.length} of 3 places connected. Messages from them reach Ray.` : 'No places connected yet.'}
+      <Stage key={channels.join()} label={on.length ? `${on.length} of 3 places connected. Their messages reach Blindspot.` : 'No places connected yet.'}
         tiles={<>{CH.map(([k, icon, y]) => <Tile key={k} at={[40, y]} icon={icon} tone={channels.includes(k) ? 'blue' : 'off'} />)}<Tile at={hub} icon={RayIcon} tone="green" size={48} /></>}>
         {CH.map(([k, , y]) => {
           const lit = channels.includes(k)

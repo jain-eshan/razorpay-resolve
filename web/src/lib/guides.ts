@@ -35,9 +35,9 @@ export const GUIDES: Guide[] = [
     how: 'How to use Blindspot',
     to: '/setup',
     icon: ActivityIcon,
-    tagline: 'Catch payment problems before your customers do',
+    tagline: 'Find every customer a payment problem hit, and win them back',
     description:
-      'A customer pays and your app gives them nothing, or your pay page breaks and they cannot pay at all. You find out days later, if at all. Razorpay sees the payment. Blindspot also watches your pay page before it and your app after it, finds every customer the problem hit, says whose side the cause is on, and fixes it once you approve.',
+      'A customer pays and your app gives them nothing, or your pay page breaks and they cannot pay at all. You find out days later, if at all. Razorpay sees the payment. Blindspot covers what breaks around it: it finds every customer hit, says whose side the cause is on, and fixes it and wins them back once you approve.',
     benefits: [
       { art: 'crowd', title: 'From one complaint to everyone', text: 'One customer writes in. Blindspot finds every other customer the same problem hit, including the ones who never wrote in.' },
       { art: 'proof', title: 'Whose side, with proof', text: 'Each payment issue says whether the cause is your code, your settings, Razorpay or the bank, and shows the records behind it.' },
