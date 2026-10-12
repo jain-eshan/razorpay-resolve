@@ -1,11 +1,12 @@
 import { useEffect, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { m } from 'framer-motion'
-import { ActivityIcon, ArrowDownIcon, ArrowRightIcon, Avatar, BellIcon, Box, Button, Card, CardBody, CheckIcon, ChevronRightIcon, FileTextIcon, Heading, MessageSquareIcon, Skeleton, SlackIcon, Text, UserCheckIcon, WhatsAppIcon, type IconComponent } from '@razorpay/blade/components'
+import { ActivityIcon, ArrowDownIcon, ArrowRightIcon, Avatar, BellIcon, Box, Button, Card, CardBody, CheckIcon, ChevronRightIcon, ClockIcon, FileTextIcon, Heading, MessageSquareIcon, SlackIcon, Text, UserCheckIcon, WhatsAppIcon, type IconComponent } from '@razorpay/blade/components'
 import { Accent } from '../components/Accent'
 import { Crumbs } from '../components/Crumbs'
 import { GuideArt } from '../components/GuideArt'
 import { RulesFail } from '../components/RulesFail'
+import { rulesData } from '../lib/rulesData'
 import { useHeroWash } from '../components/iso'
 import { ACCOUNTS, signIn, type AccountId } from '../lib/account'
 import { useGet, type Schemas } from '../lib/api'
@@ -33,7 +34,7 @@ const JOURNEYS: { id: AccountId; art: ArtId; who: string; steps: string[]; note:
       'Kaksha approves access for a test run, then a small batch, then everyone.',
       'Kaksha approves one message, and every student hears their access is live.',
     ],
-    note: 'Runs on the engine, with a made-up merchant. Every channel is simulated.',
+    note: 'Every number comes from the prototype’s own made-up payment data. Every channel is simulated.',
   },
   {
     id: 'flipkart', art: 'alert',
@@ -57,12 +58,12 @@ const INPUTS: Item[] = [
   { icon: BellIcon, title: 'Alert door', text: 'A big brand’s alert tool: Sentry, Datadog, PagerDuty.' },
 ]
 const DOORS = INPUTS.filter((i) => i.title.endsWith('door')).length
-const ENGINE: { art: ArtId; name: string; text: string }[] = [
-  { art: 'crowd', name: 'Find everyone', text: 'Every customer it hit, not only those who wrote in.' },
-  { art: 'money', name: 'Put a rupee figure on it', text: 'The money stuck, counted from the payments.' },
-  { art: 'proof', name: 'Say whose side', text: 'Your code, your settings, Razorpay or the bank, with proof.' },
-  { art: 'approve', name: 'Fix, with your approval', text: 'In small batches. Nothing moves until you approve.' },
-  { art: 'winback', name: 'Win customers back', text: 'Tell them, then check the fix held.' },
+// Steps 2 to 5, named as the story strip names them (step 1, Hear, is the ways in above them). The rupee figure is part of finding everyone.
+const ENGINE: { art: ArtId; text: string }[] = [
+  { art: 'crowd', text: 'Every customer it hit, not only those who wrote in, and the money stuck.' },
+  { art: 'proof', text: 'Your code, your settings, Razorpay or the bank, with proof.' },
+  { art: 'approve', text: 'In small batches, and only after you approve.' },
+  { art: 'winback', text: 'Customers told, then a check that the fix held.' },
 ]
 const OUTPUTS: Item[] = [
   { icon: WhatsAppIcon, title: 'Ray on WhatsApp', text: 'A small business sees what broke and approves the fix.' },
@@ -74,7 +75,7 @@ const OUTPUTS: Item[] = [
 const TODAY = [
   'Rules and SQL produce every number. No AI model runs.',
   'Messages to customers are filled in from templates.',
-  'Both accounts are made-up merchants, with known answers to check against.',
+  'Both accounts run on made-up data, with known answers to check against.',
   'The hosted demo replays recorded answers.',
 ]
 const PRODUCTION = [
@@ -88,10 +89,11 @@ const words = (n: number) => WORD[n] ?? String(n)
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1)
 
 // Layouts are chosen from an element's own measured width, not the screen's (web/DESIGN.md section 23 A8). Measured: the page column is about 1072px at 1440, 912 at 1280,
-// 656 at 1024 and 432 at 768. The hero puts its picture beside the words from 840px; the journeys sit side by side from 880px (two cards of about 430px, enough for a
-// step's name and a line); the engine's five steps go across from 960px (about 180px each), and below that one row a step, the picture on the left; the four landing
-// places go four across from 900px and two across from 520px.
-const HERO_SIDE = 840, PAIR = 880, ACROSS = 960, FOUR = 900, TWO = 520
+// 656 at 1024 and 432 at 768; the engine card's inside is about 48px less. The hero puts its picture beside the words from 840px; the journeys sit side by side from 880px
+// (two cards of about 430px, enough for a step's name and a line); the engine's ways in go three across from 600px (about 190px each, room for a two-line note beside the
+// icon); its four steps go four across from 720px (about 165px each), two by two from 520px, and below that one row a step, the picture on the left; the four landing places
+// go four across from 900px and two across from 520px.
+const HERO_SIDE = 840, PAIR = 880, THREE = 600, ACROSS = 720, FOUR = 900, TWO = 520
 
 // A light entrance for the top of the page: fade and a 16px rise, 360ms, entrance easing, 80ms apart (DESIGN.md section 8). Still for anyone who asks for less motion.
 function Rise({ children, order = 0 }: { children: ReactNode; order?: number }) {
@@ -168,7 +170,7 @@ function Journey({ j }: { j: (typeof JOURNEYS)[number] }) {
                 {/* The number, and a thin line down to the next one, so the five read as one path. */}
                 <Box display="flex" flexDirection="column" alignItems="center" flexShrink={0}>
                   <Box width="spacing.7" height="spacing.7" borderRadius="max" display="flex" alignItems="center" justifyContent="center" backgroundColor="surface.background.gray.moderate" borderWidth="thin" borderColor="surface.border.gray.normal">
-                    <Text size="small" weight="semibold" color="surface.text.gray.subtle">{i + 1}</Text>
+                    <Text size="small" color="surface.text.gray.subtle">{i + 1}</Text>
                   </Box>
                   {i < j.steps.length - 1 && <Box flexGrow={1} borderLeftWidth="thin" borderLeftColor="surface.border.gray.normal" />}
                 </Box>
@@ -238,24 +240,25 @@ const Down = () => (
 function Engine() {
   const [ref, room] = useWidth<HTMLDivElement>()
   const across = room >= ACROSS
-  const pic = room >= TWO ? 160 : 104  // a step's picture beside its words, below the across layout (2:1, so 80 or 52px high)
+  const pair = !across && room >= TWO
+  const pic = 104  // a step's picture beside its words on a phone (2:1, so 52px high)
   return (
     <Card testID="engine">
       <CardBody>
         <Box ref={ref} display="flex" flexDirection="column" gap="spacing.6">
           <Box display="flex" flexDirection="column" gap="spacing.4">
-            <Label>Comes in</Label>
-            <Items list={INPUTS} prefix="engine-in" cols={room >= TWO + 200 ? INPUTS.length : 1} />
+            <Label>{`1. ${STEP_NAMES[0]}: a problem comes in`}</Label>
+            <Items list={INPUTS} prefix="engine-in" cols={room >= THREE ? INPUTS.length : 1} />
           </Box>
           <Down />
           <Box display="flex" flexDirection="column" gap="spacing.4">
-            <Label>{`The same ${words(ENGINE.length)} steps, whichever way it came in`}</Label>
-            <Box display="grid" gridTemplateColumns={across ? `repeat(${ENGINE.length}, minmax(0, 1fr))` : 'minmax(0, 1fr)'} gap={across ? 'spacing.5' : 'spacing.4'}>
+            <Label>{`2 to ${STEP_NAMES.length}: the same for every problem, whichever way it came in`}</Label>
+            <Box display="grid" gridTemplateColumns={across ? `repeat(${ENGINE.length}, minmax(0, 1fr))` : pair ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)'} gap="spacing.5">
               {ENGINE.map((s, i) => (
-                <Box key={s.name} display={across ? 'flex' : 'grid'} flexDirection="column" gridTemplateColumns={across ? undefined : `${pic}px minmax(0, 1fr)`} alignItems={across ? 'stretch' : 'center'} gap="spacing.4" testID={`engine-step-${i + 1}`}>
-                  <GuideArt art={s.art} height={across ? '96px' : `${pic / 2}px`} />
+                <Box key={s.art} display={across || pair ? 'flex' : 'grid'} flexDirection="column" gridTemplateColumns={across || pair ? undefined : `${pic}px minmax(0, 1fr)`} alignItems={across || pair ? 'stretch' : 'center'} gap="spacing.4" testID={`engine-step-${i + 2}`}>
+                  <GuideArt art={s.art} height={across || pair ? '96px' : `${pic / 2}px`} />
                   <Box display="flex" flexDirection="column" gap="spacing.1" minWidth="spacing.0">
-                    <Text weight="semibold">{`${i + 1}. ${s.name}`}</Text>
+                    <Text weight="semibold">{`${i + 2}. ${STEP_NAMES[i + 1]}`}</Text>
                     <Text size="small" color="surface.text.gray.muted">{s.text}</Text>
                   </Box>
                 </Box>
@@ -274,15 +277,21 @@ function Engine() {
   )
 }
 
-// The evidence for "why an AI agent", read from the eval report. While it loads, a block of about the card's size stands in; an error says what failed.
+// "Why an AI agent", with its evidence read from the eval report. While it loads, the card draws its own frame at its loaded size; an error says what failed; a report
+// with no messy-complaints run leaves the whole section out rather than a heading with nothing under it.
 function WhyAgent() {
   const { data, error } = useGet<Schemas['EvalReport']>('/api/eval/report')
-  if (error) return <Text color="feedback.text.negative.intense">{`Could not load the test results: ${error}`}</Text>
-  if (!data) return <Skeleton height="480px" width="100%" borderRadius="medium" />
-  return <RulesFail metrics={data.metrics} />
+  const rules = data && rulesData(data.metrics)
+  if (data && !rules) return null
+  return (
+    <Section id="why-ai" title="Why an AI agent" line="Customers write in Hinglish, with typos, two problems at once. Rules misread them, so an AI agent reads each message first, and the rules still produce every number.">
+      {error ? <Text color="feedback.text.negative.intense">{`Could not load the test results: ${error}`}</Text> : <RulesFail data={rules ?? undefined} />}
+    </Section>
+  )
 }
 
-function Side({ title, tag, lines, id }: { title: string; tag: string; lines: string[]; id: string }) {
+// Built lines carry a tick; the production design carries a clock, so nothing not built reads as done.
+function Side({ title, tag, lines, id, icon: Icon }: { title: string; tag: string; lines: string[]; id: string; icon: IconComponent }) {
   return (
     <Box display="flex" flexDirection="column" gap="spacing.4" testID={id}>
       <Box display="flex" flexDirection="column" gap="spacing.1">
@@ -291,7 +300,7 @@ function Side({ title, tag, lines, id }: { title: string; tag: string; lines: st
       </Box>
       {lines.map((l) => (
         <Box key={l} display="flex" alignItems="flex-start" gap="spacing.3">
-          <Box flexShrink={0} paddingTop="spacing.1" display="flex"><CheckIcon size="small" color="surface.icon.gray.muted" /></Box>
+          <Box flexShrink={0} paddingTop="spacing.1" display="flex"><Icon size="small" color="surface.icon.gray.muted" /></Box>
           <Text color="surface.text.gray.subtle">{l}</Text>
         </Box>
       ))}
@@ -305,8 +314,8 @@ function TodayAndProduction() {
     <Card testID="today-production">
       <CardBody>
         <Box ref={ref} display="grid" gap="spacing.7" gridTemplateColumns={room >= 640 ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)'}>
-          <Side id="today" title="In this prototype" tag="What you can try now" lines={TODAY} />
-          <Side id="production" title="In production" tag="The design, not built yet" lines={PRODUCTION} />
+          <Side id="today" title="In this prototype" tag="What you can try now" lines={TODAY} icon={CheckIcon} />
+          <Side id="production" title="In production" tag="The design, not built yet" lines={PRODUCTION} icon={ClockIcon} />
         </Box>
       </CardBody>
     </Card>
@@ -331,13 +340,11 @@ export default function HowItWorks() {
         </Section>
       </Rise>
 
-      <Section id="inside" title="Inside Blindspot" line={`${cap(words(DOORS))} doors and Razorpay’s own payment records in, ${words(ENGINE.length)} steps, ${words(OUTPUTS.length)} places the answer lands.`}>
+      <Section id="inside" title="Inside Blindspot" line={`${cap(words(DOORS))} doors and Razorpay’s own payment records in, ${words(STEP_NAMES.length)} steps, ${words(OUTPUTS.length)} places the answer lands.`}>
         <Engine />
       </Section>
 
-      <Section id="why-ai" title="Why an AI agent" line="Customers do not write the way rules expect. This is where today’s rules go wrong.">
-        <WhyAgent />
-      </Section>
+      <WhyAgent />
 
       <Section id="today-and-production" title="Today and in production" line="What this prototype does, and what changes inside Razorpay.">
         <TodayAndProduction />

@@ -40,8 +40,7 @@ export const ART = {
   report: A('08-accuracy', 'Two lists matched row by row under a tick.'),
   release: A('17-prevent-breaks', 'A release stopped at a checkpoint when one check fails.'),
   door: A('18-unpaid-access', 'An open door and an unpaid bill.'),
-  // The engine's five steps on "How Blindspot works": the rupee figure and the win-back reuse existing pictures under the idea they show there.
-  money: A('01-overview', 'A customer holding a coin at a locked door: money paid, nothing received.'),
+  // The engine's last step on "How Blindspot works" reuses an existing picture under the idea it shows there.
   winback: A('12-in-stages', 'Steps with a few customers on the first and more on each step up: customers coming back.'),
 }
 

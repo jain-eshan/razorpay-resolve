@@ -5,6 +5,7 @@ import { Panel } from '../components/Panel'
 import { useGet, type Schemas } from '../lib/api'
 import { sentence } from '../lib/format'
 import { PageHeader } from '../components/PageHeader'
+import { rulesData } from '../lib/rulesData'
 import { Stat } from '../components/Stat'
 import { PageSkeleton } from '../components/PageSkeleton'
 
@@ -44,6 +45,7 @@ export default function How() {
   const cost = byName('cost_per_resolved_case_inr_messages_only')
   const reply = byName('median_seconds_to_first_reply_engine_only')
   const longest = byName('founder_minutes_inc2_estimate')
+  const messy = rulesData(data.metrics)
   const perApproval = `${typical?.target.match(/(\d+) s per approval/)?.[1] ?? '?'} s`  // the assumption is written in the metric's own target text
   const effort = typical && cost && reply ? { typical, cost, reply, longest: longest ? `${minutes(longest.value ?? 0)} for the refunds` : 'n/a', longestNote: 'each one approved one customer at a time on purpose' } : undefined
   return (
@@ -72,7 +74,7 @@ export default function How() {
         })}
       </Box>
       {/* "Where rules fail" moved to the landing page (v3 batch 1.5, T3); its scores stay in the table below. */}
-      <Text color="surface.text.gray.muted" testID="rules-moved">How today’s rules do on messy complaints, and why that needs an AI agent: <Link href="/how-it-works#why-ai" onClick={(e) => { e.preventDefault(); nav('/how-it-works#why-ai') }}>Why an AI agent</Link></Text>
+      {messy && <Text color="surface.text.gray.muted" testID="rules-moved">{`Today’s rules misread ${messy.wrong} of ${messy.total} messy complaints. `}<Link href="/how-it-works#why-ai" onClick={(e) => { e.preventDefault(); nav('/how-it-works#why-ai') }}>Why Blindspot needs an AI agent</Link></Text>}
       {effort && (
         <Box display="flex" flexDirection="column" gap="spacing.4">
           <Box display="flex" flexDirection="column" maxWidth="720px">
