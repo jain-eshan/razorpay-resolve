@@ -201,10 +201,11 @@ test(`the story strip keeps its height, and its numbers move, as the fix goes fr
 })
 }
 
-test('the lane and its axis fit inside the card on every issue at every width: nothing outside, clipped or touching', async ({ page }) => {
+for (const inc of incs) {
+test(`${inc.id}: the lane and its axis fit inside the card at every width: nothing outside, clipped or touching`, async ({ page }) => {  // one test per issue: the runner is slow and a single test for all five hit the 60 second limit
   for (const width of [375, 768, 1024, 1100, 1440]) {
     await page.setViewportSize({ width, height: 900 })
-    for (const inc of incs) {
+    {
       await page.goto(`/incidents/${inc.id}`)
       const lane = page.getByTestId('evidence-lane')
       await expect(lane).toBeVisible()
@@ -232,6 +233,7 @@ test('the lane and its axis fit inside the card on every issue at every width: n
     }
   }
 })
+}
 
 test('Accuracy: "where rules fail" shows the report\'s figures with their counts, the kind of each miss, and says what it is not', async ({ page }) => {
   const report = file<{ metrics: { name: string; value: number | null; target: string }[] }>('eval/report')
