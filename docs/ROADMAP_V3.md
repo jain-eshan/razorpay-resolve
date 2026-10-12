@@ -101,7 +101,7 @@ PRD: F5, F6, F7, F7a, F9, wireframe 3, section 9 UI fix 6, chart feedback.
 - [x] **I6 Chart pass.** Audit `TimelineChart`, `OrdersChart`, `DuplicateChart`, `RenewalChart`, then: onset and fix marked with `ChartReferenceLine`, a shaded normal range where a baseline exists, one consistent palette from DESIGN.md colour, axis labels with units, rupee tooltips with Indian grouping, at most four gridlines, legend names in plain words. Before and after screenshots go in the build log.
 - [ ] **I7 Incidents list.** Group by state with labelled dividers (Open, Fixing, Closed), money at stake on each row. Won't in Phase 1 (RICE 0.1).
 - [x] **A1 "Where rules fail" card (Must, RICE 2.4).** The answer to Track 2's "why AI beats a rule", with evidence instead of a claim. Stream A: add a labelled set of messy payment complaints (Hinglish, typos, forwarded text, no ID, two issues in one message) to `eval/`, marked synthetic, and score the current rules triage on it (what it extracts right, what it misses). Stream D: show the result on the Accuracy page (`routes/How.tsx`) as one card: the hit rate, three real misses, and "this is where the agent goes in production". Numbers come from the eval run, never typed. Done when: `make eval` prints the figure and the card reads it.
-- [ ] **I8 Tests, build log, design review.**
+- [x] **I8 Tests, build log, design review.** PR #39. Two independent reviews fixed; a third was stopped to save cost (see the build log).
 
 MoSCoW for this batch: I1, I2, I4, I5, A1 Must; I3 Should; I6 markers Should, the rest of I6 Could; I7 Won't.
 
