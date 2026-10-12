@@ -1189,3 +1189,20 @@ Review follow-up (independent design review: pass with notes). The coordinator g
 Run after the fixes: `npx tsc -b`, `npx oxlint`, `how-it-works.spec.ts` (12 tests), and the `/how-it-works` case of `layout.spec.ts`. Not rerun: the other specs from the first run, and the review was not repeated, by instruction.
 
 Design review: one independent review, verdict pass with notes. Findings 1 to 5 fixed as above and checked by my own measurements and tests, not by a second review. 6, 7 and 9 left on purpose; finding 8 was not passed to me, so it is neither fixed nor claimed. The review itself I did not read; I know it only through the coordinator's list.
+
+## 13 Oct 2026, v3 batch 1.4 (S3 and S4): product note and AI build log (docs only)
+
+Goal: roadmap tasks S3 and S4. Bring `docs/SUBMISSION.md` and `docs/AI_BUILD_LOG.md` up to v3 without losing what was still true. No code, contract or screen changed, and nothing under `web/` or `synth/`.
+
+What changed:
+- `docs/SUBMISSION.md`: a new one-page note (about 534 words of text, 547 as `wc -w` counts the markers and bullets, with the placeholder left out; our own limit is 550, the brief says only "one page") covering the problem, solution, decisions and cuts, success metrics and each Track 2 item. "Why AI beats a rule" uses the measured result from batch 1.2 (85% of 41 made-up messy complaints, by kind), and says the set is small and made up and that no model has been run on it. A longer appendix (1a) answers the nine Track 2 items in full, and keeps the v2 platform asks, overlap and quotes. Section 4 (Eshan's list) has new items; section 3 has two new unverified items (the Slack RCA loop, the Razorpay MCP server); sections 2 and 6 are marked as the v2 script; the "Where is the AI?" answer in section 5 now carries the measured result. Section 7 is new: a table of where every number comes from.
+- `docs/AI_BUILD_LOG.md`: counts brought to 12 Oct (113 commits, 37 merged pull requests, about 28,000 lines, 609 backend and 142 browser tests, 147 checks), the v3 decisions (items 10 to 15), the Claude Docs row, what the reviewers and tests caught in batches 1.1 and 1.2, and two PRD faults found while writing the note.
+- `docs/ROADMAP_V3.md`: S3 and S4 ticked, as drafts.
+
+Left as placeholders (`TO CONFIRM AFTER BATCH 1.3`): one line in the note, one block in appendix 1a, one decision in the AI build log and one clause in its "what is real" paragraph. They are filled once batch 1.3 (the big-brand flow) merges and only with figures the built pages show. One more marker, `[TO CONFIRM: the session count]`, waits for Eshan.
+
+Checks (docs only, no test run): every number in the note and appendix was read from `web/public/snapshot/eval/report.json`, `web/public/snapshot/incidents.json` or `docs/BUSINESS_CASE.md` and is listed in section 7 of the submission file; 147 entries in the report have status pass and none fail; no em dash in the added lines; no banned words in the added lines.
+
+Found, not fixed (the PRD is edited in the Claude Doc, not here): PRD sections 5 (F15) and 11 say false alerts fell from 6.2 to 3.2 "a week", but the eval figure is per six-week replay; the PRD's J1 story has the deploy at 6:05 pm, while the data has INC-1 starting at 2:20 pm and alerting at 3:15 pm. The note uses the data.
+
+Awaiting Eshan's voice edit: both files are drafts. Design review: not applicable, no file under `web/` changed.

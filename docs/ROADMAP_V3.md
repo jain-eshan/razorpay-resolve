@@ -127,8 +127,8 @@ PRD: sections 1, 4, 8, 11, 12.
 
 - [x] **S1 "How Blindspot works"** `/how-it-works`: the two journeys as two lanes of five steps, and the engine (two ways in, five steps, four outputs) built from Blade boxes, like `SetupScene`. Linked from the Home header.
 - [x] **S2 Copy pass** on Home, setup and guides: the one-line pitch from PRD section 1, DESIGN 22 names.
-- [ ] **S3 Product note** (`docs/SUBMISSION.md`): problem, solution, decisions and what was left out, success metrics (PRD section 12), and each Track 2 item (signal, why AI beats a rule, the action, what the merchant controls, learning, accuracy, permissions, failure handling, outcome).
-- [ ] **S4 AI build log** (`docs/AI_BUILD_LOG.md`): the v3 decisions, which tool did what, where Eshan decided.
+- [x] **S3 Product note** (`docs/SUBMISSION.md`): problem, solution, decisions and what was left out, success metrics (PRD section 12), and each Track 2 item (signal, why AI beats a rule, the action, what the merchant controls, learning, accuracy, permissions, failure handling, outcome). Draft, with one placeholder for batch 1.3 and Eshan's voice edit still open.
+- [x] **S4 AI build log** (`docs/AI_BUILD_LOG.md`): the v3 decisions, which tool did what, where Eshan decided. Draft, with one placeholder for batch 1.3 and Eshan's review open.
 - [ ] **S5 Video**, 90 seconds, PRD section 8 order. Every number on screen matches the script.
 - [ ] **S6 Final QA:** all routes at 375, 768 and 1440px; full test run; deploy; smoke test https://razorpay-blindspot.vercel.app.
 - [ ] **S7 Submit** by 9 pm on 13 Oct.
