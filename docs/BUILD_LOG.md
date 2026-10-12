@@ -1277,3 +1277,29 @@ Measured: the brand spec (14 tests, from the files: sums, the picker, menus per 
 Left on purpose: customer names stay masked (Eshan, 13 Oct). The brand menu has only Overview, Payment issues and Accuracy until T4 adds its own pages, so no menu item ever opens the other merchant's data. Ray and the welcome tour are Kaksha's. The picker's bar is Blade's dark cloud surface, not the shell's black, because the shell's bar is Blade's TopNav and the picker sits outside the shell.
 
 Not checked by anyone yet: the brand pages at 768 and 1024px by eye (measured by the layout and stability tests only), dark mode, keyboard order in the account menu.
+
+## 13 Oct 2026, v3 batch 1.5 T7: the WhatsApp demo as a guided story (stream D)
+
+Goal: Eshan on "Try it: WhatsApp": "This page's design and functionality doesn't make any sense right now." You played two people with no guidance, the right half was an empty card until you tapped, the prompt-injection chip read like a developer test, and nothing said what to watch for or what happened. Now a judge can follow it in 30 seconds.
+
+What was built:
+- Who is who: two cards, "Your customer's WhatsApp" (chatting with Kaksha payment help, powered by Razorpay) and "Your Blindspot view" (what you see as Kaksha's founder). The header line says what to do.
+- "The main story" above both (`components/ChatSteps.tsx`, the story strip's look): the customer writes, Blindspot checks, you approve the reply (the note reads the approval level from Settings: "It waits for you on Review first"), the customer is told. Done, now and next are read from the main conversation. Four across from l, two from m, one on a phone with the notes left out.
+- The next message sits above the phone with the page's one blue "Send": the opening message, then the UPI ref Blindspot asks for, then "Your turn: approve the reply in your Blindspot view" (the approve button is then the only blue one). When the story is done or paused, "Start the main story again".
+- "Try other cases" under the phone, each with a plain label and the message in quotes: Not about a payment, A message that tries to trick it, Could not pay. These are the recorded scenarios in `demo.json` (`demoOpeners` in `lib/demo.ts`); there is no separate "no payment reference" recording, because the main story's first message has none, and the result line says so. Trying a case pauses the main story, which goes on from where it stopped.
+- One line at the top of your view says what happened and why, read from the conversation (its state, claim, and the amount and plan in the reply's slots): "Asked for the UPI ref", "Found the ₹299 payment. Your records show Premium Monthly is not on, so the reply is waiting for your approval", "Reply sent", "Sent to you. Nothing was refunded.", "Not about a payment, so passed back", "No payment to find", with a link to the payment issue when there is one. Before any message the view lists what will appear, so the page is never half empty.
+- Below xl the two cards stack, and "See your Blindspot view" under the next message scrolls to it.
+
+What broke, and how it was found:
+- The phone mixed conversations: `CustomerChat` kept one list of typed messages across all of them, so after trying another case and going back, the main story's first bubble showed the other case's text. Now kept per conversation (a test fails if it is put back).
+- A message that is not about a payment is not kept by the engine, so the customer's own message vanished from their phone and only the reply showed. The phone now shows what the customer sent.
+- The first screenshot at 1440 by 860 had the blue Send below the fold (under the phone). It moved above the phone.
+- The case buttons were Blade small (32px), under the 36px touch target. They are medium now.
+
+Measured: the WhatsApp tests in `e2e/demo.spec.ts` (main story step by step with each step's state and each result line, the tile sizes through every step, a case pausing the story and the phone after resuming, the injection going to the founder with nothing refunded and only the customer's own message saying "refund" on the phone, the unrelated message passed back, the pay page case). Both new checks (tile sizes, typed per conversation) were proved by putting the old behaviour back: each failed. Looked at every state at 1440, 768 and 375px in screenshots. `npx tsc -b` and `npx oxlint` clean; the whole snapshot suite passed (166) on a dev server on port 5196, and `demo.spec.ts` with `layout.spec.ts` again after the button change (68 passed). The CI-mode run on 5173 was not done here (the port belongs to another chat).
+
+Left on purpose: the WhatsApp drawing is unchanged. `ThreadView` (shared with Customer complaints) is unchanged, so it still shows the channel as "whatsapp payments" and the raw customer ref (`cust_...`); T2 owns removing raw IDs. The approve button sits at the foot of the conversation in your view, so on a laptop you scroll a little to reach it. Live mode keeps the free-text input and shows no case list.
+
+Not checked: 1024px by eye (layout test only), dark mode, keyboard order, the live mode against the API (`talk.spec.ts` was not run; its test IDs and the input are kept).
+
+Design review: self-checked against `.claude/agents/design-reviewer.md` and DESIGN.md section 23 (mechanical greps clean apart from the router link's `textDecoration`, the house pattern; one blue button per view; composition and stability at three widths; tests proved able to fail). Independent review pending (the lead runs it).

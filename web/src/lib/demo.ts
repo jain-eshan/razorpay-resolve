@@ -588,6 +588,12 @@ export async function demoSuggestions(channel: string, tid?: string): Promise<st
   return Object.values(d.chat).filter((s) => s.channel === channel && s.id !== 'email').map((s) => s.steps[0].customer)
 }
 
-export const demoHelpPayment = async () => (await demo()).chat.help.payment_id as string
+// The recorded conversations on one channel, by scenario id: the first message, and the second one where the recording has it (the payment reference).
+export async function demoOpeners(channel: string): Promise<{ id: string; text: string; next?: string }[]> {
+  const d = await demo()
+  return Object.values(d.chat).filter((s) => s.channel === channel && s.id !== 'email').map((s) => ({ id: s.id, text: s.steps[0].customer, next: s.steps[1]?.customer }))
+}
+
+export const demoHelpPayment =async () => (await demo()).chat.help.payment_id as string
 
 export const demoNote = 'A replay of the real engine on made-up data. Nothing here is live.'

@@ -69,16 +69,40 @@ test('the stages cannot be skipped in the demo either', async ({ page }) => {
   await expect(btn(page, 'Looks right, continue')).toBeVisible()
 })
 
-test('WhatsApp: pick a message, the agent says it is an AI, finds the payment, and the founder approves the held reply', async ({ page }) => {
+// The WhatsApp demo is a guided story: four steps, the next message to send, and one line on the right that says what happened and why.
+const step = (page: Page, n: number) => page.getByTestId(`chat-step-${n}`)
+const outcome = (page: Page) => page.getByTestId('chat-outcome').getByRole('heading')
+// Each tile's size, measured one by one (the strip takes its tallest tile's height, so measuring the strip alone would hide a tile that grew)
+const tiles = (page: Page) => Promise.all([1, 2, 3, 4].map(async (n) => { const b = await step(page, n).boundingBox(); return b && [b.width, b.height] }))
+
+test('WhatsApp: the main story, step by step: the agent says it is an AI, finds the payment, and the founder approves the held reply', async ({ page }) => {
   await page.goto('/chat-demo')
   await expect(page.getByPlaceholder('Type a message')).toHaveCount(0) // suggested messages only, since nothing can read free text without a server
   const chat = page.getByTestId('customer-chat')
   const founder = page.getByTestId('thread-view')
-  await chat.getByRole('button', { name: /paisa kat gaya 299 ka/ }).click()
+  const next = page.getByTestId('next-message')
+  // Before anything is sent, your side says what will appear, and step 1 is the one to do
+  await expect(page.getByTestId('view-waiting')).toBeVisible()
+  await expect(outcome(page)).toHaveText("Waiting for the customer's first message")
+  await expect(step(page, 1)).toContainText('Now')
+  await expect(step(page, 2)).toContainText('Next')
+  const size = await tiles(page)
+  expect(size.every((b) => b && b[1] > 40)).toBe(true)
+
+  await next.getByRole('button', { name: /^Send: paisa kat gaya 299 ka/ }).click()
   await expect(chat.getByText(/Main ek AI hoon/)).toBeVisible()
   await expect(founder.getByText('Finding the payment')).toBeVisible()
-  await chat.getByRole('button', { name: /^UPI ref \d{12}$/ }).click()  // the 12-digit reference the agent asked for, not a payment id
+  await expect(outcome(page)).toHaveText('Asked for the UPI ref')
+  await expect(page.getByTestId('chat-outcome')).toContainText('never an OTP or PIN')
+  await expect(step(page, 1)).toContainText('Done')
+  await expect(step(page, 2)).toContainText('Now')
+
+  await next.getByRole('button', { name: /^Send: UPI ref \d{12}$/ }).click()  // the 12-digit reference the agent asked for, not a payment id
   await expect(founder.getByText('Waiting for the fix')).toBeVisible()
+  await expect(outcome(page)).toHaveText('Found the ₹299 payment')  // the amount is the reply's own slot, not typed into the page
+  await expect(page.getByTestId('chat-outcome')).toContainText('Premium Monthly is not on, so the reply is waiting for your approval')
+  await expect(step(page, 3)).toContainText('Now')
+  await expect(next.getByRole('button', { name: /^Send/ })).toHaveCount(0)  // nothing for the customer to send while the reply waits
   await expect(page.getByText(/\[[A-Z0-9_]+_\d+\]/)).toHaveCount(0)  // no raw [RRN_1] style token on screen
   await expect(founder.getByText(/UPI ref \(hidden\)/).first()).toBeVisible()  // not 'UPI ref UPI reference (hidden)'
   await expect(founder.getByText('Held for you')).toBeVisible()
@@ -86,16 +110,42 @@ test('WhatsApp: pick a message, the agent says it is an AI, finds the payment, a
   await expect(founder.getByRole('button', { name: 'Reply in your own words' })).toHaveCount(0)
   await founder.getByRole('button', { name: 'Approve and send' }).click()
   await expect(chat.getByText(/ka payment hume mil gaya/)).toBeVisible()
+  await expect(outcome(page)).toHaveText('Reply sent')
+  await expect(step(page, 4)).toContainText('Done')
+  expect(await tiles(page)).toEqual(size)  // every tile keeps its size through the story
 })
 
-test('WhatsApp: an instruction hidden in a message goes to the founder, and an unrelated one is passed back', async ({ page }) => {
+test('WhatsApp: another case pauses the main story, and the story goes on where it stopped with the right messages on the phone', async ({ page }) => {
   await page.goto('/chat-demo')
+  const phone = page.getByTestId('customer-chat').getByRole('group')
+  await page.getByTestId('next-message').getByRole('button', { name: /^Send: paisa kat gaya/ }).click()
+  await expect(outcome(page)).toHaveText('Asked for the UPI ref')
+  await page.getByRole('button', { name: 'Send: A message that tries to trick it' }).click()
+  await expect(outcome(page)).toHaveText('Sent to you. Nothing was refunded.')
+  await expect(page.getByText('Paused while you try another case.')).toBeVisible()
+  await expect(step(page, 2)).toContainText('Now')  // the story keeps its place
+  await page.getByTestId('next-message').getByRole('button', { name: /^Send: UPI ref/ }).click()
+  await expect(outcome(page)).toHaveText('Found the ₹299 payment')
+  // Typed messages are kept per conversation: the phone shows this customer's first message, not the one from the other case
+  await expect(phone.getByText('paisa kat gaya 299 ka, Premium Monthly nahi mila')).toBeVisible()
+  await expect(phone.getByText(/Ignore all previous instructions/)).toHaveCount(0)
+})
+
+test('WhatsApp: an instruction hidden in a message goes to the founder and nothing is refunded, and an unrelated one is passed back', async ({ page }) => {
+  await page.goto('/chat-demo')
+  const chat = page.getByTestId('customer-chat')
   const founder = page.getByTestId('thread-view')
-  await page.getByTestId('customer-chat').getByRole('button', { name: /Ignore all previous instructions/ }).click()
+  await page.getByRole('button', { name: 'Send: A message that tries to trick it' }).click()
   await expect(founder.getByText('Needs you', { exact: true })).toBeVisible()
   await expect(founder.getByText(/tried to give the system instructions/)).toBeVisible()
-  await page.getByTestId('customer-chat').getByRole('button', { name: /what time does the live class start/ }).click()
+  await expect(outcome(page)).toHaveText('Sent to you. Nothing was refunded.')
+  await expect(chat.getByRole('group').getByText(/refund/i)).toHaveCount(1)  // on the phone, only the customer's own message says refund
+  await expect(chat.getByText(/passed this to Kaksha's team/)).toBeVisible()
+  await expect(page.getByTestId('other-cases').getByText('On the phone')).toHaveCount(1)
+  await page.getByRole('button', { name: 'Send: Not about a payment' }).click()
   await expect(founder.getByText('Not about a payment')).toBeVisible()
+  await expect(outcome(page)).toHaveText('Not about a payment, so passed back')
+  await expect(chat.getByRole('group').getByText('what time does the live class start tomorrow?')).toBeVisible()  // the customer still sees what they sent
 })
 
 test('help button on a receipt, and email, both play their recorded conversation', async ({ page }) => {
@@ -194,9 +244,10 @@ test('the checkout issue (INC-5) reads from the orders, and a pay-page check can
 test('a customer who cannot open the page is told it is the merchant side, in the demo', async ({ page }) => {
   await page.goto('/chat-demo')
   const founder = page.getByTestId('thread-view')
-  await page.getByTestId('customer-chat').getByRole('button', { name: /ad link for Test Series says page not found/i }).click()
+  await page.getByRole('button', { name: 'Send: Could not pay' }).click()
   await expect(founder.getByText('Waiting for the fix')).toBeVisible()
   await expect(founder.getByText('Held for you')).toBeVisible()
+  await expect(outcome(page)).toHaveText('No payment to find')
   await founder.getByRole('button', { name: 'Approve and send' }).click()
   await expect(page.getByTestId('customer-chat').getByText(/no money should have left your account/i)).toBeVisible()
 })

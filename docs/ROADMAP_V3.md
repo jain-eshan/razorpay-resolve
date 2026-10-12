@@ -144,7 +144,7 @@ Eshan reviewed every screen on 13 Oct and asked for the product to be evaluated 
 - [ ] **T4 The brand account's own pages.** Alerts (what Sentry, Datadog, PagerDuty and Razorpay sent, and what became of each: matched, dropped, no impact), Integration (alert door and Slack), Connectors, Settings (approval limits, who signs off), Audit trail. Each joins the brand menu and its Overview Explore cards.
 - [ ] **T5 Evidence lane and live markers.** The lane redesigned (row icons, softer bars, callouts, time of day); a radar pulse on what is live (the current step, an open issue), still for reduced motion.
 - [ ] **T6 Unpaid renewals.** Rename "Unpaid access" to "Unpaid renewals", one line on how it differs from a payment issue, its amount on Overview, explain the "access runs to" date.
-- [ ] **T7 WhatsApp demo as a guided scenario.** Who you are on each side, steps, and a result after each message.
+- [x] **T7 WhatsApp demo as a guided scenario.** Who you are on each side, steps, and a result after each message.
 
 ### Cut order if Phase 1 runs late
 
