@@ -10,6 +10,7 @@ import { SetupCard } from '../components/SetupCard'
 import { Stat } from '../components/Stat'
 import { RayHistory } from '../components/RayHistory'
 import { WelcomeTour } from '../components/WelcomeTour'
+import { useAccount } from '../lib/account'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { cause, headline } from '../lib/format'
 import { GUIDES } from '../lib/guides'
@@ -31,6 +32,8 @@ const EXPLORE_LINE: Record<string, string> = {
   scan: 'Who paid and got nothing in the last 30 days',
 }
 const EXPLORE = ['incidents', 'conversations', 'access', 'integration', 'channels', 'autonomy', 'learning', 'how', 'scan']
+// The brand account's pages (its own pages join here as they are built).
+const EXPLORE_BRAND = ['incidents', 'how']
 // Orange when the fix is yours, neutral when it is someone else's (the same as the Payment issues page).
 const OWNER_TONE = { merchant_code: 'notice', merchant_config: 'notice', razorpay: 'neutral', bank: 'neutral', customer: 'neutral', unknown: 'neutral' } as const
 
@@ -39,6 +42,8 @@ const OWNER_TONE = { merchant_code: 'notice', merchant_config: 'notice', razorpa
 // then the pages and what Ray sends. Every figure is added up in the browser from the issue summaries the API returns.
 export default function Home() {
   const nav = useNavigate()
+  // The brand account hears from its alert tools and works in Slack: no Ray bar, no customer channels to set up, no WhatsApp heads-up. Its account manager set it up.
+  const brand = useAccount().kind === 'enterprise'
   const [value, setValue] = useState('')
   // A question opens Ray's chat page (routes/RayChat.tsx), where it is kept in the history. A question about a screen goes to that screen.
   const ask = ({ value }: { value: string }) => {
@@ -49,7 +54,7 @@ export default function Home() {
   }
   const [history, setHistory] = useState(false)
   const [done, setDone] = useState(setupDone)
-  const [welcome, setWelcome] = useState(welcomeDue)
+  const [welcome, setWelcome] = useState(() => !brand && welcomeDue())
   const [confirmReset, setConfirmReset] = useState(false)
   useEffect(markWelcomed, [])
   // The range lives in the address (?range=7d), so a reload or a shared link keeps it.
@@ -86,14 +91,18 @@ export default function Home() {
         <PageHeader title="Overview" description={<>Blindspot finds everyone a payment problem hit, says whose side it is, and wins them back. <Link href="/how-it-works" onClick={(e) => { e.preventDefault(); nav('/how-it-works') }}>How Blindspot works</Link></>}
           actions={
             <Box display="flex" flexWrap="wrap" alignItems="center" gap="spacing.4">
-              <Button variant="tertiary" size="medium" onClick={() => setWelcome(true)}>Take a tour</Button>
-              <Button variant="tertiary" size="medium" onClick={() => setConfirmReset(true)}>Reset setup</Button>
+              {!brand && <Button variant="tertiary" size="medium" onClick={() => setWelcome(true)}>Take a tour</Button>}
+              {!brand && <Button variant="tertiary" size="medium" onClick={() => setConfirmReset(true)}>Reset setup</Button>}
               <MenuPick value={range} options={RANGES} onPick={pickRange} />
             </Box>
           } />
 
         {/* Ray is one tap away and takes one line: the field with the Ray glyph inside it, and History at its end. The three starter questions live on Ray's own
             page, where they can be tapped without being a second row of buttons above the data. */}
+        {brand ? (
+          <Alert isFullWidth isDismissible={false} color="neutral" title="Answers reach your team in Slack"
+            description="Root causes, signed off by Razorpay support, land in your shared channel #razorpay-payments, with the actions that need your approval." />
+        ) : (
         <Box display="flex" alignItems="center" gap="spacing.4">
           <Box flexGrow="1" minWidth="spacing.0">
             <TextInput accessibilityLabel="Ask Ray" placeholder="Ask Ray anything about your payments" leadingIcon={RayIcon} value={value} onChange={({ value }) => setValue(value ?? '')} onKeyDown={({ key }) => { if (key === 'Enter') ask({ value }) }}
@@ -101,8 +110,9 @@ export default function Home() {
           </Box>
           <Button variant="secondary" size="medium" icon={HistoryIcon} onClick={() => setHistory(true)}>History</Button>
         </Box>
+        )}
 
-        {done < SETUP_STEPS ? (
+        {brand ? null : done < SETUP_STEPS ? (
           <SetupCard done={done} onStart={() => nav('/setup')} />
         ) : (
           <Alert isFullWidth isDismissible={false} color="positive" title="Setup complete" description={`All ${SETUP_STEPS} steps are done.`} actions={{ primary: { text: 'Review', onClick: () => nav('/setup') } }} />
@@ -111,9 +121,9 @@ export default function Home() {
         {error && <Text color="feedback.text.negative.intense">Could not load payment issues: {error}. Reload the page to try again.</Text>}
         <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', m: 'repeat(2, minmax(0, 1fr))', l: 'repeat(4, minmax(0, 1fr))' }} gap="spacing.5" testID="home-cards">
           <Stat label="Open payment issues" value={String(open.length)} hint={issues.length ? `of ${issues.length} that started ${rangeLabel.toLowerCase()}` : `none started ${rangeLabel.toLowerCase()}`} icon={AlertTriangleIcon} tone="notice" />
-          <Stat label="Customers hit" value={String(hit)} hint={hit ? `${issues.reduce((a, i) => a + i.silent, 0)} never wrote in` : `none ${rangeLabel.toLowerCase()}`} icon={UsersIcon} />
+          <Stat label="Customers hit" value={hit.toLocaleString('en-IN')} hint={!hit ? `none ${rangeLabel.toLowerCase()}` : brand ? `across ${issues.length} payment issues` : `${issues.reduce((a, i) => a + i.silent, 0)} never wrote in`} icon={UsersIcon} />
           <Stat label="Money stuck" value={rupees(open.reduce((a, i) => a + i.at_risk_paise, 0))} hint="on open issues" icon={RupeesIcon} />
-          <Stat label="Customers made whole" value={String(issues.reduce((a, i) => a + i.fixed, 0))} hint={hit ? `of ${hit} hit` : `none hit ${rangeLabel.toLowerCase()}`} icon={CheckCircleIcon} tone="positive" />
+          <Stat label="Customers made whole" value={issues.reduce((a, i) => a + i.fixed, 0).toLocaleString('en-IN')} hint={hit ? `of ${hit.toLocaleString('en-IN')} hit` : `none hit ${rangeLabel.toLowerCase()}`} icon={CheckCircleIcon} tone="positive" />
         </Box>
 
         {/* What needs attention comes first and the trend sits beside it, half and half. One column below the large breakpoint. */}
@@ -166,7 +176,7 @@ export default function Home() {
         {/* Nine cards in the side menu's order, each opening its page (its guide is one click away there, under "How it works").
             Three across from l, so the nine fill three rows; two across at m, where the first takes a whole row so none is left alone. */}
         <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', m: 'repeat(2, minmax(0, 1fr))', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
-          {EXPLORE.map((id) => GUIDES.find((g) => g.id === id)!).map((g, i) => (
+          {(brand ? EXPLORE_BRAND : EXPLORE).map((id) => GUIDES.find((g) => g.id === id)!).map((g, i) => (
             <Box key={g.id} gridColumn={i === 0 ? { base: 'auto', m: '1 / -1', l: 'auto' } : 'auto'}>
               <RouterLink to={g.to} style={{ textDecoration: 'none' }}>
                 <Card height="100%">
@@ -187,7 +197,7 @@ export default function Home() {
         </Box>
       </Box>
 
-      <Ray />
+      {!brand && <Ray />}
     </Box>
   )
 }

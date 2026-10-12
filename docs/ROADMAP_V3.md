@@ -133,6 +133,19 @@ PRD: sections 1, 4, 8, 11, 12.
 - [ ] **S6 Final QA:** all routes at 375, 768 and 1440px; full test run; deploy; smoke test https://razorpay-blindspot.vercel.app.
 - [ ] **S7 Submit** by 9 pm on 13 Oct.
 
+### Batch 1.5 Two accounts and the product review (13 Oct, Eshan's review of the whole product)
+
+Eshan reviewed every screen on 13 Oct and asked for the product to be evaluated as a product owner would. Decisions: two demo accounts (Kaksha, small business; Flipkart, enterprise) on one dashboard, with every page built for each; customer names stay masked; "Unpaid access" keeps its own page (an ongoing balance, not an incident with a cause and a fix) but is renamed and counted on Overview; build everything, freeze later. One PR per item below, each cut from the foundation branch.
+
+- [x] **T0 CI fix** (#46, `Fixes #45`): two lines that wrapped on CI's fonts, the RazorSense rule measured as one surface.
+- [x] **T1 Foundation, two accounts.** `lib/account.ts`, the account picker (`/signin`), the avatar account menu, menus per account, `Mine` for the other account's pages, brand data (`synth/brand_world.py`: FK-1 open, FK-2 Razorpay's side closed, FK-3 charged twice closed, five alerts) read at the engine's API paths, the Overview, Payment issues and issue page for the brand (with "Where it showed up": phone, Sentry alert, Slack thread). The four standalone demo screens are gone; their links land on FK-1.
+- [ ] **T2 Kaksha fixes from the review.** Welcome slide 2 copy (no "it"); Accuracy: labels regular, numbers bold, card text full width; "What Blindspot cannot see" once per page as one block; chart marks: no empty label pill, marks named for what happened ("Pay page broke", "Alert"); INC-4 fix flow: "Send a link to pay again", a locked step says why ("Fix your pay page first") instead of looking dead; "put right" never counts customers who paid on their own; one "Send to your developer" per page; no raw customer IDs (`cust_o0130`) on screen.
+- [ ] **T3 How it works becomes Blindspot's landing page.** Hero with the isometric pictures, the two accounts as the two journeys (both built, each opening its account), the engine, and "Why an AI agent" (the "where rules fail" evidence, moved here from Accuracy and rewritten to lead with the point). Accuracy keeps the scores.
+- [ ] **T4 The brand account's own pages.** Alerts (what Sentry, Datadog, PagerDuty and Razorpay sent, and what became of each: matched, dropped, no impact), Integration (alert door and Slack), Connectors, Settings (approval limits, who signs off), Audit trail. Each joins the brand menu and its Overview Explore cards.
+- [ ] **T5 Evidence lane and live markers.** The lane redesigned (row icons, softer bars, callouts, time of day); a radar pulse on what is live (the current step, an open issue), still for reduced motion.
+- [ ] **T6 Unpaid renewals.** Rename "Unpaid access" to "Unpaid renewals", one line on how it differs from a payment issue, its amount on Overview, explain the "access runs to" date.
+- [ ] **T7 WhatsApp demo as a guided scenario.** Who you are on each side, steps, and a result after each message.
+
 ### Cut order if Phase 1 runs late
 
 Cut first: J3 store, the custom date picker in H2, I3 evidence lane restyle, I6 markers, J4 alert screen (show the alert inside the Slack thread instead). Never cut: H1, H3 to H5, H7, H8, I1, I4, A1, S1 to S7. If J2 data cannot be finished, drop the whole J2 batch and say in the note that big brands are the next segment.

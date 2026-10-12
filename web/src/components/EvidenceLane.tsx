@@ -3,7 +3,7 @@ import { useBreakpoint } from '@razorpay/blade/utils'
 import { Box, Text, useTheme } from '@razorpay/blade/components'
 import type { Schemas } from '../lib/api'
 import { when } from '../lib/format'
-import { clock } from '../lib/brand'
+import { clock } from '../lib/time'
 import { useWidth } from '../lib/useWidth'
 import { Panel } from './Panel'
 

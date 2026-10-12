@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { components } from '../types/api'
+import { isBrand, useAccount } from './account'
 import { demoGet, demoSend } from './demo'
 
 export type Schemas = components['schemas']
@@ -21,7 +22,23 @@ export async function send<T>(method: 'POST' | 'PUT', path: string, body?: unkno
   return json as T
 }
 
+// The enterprise account is not in the engine yet (its alert door is Phase 2): its pages read the files `synth/brand_world.py` writes, at the same API paths, so a page does
+// not need to know which account it is showing. Paths the brand account has no file for fall through to the engine and are not shown in its menu.
+const brandPath = (path: string): string | undefined => {
+  const p = path.split('?')[0]
+  if (p === '/api/incidents') return '/brand/incidents.json'
+  if (p === '/api/alerts') return '/brand/alerts.json'
+  const m = p.match(/^\/api\/incidents\/(FK-\d+)$/)
+  return m ? `/brand/incidents/${m[1]}.json` : undefined
+}
+
 export async function get<T>(path: string): Promise<T> {
+  const brand = isBrand() ? brandPath(path) : undefined
+  if (brand) {
+    const res = await fetch(brand)
+    if (!res.ok) throw new Error(`${res.status} ${brand}`)
+    return res.json() as Promise<T>
+  }
   if (!isLive) {
     const replay = await demoGet(path)
     if (replay !== undefined) return replay as T
@@ -34,19 +51,21 @@ export async function get<T>(path: string): Promise<T> {
 
 // `version` is bumped after a write so the same path is fetched again.
 export function useGet<T>(path: string | null, version = 0) {
+  const who = useAccount().id  // the same address reads another merchant's data after a switch
+  const key = path && `${who}:${path}`
   const [res, setRes] = useState<{ path: string; v: number; data?: T; error?: string }>()
   useEffect(() => {
-    if (!path) return
+    if (!path || !key) return
     let live = true
     get<T>(path).then(
-      (data) => live && setRes({ path, v: version, data }),
-      (e: Error) => live && setRes({ path, v: version, error: e.message }),
+      (data) => live && setRes({ path: key, v: version, data }),
+      (e: Error) => live && setRes({ path: key, v: version, error: e.message }),
     )
     return () => {
       live = false
     }
-  }, [path, version])
-  const cur = path && res?.path === path ? res : undefined // ignore a stale result from the previous path; keep the old data while a refetch runs
+  }, [path, key, version])
+  const cur = key && res?.path === key ? res : undefined // ignore a stale result from the previous path; keep the old data while a refetch runs
   return { data: cur?.data, error: cur?.error, busy: !!path && cur?.v !== version } // busy: the answer on screen is from an earlier run
 }
 

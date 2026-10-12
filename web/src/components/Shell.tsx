@@ -1,28 +1,32 @@
 import { forwardRef, useEffect, useState, type ComponentProps, type ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import {
   ActivityIcon, AtSignIcon, Avatar, Badge, BellIcon, Box, ChevronDownIcon, ClipboardIcon, CodeSnippetIcon, CreditCardIcon, Drawer, DrawerBody, DrawerHeader, FileIcon, FileTextIcon, FlaskIcon, HomeIcon, IconButton, LinkIcon, MenuIcon, RadioIcon, RayIcon, RepeatIcon, SearchInput, SettingsIcon, SideNav, SideNavBody, SideNavFooter, SideNavLink, SideNavSection, Switch, TabNav, TabNavItem, TabNavItems, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent, TrendingUpIcon, UnlockIcon, UsersIcon, useTheme, WalletIcon,
+  Menu, MenuDivider, MenuHeader, MenuItem, MenuOverlay,
   type IconComponent,
 } from '@razorpay/blade/components'
+import { ACCOUNTS, signIn, useAccount, type AccountId } from '../lib/account'
 
 // The shell copies the live Razorpay dashboard (web/DESIGN.md section 14). Everything Razorpay already ships is shown but inert: greyed, not clickable.
 // Blindspot is one more product tab and two more nav sections. To add a screen, add an item to BLINDSPOT or PROOF below.
 // Names follow Razorpay's own (researched 11 Oct 2026, web/DESIGN.md section 22): short nouns a merchant would use, no "incident", "scan" or "log".
 // `also` lists other paths that light the same item: Integration covers its two steps, Build with AI and the go-live check.
-type Item = { title: string; to: string; icon: IconComponent; also?: string[] }
+// `only`: the item is in one account's menu. A shopping app has no subscription renewals and does not hear from customers through Blindspot (its own alert tools are its door),
+// so the brand account's menu leaves those pages out. Pages of the brand account join its menu in the change that builds them.
+type Item = { title: string; to: string; icon: IconComponent; also?: string[]; only?: AccountId }
 const BLINDSPOT: Item[] = [
   { title: 'Overview', to: '/', icon: RayIcon, also: ['/ray', '/how-it-works'] },
   { title: 'Payment issues', to: '/incidents', icon: ActivityIcon, also: ['/scan', '/demo/incident'] },
-  { title: 'Customer complaints', to: '/threads', icon: UsersIcon, also: ['/cases', '/chat-demo', '/help-demo', '/email-demo', '/ig-demo', '/public-demo'] },
-  { title: 'Unpaid access', to: '/access', icon: UnlockIcon },
-  { title: 'Integration', to: '/connect', icon: CodeSnippetIcon, also: ['/release-check'] },
+  { title: 'Customer complaints', to: '/threads', icon: UsersIcon, also: ['/cases', '/chat-demo', '/help-demo', '/email-demo', '/ig-demo', '/public-demo'], only: 'kaksha' },
+  { title: 'Unpaid access', to: '/access', icon: UnlockIcon, only: 'kaksha' },
+  { title: 'Integration', to: '/connect', icon: CodeSnippetIcon, also: ['/release-check'], only: 'kaksha' },
 ]
 const PROOF: Item[] = [
-  { title: 'Connectors', to: '/channels', icon: RadioIcon },
-  { title: 'Settings', to: '/settings', icon: SettingsIcon },
-  { title: 'Alert tuning', to: '/learning', icon: TrendingUpIcon },
-  { title: 'Audit trail', to: '/audit', icon: ClipboardIcon },
+  { title: 'Connectors', to: '/channels', icon: RadioIcon, only: 'kaksha' },
+  { title: 'Settings', to: '/settings', icon: SettingsIcon, only: 'kaksha' },
+  { title: 'Alert tuning', to: '/learning', icon: TrendingUpIcon, only: 'kaksha' },
+  { title: 'Audit trail', to: '/audit', icon: ClipboardIcon, only: 'kaksha' },
   { title: 'Accuracy', to: '/how', icon: FileTextIcon },
 ]
 
@@ -56,8 +60,28 @@ const TABS: ComponentProps<typeof TabNav>['items'] = [
 
 const noop = () => {}
 
+// The avatar opens the account menu, as on the live dashboard: who you are signed in as, and the other demo account one tap away. Switching keeps you on Overview of the other account.
+function AccountMenu() {
+  const me = useAccount()
+  const nav = useNavigate()
+  const other = ACCOUNTS[me.id === 'kaksha' ? 'flipkart' : 'kaksha']
+  return (
+    <Menu>
+      <Avatar name={me.name} size="small" testID="account-avatar" />
+      <MenuOverlay>
+        <MenuHeader title={me.name} subtitle={`${me.line} · ${me.mid}`} />
+        <MenuItem title={`Switch to ${other.name}`} description={other.line} leading={<Avatar name={other.name} size="xsmall" />} onClick={() => { signIn(other.id); nav('/') }} />
+        <MenuDivider />
+        <MenuItem title="See both demo accounts" onClick={() => nav('/signin')} />
+      </MenuOverlay>
+    </Menu>
+  )
+}
+
 export function Shell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
+  const me = useAccount()
+  const mine = (i: Item) => !i.only || i.only === me.id
   const [open, setOpen] = useState(false)
   // The phone menu must not outlive the phone layout: widening the window past `m` closes it, as SideNav's own phone mode did.
   const { theme } = useTheme()
@@ -78,8 +102,8 @@ export function Shell({ children }: { children: ReactNode }) {
     <>
       <SideNavBody>
         <SideNavSection>{CORE.map(([t, i]) => inert(t, i))}</SideNavSection>
-        <SideNavSection title="BLINDSPOT">{BLINDSPOT.map(link)}</SideNavSection>
-        <SideNavSection title="CONTROL">{PROOF.map(link)}</SideNavSection>
+        <SideNavSection title="BLINDSPOT">{BLINDSPOT.filter(mine).map(link)}</SideNavSection>
+        <SideNavSection title="CONTROL">{PROOF.filter(mine).map(link)}</SideNavSection>
         <SideNavSection title="PAYMENT PRODUCTS" maxVisibleItems={3}>{PAYMENT_PRODUCTS.map((t) => inert(t, PRODUCT_ICONS[t] ?? LinkIcon))}</SideNavSection>
       </SideNavBody>
       <SideNavFooter>
@@ -125,7 +149,7 @@ export function Shell({ children }: { children: ReactNode }) {
               <IconButton icon={ActivityIcon} accessibilityLabel="Ecosystem health" isDisabled onClick={noop} />
               <IconButton icon={BellIcon} accessibilityLabel="Announcements" isDisabled onClick={noop} />
             </Box>
-            <Avatar name="Kaksha" size="small" />
+            <AccountMenu />
           </Box>
         </TopNavActions>
       </TopNav>
