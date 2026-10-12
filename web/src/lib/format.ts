@@ -52,5 +52,9 @@ export const headline = (i: { mismatch_type: string; affected: number; title: st
     Z1: `About ${i.affected} customers could not pay`,
   })[i.mismatch_type] ?? i.title
 
+// The kind of issue as a name, with no count: a chart legend groups several issues of one kind, so the count in `headline()` would be wrong there.
+export const KIND: Record<string, string> = { A: 'Paid, no access', E: 'Charged twice', G: 'Razorpay renewals', Z1: 'Could not pay' }
+export const kindName = (mismatchType: string) => KIND[mismatchType] ?? 'Other'
+
 export const dayLabel = (iso: string) =>
   new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: '2-digit', month: 'short', timeZone: IST }).format(new Date(iso)).replace(',', '').replace('Sept', 'Sep')

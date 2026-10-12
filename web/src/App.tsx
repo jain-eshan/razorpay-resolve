@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import { Alert, Box } from '@razorpay/blade/components'
 import { Shell } from './components/Shell'
 import Audit from './routes/Audit'
@@ -19,6 +19,7 @@ import ReleaseCheck from './routes/ReleaseCheck'
 import Connect from './routes/Connect'
 import Learning from './routes/Learning'
 import PublicDemo from './routes/PublicDemo'
+import RayChat from './routes/RayChat'
 import Reference from './routes/Reference'
 import Scan from './routes/Scan'
 import Settings from './routes/Settings'
@@ -27,12 +28,21 @@ import { ThreadPage, Threads } from './routes/Threads'
 
 // The shell follows the Razorpay dashboard (components/Shell.tsx, web/DESIGN.md section 14): Razorpay's own top bar with Blindspot as one more product tab, and a side nav where everything Razorpay ships is shown inert and Blindspot is added.
 export default function App() {
+  // Ray's chat page is full width with its own rail, like Razorpay's Ray page: no page container.
+  const chat = useLocation().pathname.startsWith('/ray')
   return (
     <Shell>
         <Box flex="1" overflow="auto" minWidth="0px" backgroundColor="surface.background.gray.moderate" testID="scroller">
           {/* A plain <main>: Blade's Box does not take an element type, and screen readers need one main region per page to jump to. */}
-          <main>
+          {/* On Ray's chat page the main region fills the screen, so the rail runs the full height and the input can sit at the bottom. */}
+          <main style={chat ? { minHeight: '100%', display: 'flex', flexDirection: 'column' } : undefined}>
           <Alert color="neutral" isFullWidth isDismissible={false} description="Synthetic data. The merchant (Kaksha), its customers and every payment here are fictional." />
+          {chat ? (
+            <Routes>
+              <Route path="/ray" element={<RayChat />} />
+              <Route path="/ray/:id" element={<RayChat />} />
+            </Routes>
+          ) : (
           <Box maxWidth="1120px" marginX="auto" testID="page" padding={{ base: 'spacing.5', m: 'spacing.7' }} paddingBottom="spacing.11">
             <Routes>
               <Route path="/" element={<Home />} />
@@ -61,6 +71,7 @@ export default function App() {
               <Route path="/reference" element={<Reference />} />
             </Routes>
           </Box>
+          )}
           </main>
         </Box>
     </Shell>

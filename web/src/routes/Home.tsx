@@ -1,104 +1,165 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRightIcon, Badge, Box, Button, Card, CardBody, ChatInput, ChevronRightIcon, Divider, Heading, PlusIcon, RayIcon, Text } from '@razorpay/blade/components'
+import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom'
+import { Alert, AlertTriangleIcon, Badge, Box, Button, Card, CardBody, CheckCircleIcon, ChevronRightIcon, EmptyState, Heading, HistoryIcon, Link, Modal, ModalBody, ModalFooter, ModalHeader, RayIcon, RupeesIcon, Text, TextInput, UsersIcon } from '@razorpay/blade/components'
+import { IssuesChart } from '../components/IssuesChart'
+import { MenuPick } from '../components/MenuPick'
+import { PageHeader } from '../components/PageHeader'
+import { PageSkeleton } from '../components/PageSkeleton'
+import { Panel } from '../components/Panel'
+import { SetupCard } from '../components/SetupCard'
+import { Stat } from '../components/Stat'
+import { RayHistory } from '../components/RayHistory'
 import { WelcomeTour } from '../components/WelcomeTour'
 import { rupees, useGet, type Schemas } from '../lib/api'
-import { IncidentsAnswer, ScanAnswer } from '../components/RayAnswers'
+import { cause, headline } from '../lib/format'
 import { GUIDES } from '../lib/guides'
-import { markWelcomed, setupDone, SETUP_STEPS, welcomeDue } from '../lib/setup'
+import { addTurn, route } from '../lib/rayChats'
+import { inRange, parseRange, RANGES, type RangeId } from '../lib/range'
+import { markWelcomed, resetSetup, setupDone, SETUP_STEPS, welcomeDue } from '../lib/setup'
 import Ray from './Ray'
 
-// Ray's chat here is not a model. A question about customers who paid and have no access gets the scan answer, a question about a pipe or a screen goes to that screen, anything else gets the incidents answer. Every figure in an answer is read from the data.
-const SCAN = /scan|stuck|no access|paid/i
-const JUMP: [RegExp, string][] = [
-  [/channel|whatsapp|email|instagram/i, '/channels'],
-  [/customer|complain|chat|conversation|thread/i, '/threads'],
-  [/audit|log|history/i, '/audit'],
-]
-// Questions a merchant would ask, not page names: the side menu already lists the pages.
+// One short line for each page, in the product's words (docs/PRD_V3.md). Eight words or fewer.
+const EXPLORE_LINE: Record<string, string> = {
+  incidents: 'Every customer a problem hit, and what it cost',
+  conversations: 'What customers wrote, and how Ray replied',
+  access: 'Customers still in after a failed renewal',
+  integration: 'Connect your webhook, then check it before go-live',
+  channels: 'Choose where customers can reach you',
+  autonomy: 'Decide how much Blindspot does on its own',
+  learning: 'Tell Blindspot which alerts were false',
+  how: 'See how often Blindspot gets it right',
+  scan: 'Who paid and got nothing in the last 30 days',
+}
 const EXPLORE = ['incidents', 'conversations', 'access', 'integration', 'channels', 'autonomy', 'learning', 'how', 'scan']
-const QUESTIONS = ['Who paid and did not get access?', 'What is broken right now?', 'Which customers wrote in?']
+// Orange when the fix is yours, neutral when it is someone else's (the same as the Payment issues page).
+const OWNER_TONE = { merchant_code: 'notice', merchant_config: 'notice', razorpay: 'neutral', bank: 'neutral', customer: 'neutral', unknown: 'neutral' } as const
 
-// The Blindspot overview: what it is and what is wrong right now, Ray's input (like Razorpay's Ray home), setup progress, the pages, then what Ray sends on WhatsApp.
+// The Blindspot overview, laid out like the dashboard's own home and in the order a merchant asks: Ray one tap away; the setup card, only until setup is done
+// (it is the one thing to do first); what is wrong and how bad (four cards); what to act on (the open payment issues, biggest first) beside the trend (the chart);
+// then the pages and what Ray sends. Every figure is added up in the browser from the issue summaries the API returns.
 export default function Home() {
   const nav = useNavigate()
   const [value, setValue] = useState('')
-  const [asked, setAsked] = useState<{ q: string; kind: 'scan' | 'incidents' }>()
+  // A question opens Ray's chat page (routes/RayChat.tsx), where it is kept in the history. A question about a screen goes to that screen.
   const ask = ({ value }: { value: string }) => {
     const q = value.trim()
     if (!q) return
-    const to = JUMP.find(([re]) => re.test(q))?.[1]
-    if (to) return nav(to)
-    setAsked({ q, kind: SCAN.test(q) ? 'scan' : 'incidents' })
-    setValue('')
+    const r = route(q)
+    nav(r.to ?? `/ray/${addTurn(undefined, q, r.kind)}`)
   }
-  const done = setupDone()
+  const [history, setHistory] = useState(false)
+  const [done, setDone] = useState(setupDone)
   const [welcome, setWelcome] = useState(welcomeDue)
+  const [confirmReset, setConfirmReset] = useState(false)
   useEffect(markWelcomed, [])
-  const { data: incs } = useGet<Schemas['IncidentSummary'][]>('/api/incidents')
-  const input = (
-    <ChatInput value={value} onChange={({ value }) => setValue(value)} onSubmit={ask} placeholder="Ask Ray anything about your payments" accessibilityLabel="Ask Ray" hideFileUpload
-      suggestions={['Who did the failed webhook affect?', 'Which customers paid and have no access?']} onSuggestionAccept={({ suggestion }) => setValue(suggestion)} />
-  )
+  // The range lives in the address (?range=7d), so a reload or a shared link keeps it.
+  const [params, setParams] = useSearchParams()
+  const range = parseRange(params.get('range'))
+  const pickRange = (id: RangeId) => setParams((p) => { p.set('range', id); return p }, { replace: true })
+  const { data: incs, error } = useGet<Schemas['IncidentSummary'][]>('/api/incidents')
+  if (!incs && !error) return <PageSkeleton />
 
-  if (asked) {
-    return (
-      <Box display="flex" flexDirection="column" gap="spacing.7" maxWidth="840px" marginX="auto" testID="ray-thread">
-        <Box display="flex" justifyContent="space-between" alignItems="flex-start" gap="spacing.4">
-          <Button variant="tertiary" size="medium" icon={PlusIcon} onClick={() => setAsked(undefined)}>New chat</Button>
-          <Box backgroundColor="surface.background.gray.intense" borderRadius="large" borderWidth="thin" borderColor="surface.border.gray.subtle" paddingX="spacing.6" paddingY="spacing.5"><Text>{asked.q}</Text></Box>
-        </Box>
-        {asked.kind === 'scan' ? <ScanAnswer /> : <IncidentsAnswer />}
-        <Box position="sticky" bottom="spacing.0" backgroundColor="surface.background.gray.moderate" paddingY="spacing.5">{input}</Box>
-      </Box>
-    )
-  }
+  const issues = (incs ?? []).filter((i) => inRange(i.onset_at, range))
+  const open = issues.filter((i) => i.status !== 'closed')
+  const hit = issues.reduce((a, i) => a + i.affected, 0)
+  const rangeLabel = RANGES.find((r) => r.id === range)!.label
+  const reset = () => { resetSetup(); setDone(0); setConfirmReset(false); setWelcome(true) }
 
-  const open = (incs ?? []).filter((i) => i.status !== 'closed')
   return (
     <Box display="flex" flexDirection="column" gap="spacing.9">
       <WelcomeTour open={welcome} onClose={() => setWelcome(false)} />
-      {/* What Blindspot is comes first, in one heading and one line, then what is wrong right now, then Ray. A first-time merchant should know the product from this block alone. */}
-      <Box borderRadius="large" padding={{ base: 'spacing.6', m: 'spacing.10' }} display="flex" flexDirection="column" alignItems="center" gap="spacing.6" testID="ray-home" backgroundColor="surface.background.primary.subtle">
-        <Box display="flex" flexDirection="column" alignItems="center" gap="spacing.3" maxWidth="720px">
-          <Text color="surface.text.gray.subtle">Hello, Kaksha</Text>
-          <Box textAlign="center"><Heading as="h1" size="2xlarge">Catch payment problems before your customers do</Heading></Box>
-          <Box textAlign="center"><Text size="large" color="surface.text.gray.subtle">Razorpay sees the payment. Blindspot also watches your pay page before it and your app after it, finds every customer it affected, and fixes it once you approve.</Text></Box>
-        </Box>
-        {open.length > 0 && (
-          <Box width="100%" maxWidth="720px" backgroundColor="surface.background.gray.intense" borderRadius="medium" borderWidth="thin" borderColor="surface.border.gray.subtle" padding="spacing.5"
-            display="flex" flexDirection={{ base: 'column', m: 'row' }} alignItems={{ base: 'flex-start', m: 'center' }} justifyContent="space-between" gap="spacing.4" testID="home-status">
-            <Box display="flex" flexDirection="column" gap="spacing.1">
-              <Text size="small" weight="semibold" color="feedback.text.notice.intense">Right now</Text>
-              <Text weight="semibold">{`${open.length} payment issues · ${open.reduce((a, i) => a + i.affected, 0)} customers · ${rupees(open.reduce((a, i) => a + i.at_risk_paise, 0))} involved`}</Text>
-            </Box>
-            <Button variant="secondary" size="medium" iconPosition="right" icon={ArrowRightIcon} onClick={() => nav('/incidents')}>See them</Button>
+      <RayHistory isOpen={history} onClose={() => setHistory(false)} />
+      <Modal isOpen={confirmReset} onDismiss={() => setConfirmReset(false)} size="small" accessibilityLabel="Reset setup">
+        <ModalHeader title="Reset setup?" />
+        <ModalBody>
+          <Text>Setup goes back to 0 of {SETUP_STEPS} and the welcome tour opens again. Your payment issues and history stay as they are.</Text>
+        </ModalBody>
+        <ModalFooter>
+          <Box display="flex" justifyContent="flex-end" gap="spacing.4">
+            <Button variant="tertiary" onClick={() => setConfirmReset(false)}>Cancel</Button>
+            <Button variant="primary" onClick={reset}>Reset setup</Button>
           </Box>
-        )}
-        <Box width="100%" maxWidth="720px" display="flex" flexDirection="column" gap="spacing.3">
-          <Box display="flex" alignItems="center" gap="spacing.2"><RayIcon size="medium" color="surface.icon.onSea.onSubtle" /><Text weight="semibold">Ask Ray</Text></Box>
-          {input}
-        </Box>
-        <Box display="flex" flexWrap="wrap" justifyContent="center" gap="spacing.3">
-          {QUESTIONS.map((q) => <Button key={q} variant="secondary" size="small" onClick={() => ask({ value: q })}>{q}</Button>)}
-        </Box>
-      </Box>
+        </ModalFooter>
+      </Modal>
 
-      <Card>
-        <CardBody>
-          <Box display="flex" flexDirection={{ base: 'column', m: 'row' }} justifyContent="space-between" alignItems={{ base: 'flex-start', m: 'center' }} gap="spacing.5">
-            <Box display="flex" flexDirection="column" gap="spacing.3">
-              <Heading as="h2" size="medium">Set up Blindspot in {SETUP_STEPS} easy steps</Heading>
-              <Text color="surface.text.gray.muted">Choose where customers can reach you, decide how much it does on its own, and see what is already broken.</Text>
-              <Badge size="medium" color={done === SETUP_STEPS ? 'positive' : 'neutral'}>{`${done}/${SETUP_STEPS} COMPLETED`}</Badge>
+      <Box display="flex" flexDirection="column" gap="spacing.6" testID="ray-home">
+        <PageHeader title="Overview" description="What broke for your customers, who it hit and what has been made right."
+          actions={
+            <Box display="flex" flexWrap="wrap" alignItems="center" gap="spacing.4">
+              <Button variant="tertiary" size="medium" onClick={() => setWelcome(true)}>Take a tour</Button>
+              <Button variant="tertiary" size="medium" onClick={() => setConfirmReset(true)}>Reset setup</Button>
+              <MenuPick value={range} options={RANGES} onPick={pickRange} />
             </Box>
-            <Box display="flex" gap="spacing.3" alignItems="center" flexWrap="wrap">
-              <Button variant="tertiary" size="large" onClick={() => setWelcome(true)}>Take the tour</Button>
-              <Button variant="primary" size="large" iconPosition="right" icon={ArrowRightIcon} onClick={() => nav('/setup')}>{done === 0 ? 'Start setup' : done === SETUP_STEPS ? 'Review setup' : 'Continue setup'}</Button>
-            </Box>
+          } />
+
+        {/* Ray is one tap away and takes one line: the field with the Ray glyph inside it, and History at its end. The three starter questions live on Ray's own
+            page, where they can be tapped without being a second row of buttons above the data. */}
+        <Box display="flex" alignItems="center" gap="spacing.4">
+          <Box flexGrow="1" minWidth="spacing.0">
+            <TextInput accessibilityLabel="Ask Ray" placeholder="Ask Ray anything about your payments" leadingIcon={RayIcon} value={value} onChange={({ value }) => setValue(value ?? '')} onKeyDown={({ key }) => { if (key === 'Enter') ask({ value }) }}
+              trailingButton={<Link variant="button" size="large" onClick={() => ask({ value })}>Ask</Link>} />
           </Box>
-        </CardBody>
-      </Card>
+          <Button variant="secondary" size="medium" icon={HistoryIcon} onClick={() => setHistory(true)}>History</Button>
+        </Box>
+
+        {done < SETUP_STEPS ? (
+          <SetupCard done={done} onStart={() => nav('/setup')} />
+        ) : (
+          <Alert isFullWidth isDismissible={false} color="positive" title="Setup complete" description={`All ${SETUP_STEPS} steps are done.`} actions={{ primary: { text: 'Review', onClick: () => nav('/setup') } }} />
+        )}
+
+        {error && <Text color="feedback.text.negative.intense">Could not load payment issues: {error}. Reload the page to try again.</Text>}
+        <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', m: 'repeat(2, minmax(0, 1fr))', l: 'repeat(4, minmax(0, 1fr))' }} gap="spacing.5" testID="home-cards">
+          <Stat label="Open payment issues" value={String(open.length)} hint={issues.length ? `of ${issues.length} that started ${rangeLabel.toLowerCase()}` : `none started ${rangeLabel.toLowerCase()}`} icon={AlertTriangleIcon} tone="notice" />
+          <Stat label="Customers hit" value={String(hit)} hint={hit ? `${issues.reduce((a, i) => a + i.silent, 0)} never wrote in` : `none ${rangeLabel.toLowerCase()}`} icon={UsersIcon} />
+          <Stat label="Money stuck" value={rupees(open.reduce((a, i) => a + i.at_risk_paise, 0))} hint="on open issues" icon={RupeesIcon} />
+          <Stat label="Customers made whole" value={String(issues.reduce((a, i) => a + i.fixed, 0))} hint={hit ? `of ${hit} hit` : `none hit ${rangeLabel.toLowerCase()}`} icon={CheckCircleIcon} tone="positive" />
+        </Box>
+
+        {/* What needs attention comes first and the trend sits beside it, half and half. One column below the large breakpoint. */}
+        <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(2, minmax(0, 1fr))' }} gap="spacing.5" alignItems="stretch" testID="home-grid">
+          {/* From l the list card is laid over the row without adding to it (absolute inside a relative cell): the chart card alone sets the row's height, so the row never
+              resizes with the number of issues, and a long list scrolls inside its card. Stacked on a smaller screen it is an ordinary card. */}
+          <Box position={{ base: 'static', l: 'relative' }}>
+          <Box position={{ base: 'static', l: 'absolute' }} top="spacing.0" bottom="spacing.0" left="spacing.0" right="spacing.0">
+          <Panel title="Open payment issues, by money at stake" pad={false} fill>
+            {open.length === 0 ? (
+              <Box flexGrow="1" minHeight={{ base: '300px', l: 'spacing.0' }} display="flex" alignItems="center" justifyContent="center" padding="spacing.5">
+                <EmptyState size="small" asset={<CheckCircleIcon size="2xlarge" color="feedback.icon.positive.intense" />} title="No open payment issues" description={`None started ${rangeLabel.toLowerCase()}. Blindspot checks every 15 minutes.`} />
+              </Box>
+            ) : (
+              <Box testID="home-issues" flexGrow="1" minHeight="spacing.0" overflow="auto">
+                {[...open].sort((a, b) => b.at_risk_paise - a.at_risk_paise).map((i, n, all) => (
+                  <RouterLink key={i.id} to={`/incidents/${i.id}`} style={{ textDecoration: 'none' }}>
+                    <Box paddingX="spacing.5" paddingY="spacing.4" display="flex" alignItems="center" justifyContent="space-between" gap="spacing.4" borderBottomWidth={n < all.length - 1 ? 'thin' : 'none'} borderBottomColor="surface.border.gray.subtle">
+                      <Box display="flex" flexDirection="column" gap="spacing.1" minWidth="spacing.0">
+                        <Text weight="semibold" color="interactive.text.primary.normal">{headline(i)}</Text>
+                        <Text size="small" color="surface.text.gray.muted" truncateAfterLines={1}>{i.title}</Text>
+                      </Box>
+                      {/* The amount over its owner, so the headline keeps the width. */}
+                      <Box display="flex" alignItems="center" gap="spacing.3" flexShrink={0}>
+                        <Box display="flex" flexDirection="column" alignItems="flex-end" gap="spacing.1">
+                          <Text weight="semibold">{rupees(i.at_risk_paise)}</Text>
+                          <Badge size="small" color={OWNER_TONE[i.owner]}>{cause(i)}</Badge>
+                        </Box>
+                        <ChevronRightIcon size="medium" color="surface.icon.gray.muted" />
+                      </Box>
+                    </Box>
+                  </RouterLink>
+                ))}
+              </Box>
+            )}
+            {/* Always at the foot of the card, so it is the same card whether it holds five issues or none. */}
+            <Box marginTop="auto" padding="spacing.4" borderTopWidth="thin" borderTopColor="surface.border.gray.subtle" display="flex" justifyContent="flex-end">
+              <Button variant="tertiary" size="small" iconPosition="right" icon={ChevronRightIcon} onClick={() => nav('/incidents')}>See all payment issues</Button>
+            </Box>
+          </Panel>
+          </Box>
+          </Box>
+          <IssuesChart key={range === 'today' ? '7d' : range} issues={incs ?? []} range={range} />
+        </Box>
+        <Text size="small" color="surface.text.gray.muted">Demo data. Ranges count back from 2 Oct 2026, the day this data was taken.</Text>
+      </Box>
 
       <Box display="flex" flexDirection="column" gap="spacing.5">
         <Heading as="h2" size="large">Explore Blindspot</Heading>
@@ -107,22 +168,20 @@ export default function Home() {
         <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', m: 'repeat(2, minmax(0, 1fr))', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
           {EXPLORE.map((id) => GUIDES.find((g) => g.id === id)!).map((g, i) => (
             <Box key={g.id} gridColumn={i === 0 ? { base: 'auto', m: '1 / -1', l: 'auto' } : 'auto'}>
-              <Link to={g.to} style={{ textDecoration: 'none' }}>
+              <RouterLink to={g.to} style={{ textDecoration: 'none' }}>
                 <Card height="100%">
                   <CardBody>
-                    <Box display="flex" flexDirection="column" gap="spacing.3" height="100%">
-                      <Box display="flex" alignItems="center" gap="spacing.3"><g.icon size="medium" color="surface.icon.gray.muted" /><Text color="surface.text.gray.muted">{g.title}</Text></Box>
-                      <Heading as="h3" size="small">{g.tagline}</Heading>
-                      {/* The page in one line. Not on phones, where seven cards are already a long scroll. */}
-                      <Box display={{ base: 'none', m: 'block' }}><Text size="small" color="surface.text.gray.muted" truncateAfterLines={3}>{g.summary ?? `${g.description.split('. ')[0].replace(/\.$/, '')}.`}</Text></Box>
-                      <Box display="flex" flexDirection="column" gap="spacing.3" marginTop="auto" paddingTop="spacing.2">
-                        <Divider />
-                        <Box display="flex" justifyContent="space-between" alignItems="center"><Text size="small" weight="semibold" color="interactive.text.primary.normal">{`Open ${g.title}`}</Text><ChevronRightIcon size="medium" color="interactive.icon.primary.normal" /></Box>
+                    {/* A name and one line. The whole card is the link, so it has a chevron and no button. The guide pages keep the long text. */}
+                    <Box display="flex" flexDirection="column" gap="spacing.2" height="100%">
+                      <Box display="flex" alignItems="center" justifyContent="space-between" gap="spacing.3">
+                        <Box display="flex" alignItems="center" gap="spacing.3"><g.icon size="medium" color="surface.icon.gray.muted" /><Text weight="semibold">{g.title}</Text></Box>
+                        <ChevronRightIcon size="medium" color="surface.icon.gray.muted" />
                       </Box>
+                      <Text size="small" color="surface.text.gray.muted">{EXPLORE_LINE[g.id]}</Text>
                     </Box>
                   </CardBody>
                 </Card>
-              </Link>
+              </RouterLink>
             </Box>
           ))}
         </Box>

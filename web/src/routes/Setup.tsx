@@ -1,9 +1,9 @@
 import { useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Alert, ArrowLeftIcon, Badge, Box, Button, Card, CardBody, CheckCircleIcon, Heading, HeadsetIcon, Link, MailIcon, SlidersIcon, StepGroup, StepItem, StepItemIndicator, Text, UserCheckIcon, WhatsAppIcon, ZapIcon, type IconComponent } from '@razorpay/blade/components'
 import { SetupScene } from '../components/SetupScene'
 import { rupees, useGet, type Schemas } from '../lib/api'
-import { saveSetup, setupDone } from '../lib/setup'
+import { saveSetup, SETUP_STEP_HELP, SETUP_STEP_NAMES, setupDone } from '../lib/setup'
 
 const CHANNELS: [string, string, string, IconComponent][] = [
   ['help_button', 'Help button', 'Customers tap help on a Razorpay page or receipt.', HeadsetIcon],
@@ -15,10 +15,10 @@ const LEVELS: [string, string, string, IconComponent][] = [
   ['assist', 'Approve once', 'You approve a fix once. It then goes out in steps by itself and stops if anything fails. Messages still need you.', SlidersIcon],
   ['autopilot_reversible', 'Full automation', 'Fixes and messages go out by themselves within your limits. Use it only when you trust the wording.', ZapIcon],
 ]
-const STEPS = ['Where customers write', 'Approvals', 'First check']
+const STEPS = SETUP_STEP_NAMES
 // A line under the choices on the first two steps: what stays true whatever you pick.
 const NOTE = ['Blindspot reads only messages about a payment, says it is an AI in every reply, and never asks a customer for a password, card details or an OTP.', 'Whatever you pick, switching a customer’s access off is never available.', '']
-const STEP_HELP = ['Where customers can reach you', 'How much it does on its own', 'What is already broken']
+const STEP_HELP = SETUP_STEP_HELP
 
 // A card you can pick, with an icon, a title, one line and a tick. Used for channels (pick any) and autonomy levels (pick one).
 function Choice({ icon: Icon, title, text, selected, onPick, badge }: { icon: IconComponent; title: string; text: string; selected: boolean; onPick: () => void; badge?: string }) {
@@ -44,7 +44,10 @@ function Choice({ icon: Icon, title, text, selected, onPick, badge }: { icon: Ic
 // Choices are not saved: Blindspot's settings are read-only in this prototype. Only how far you got is remembered, in the browser.
 export default function Setup() {
   const nav = useNavigate()
-  const [step, setStep] = useState(Math.min(setupDone(), STEPS.length - 1))
+  // `?step=` opens a step you have already reached (the tiles on the Overview link to it); otherwise setup resumes at the next step.
+  const param = useSearchParams()[0].get('step')
+  const asked = param === null ? -1 : Number(param)
+  const [step, setStep] = useState(Number.isInteger(asked) && asked >= 0 && asked <= setupDone() && asked < STEPS.length ? asked : Math.min(setupDone(), STEPS.length - 1))
   const [channels, setChannels] = useState<string[]>(['help_button', 'whatsapp_payments', 'email'])
   const [level, setLevel] = useState<string>('suggest')
   const { data: scan } = useGet<Schemas['ScanResult']>(step === 2 ? '/api/scan/day0' : null)
