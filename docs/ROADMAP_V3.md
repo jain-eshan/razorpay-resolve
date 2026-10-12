@@ -16,6 +16,22 @@ How to use it: take the next unticked task in your batch, top to bottom. Each ta
 
 ---
 
+## 0a. Where Phase 1 stands, 13 Oct (the day of submission)
+
+Batches 1.1, 1.2, 1.3 and 1.4 part a are merged. What is left is the kit and the checks. Submit by 9 pm; the portal closes at 11:59 pm IST and nothing changes after.
+
+| Task | Who | State | What it needs |
+|---|---|---|---|
+| CI green on `main` | Claude, Eshan merges | `main` has been red since 12 Oct (issue #45). Fix is PR #47. | Merge #47 once its CI is green, before any deploy. Check `gh issue list --label ci-failure --state open` is empty. |
+| S3 note, S4 AI build log | Eshan | Drafts are complete. The big-brand lines are filled from `web/public/brand/j2.json`. The note is 546 words by the count in `docs/SUBMISSION.md` (limit 550). | Put both in your own voice. Check the three lines under "Wording to check". Recount after editing. Fill `[TO CONFIRM: the session count]` in the AI build log. |
+| S5 video, 90 seconds | Eshan, with Claude drafting | **No v3 script is written.** `docs/SUBMISSION.md` section 2 is the v2 script and says so. | A script in the PRD section 8 order (J1, J2, the dashboard), numbers read from the pages, caption "Synthetic merchant. Simulated Razorpay data." Record from the hosted demo. |
+| S6 final QA | Claude | Not started. | Every route at 375, 768 and 1440px, a full test run, the hosted demo showing batch 1.3 and the CI fix, a smoke test of https://razorpay-blindspot.vercel.app in a clean browser. |
+| S7 submit | Eshan | Not started. | The four deliverables: note, video, prototype link and README, AI build log. |
+
+Eshan's by-hand items (quote links, Razorpay test-account inbox, the K2 question, the test-object cleanup) are in `docs/SUBMISSION.md` section 4. None blocks submitting.
+
+---
+
 ## 1. Checks and balances (every task, no exceptions)
 
 **Session start**
@@ -70,7 +86,7 @@ Screen names in the UI follow DESIGN.md section 22, so they differ from the word
 
 Every task carries its MoSCoW call from the scoring in PRD v3 section 13 (RICE on the judge's horizon: reach is video, note and prototype; impact is the judging dimensions). Build the Musts first, then Shoulds in this order, then Coulds. Won'ts are listed so nobody builds them; the note names them as deliberate cuts.
 
-**Order for 12 Oct (build day):** H1 and H6, H7 and H8, H2 to H5, I1, I4, A1, I6 (markers only), then J1 to J6 and J8, then I3, S1, S2. **Order for 13 Oct (kit day):** S3, S4, S5, S6, S7; README refresh if time.
+**Order for 12 Oct (build day):** H1 and H6, H7 and H8, H2 to H5, I1, I4, A1, I6 (markers only), then J1 to J6 and J8, then I3, S1, S2. **Order for 13 Oct (kit day):** S3 and S4 are drafted and the README is refreshed. What is left is S5, S6, S7 (section 0a).
 
 ### Batch 1.1 Home dashboard and setup (PR 1, stream D, no contract change)
 
@@ -127,8 +143,8 @@ PRD: sections 1, 4, 8, 11, 12.
 
 - [x] **S1 "How Blindspot works"** `/how-it-works`: the two journeys as two lanes of five steps, and the engine (two ways in, five steps, four outputs) built from Blade boxes, like `SetupScene`. Linked from the Home header.
 - [x] **S2 Copy pass** on Home, setup and guides: the one-line pitch from PRD section 1, DESIGN 22 names.
-- [x] **S3 Product note** (`docs/SUBMISSION.md`): problem, solution, decisions and what was left out, success metrics (PRD section 12), and each Track 2 item (signal, why AI beats a rule, the action, what the merchant controls, learning, accuracy, permissions, failure handling, outcome). Draft, with one placeholder for batch 1.3 and Eshan's voice edit still open.
-- [x] **S4 AI build log** (`docs/AI_BUILD_LOG.md`): the v3 decisions, which tool did what, where Eshan decided. Draft, with one placeholder for batch 1.3 and Eshan's review open.
+- [x] **S3 Product note** (`docs/SUBMISSION.md`): problem, solution, decisions and what was left out, success metrics (PRD section 12), and each Track 2 item (signal, why AI beats a rule, the action, what the merchant controls, learning, accuracy, permissions, failure handling, outcome). Draft, complete (the big-brand line is filled), with Eshan's voice edit still open.
+- [x] **S4 AI build log** (`docs/AI_BUILD_LOG.md`): the v3 decisions, which tool did what, where Eshan decided. Draft, complete (the big-brand block is filled), with Eshan's review and the session count still open.
 - [ ] **S5 Video**, 90 seconds, PRD section 8 order. Every number on screen matches the script.
 - [ ] **S6 Final QA:** all routes at 375, 768 and 1440px; full test run; deploy; smoke test https://razorpay-blindspot.vercel.app.
 - [ ] **S7 Submit** by 9 pm on 13 Oct.

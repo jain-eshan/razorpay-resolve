@@ -1256,6 +1256,19 @@ Left on purpose, from my own list: the store is one screen, not four (RICE 0.1);
 
 Not checked by anyone: dark mode, keyboard focus order in the Slack thread, screen reader names, a slow network (loading against loaded size on the four pages), and the hosted deploy itself (`/brand/j2.json` is copied into `dist/`, and `vercel.json` rewrites everything but `snapshot/` and `assets/` to the app, as it does for `/art`, whose pictures are served from the same kind of file; so it should be served, and the preview deploy will show). The CI-mode suite (production build on port 5173) was not run here because another chat holds the port; the whole snapshot suite was run on a dev server on another port instead, and CI will run the built one.
 
+## 13 Oct 2026, submission-day docs refresh (integrator, docs only)
+
+Goal: after batch 1.3 merged, close the docs that still said it had not. Three jobs:
+- **Big-brand placeholders filled** in `docs/SUBMISSION.md` (the note, appendix 1a, the sources table, the status header and the to-do list) and in `docs/AI_BUILD_LOG.md` (decision 14, "what is real", the counts). Every figure is read from `web/public/brand/j2.json` (1,240 customers, 410 paid twice, 830 with no order; alert 7:52 pm, root cause 7:58 pm). My first draft of the note line said "1,240 payments with no order", which was wrong (830 have no order), and was corrected against the data before it was committed. To keep the note at 546 words by the file's own count (limit 550) three things were cut from it: the per-kind breakdown of the messy-complaint result, "pay-again links" from the list of cuts, and "a six-month pilot has stop gates". All three are still in appendix 1a.
+- **README** brought up to v3: the Overview row (it described the old chat-first page), `/how-it-works`, the big-brand path, and the status table, which stopped at PR #34.
+- **Roadmap**: a "Where Phase 1 stands" block (who does S5, S6, S7, and the CI gate), and the stale "one placeholder for batch 1.3" wording on S3 and S4 removed.
+
+Counts refreshed: 126 commits and 41 merged pull requests on `main`, 29,973 lines of Python and TypeScript, 614 backend tests collected, 187 browser tests (a full run passed on 13 Oct).
+
+Not done, on purpose: the video script (S5), the How it works page's "Not built yet" tag on the big-brand lane (a `web/` change that needs its own design review), HANDOFF.md and the PRD v3 decision boxes (the PRD's source is the Claude Doc). The note and the AI build log are still drafts for Eshan's voice edit.
+
+Design review: not applicable, no file under `web/` changed.
+
 ## 13 Oct 2026, v3 batch 1.5 T1: two demo accounts (streams A and D)
 
 Goal: Eshan's review of the whole product (13 Oct) asked for the big-brand demo to stop being four screens strung on a demo bar and to become a real account: a judge signs in as a small business (Kaksha) or a big brand (Flipkart) and sees every page as that merchant. This is the foundation every other batch 1.5 item builds on. No contract change: the brand account is not in the engine yet (its alert door is Phase 2), so its pages read files written by Python at the engine's own API paths.
