@@ -13,7 +13,7 @@ import {
 type Item = { title: string; to: string; icon: IconComponent; also?: string[] }
 const BLINDSPOT: Item[] = [
   { title: 'Overview', to: '/', icon: RayIcon, also: ['/ray'] },
-  { title: 'Payment issues', to: '/incidents', icon: ActivityIcon, also: ['/scan'] },
+  { title: 'Payment issues', to: '/incidents', icon: ActivityIcon, also: ['/scan', '/demo/incident'] },
   { title: 'Customer complaints', to: '/threads', icon: UsersIcon, also: ['/cases', '/chat-demo', '/help-demo', '/email-demo', '/ig-demo', '/public-demo'] },
   { title: 'Unpaid access', to: '/access', icon: UnlockIcon },
   { title: 'Integration', to: '/connect', icon: CodeSnippetIcon, also: ['/release-check'] },

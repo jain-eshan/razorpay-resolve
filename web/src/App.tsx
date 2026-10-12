@@ -1,11 +1,16 @@
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { Alert, Box } from '@razorpay/blade/components'
+import { BRAND } from './lib/brand'
 import { Shell } from './components/Shell'
 import Audit from './routes/Audit'
+import BrandIssue from './routes/BrandIssue'
 import Case from './routes/Case'
 import ChatDemo from './routes/ChatDemo'
 import Channels from './routes/Channels'
 import Dev from './routes/Dev'
+import DemoAlert from './routes/DemoAlert'
+import DemoSlack from './routes/DemoSlack'
+import DemoStore from './routes/DemoStore'
 import EmailDemo from './routes/EmailDemo'
 import HelpDemo from './routes/HelpDemo'
 import IgDemo from './routes/IgDemo'
@@ -29,14 +34,20 @@ import { ThreadPage, Threads } from './routes/Threads'
 // The shell follows the Razorpay dashboard (components/Shell.tsx, web/DESIGN.md section 14): Razorpay's own top bar with Blindspot as one more product tab, and a side nav where everything Razorpay ships is shown inert and Blindspot is added.
 export default function App() {
   // Ray's chat page is full width with its own rail, like Razorpay's Ray page: no page container.
-  const chat = useLocation().pathname.startsWith('/ray')
+  const { pathname } = useLocation()
+  const chat = pathname.startsWith('/ray')
+  // The store, the monitoring alert and the Slack channel are not part of the Razorpay dashboard (the big-brand demo, v3 roadmap batch 1.3): no shell around them.
+  if (pathname === '/demo/store') return <DemoStore />
+  if (pathname === '/demo/alert') return <DemoAlert />
+  if (pathname === '/demo/slack') return <DemoSlack />
+  const brand = pathname === '/demo/incident'
   return (
     <Shell>
         <Box flex="1" overflow="auto" minWidth="0px" backgroundColor="surface.background.gray.moderate" testID="scroller">
           {/* A plain <main>: Blade's Box does not take an element type, and screen readers need one main region per page to jump to. */}
           {/* On Ray's chat page the main region fills the screen, so the rail runs the full height and the input can sit at the bottom. */}
           <main style={chat ? { minHeight: '100%', display: 'flex', flexDirection: 'column' } : undefined}>
-          <Alert color="neutral" isFullWidth isDismissible={false} description="Synthetic data. The merchant (Kaksha), its customers and every payment here are fictional." />
+          <Alert color="neutral" isFullWidth isDismissible={false} description={brand ? `Demo data. ${BRAND}, its customers and every payment here are made up. This is not the real ${BRAND}.` : 'Synthetic data. The merchant (Kaksha), its customers and every payment here are fictional.'} />
           {chat ? (
             <Routes>
               <Route path="/ray" element={<RayChat />} />
@@ -51,6 +62,7 @@ export default function App() {
               <Route path="/incidents" element={<Incidents />} />
               <Route path="/incidents/:id" element={<Incident />} />
               <Route path="/incidents/:id/dev" element={<Dev />} />
+              <Route path="/demo/incident" element={<BrandIssue />} />
               <Route path="/scan" element={<Scan />} />
               <Route path="/access" element={<Leakage />} />
               <Route path="/release-check" element={<ReleaseCheck />} />

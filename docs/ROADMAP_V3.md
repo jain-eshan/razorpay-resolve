@@ -107,19 +107,19 @@ MoSCoW for this batch: I1, I2, I4, I5, A1 Must; I3 Should; I6 markers Should, th
 
 ### Batch 1.3 Big-brand flow, J2 (PR 3, streams A and D)
 
-PRD: J2, F4, F12, F13, wireframes 2 and 3, section 8. Blocked on Eshan picking the store brand name.
+PRD: J2, F4, F12, F13, wireframes 2 and 3, section 8. Built 12 Oct. The store brand is Flipkart, in text only (open question answered, section 7).
 
-- [ ] **J1 Brand name** in one constant (`web/src/lib/demo.ts` or a new `lib/brand.ts`).
-- [ ] **J2 Data from Python.** New `synth/j2_brand.py`, fixed seed, writes `web/public/snapshot/j2.json`: 1,240 UPI payments captured from app 8.2 after 7:40 pm, 410 paid twice, 830 left with no order; timeline events (rollout 7:40, verify calls stop 7:41, errors from 7:44, alert 7:52, RCA 7:58, sign-off 7:59, rollback 8:01); lift rows (app version 8.2 against its normal share). A test asserts the counts. New files only; if `synth/config.yaml` must change, stop and run the contracts process.
-- [ ] **J3 Store, one screen (Could)** `/demo/store`, outside the Razorpay shell: the pay result screen only, with a "Ship app 8.2" switch. After the switch, paying shows "Payment failed" although the payment is captured. Labelled "Demo store". The full four-screen store is a Won't (RICE 0.1).
-- [ ] **J4 Alert screen** `/demo/alert`: a generic monitoring view that names Sentry in text, "PaymentVerificationError, 40 events in 10 minutes", status "Forwarded to Razorpay". No Sentry logo.
-- [ ] **J5 Slack thread** `/demo/slack`: wireframe 2 in a generic chat look. The buttons (refund 410, send 830 order list, open evidence) change local state only and show "Approved by" lines.
-- [ ] **J6 Brand incident page:** batch 1.2's layout fed from `j2.json` (story strip, evidence lane with brand lanes, "Is it just you?" from the app-version lift, root cause, actions behind approval). Local state only, labelled demo.
+- [x] **J1 Brand name** in one constant (`web/src/lib/demo.ts` or a new `lib/brand.ts`).
+- [x] **J2 Data from Python.** New `synth/j2_brand.py`, fixed seed, writes `web/public/brand/j2.json` (not `snapshot/`: `make snapshot` empties that folder on every run, so the file would be deleted in CI): 1,240 UPI payments captured from app 8.2 after 7:40 pm, 410 paid twice, 830 left with no order; timeline events (rollout 7:40, verify calls stop 7:41, errors from 7:44, alert 7:52, RCA 7:58, sign-off 7:59, rollback 8:01); lift rows (app version 8.2 against its normal share). A test asserts the counts. New files only; if `synth/config.yaml` must change, stop and run the contracts process.
+- [x] **J3 Store, one screen (Could)** `/demo/store`, outside the Razorpay shell: the pay result screen only, with a "Ship app 8.2" switch. After the switch, paying shows "Payment failed" although the payment is captured. Labelled "Demo store". The full four-screen store is a Won't (RICE 0.1).
+- [x] **J4 Alert screen** `/demo/alert`: a generic monitoring view that names Sentry in text, "PaymentVerificationError, 40 events in 10 minutes", status "Forwarded to Razorpay". No Sentry logo.
+- [x] **J5 Slack thread** `/demo/slack`: wireframe 2 in a generic chat look. The buttons (refund 410, send 830 order list, open evidence) change local state only and show "Approved by" lines.
+- [x] **J6 Brand incident page** (`/demo/incident`, inside the Razorpay shell): batch 1.2's layout fed from `j2.json` (story strip, evidence lane with brand lanes, "Is it just you?" from the app-version lift, root cause, actions behind approval). Local state only, labelled demo.
 - [ ] **J7 Support engineer console** `/console`: RCAs waiting for sign-off (J2 plus existing incidents), a detail with approve, edit or take over. Won't in Phase 1 (RICE 0.1); Phase 2.
 
 MoSCoW for this batch: J1, J2, J4, J5, J6, J8 Should (the only big-brand proof, but the Slack loop is unvalidated, confidence 50%); J3 Could; J7 Won't.
-- [ ] **J8 One path for the video.** Store, then alert, then Slack, then incident, each with a "Next" link and a short demo guide.
-- [ ] **J9 Tests (new routes in `layout.spec.ts`), build log, design review.**
+- [x] **J8 One path for the video.** Store, then alert, then Slack, then incident, each with a "Next" link and a short demo guide.
+- [x] **J9 Tests (new routes in `layout.spec.ts`), build log, design review.**
 
 ### Batch 1.4 Story and submission kit (PR 4, streams D and F)
 

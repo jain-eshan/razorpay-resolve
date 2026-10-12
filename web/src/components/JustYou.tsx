@@ -8,12 +8,13 @@ import { Panel } from './Panel'
 // "Is it just you?" (PRD v3, F7a): where the failures concentrate, in up to three plain sentences, strongest first, with the numbers behind them one tap away.
 // It compares the affected payments with all payments on a normal day, for this merchant only. Other merchants are not compared yet, and the panel says so.
 // `lines` stands in when there are no payments to compare (a customer who never reached the pay page has none): the caller passes what the engine saw instead.
-export function JustYou({ inc, lines, cannotSee = true }: { inc: Pick<Schemas['IncidentDetail'], 'lift'> & { verdict: Pick<Schemas['IncidentDetail']['verdict'], 'what_we_cannot_see'> }; lines?: string[]; cannotSee?: boolean }) {
+// `compared` says what the affected payments were compared with, when it is not the merchant's own payments on a normal day (the brand demo compares with the half hour before the release).
+export function JustYou({ inc, lines, cannotSee = true, compared }: { inc: Pick<Schemas['IncidentDetail'], 'lift'> & { verdict: Pick<Schemas['IncidentDetail']['verdict'], 'what_we_cannot_see'> }; lines?: string[]; cannotSee?: boolean; compared?: string }) {
   const { lines: said, weak, sorted } = justYou(inc.lift)
   const none = sorted.length === 0
   const [open, setOpen] = useState(false)
   return (
-    <Panel title="Is it just you?" subtitle={none && lines?.length ? 'Compared with what is normal for the same hours. Other merchants are not compared yet' : 'Compared with your own payments on a normal day. Other merchants are not compared yet'} testID="just-you">
+    <Panel title="Is it just you?" subtitle={compared ? `${compared}. Other merchants are not compared yet` : none && lines?.length ? 'Compared with what is normal for the same hours. Other merchants are not compared yet' : 'Compared with your own payments on a normal day. Other merchants are not compared yet'} testID="just-you">
       <Box display="flex" flexDirection="column" gap="spacing.3">
         {none ? (
           lines?.length ? lines.map((t) => <Text key={t}>{t}</Text>) : <Text color="surface.text.gray.muted">There are no payments to compare for this issue, so no pattern to show.</Text>
