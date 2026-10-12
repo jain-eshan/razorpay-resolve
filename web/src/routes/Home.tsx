@@ -21,7 +21,7 @@ import Ray from './Ray'
 // One short line for each page, in the product's words (docs/PRD_V3.md). Eight words or fewer.
 const EXPLORE_LINE: Record<string, string> = {
   incidents: 'Every customer a problem hit, and what it cost',
-  conversations: 'What customers wrote, and how Ray replied',
+  conversations: 'What customers wrote, and the replies sent',
   access: 'Customers still in after a failed renewal',
   integration: 'Connect your webhook, then check it before go-live',
   channels: 'Choose where customers can reach you',
@@ -83,7 +83,7 @@ export default function Home() {
       </Modal>
 
       <Box display="flex" flexDirection="column" gap="spacing.6" testID="ray-home">
-        <PageHeader title="Overview" description="What broke for your customers, who it hit and what has been made right."
+        <PageHeader title="Overview" description={<>Blindspot finds everyone a payment problem hit, says whose side it is, and wins them back. <Link href="/how-it-works" onClick={(e) => { e.preventDefault(); nav('/how-it-works') }}>How Blindspot works</Link></>}
           actions={
             <Box display="flex" flexWrap="wrap" alignItems="center" gap="spacing.4">
               <Button variant="tertiary" size="medium" onClick={() => setWelcome(true)}>Take a tour</Button>

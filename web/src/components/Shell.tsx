@@ -12,7 +12,7 @@ import {
 // `also` lists other paths that light the same item: Integration covers its two steps, Build with AI and the go-live check.
 type Item = { title: string; to: string; icon: IconComponent; also?: string[] }
 const BLINDSPOT: Item[] = [
-  { title: 'Overview', to: '/', icon: RayIcon, also: ['/ray'] },
+  { title: 'Overview', to: '/', icon: RayIcon, also: ['/ray', '/how-it-works'] },
   { title: 'Payment issues', to: '/incidents', icon: ActivityIcon, also: ['/scan', '/demo/incident'] },
   { title: 'Customer complaints', to: '/threads', icon: UsersIcon, also: ['/cases', '/chat-demo', '/help-demo', '/email-demo', '/ig-demo', '/public-demo'] },
   { title: 'Unpaid access', to: '/access', icon: UnlockIcon },
@@ -67,7 +67,9 @@ export function Shell({ children }: { children: ReactNode }) {
     wide.addEventListener('change', close)
     return () => wide.removeEventListener('change', close)
   }, [theme.breakpoints.m])
-  const on = (i: Item) => (i.to === '/' ? pathname === '/' || (i.also ?? []).some((p) => pathname.startsWith(p)) : [i.to, ...(i.also ?? [])].some((p) => pathname.startsWith(p)))
+  // A path matches a whole segment, so /how (Accuracy) does not light up on /how-it-works (reached from Overview).
+  const at = (p: string) => pathname === p || pathname.startsWith(`${p}/`)
+  const on = (i: Item) => (i.to === '/' ? pathname === '/' || (i.also ?? []).some(at) : [i.to, ...(i.also ?? [])].some(at))
   const link = (i: Item) => <SideNavLink key={i.to} title={i.title} icon={i.icon} href={i.to} isActive={on(i)} as={Link} onClick={() => setOpen(false)} />
   const inert = (title: string, icon: IconComponent) => <SideNavLink key={title} title={title} icon={icon} as={InertItem} />
   // One set of items, shown by the desktop SideNav (hidden below `m`) and by the phone menu below.

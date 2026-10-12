@@ -15,6 +15,7 @@ import EmailDemo from './routes/EmailDemo'
 import HelpDemo from './routes/HelpDemo'
 import IgDemo from './routes/IgDemo'
 import How from './routes/How'
+import HowItWorks from './routes/HowItWorks'
 import Incident from './routes/Incident'
 import Incidents from './routes/Incidents'
 import GuidePage from './routes/GuidePage'
@@ -79,6 +80,7 @@ export default function App() {
               <Route path="/audit" element={<Audit />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/how" element={<How />} />
+              <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/learning" element={<Learning />} />
               <Route path="/reference" element={<Reference />} />
             </Routes>
