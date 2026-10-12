@@ -1,17 +1,21 @@
 import { useRef, useState, type RefObject } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  Alert, AlertTriangleIcon, Badge, BellOffIcon, Box, Button, Card, CardBody, CheckCircleIcon, Heading, MessageCircleIcon,
-  ProgressBar, SegmentedControl, SegmentedControlItem, StepGroup, StepItem, StepItemIndicator, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TablePagination,
+  Alert, AlertTriangleIcon, Badge, Box, Button, Card, CardBody, EmptyState, Heading,
+  SegmentedControl, SegmentedControlItem, StepGroup, StepItem, StepItemIndicator, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TablePagination,
   TableRow, Text,
 } from '@razorpay/blade/components'
 import { Crumbs } from '../components/Crumbs'
 import { FeedbackPanel } from '../components/FeedbackPanel'
 import { FixPanel } from '../components/FixPanel'
+import { EvidenceLane } from '../components/EvidenceLane'
+import { IncidentStats } from '../components/IncidentStats'
+import { JustYou } from '../components/JustYou'
 import { Lane } from '../components/Lane'
 import { Panel } from '../components/Panel'
+import { RootCauseActions } from '../components/RootCauseActions'
 import { StartFix } from '../components/StartFix'
-import { Stat } from '../components/Stat'
+import { StoryStrip } from '../components/StoryStrip'
 import { TimelineChart } from '../components/TimelineChart'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { cause, headline, sentence, when } from '../lib/format'
@@ -34,8 +38,6 @@ const STATUS_LABEL = { open: 'Open', fixing: 'Fixing', verifying: 'Verifying', c
 const two = (top: string, bottom: string, plain = false) => (
   <Box display="flex" flexDirection="column"><Text weight={plain ? 'regular' : 'semibold'} color="surface.text.gray.subtle">{top}</Text><Text size="small" color="surface.text.gray.muted">{bottom}</Text></Box>
 )
-const SHOWN = 4  // evidence rows shown at most before "Show all"
-const STRONG = 0.2  // a pattern shown by default must cover at least 20 points more of the affected payments than it does normally; weaker ones wait behind "Show all"
 
 // One line that makes the counts add up: everyone found, who is still waiting, and who was left out and why.
 const LEFT_OUT: Record<string, string> = { 'already active (manual grant)': 'already given access by hand', refunded: 'already refunded' }
@@ -48,35 +50,6 @@ function reconcile(inc: Schemas['IncidentDetail'], members: Schemas['Member'][])
     return { ...a, [r]: (a[r] ?? 0) + 1 }
   }, {})).map(([r, n]) => `${n} ${r}`)
   return `${members.length} found · ${waiting} still without access${restored ? ` · ${restored} restored by Blindspot` : ''}${reasons.length ? ` · left out: ${reasons.join(', ')}` : ''}`
-}
-
-// What the failed payments have in common, as bars: the share of affected payments (orange) against the share normally (grey), biggest gap first.
-function Evidence({ inc }: { inc: Schemas['IncidentDetail'] }) {
-  const [all, setAll] = useState(false)
-  const lift = [...inc.lift].sort((a, b) => (b.share_affected - b.share_baseline) - (a.share_affected - a.share_baseline))
-  const strong = Math.max(1, Math.min(SHOWN, lift.filter((l) => l.share_affected - l.share_baseline >= STRONG).length))
-  return (
-    <Panel title="What the affected payments have in common" subtitle="Orange: share of affected payments. Grey: share of all payments on a normal day.">
-      <Box display="flex" flexDirection="column">
-        {(all ? lift : lift.slice(0, strong)).map((l) => {
-          const name = `${sentence(l.dimension)}: ${l.value.replace(/\bupi\b/g, 'UPI')}`
-          const aff = Math.round(l.share_affected * 100), base = Number((l.share_baseline * 100).toFixed(1))
-          return (
-            <Box key={l.dimension + l.value} display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', m: 'minmax(0, 1fr) minmax(0, 1fr)' }} gap={{ base: 'spacing.2', m: 'spacing.6' }} alignItems="center" paddingY="spacing.4" borderBottomWidth="thin" borderBottomColor="surface.border.gray.subtle">
-              <Text>{name}</Text>
-              <Box display="flex" flexDirection="column" gap="spacing.2">
-                <ProgressBar value={aff} color="notice" size="medium" showPercentage={false} accessibilityLabel={`${name}: ${aff}% of affected`} />
-                <ProgressBar value={base} color="neutral" size="medium" showPercentage={false} accessibilityLabel={`${name}: ${base}% normally`} />
-                <Text size="small" color="surface.text.gray.muted">{aff}% of affected vs {base}% normally</Text>
-              </Box>
-            </Box>
-          )
-        })}
-      </Box>
-      {lift.length > strong && <Box><Button variant="tertiary" size="small" onClick={() => setAll(!all)}>{all ? 'Show fewer' : `Show all ${lift.length}`}</Button></Box>}
-      {inc.verdict.what_we_cannot_see.map((s) => <Text key={s} size="small" color="surface.text.gray.muted">What Blindspot cannot see: {s}</Text>)}
-    </Panel>
-  )
 }
 
 // What happened, in order, in the dashboard's Timeline style. The last step is where the founder's fix lands.
@@ -106,7 +79,7 @@ function Milestones({ inc, pack, atAlert, fix }: { inc: Schemas['IncidentDetail'
           ]}
         </StepGroup>
       </Box>
-      <StartFix to={fix} closed={done} />
+      <StartFix to={fix} closed={done} variant="secondary" wideOnly />
       </CardBody>
     </Card>
   )
@@ -119,11 +92,16 @@ export default function Incident() {
   const { data: inc, error } = useGet<Schemas['IncidentDetail']>(`/api/incidents/${id}`, version)
   const { data: members } = useGet<Schemas['Member'][]>(`/api/incidents/${id}/members`, version)
   const { data: sample } = useGet<Schemas['SampleTimeline'][]>(`/api/incidents/${id}/sample`, version)
-  const { data: pack } = useGet<Schemas['EvidencePack']>(`/api/incidents/${id}/evidence_pack`)
+  const { data: pack, error: packError } = useGet<Schemas['EvidencePack']>(`/api/incidents/${id}/evidence_pack`)
   const [tier, setTier] = useState<(typeof TIERS)[number]>('exact')
   const fix = useRef<HTMLDivElement>(null)
-  if (error) return <Text color="feedback.text.negative.intense">Could not load {id}: {error}</Text>
-  if (!inc) return <PageSkeleton />
+  // An address for an issue that does not exist (a mistyped link, another demo): say so and give the way out, not a parser error.
+  if (error) return (
+    <EmptyState size="large" asset={<AlertTriangleIcon size="2xlarge" color="surface.icon.gray.muted" />} title="We could not find that payment issue" description={`${id} is not in this demo. It may have been mistyped, or it may be from another version.`}>
+      <Button variant="primary" onClick={() => nav('/incidents')}>See all payment issues</Button>
+    </EmptyState>
+  )
+  if (!inc || (!pack && !packError)) return <PageSkeleton />  // the page appears whole, so the cards in it do not grow as more of it arrives
   if (inc.zone === 'before') return <Zone1View id={id} />
   if (inc.mismatch_type === 'E') return <DuplicateView id={id} />   // customers charged twice: the webhook worked, only the second charge is wrong
   if (inc.mismatch_type === 'G') return <RenewalView id={id} />   // renewals that failed on Razorpay's side: no webhook to show
@@ -153,31 +131,30 @@ export default function Incident() {
               <Text size="small" color="surface.text.gray.muted">{sentence(v.confidence)} confidence · started {when(inc.onset_at)} · {inc.id}</Text>
             </Box>
           </Box>
-          <Button variant="secondary" size="small" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Send to your developer</Button>
+          <Button variant="secondary" size="medium" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Send to your developer</Button>
         </Box>
         </CardBody>
       </Card>
 
-      {/* Four across, as on the other incident views (DuplicateView, RenewalView, Zone1View). */}
-      <Box display="grid" gridTemplateColumns={{ base: 'repeat(2, minmax(0, 1fr))', l: 'repeat(4, minmax(0, 1fr))' }} gap="spacing.5">
-        <Stat label="Paid, no access" value={String(inc.affected)} hint={`${inc.tier_counts.exact ?? 0} still without access · ${rupees(inc.at_risk_paise)}`} icon={AlertTriangleIcon} tone="notice" />
-        <Stat label="Wrote to you" value={String(inc.complained)} icon={MessageCircleIcon} />
-        <Stat label="Silent" value={String(inc.silent)} hint="never wrote in" icon={BellOffIcon} />
-        <Stat label="Fixed by hand" value={String(inc.fixed)} hint="your team gave access before Blindspot" icon={CheckCircleIcon} tone="positive" />
-      </Box>
-      <StartFix to={fix} closed={inc.status === 'closed'} top />
+      <StoryStrip inc={inc} />
+
+      {/* The answer, in plain words, full width between the story and the numbers, as on the other issue pages. Slots are the engine's, not typed here. */}
+      <Alert isFullWidth color="information" isDismissible={false} title="Your app never heard about these payments"
+        description={`Since ${v.cause_summary_slots.change ? `your release ${String(v.cause_summary_slots.change).split(':')[0]} (${when(v.onset_at)})` : 'a change on your side'}, your server has answered Razorpay's payment messages with an error${v.signature.status ? ` (${v.signature.status})` : ''}. Customers were charged, but your app was never told, so it never gave them access.${inc.would_have_alerted_at && atAlert !== null ? ` With Blindspot on, you would have known ${when(inc.would_have_alerted_at)}, when ${atAlert} customer was affected.` : ''}`} />
+
+      <IncidentStats inc={inc} />
 
       <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(0, 1fr) 320px' }} gap="spacing.6" alignItems="start">
         <Box display="flex" flexDirection="column" gap="spacing.6" minWidth="0px">
-          {/* The answer first, in plain words, as on the other issue pages. Slots are the engine's, not typed here. */}
-          <Alert isFullWidth color="information" isDismissible={false} title="Your app never heard about these payments"
-            description={`Since ${v.cause_summary_slots.change ? `your release ${String(v.cause_summary_slots.change).split(':')[0]} (${when(v.onset_at)})` : 'a change on your side'}, your server has answered Razorpay's payment messages with an error${v.signature.status ? ` (${v.signature.status})` : ''}. Customers were charged, but your app was never told, so it never gave them access.${inc.would_have_alerted_at && atAlert !== null ? ` With Blindspot on, you would have known ${when(inc.would_have_alerted_at)}, when ${atAlert} customer was affected.` : ''}`} />
+
 
           <Panel title="What your server did" subtitle="Webhook outcomes, hour by hour">
-            <TimelineChart buckets={inc.timeline} />
+            <TimelineChart buckets={inc.timeline} marks={[{ at: v.onset_at, label: 'Started' }, { at: v.resolved_at, label: 'Fixed' }]} />
           </Panel>
 
-          <Evidence inc={inc} />
+          <EvidenceLane inc={inc} pack={pack} />
+          <JustYou inc={inc} />
+          <RootCauseActions inc={inc} pack={pack} fix={fix} closed={inc.status === 'closed'} />
 
           <Panel title="Can Razorpay replay these?" subtitle="Support can replay one event at a time">
             <Text>
@@ -250,7 +227,7 @@ export default function Incident() {
               })}
             </Panel>
           )}
-          <Box ref={fix}><FixPanel inc={inc} members={members ?? []} onChanged={() => setVersion((n) => n + 1)} /></Box>
+          <Box ref={fix} testID="fix-steps"><FixPanel inc={inc} members={members ?? []} onChanged={() => setVersion((n) => n + 1)} /></Box>
           {/* Asking "was this a real problem?" under a verified fix sends a mixed message, so it goes once the issue is closed. */}
           {inc.status !== 'closed' && <FeedbackPanel incidentId={inc.id} />}
 

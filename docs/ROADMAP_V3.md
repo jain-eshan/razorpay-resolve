@@ -42,7 +42,7 @@ How to use it: take the next unticked task in your batch, top to bottom. Each ta
 **Before the PR**
 - [ ] `make test`, `make lint`, `make eval`, and in `web/`: `npx tsc -b`, `npx oxlint`, `CI=1 npx playwright test`.
 - [ ] New routes added to `e2e/layout.spec.ts` (375, 768, 1440px; no errors, no sideways overflow).
-- [ ] DESIGN.md section 19 checklist, item by item.
+- [ ] DESIGN.md section 19 checklist, item by item, and **section 23 (build checks) in full**: composition, stability (nothing changes size because of its data), edge cases, the journey around the screen, tests that can fail. Write what was found in the build log.
 - [ ] Entry in `docs/BUILD_LOG.md`. For `web/` work it ends with `Design review:` and the result.
 - [ ] Run the `design-reviewer` agent (`.claude/agents/design-reviewer.md`) with the entry and the diff. Fix every finding or write why not. Run it again. Open the PR only on pass, or pass with notes listed in the entry. Never write "passed" for a review that did not run.
 
@@ -93,15 +93,15 @@ MoSCoW for this batch: everything Must (first screen, named feedback from a Razo
 
 PRD: F5, F6, F7, F7a, F9, wireframe 3, section 9 UI fix 6, chart feedback.
 
-- [ ] **I1 Story strip.** New `components/StoryStrip.tsx` at the top of `Incident.tsx`, `DuplicateView.tsx`, `RenewalView.tsx`, `Zone1View.tsx`: Hear (`complained`), Find all (`affected`, `silent`), Whose side (`owner`, confidence), Fix (`fixed` of `affected`), Win back (messages sent, from `actions`). The current step is highlighted.
-- [ ] **I2 Summary strip.** Three `Stat` cards (customers hit, money stuck, never wrote in) and the owner badge in the header.
-- [ ] **I3 Evidence lane.** Restyle `components/Lane.tsx` to wireframe 3: one row per source, a dashed line at onset, labels beside marks, time axis below. Read what `Lane` gets today before changing it.
-- [ ] **I4 "Is it just you?" panel.** Render the existing `lift` rows (`IncidentDetail.lift`; the backend already computes method, card network, error code, app version and response class) as up to three plain sentences, strongest first (sorting exists at `Incident.tsx:56`), e.g. "All affected payments got a 4xx answer, against 0.4% normally." Cross-merchant lines come in Phase 2.
-- [ ] **I5 Root cause and actions.** Two cards side by side (stack on phone): root cause (cause, fix, owner) and actions (existing `FixPanel` and `StartFix`, one blue button).
-- [ ] **I6 Chart pass.** Audit `TimelineChart`, `OrdersChart`, `DuplicateChart`, `RenewalChart`, then: onset and fix marked with `ChartReferenceLine`, a shaded normal range where a baseline exists, one consistent palette from DESIGN.md colour, axis labels with units, rupee tooltips with Indian grouping, at most four gridlines, legend names in plain words. Before and after screenshots go in the build log.
+- [x] **I1 Story strip.** New `components/StoryStrip.tsx` at the top of `Incident.tsx`, `DuplicateView.tsx`, `RenewalView.tsx`, `Zone1View.tsx`: Hear (`complained`), Find all (`affected`, `silent`), Whose side (`owner`, confidence), Fix (`fixed` of `affected`), Win back (messages sent, from `actions`). The current step is highlighted.
+- [x] **I2 Summary strip.** Three `Stat` cards (customers hit, money stuck, never wrote in) and the owner badge in the header.
+- [x] **I3 Evidence lane.** Restyle `components/Lane.tsx` to wireframe 3: one row per source, a dashed line at onset, labels beside marks, time axis below. Read what `Lane` gets today before changing it.
+- [x] **I4 "Is it just you?" panel.** Render the existing `lift` rows (`IncidentDetail.lift`; the backend already computes method, card network, error code, app version and response class) as up to three plain sentences, strongest first (sorting exists at `Incident.tsx:56`), e.g. "All affected payments got a 4xx answer, against 0.4% normally." Cross-merchant lines come in Phase 2.
+- [x] **I5 Root cause and actions.** Two cards side by side (stack on phone): root cause (cause, fix, owner) and actions (existing `FixPanel` and `StartFix`, one blue button).
+- [x] **I6 Chart pass.** Audit `TimelineChart`, `OrdersChart`, `DuplicateChart`, `RenewalChart`, then: onset and fix marked with `ChartReferenceLine`, a shaded normal range where a baseline exists, one consistent palette from DESIGN.md colour, axis labels with units, rupee tooltips with Indian grouping, at most four gridlines, legend names in plain words. Before and after screenshots go in the build log.
 - [ ] **I7 Incidents list.** Group by state with labelled dividers (Open, Fixing, Closed), money at stake on each row. Won't in Phase 1 (RICE 0.1).
-- [ ] **A1 "Where rules fail" card (Must, RICE 2.4).** The answer to Track 2's "why AI beats a rule", with evidence instead of a claim. Stream A: add a labelled set of messy payment complaints (Hinglish, typos, forwarded text, no ID, two issues in one message) to `eval/`, marked synthetic, and score the current rules triage on it (what it extracts right, what it misses). Stream D: show the result on the Accuracy page (`routes/How.tsx`) as one card: the hit rate, three real misses, and "this is where the agent goes in production". Numbers come from the eval run, never typed. Done when: `make eval` prints the figure and the card reads it.
-- [ ] **I8 Tests, build log, design review.**
+- [x] **A1 "Where rules fail" card (Must, RICE 2.4).** The answer to Track 2's "why AI beats a rule", with evidence instead of a claim. Stream A: add a labelled set of messy payment complaints (Hinglish, typos, forwarded text, no ID, two issues in one message) to `eval/`, marked synthetic, and score the current rules triage on it (what it extracts right, what it misses). Stream D: show the result on the Accuracy page (`routes/How.tsx`) as one card: the hit rate, three real misses, and "this is where the agent goes in production". Numbers come from the eval run, never typed. Done when: `make eval` prints the figure and the card reads it.
+- [x] **I8 Tests, build log, design review.** PR #39. Two independent reviews fixed; a third was stopped to save cost (see the build log).
 
 MoSCoW for this batch: I1, I2, I4, I5, A1 Must; I3 Should; I6 markers Should, the rest of I6 Could; I7 Won't.
 

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Alert, AlertTriangleIcon, Badge, BellOffIcon, Box, Button, Card, CardBody, CheckCircleIcon, Heading, MessageCircleIcon, StepGroup, StepItem, StepItemIndicator, Table, TableBody,
+  Alert, AlertTriangleIcon, Badge, Box, Button, Card, CardBody, Heading, StepGroup, StepItem, StepItemIndicator, Table, TableBody,
   TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TablePagination, TableRow, Text,
 } from '@razorpay/blade/components'
 import { Crumbs } from '../components/Crumbs'
@@ -9,8 +9,12 @@ import { Lane } from '../components/Lane'
 import { Panel } from '../components/Panel'
 import { RenewalChart, type RenewalHour } from '../components/RenewalChart'
 import { RenewalFix } from '../components/RenewalFix'
+import { EvidenceLane } from '../components/EvidenceLane'
+import { IncidentStats } from '../components/IncidentStats'
+import { JustYou } from '../components/JustYou'
+import { RootCauseActions } from '../components/RootCauseActions'
 import { StartFix } from '../components/StartFix'
-import { Stat } from '../components/Stat'
+import { StoryStrip } from '../components/StoryStrip'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { cause, headline, sentence, when } from '../lib/format'
 import { PageSkeleton } from '../components/PageSkeleton'
@@ -36,8 +40,9 @@ export default function RenewalView({ id }: { id: string }) {
   const { data: inc, error } = useGet<Schemas['IncidentDetail']>(`/api/incidents/${id}`, version)
   const { data: members } = useGet<Schemas['Member'][]>(`/api/incidents/${id}/members`, version)
   const { data: sample } = useGet<Schemas['SampleTimeline'][]>(`/api/incidents/${id}/sample`, version)
+  const { data: pack, error: packError } = useGet<Schemas['EvidencePack']>(`/api/incidents/${id}/evidence_pack`)
   if (error) return <Text color="feedback.text.negative.intense">Could not load {id}: {error}</Text>
-  if (!inc) return <PageSkeleton />
+  if (!inc || (!pack && !packError)) return <PageSkeleton />  // the page appears whole, so the cards in it do not grow as more of it arrives
   const v = inc.verdict
   const sig = v.signature as unknown as Sig
   const s = v.cause_summary_slots
@@ -76,16 +81,12 @@ export default function RenewalView({ id }: { id: string }) {
         </CardBody>
       </Card>
 
+      <StoryStrip inc={inc} />
+
       <Alert isFullWidth color="information" isDismissible={false} title="This one is on Razorpay's side"
         description={`Your card renewals failed inside Razorpay's gateway. Nothing changed on your side and your webhook was healthy. Blindspot cannot see inside Razorpay, so it shows what points there and what it cannot see, and says how sure it is.${early}`} />
 
-      <Box display="grid" gridTemplateColumns={{ base: 'repeat(2, minmax(0, 1fr))', l: 'repeat(4, minmax(0, 1fr))' }} gap="spacing.5">
-        <Stat label="Renewals failed" value={String(inc.affected)} hint={`${rupees(inc.at_risk_paise)} still to collect`} icon={AlertTriangleIcon} tone="notice" />
-        <Stat label="Wrote to you" value={String(inc.complained)} icon={MessageCircleIcon} />
-        <Stat label="Silent" value={String(inc.silent)} hint="never wrote in" icon={BellOffIcon} />
-        <Stat label="Paid again" value={String(inc.fixed)} hint="on their own, left alone" icon={CheckCircleIcon} tone="positive" />
-      </Box>
-      <StartFix to={fix} closed={inc.status === 'closed'} top />
+      <IncidentStats inc={inc} />
 
       <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(0, 1fr) 320px' }} gap="spacing.6" alignItems="start">
         <Box display="flex" flexDirection="column" gap="spacing.6" minWidth="0px">
@@ -106,8 +107,12 @@ export default function RenewalView({ id }: { id: string }) {
           </Panel>
 
           <Panel title="Renewals by the hour" subtitle="Card against UPI AutoPay, in the same hours">
-            <RenewalChart hours={sig.hourly ?? []} marks={marks} />
+            <RenewalChart hours={sig.hourly ?? []} marks={marks} edges={[{ at: sig.first_failure_at, label: 'Started' }, { at: sig.resolved_at, label: 'Ended' }]} />
           </Panel>
+
+          <EvidenceLane inc={inc} pack={pack} />
+          <JustYou cannotSee={false} inc={inc} />
+          <RootCauseActions inc={inc} pack={pack} fix={fix} closed={inc.status === 'closed'} />
 
           <Panel title="Customers whose renewal failed" pad={false} trailing={<Text size="small" color="surface.text.gray.muted">{rows.length} renewals, {keep} to keep access on for</Text>}>
             {rows.length === 0 ? (
@@ -163,7 +168,7 @@ export default function RenewalView({ id }: { id: string }) {
             </Panel>
           )}
 
-          <Box ref={fix}><RenewalFix inc={inc} members={members ?? []} onChanged={() => setVersion((n) => n + 1)} /></Box>
+          <Box ref={fix} testID="fix-steps"><RenewalFix inc={inc} members={members ?? []} onChanged={() => setVersion((n) => n + 1)} /></Box>
         </Box>
 
         <Box position={{ base: 'static', l: 'sticky' }} top="spacing.5">
@@ -179,7 +184,7 @@ export default function RenewalView({ id }: { id: string }) {
                   ]}
                 </StepGroup>
               </Box>
-              <StartFix to={fix} closed={inc.status === 'closed'} />
+              <StartFix to={fix} closed={inc.status === 'closed'} variant="secondary" wideOnly />
               <Box marginTop="spacing.5"><Button variant="tertiary" size="small" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Open the evidence page</Button></Box>
             </CardBody>
           </Card>

@@ -70,8 +70,8 @@ test('H4 the legend stays inside its card and below the axis labels, at phone, t
     await page.waitForTimeout(1200)  // the bars finish drawing
     const m = await chart.evaluate((el) => {
       const bottom = (n: Element) => n.getBoundingClientRect().bottom
-      const labels = [...el.querySelectorAll('.recharts-xAxis .recharts-cartesian-axis-tick-value')]
-      const items = [...(el.querySelector('[data-testid="chart-legend"]')?.children ?? [])]
+      const labels = [...el.querySelectorAll('text')].filter((n) => n.getAttribute('text-anchor') !== 'end' && /\d/.test(n.textContent ?? ''))  // the date labels under the bars
+      const items = [...(el.querySelector('[data-testid="chart-legend"]')?.querySelectorAll('span') ?? [])].map((n) => n.parentElement!)  // one box per group: swatch and name
       const card = el.closest('[data-blade-component="card"]')!
       return { lowestLabel: Math.max(...labels.map(bottom)), legendTop: el.querySelector('[data-testid="chart-legend"]')!.getBoundingClientRect().top, lowestItem: Math.max(...items.map(bottom)), cardBottom: bottom(card), items: items.length }
     })

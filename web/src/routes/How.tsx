@@ -4,6 +4,7 @@ import { Panel } from '../components/Panel'
 import { useGet, type Schemas } from '../lib/api'
 import { sentence } from '../lib/format'
 import { PageHeader } from '../components/PageHeader'
+import { RulesFail } from '../components/RulesFail'
 import { Stat } from '../components/Stat'
 import { PageSkeleton } from '../components/PageSkeleton'
 
@@ -69,6 +70,7 @@ export default function How() {
           return <Stat key={name} label={label} value={value} hint={hint} icon={m.status === 'pass' ? CheckCircleIcon : m.status === 'fail' ? AlertTriangleIcon : ClockIcon} tone={m.status === 'pass' ? 'positive' : m.status === 'fail' ? 'negative' : 'neutral'} />
         })}
       </Box>
+      <RulesFail metrics={data.metrics} />
       {effort && (
         <Box display="flex" flexDirection="column" gap="spacing.4">
           <Box display="flex" flexDirection="column" maxWidth="720px">

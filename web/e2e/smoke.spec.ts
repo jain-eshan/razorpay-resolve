@@ -22,7 +22,8 @@ test('S-03 incident page: numbers add up, tiers switch, replay limits shown', as
   await expect(page.getByRole('heading', { name: /customers paid and did not get access/ })).toBeVisible()
   await expect(page.getByText('Your code', { exact: true }).first()).toBeVisible()
   const n = async (label: string) => Number((await page.getByText(label, { exact: true }).locator('xpath=following-sibling::*[1]').innerText()).replace(/\D/g, ''))
-  expect((await n('Wrote to you')) + (await n('Silent'))).toBe(await n('Paid, no access'))
+  const wrote = Number((await page.getByTestId('story-1').getByText(/^\d+ wrote in$/).innerText()).replace(/\D/g, ''))
+  expect(wrote + (await n('Never wrote in'))).toBe(await n('Customers hit'))  // the three numbers at the top add up
   await expect(page.getByText(/^\d+ found · \d+ still without access · left out: /)).toBeVisible()  // the counts add up in one line
   await expect(page.getByText('Can Razorpay replay these?')).toBeVisible()
   await expect(page.getByText(/by a support ticket, one event at a time/)).toBeVisible()
@@ -94,7 +95,7 @@ test('payment issues add up and say why a stage is left out; an issue page jumps
   await expect(page.getByText(/Success Rate page already covers bank and UPI failures, so Blindspot leaves them out/)).toBeVisible()
   await page.goto('/incidents/INC-1')
   await expect(page.getByRole('heading', { name: 'Fix it' })).not.toBeInViewport()
-  await page.getByRole('button', { name: 'Start the fix' }).click()
+  await page.getByTestId('root-cause-actions').getByRole('button', { name: 'Start the fix' }).click()  // the page's one blue button, in the Actions card
   await expect(page.getByRole('heading', { name: 'Fix it' })).toBeInViewport()
 })
 

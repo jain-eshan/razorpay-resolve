@@ -1,0 +1,662 @@
+{
+ "synthetic": true,
+ "note": "Made-up complaints written for this eval. They are not real customers' messages. Each is labelled by what the customer means. After an independent review, one message was reworded and two removed because their label could be read two ways, and three typo messages that misspell words the rules do not depend on were added (the first typo set misspelled the keyword itself). The changes are in docs/BUILD_LOG.md.",
+ "messages": [
+  {
+   "id": "M-01",
+   "text": "bhai mera 499 kat gaya par premium activate nhi hua, kal raat ka hai",
+   "expect": {
+    "claims": [
+     "debited_no_access"
+    ],
+    "related": true,
+    "amount_rupees": 499,
+    "payment_id": false
+   },
+   "tags": [
+    "hinglish",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-02",
+   "text": "paisa kat gya hai UPI se lekin order confirm nahi aaya. please check karo",
+   "expect": {
+    "claims": [
+     "debited_no_order"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "hinglish",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-03",
+   "text": "do baar paisa kat gaya 1299 ka, ek hi baar kharida tha",
+   "expect": {
+    "claims": [
+     "charged_twice"
+    ],
+    "related": true,
+    "amount_rupees": 1299,
+    "payment_id": false
+   },
+   "tags": [
+    "hinglish",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-04",
+   "text": "refund ka 15 din ho gaye abhi tak paise wapas nahi aaye pay_Abc123XYZ7891Q",
+   "expect": {
+    "claims": [
+     "refund_not_received"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": true
+   },
+   "tags": [
+    "hinglish"
+   ]
+  },
+  {
+   "id": "M-05",
+   "text": "maine subscription cancel kiya tha phir bhi aaj paise kat liye 299",
+   "expect": {
+    "claims": [
+     "charged_after_cancel"
+    ],
+    "related": true,
+    "amount_rupees": 299,
+    "payment_id": false
+   },
+   "tags": [
+    "hinglish",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-06",
+   "text": "autopay fail ho gaya, premium band ho gaya mera. kyun?",
+   "expect": {
+    "claims": [
+     "renewal_failed"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "hinglish",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-07",
+   "text": "website khul nahi raha, 404 aa raha hai",
+   "expect": {
+    "claims": [
+     "page_error"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "hinglish",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-08",
+   "text": "pay button dabane par kuch nahi hota",
+   "expect": {
+    "claims": [
+     "checkout_not_opening"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "hinglish",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-09",
+   "text": "my paymnt got deductd twise for mock test pak Rs 599",
+   "expect": {
+    "claims": [
+     "charged_twice"
+    ],
+    "related": true,
+    "amount_rupees": 599,
+    "payment_id": false
+   },
+   "tags": [
+    "typo",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-10",
+   "text": "money debted but acces not given plz help",
+   "expect": {
+    "claims": [
+     "debited_no_access"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "typo",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-11",
+   "text": "i payed 2499 for premuim anual but still showing free plan",
+   "expect": {
+    "claims": [
+     "debited_no_access"
+    ],
+    "related": true,
+    "amount_rupees": 2499,
+    "payment_id": false
+   },
+   "tags": [
+    "typo",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-12",
+   "text": "refnd not recieved since 10 days",
+   "expect": {
+    "claims": [
+     "refund_not_received"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "typo",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-13",
+   "text": "paymnet failed but amount deducted from my accout",
+   "expect": {
+    "claims": [
+     "debited_no_order"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "typo",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-14",
+   "text": "chekout not opening on my phn, spinner only",
+   "expect": {
+    "claims": [
+     "checkout_not_opening"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "typo",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-15",
+   "text": "renwal failed autopay mandte",
+   "expect": {
+    "claims": [
+     "renewal_failed"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "typo",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-16",
+   "text": "Fwd: Fwd: Hi team, customer wrote below.\n> From: Riya\n> I paid 799 on Tuesday via GPay and my test series is still locked. Please fix urgently.\nRegards, Support",
+   "expect": {
+    "claims": [
+     "debited_no_access"
+    ],
+    "related": true,
+    "amount_rupees": 799,
+    "payment_id": false
+   },
+   "tags": [
+    "forwarded",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-17",
+   "text": "FW: customer complaint #4521 -- 'charged twice for annual plan, 2 debits of 2499 on my card'. forwarded by agent Sam",
+   "expect": {
+    "claims": [
+     "charged_twice"
+    ],
+    "related": true,
+    "amount_rupees": 2499,
+    "payment_id": false
+   },
+   "tags": [
+    "forwarded",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-18",
+   "text": "Forwarded message ---- Debit alert: INR 599.00 debited from a/c XX1234 to RAZORPAY ---- my comment: no order was created",
+   "expect": {
+    "claims": [
+     "debited_no_order"
+    ],
+    "related": true,
+    "amount_rupees": 599,
+    "payment_id": false
+   },
+   "tags": [
+    "forwarded",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-19",
+   "text": "Hello, pasting from WhatsApp: 'bhaiya refund nahi aaya abhi tak, ek hafta ho gaya'",
+   "expect": {
+    "claims": [
+     "refund_not_received"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "forwarded",
+    "hinglish",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-20",
+   "text": "Sent from my iPhone\n\nOn Mon, Oct 5 Kaksha Support wrote:\n> Your renewal failed.\n\nWhy did my renewal fail? I have money in the account",
+   "expect": {
+    "claims": [
+     "renewal_failed"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "forwarded",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-21",
+   "text": "I was charged yesterday evening but did not get anything",
+   "expect": {
+    "claims": [
+     "debited_no_access"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-22",
+   "text": "I was charged twice AND my premium isn't active. 1299 each time",
+   "expect": {
+    "claims": [
+     "charged_twice",
+     "debited_no_access"
+    ],
+    "related": true,
+    "amount_rupees": 1299,
+    "payment_id": false
+   },
+   "tags": [
+    "two_issues",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-23",
+   "text": "refund pending since 12 days, also checkout is not opening now",
+   "expect": {
+    "claims": [
+     "refund_not_received",
+     "checkout_not_opening"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "two_issues",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-24",
+   "text": "paise do baar kat gaye aur premium bhi activate nahi hua 499",
+   "expect": {
+    "claims": [
+     "charged_twice",
+     "debited_no_access"
+    ],
+    "related": true,
+    "amount_rupees": 499,
+    "payment_id": false
+   },
+   "tags": [
+    "two_issues",
+    "hinglish",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-25",
+   "text": "renewal failed and then you charged me again after I cancelled",
+   "expect": {
+    "claims": [
+     "renewal_failed",
+     "charged_after_cancel"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "two_issues",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-26",
+   "text": "payment page 404 error. earlier my refund also never came",
+   "expect": {
+    "claims": [
+     "page_error",
+     "refund_not_received"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "two_issues",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-27",
+   "text": "how do I change my profile photo",
+   "expect": {
+    "claims": [
+     "other"
+    ],
+    "related": false,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-28",
+   "text": "the app crashes when I open lessons",
+   "expect": {
+    "claims": [
+     "other"
+    ],
+    "related": false,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-29",
+   "text": "great course, thanks!",
+   "expect": {
+    "claims": [
+     "other"
+    ],
+    "related": false,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-30",
+   "text": "mera password bhul gaya, reset link nahi aa raha",
+   "expect": {
+    "claims": [
+     "other"
+    ],
+    "related": false,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "hinglish",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-31",
+   "text": "when is the next live class?",
+   "expect": {
+    "claims": [
+     "other"
+    ],
+    "related": false,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-32",
+   "text": "I was charged twice for the same order",
+   "expect": {
+    "claims": [
+     "charged_twice"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "clean",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-33",
+   "text": "Paid 999 via PhonePe, order not placed",
+   "expect": {
+    "claims": [
+     "debited_no_order"
+    ],
+    "related": true,
+    "amount_rupees": 999,
+    "payment_id": false
+   },
+   "tags": [
+    "clean",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-34",
+   "text": "Money deducted but premium not activated. Payment id pay_A1b2C3d4E5f6G7",
+   "expect": {
+    "claims": [
+     "debited_no_access"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": true
+   },
+   "tags": [
+    "clean"
+   ]
+  },
+  {
+   "id": "M-35",
+   "text": "my refund has not been received yet",
+   "expect": {
+    "claims": [
+     "refund_not_received"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "clean",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-36",
+   "text": "I cancelled my subscription but was charged again",
+   "expect": {
+    "claims": [
+     "charged_after_cancel"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "clean",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-37",
+   "text": "Autopay renewal failed for my card",
+   "expect": {
+    "claims": [
+     "renewal_failed"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "clean",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-38",
+   "text": "payment failed on checkout, please advise",
+   "expect": {
+    "claims": [
+     "payment_failed"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "clean",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-39",
+   "text": "deducted 799 from my accnt, mock test series not unlocked yet",
+   "expect": {
+    "claims": [
+     "debited_no_access"
+    ],
+    "related": true,
+    "amount_rupees": 799,
+    "payment_id": false
+   },
+   "tags": [
+    "typo",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-40",
+   "text": "i was charged twice for the annual premiun, 2499 each time",
+   "expect": {
+    "claims": [
+     "charged_twice"
+    ],
+    "related": true,
+    "amount_rupees": 2499,
+    "payment_id": false
+   },
+   "tags": [
+    "typo",
+    "no_id"
+   ]
+  },
+  {
+   "id": "M-41",
+   "text": "my refund is still pendng, it has been 9 days",
+   "expect": {
+    "claims": [
+     "refund_not_received"
+    ],
+    "related": true,
+    "amount_rupees": null,
+    "payment_id": false
+   },
+   "tags": [
+    "typo",
+    "no_id"
+   ]
+  }
+ ]
+}

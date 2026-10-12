@@ -25,6 +25,7 @@ One long-lived branch, `main`. Eshan runs one Claude chat per git worktree, so e
 
 ## Build log and design review
 - Every build stream adds an entry to `docs/BUILD_LOG.md` when it finishes a piece of work. For any work that touches `web/`, the entry ends with a line `Design review:` and the result.
+- **Before the design review, run `web/DESIGN.md` section 23 (build checks) on every screen you touched** and write down what you found: composition at 1440, 768 and 375px, nothing changing size because of its data, every edge case, the journey in and out, tests that can fail. This is how every screen is built, not an extra step.
 - **After writing a build log entry that touches `web/`, run the `design-reviewer` agent (`.claude/agents/design-reviewer.md`) on the branch, before opening the pull request.** Give it the entry and the diff. It checks the work against `web/DESIGN.md` sections 14 to 20: mechanical checks, structure, content, and a look at 375, 768 and 1440px.
 - Fix every finding, or write down why not in the entry. Run the agent again after fixing. The pull request goes up only when the verdict is pass, or pass with notes that are listed in the entry.
 - Say in the entry and the pull request what the reviewer could not check. Never write "Design review: passed" for a review that did not run.

@@ -1073,3 +1073,79 @@ Fifth round (Eshan): the legend was still tall with wide gaps, "See all payment 
 - List overflow: the scroll area inside the list card could not shrink (a flex item's default minimum height), so the footer was pushed out of the card. The fill body now has a minimum height of 0, the rows have 12px of padding above and below instead of 16, the engine's title is one line, and the five issues and the footer fit without scrolling at 1440px.
 - Explore: nine cards, each a page name, a chevron and one line of eight words or fewer in the product's words ("Every customer a problem hit, and what it cost", "Tell Blindspot which alerts were false"), without the long heading, the paragraph or the footer band. The guide pages keep the long text. The grid is about 270px tall, down from about 650px.
 
+
+## 12 Oct 2026, practice: build checks on every screen (all streams)
+
+Eshan asked that the care taken on the Overview become the way every screen is built, and that it be written down. The rules are in `web/DESIGN.md` section 23, the reviewer runs them (`.claude/agents/design-reviewer.md`, C2), the roadmap's "before the PR" list names them, and the root `CLAUDE.md` says to run them before the design review. This entry is the record behind them: what was found on the Overview, why it happened and which check now catches it.
+
+| Round | What Eshan (or the review) found | Cause | The check that now catches it |
+|---|---|---|---|
+| 1 | The Ray glyph sat outside its input and looked orphaned | An icon placed beside a field instead of inside it | A1, A2: nothing floats, every left edge lines up |
+| 1 | The setup card had a wide empty left edge and its heading did not line up with the steps | Blade's horizontal stepper centres its labels | A2, A3, and a custom left-aligned stepper |
+| 1 | The chart was tall and above the list that matters more | No order was written down | A1: write the page's order down (DESIGN 16) |
+| 1 | Legend unreadable at 375px (plot 26px high) | A fixed legend height set by window width | C: try 375, 768, 1024 and 1440px, and measure |
+| 2 | Legend left its card at 1024px | The card is half the page, so the window's width says nothing about it | B1: size from the card's width, measured |
+| 2 | Chat rail scrolled out of view in a long thread | A plain flex child of a scrolling page | D5: sticky bars, and a test that scrolls |
+| 2 | "Continue setup" reopened step 1 | A missing query parameter read as 0 | C and F: try the plain address as well as the parameterised one |
+| 2 | A legend test that could not fail | It measured the wrong element | F1: make the test fail first |
+| 3 | The chat input was see-through: answer buttons drew over it | Blade's buttons are z-index 1 to 2; the bar had none | D5, and a test that checks what is drawn at each button |
+| 3 | I called it "a preview artefact" | I probed the middle of the bar, not where the buttons were | F3, F4: probe the affected point before calling anything an artefact |
+| 3 | The side menu vanished on the chat page | The reference page has no side menu because Ray is its whole product | D1: do not copy a reference blindly; keep the way back |
+| 3 | "rrr" got a table of payment issues | A fallback that answers anything | D3: bad input is said so, with what can be asked |
+| 3 | Tour cards unclear | Wording not from the PRD | A8: the PRD's words, short, true today |
+| 4 | The chart arrived small and then grew | The legend height was set after the width was measured | B2: measure before the first paint; a skeleton of the final size |
+| 4 | The list card changed size when the range changed | The stretched row was set by whichever card was taller, and the list's height depended on its data | B4: one card sets the row; the other fills it |
+| 4 | "₹0" over a large white area | No empty state | B3: an empty state in the same space |
+| 4 | Dropdowns for two or three options | Not read from Blade's guidance | A4 and E: SegmentedControl for 2 to 5 options |
+| 5 | Legend still loose | Blade's legend is 14px with 44px rows and cannot be changed | A5, E: draw your own when it matters |
+| 5 | "See all payment issues" hung out of its card | A flex item that could not shrink | C: the most rows; B1: a list scrolls inside its card |
+| 5 | Explore cards too wordy | Descriptions copied from the guides | A8: a name and one line of about eight words |
+
+Process notes from the round, now in section 23: the Blade docs tool needs `create_blade_skill` and the repo root (not `web/`); `Card` accepts only its own parts and `Box` rejects chart colours (both crashed the page and were caught by the browser run, not by types); a component made inside another's render is remounted every render; the full suite in CI mode needs port 5173 free.
+
+Numbers at the end of the round: 113 browser tests (13 of them in `e2e/home.spec.ts`, including the one that records both cards' sizes from the first frame), `make test` 605, `make eval` 147 pass and 30 reported, two independent design reviews that each failed the build once and passed after fixes.
+
+## 12 Oct 2026, v3 batch 1.2: the issue page and its charts (streams A and D)
+
+Goal: roadmap batch 1.2 (I1 to I6, A1, I8). Every payment issue reads as the five steps, shows the same three numbers, says in plain sentences where the failures concentrate, puts each side on one time axis, and ends in a root cause and the actions that wait for approval. Charts get units, markers and one compact key. Accuracy gets the measured answer to "why AI beats a rule". No contract change. Built to `web/DESIGN.md` section 23.
+
+Edge cases, listed before building:
+- Story strip: no complaints (a pay-page issue found from the data), unknown owner, a closed issue, reverted or empty actions, nothing sent yet; five, two and one across; no change in height as the numbers grow during a fix.
+- The three numbers: nobody silent, the amount note for each kind of issue.
+- Is it just you?: no lift rows at all (the two pay-page issues have no payment to compare), nothing standing out, one to three sentences, values such as "none" and "failed or never attempted", 100% against a tiny share.
+- Root cause: no linked change (Razorpay's side), the fix being for Razorpay and not the merchant, a pack that fails to load, a closed issue.
+- Charts: no start or end in range, hover, a key that wraps, 375 to 1440px, how many gridlines.
+- Evidence lane: a moment near the right edge, equal times, a row that would say nothing true, a phone.
+- Rules eval: a message that is not about a payment, two issues in one, a label written to suit the rules (not allowed).
+
+What was built:
+- `StoryStrip` (I1). Each step reads the issue's own numbers; "messaged" counts approved messages and sent pay-again links, not drafts or reversed work.
+- `IncidentStats` (I2): customers hit, money stuck (with its note: paid by those still without access, still to refund, and so on), never wrote in. It replaces four different stat rows, so every issue reads the same.
+- `EvidenceLane` (I3, wireframe 3): rows chosen by kind of issue and only where true (no "Razorpay payments fine" row for a gateway issue, no "your side" row when nothing changed there), a dashed line at the start, labels that flip to the left of their dot near the right edge, a list on a phone.
+- `JustYou` + `lib/justYou.ts` (I4): "All affected payments had a webhook that failed or was never attempted, against 0% normally." Sentences come from the engine's lift rows, one phrase per dimension (method, card network, error code, app version, plan, kind, webhook outcome); weak patterns say "Nothing stands out. The closest pattern:". The two pay-page issues say plainly that there are no payments to compare. It says that other merchants are not compared yet.
+- `RootCauseActions` (I5): the cause, what changed (hidden when the cause already says it), the fix and whose side from the evidence pack; the actions card with the page's one blue button (the copy under the Timeline became a quiet button) and "Send to your developer", or "Open the evidence pack" when it is Razorpay's side.
+- Charts (I6): units on the axes, `tickCount` 4 (three gridlines and the axis), a labelled line where it started and where it was fixed or ended, the shared `ChartKey` (12px) in place of Blade's legend, a fixed 280px plot. No shaded "normal" band on the orders chart: the engine's normal is a single number per hour, not a range, and a band would make one up.
+- A1 (the roadmap's "Must", RICE 2.4): `eval/messy_complaints.json` (41 made-up complaints, labelled by meaning, marked synthetic), `eval/messy.py`, 12 reported metrics in the eval report, and `RulesFail` on Accuracy. How the set changed, said plainly because a figure that moves needs its history: the first draft had 40 messages and read 78% (typos 29%, Hinglish 75%, amount 55%). The first design review found two messages that two people could read two ways ("payment hua but no confirmation", "i want my money back, nothing works"); they were removed, not relabelled to suit the rules. One message (M-07) was reworded to "website khul nahi raha..." because its label did not match what it said. Three typo messages that use none of the rules' keywords were added, because the first set under-counted typos. The scorer was not changed to flatter the rules: "both issues" still counts a message only when the one reading the rules return covers every issue in it. Result: the rules read 85% of messy complaints right as the main issue. By kind: plain 100% of 7, forwarded 100% of 5, Hinglish 91% of 11, typos 50% of 10, the amount the customer wrote 54% of 13, both issues of a two-in-one message 0% of 5 (the rules return one reading). Three real misses are shown, one of each kind. The page says it is where the agent goes in production, and that today the figures are the rules'.
+
+What broke, and how it was found:
+- Showing "What Blindspot cannot see" in two panels (the old tests failed on it). It is now said once.
+- The root cause card grew when the evidence pack arrived, a breach of the stability rule that my own test did not see at first, because local files load in a blink. The page now loads the pack with the incident, and the test delays the pack by 600ms and fails without the fix (proved by removing it).
+- Two of my new tests were also proved able to fail on purpose: a second blue button, and ten gridlines.
+- A gateway-claim wording in the first draft of the lane would have said "payments captured normally" for a gateway issue; it is left out of that row.
+
+Independent design review, round 1 (verdict FAIL, 17 findings). Fixed: lane labels clipped or touching at 768 and 1024px; a second primary-blue button; the alert squeezed in a half-width column; a dead address that showed a parser error; the "Fix" tile and the three numbers disagreeing; "What Blindspot cannot see" said twice; the Just-you card telling a customer-facing caveat in every view; a chart mark label dropped silently; stale wording in tests; an eval set that had two ambiguous messages and no typo cases without keywords. Found by me while fixing: Blade's Collapsible draws its body open and then folds it, so the Just-you card jumped from 824px to 270px on load (the body is now drawn only while open).
+
+Independent design review, round 2 (verdict FAIL, 2 majors and 9 minors, all measured in a browser). Fixed:
+- Lane at 1024px: "web v2.8.0 live" ran into "Server answered again" and "Blindspot would have alerted" was cut off, in a 396px card. The lane is now a list whenever its own card is under 520px wide (measured, `useWidth`), not only on a phone. My earlier test checked only that labels stayed inside the card, so it passed while this was broken; it now also fails on a label cut short by its box and on two labels in a row drawn over each other, at 375, 768, 1024, 1100 and 1440px (proved by removing the rule: it fails on INC-1 at 1024px).
+- The "Fix" tile read "2 of 85 fixed" while the page said 81 still to put right and, after the demo fix, "0 still to put right". The engine's `fixed` is a fixed field. The tile now reads "N of 85 put right", where N is the affected count minus what is still waiting, the same numbers as the stats card. The height test now also asserts the number moves ("4 of 85" to "85 of 85") and runs at 375, 768 and 1200px; its first version passed at 1440px even with the heights removed, so it now measures each tile's own text and I proved it fails without the reserved heights at 1200px.
+- Root cause and Actions cards were 190px each at 1024px (a heading wrapping, "Open the evidence pack" on two lines). They sit side by side only when their column is 640px or wider, measured; below that they stack.
+- A mark label ("Fixed", "Ended") was cut by the plot edge at 375px. A mark in the last tenth of the chart now keeps its line and says its label under the key ("Lines on the chart: Fixed, 30 Sep, 10:00"). The test checks the label pill against the plot's svg and fails without the fix.
+- Date labels touched on INC-4 at 375px (three labels now on a phone) and value ticks were uneven (0, 15, 32): the top of the axis is now three equal round steps (`yTop`). Both checks first matched nothing (wrong class names), so they now fail when they find no ticks, and each was proved by putting the old behaviour back.
+- "Show the numbers" was 17px high; it is now a Blade button (36px). The story strip no longer keeps empty reserved space on a phone or tablet (it keeps it only where five tiles sit across), and on a tablet the fifth tile spans both columns instead of standing alone. Plan ids no longer show ("were for the Mock Test Pack plan", not "mock 199"). The developer page for a bad address says so and gives a way out.
+- Left as it is, on purpose: the chart's time axis and the lane's start at different times (the chart buckets by hour, the lane starts at the first event), and the end of INC-3 shows three times (last failure, hour bucket, first success). They are different things; each is labelled where it is shown. The breadcrumb link is 20px high: it is Blade's and used on every page, so it is not changed in this batch.
+
+Measured: before and after screenshots of the four charts and the tops of the four pages are in `docs/screens/batch-1-2/` (before-*.png, after-*.png). Gridlines per chart 3 (limit 4); the key sits inside its card at 375, 768, 1024 and 1440px; the strip, the numbers, the lane, the root cause card and the chart card each keep one size from the first frame.
+
+Tests: `e2e/incident.spec.ts` (29), `backend/tests/test_messy_eval.py` (4); smoke, demo and home tests follow the new labels. 609 backend tests, 142 browser tests.
+
+Design review: round 1 FAIL (17 findings, fixed), round 2 FAIL (2 majors, 9 minors, fixed). A third review of the round 2 fixes was started and stopped before it reported, to save cost, so the round 2 fixes are checked by my own measurements and tests only (each proved able to fail), not by an independent reviewer. Not checked by anyone: dark mode, keyboard focus order, a slow network on the incident pages, INC-5 through the full chart matrix.

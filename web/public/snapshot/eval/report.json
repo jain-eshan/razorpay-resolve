@@ -267,6 +267,90 @@
       "status": "pass"
     },
     {
+      "name": "messy_complaints_total",
+      "value": 41.0,
+      "target": "report (made-up complaints, see eval/messy_complaints.json)",
+      "status": "report"
+    },
+    {
+      "name": "messy_main_claim_found",
+      "value": 0.8537,
+      "target": "report only. 41 made-up complaints, labelled by meaning. What the rules read right as the main issue",
+      "status": "report"
+    },
+    {
+      "name": "messy_main_claim_found_clean",
+      "value": 1.0,
+      "target": "report only. 41 made-up complaints, labelled by meaning. Only the 7 tagged clean",
+      "status": "report"
+    },
+    {
+      "name": "messy_main_claim_found_hinglish",
+      "value": 0.9091,
+      "target": "report only. 41 made-up complaints, labelled by meaning. Only the 11 tagged hinglish",
+      "status": "report"
+    },
+    {
+      "name": "messy_main_claim_found_typo",
+      "value": 0.5,
+      "target": "report only. 41 made-up complaints, labelled by meaning. Only the 10 tagged typo",
+      "status": "report"
+    },
+    {
+      "name": "messy_main_claim_found_forwarded",
+      "value": 1.0,
+      "target": "report only. 41 made-up complaints, labelled by meaning. Only the 5 tagged forwarded",
+      "status": "report"
+    },
+    {
+      "name": "messy_main_claim_found_two_issues",
+      "value": 1.0,
+      "target": "report only. 41 made-up complaints, labelled by meaning. Only the 5 tagged two_issues",
+      "status": "report"
+    },
+    {
+      "name": "messy_both_issues_found",
+      "value": 0.0,
+      "target": "report only. 41 made-up complaints, labelled by meaning. Both issues of 5 two-in-one messages. The rules return one reading",
+      "status": "report"
+    },
+    {
+      "name": "messy_payment_id_found",
+      "value": 1.0,
+      "target": "report only. 41 made-up complaints, labelled by meaning. A payment ID written in the message, of the 2 that have one",
+      "status": "report"
+    },
+    {
+      "name": "messy_amount_found",
+      "value": 0.5385,
+      "target": "report only. 41 made-up complaints, labelled by meaning. The amount the customer wrote, of the 13 that give one",
+      "status": "report"
+    },
+    {
+      "name": "messy_unrelated_flagged_as_payment",
+      "value": 0.0,
+      "target": "report only. 41 made-up complaints, labelled by meaning. Of 5 messages that are not about a payment",
+      "status": "report"
+    },
+    {
+      "name": "messy_miss_1",
+      "value": null,
+      "target": "\"paisa kat gya hai UPI se lekin order confirm nahi aaya. please check karo\" | rules read: debited no access | it means: debited no order | kind: hinglish",
+      "status": "n/a"
+    },
+    {
+      "name": "messy_miss_2",
+      "value": null,
+      "target": "\"my paymnt got deductd twise for mock test pak Rs 599\" | rules read: debited no access | it means: charged twice | kind: typo",
+      "status": "n/a"
+    },
+    {
+      "name": "messy_miss_3",
+      "value": null,
+      "target": "\"I was charged twice AND my premium isn't active. 1299 each time\" | rules read: charged twice | it means: charged twice and debited no access | kind: two_issues",
+      "status": "n/a"
+    },
+    {
       "name": "handover_passed_only_for_payment_or_person",
       "value": 1.0,
       "target": "1.0 (the inbox keeps what is not about a payment)",

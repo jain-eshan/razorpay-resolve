@@ -1,15 +1,19 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Alert, AlertTriangleIcon, Badge, BellOffIcon, Box, Button, Card, CardBody, CheckCircleIcon, Heading, MessageCircleIcon, StepGroup, StepItem, StepItemIndicator, Table, TableBody,
+  Alert, AlertTriangleIcon, Badge, Box, Button, Card, CardBody, Heading, StepGroup, StepItem, StepItemIndicator, Table, TableBody,
   TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TablePagination, TableRow, Text,
 } from '@razorpay/blade/components'
 import { Crumbs } from '../components/Crumbs'
 import { FeedbackPanel } from '../components/FeedbackPanel'
 import { OrdersChart, type Hour } from '../components/OrdersChart'
 import { Panel } from '../components/Panel'
+import { EvidenceLane } from '../components/EvidenceLane'
+import { IncidentStats } from '../components/IncidentStats'
+import { JustYou } from '../components/JustYou'
+import { RootCauseActions } from '../components/RootCauseActions'
 import { StartFix } from '../components/StartFix'
-import { Stat } from '../components/Stat'
+import { StoryStrip } from '../components/StoryStrip'
 import { Zone1Fix } from '../components/Zone1Fix'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { CHANNEL, cause, headline, sentence, when } from '../lib/format'
@@ -47,8 +51,9 @@ export default function Zone1View({ id }: { id: string }) {
   const { data: inc, error } = useGet<Schemas['IncidentDetail']>(`/api/incidents/${id}`, version)
   const { data: members } = useGet<Schemas['Member'][]>(`/api/incidents/${id}/members`, version)
   const { data: sample } = useGet<Schemas['SampleTimeline'][]>(`/api/incidents/${id}/sample`, version)
+  const { data: pack, error: packError } = useGet<Schemas['EvidencePack']>(`/api/incidents/${id}/evidence_pack`)
   if (error) return <Text color="feedback.text.negative.intense">Could not load {id}: {error}</Text>
-  if (!inc) return <PageSkeleton />
+  if (!inc || (!pack && !packError)) return <PageSkeleton />  // the page appears whole, so the cards in it do not grow as more of it arrives
   const v = inc.verdict
   const sig = v.signature as unknown as Sig
   const s = v.cause_summary_slots
@@ -85,20 +90,16 @@ export default function Zone1View({ id }: { id: string }) {
                 <Text size="small" color="surface.text.gray.muted">{sentence(v.confidence)} confidence · started {when(inc.onset_at)} · {inc.id}</Text>
               </Box>
             </Box>
-            <Button variant="secondary" size="small" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Send to your developer</Button>
+            <Button variant="secondary" size="medium" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Send to your developer</Button>
           </Box>
         </CardBody>
       </Card>
 
+      <StoryStrip inc={inc} />
+
       <Alert isFullWidth color="information" isDismissible={false} title="Razorpay could not see this" description={`Customers never reached a payment, so Razorpay has no record of it. Blindspot worked it out from your orders, your pay page and what customers wrote.${early}`} />
 
-      <Box display="grid" gridTemplateColumns={{ base: 'repeat(2, minmax(0, 1fr))', l: 'repeat(4, minmax(0, 1fr))' }} gap="spacing.5">
-        <Stat label="Orders lost" value={`about ${s.lost_orders}`} hint={`${rupees(Number(s.lost_paise))} · an estimate`} icon={AlertTriangleIcon} tone="notice" />
-        <Stat label="Wrote to you" value={String(inc.complained)} hint="could not pay" icon={MessageCircleIcon} />
-        <Stat label="Can be messaged now" value={String(ready)} hint={`${rupees(inc.at_risk_paise)} waiting`} icon={BellOffIcon} />
-        <Stat label="Paid since" value={String(inc.fixed)} hint="got through another way" icon={CheckCircleIcon} tone="positive" />
-      </Box>
-      <StartFix to={fix} closed={inc.status === 'closed'} top />
+      <IncidentStats inc={inc} />
 
       <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(0, 1fr) 320px' }} gap="spacing.6" alignItems="start">
         <Box display="flex" flexDirection="column" gap="spacing.6" minWidth="0px">
@@ -119,8 +120,12 @@ export default function Zone1View({ id }: { id: string }) {
           </Panel>
 
           <Panel title="Orders and pay-page checks" subtitle="Hour by hour, against what is normal for each hour">
-            <OrdersChart hours={sig.hourly ?? []} marks={marks} />
+            <OrdersChart hours={sig.hourly ?? []} marks={marks} edges={[{ at: v.onset_at, label: 'Started' }, { at: sig.end, label: 'Fixed' }]} />
           </Panel>
+
+          <EvidenceLane inc={inc} pack={pack} />
+          <JustYou cannotSee={false} inc={inc} lines={['These customers never reached a payment, so there are no payments to compare. Blindspot compared your orders and pay-page checks with what is normal for the same hours instead (the chart above).']} />
+          <RootCauseActions inc={inc} pack={pack} fix={fix} closed={inc.status === 'closed'} />
 
           <Panel title="Customers who could not pay" pad={false} trailing={<Text size="small" color="surface.text.gray.muted">{rows.length} customers wrote in or had an order nobody could pay for</Text>}>
             {rows.length === 0 ? (
@@ -176,7 +181,7 @@ export default function Zone1View({ id }: { id: string }) {
             </Panel>
           )}
 
-          <Box ref={fix}><Zone1Fix inc={inc} onChanged={() => setVersion((n) => n + 1)} /></Box>
+          <Box ref={fix} testID="fix-steps"><Zone1Fix inc={inc} onChanged={() => setVersion((n) => n + 1)} /></Box>
           {inc.status !== 'closed' && <FeedbackPanel incidentId={inc.id} />}
         </Box>
 
@@ -193,7 +198,7 @@ export default function Zone1View({ id }: { id: string }) {
                   ]}
                 </StepGroup>
               </Box>
-              <StartFix to={fix} closed={inc.status === 'closed'} />
+              <StartFix to={fix} closed={inc.status === 'closed'} variant="secondary" wideOnly />
             </CardBody>
           </Card>
         </Box>

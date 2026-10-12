@@ -58,3 +58,39 @@ export const kindName = (mismatchType: string) => KIND[mismatchType] ?? 'Other'
 
 export const dayLabel = (iso: string) =>
   new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: '2-digit', month: 'short', timeZone: IST }).format(new Date(iso)).replace(',', '').replace('Sept', 'Sep')
+
+// Whose money the amount is, since it is not always every customer's in the row: for a webhook issue it is what the customers still without access paid.
+export const AMOUNT_NOTE: Record<string, string> = { A: 'paid by those still without access', E: 'still to refund', G: 'still to collect', Z1: 'estimated, still reachable' }
+
+// The x value of the bucket that holds a moment, for marking it on a chart of hourly or daily buckets. A moment before the first bucket or after the last has none, so no
+// mark is drawn outside the chart.
+export const bucketAt = (starts: string[], iso: string | null | undefined, label: (start: string) => string): string | undefined => {
+  if (!iso || starts.length === 0) return undefined
+  const t = new Date(iso).getTime(), at = starts.map((s) => new Date(s).getTime())
+  const width = at.length > 1 ? at[1] - at[0] : 3_600_000
+  let hit = -1
+  at.forEach((s, i) => { if (s <= t) hit = i })
+  return hit >= 0 && t < at[hit] + width ? label(starts[hit]) : undefined
+}
+
+// Marks on a chart are labelled, but two marks a few buckets apart would print their labels over each other (a start and a fix an hour and a half apart on a 24 hour
+// chart are 35px apart), and a label on one of the last few buckets runs out of the plot (on a phone, the pill is cut by the edge). The later mark keeps its line and
+// loses its label in both cases; `full` keeps what it said, and ChartKey prints it under the chart so nothing is lost.
+export const thinLabels = (lines: { x: string; label: string }[], categories: string[]) => {
+  const near = Math.max(4, Math.ceil(categories.length / 8))
+  const edge = Math.max(2, Math.ceil(categories.length / 10))
+  const sorted = [...lines].sort((a, b) => categories.indexOf(a.x) - categories.indexOf(b.x))
+  return sorted.map((l, i) => {
+    const crowded = i > 0 && categories.indexOf(l.x) - categories.indexOf(sorted[i - 1].x) < near
+    const atEdge = categories.length - 1 - categories.indexOf(l.x) < edge
+    return { ...l, full: l.label, label: crowded || atEdge ? '' : l.label }
+  })
+}
+// What a mark that lost its label said, for the note under the chart.
+export const droppedMarks = (lines: { x: string; full: string; label: string }[]) => lines.filter((l) => !l.label && l.full).map((l) => `${l.full}, ${l.x}`)
+
+// The top of a chart's value axis: room above the tallest bar, in three equal steps of a round whole number (0, 10, 20, 30 and not 0, 15, 32), so the gridlines read.
+export const yTop = (max: number) => {
+  const need = Math.max(2, Math.ceil((max * 1.2) / 3))
+  for (let k = 1; ; k *= 10) for (const m of [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) { const step = m * k; if (Number.isInteger(step) && step >= need) return step * 3 }
+}
