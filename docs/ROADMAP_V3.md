@@ -125,8 +125,8 @@ MoSCoW for this batch: J1, J2, J4, J5, J6, J8 Should (the only big-brand proof, 
 
 PRD: sections 1, 4, 8, 11, 12.
 
-- [ ] **S1 "How Blindspot works"** `/how-it-works`: the two journeys as two lanes of five steps, and the engine (two ways in, five steps, four outputs) built from Blade boxes, like `SetupScene`. Linked from the Home header.
-- [ ] **S2 Copy pass** on Home, setup and guides: the one-line pitch from PRD section 1, DESIGN 22 names.
+- [x] **S1 "How Blindspot works"** `/how-it-works`: the two journeys as two lanes of five steps, and the engine (two ways in, five steps, four outputs) built from Blade boxes, like `SetupScene`. Linked from the Home header.
+- [x] **S2 Copy pass** on Home, setup and guides: the one-line pitch from PRD section 1, DESIGN 22 names.
 - [x] **S3 Product note** (`docs/SUBMISSION.md`): problem, solution, decisions and what was left out, success metrics (PRD section 12), and each Track 2 item (signal, why AI beats a rule, the action, what the merchant controls, learning, accuracy, permissions, failure handling, outcome). Draft, with one placeholder for batch 1.3 and Eshan's voice edit still open.
 - [x] **S4 AI build log** (`docs/AI_BUILD_LOG.md`): the v3 decisions, which tool did what, where Eshan decided. Draft, with one placeholder for batch 1.3 and Eshan's review open.
 - [ ] **S5 Video**, 90 seconds, PRD section 8 order. Every number on screen matches the script.

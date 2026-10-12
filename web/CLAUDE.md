@@ -43,6 +43,7 @@ A starter for building Razorpay products in Razorpay's own design language, Razo
 - `src/components/PageSkeleton.tsx`: what every page shows while its data loads. Use it instead of a "Loading" line.
 - `src/components/Accent.tsx`, `src/lib/useCountUp.ts`: the italic serif accent word and the count-up figure. `src/routes/Scan.tsx`: the first check (once Day-0 scan) replay and report; off the menu, reached from Setup and Overview.
 - Names follow Razorpay's own (DESIGN.md section 22). An issue's headline is built from its kind (`headline()` in `lib/format.ts`); the engine's title is the "Cause:" line.
+- `src/routes/HowItWorks.tsx`: "How Blindspot works" (`/how-it-works`, linked from the end of the Overview's header line, in the menu under Overview): the two journeys as two lanes of five steps, the engine (ways in, five steps, where it lands) and "Today and in production", all Blade boxes. No figures on it. The big-brand lane, the alert door and the Slack channel are tagged "Not built yet"; AI is named only on the production side. Lanes and engine pick one of three layouts from their own width (960, 560 and 760px) (`useWidth`). `e2e/how-it-works.spec.ts` covers it and the Overview header.
 - `src/routes/Reference.tsx`: the RazorSense reference screens (state switcher, voice examples, Ask Ray chat, success moment)
 
 ## Rules
