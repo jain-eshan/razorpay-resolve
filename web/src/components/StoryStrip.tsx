@@ -1,6 +1,7 @@
 import { Box, Card, CardBody, CheckCircleIcon, Text } from '@razorpay/blade/components'
 import type { Schemas } from '../lib/api'
 import { OWNER, sentence } from '../lib/format'
+import { Pulse } from './Pulse'
 
 type Inc = Pick<Schemas['IncidentDetail'], 'status' | 'affected' | 'complained' | 'silent' | 'tier_counts' | 'owner' | 'actions'> & { verdict: Pick<Schemas['IncidentDetail']['verdict'], 'confidence'> }
 
@@ -45,11 +46,14 @@ export function StoryTiles({ steps }: { steps: StoryStep[] }) {
             return (
               <Box key={s.title} display="flex" alignItems="flex-start" gap="spacing.3" padding="spacing.4" borderRadius="medium" borderWidth="thin" testID={`story-${i + 1}`} gridColumn={{ base: 'auto', m: i === 4 ? 'span 2' : 'auto', xl: 'auto' }}
                 borderColor={current ? 'surface.border.primary.muted' : 'surface.border.gray.subtle'} backgroundColor={s.done ? 'surface.background.gray.moderate' : 'surface.background.gray.intense'}>
-                {s.done ? <Box flexShrink={0} display="flex"><CheckCircleIcon size="large" color="feedback.icon.positive.intense" /></Box> : (
-                  <Box width="spacing.6" height="spacing.6" flexShrink={0} borderRadius="max" display="flex" alignItems="center" justifyContent="center" borderWidth={current ? 'thick' : 'thin'} borderColor={current ? 'surface.border.primary.normal' : 'surface.border.gray.normal'}>
-                    <Text size="xsmall" weight="semibold" color={current ? 'surface.text.primary.normal' : 'surface.text.gray.muted'}>{i + 1}</Text>
-                  </Box>
-                )}
+                {s.done ? <Box flexShrink={0} display="flex"><CheckCircleIcon size="large" color="feedback.icon.positive.intense" /></Box> : (() => {
+                  const mark = (
+                    <Box width="spacing.6" height="spacing.6" flexShrink={0} borderRadius="max" display="flex" alignItems="center" justifyContent="center" borderWidth={current ? 'thick' : 'thin'} borderColor={current ? 'surface.border.primary.normal' : 'surface.border.gray.normal'}>
+                      <Text size="xsmall" weight="semibold" color={current ? 'surface.text.primary.normal' : 'surface.text.gray.muted'}>{i + 1}</Text>
+                    </Box>
+                  )
+                  return current ? <Pulse tone="primary">{mark}</Pulse> : mark  // the step it is on now carries the live pulse; later steps stay still
+                })()}
                 <Box display="flex" flexDirection="column" gap="spacing.1" minWidth="spacing.0">
                   <Text size="small" weight="semibold" color={current ? 'surface.text.primary.normal' : 'surface.text.gray.muted'}>{current ? `${s.title} · now` : s.title}</Text>
                   <Box minHeight={{ base: 'spacing.0', xl: '40px' }}><Text weight="semibold">{s.value}</Text></Box>

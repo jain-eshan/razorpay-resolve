@@ -13,6 +13,7 @@ import { IncidentStats } from '../components/IncidentStats'
 import { JustYou } from '../components/JustYou'
 import { Lane } from '../components/Lane'
 import { Panel } from '../components/Panel'
+import { LiveStepIndicator } from '../components/Pulse'
 import { RootCauseActions } from '../components/RootCauseActions'
 import { StartFix } from '../components/StartFix'
 import { StoryStrip } from '../components/StoryStrip'
@@ -55,7 +56,7 @@ function reconcile(inc: Schemas['IncidentDetail'], members: Schemas['Member'][])
   return `${members.length} found · ${waiting} still without access${restored ? ` · ${restored} restored by Blindspot` : ''}${reasons.length ? ` · left out: ${reasons.join(', ')}` : ''}`
 }
 
-// What happened, in order, in the dashboard's Timeline style. The last step is where the founder's fix lands.
+// What happened, in order, in the dashboard's Timeline style. The last step is where the founder's fix lands; while it is still to do, its dot carries the live pulse.
 function Milestones({ inc, pack, atAlert, fix }: { inc: Schemas['IncidentDetail']; pack?: Schemas['EvidencePack']; atAlert: number | null; fix: RefObject<HTMLDivElement> }) {
   const v = inc.verdict
   const off = inc.timeline.find((b) => b.markers.some((m) => m.startsWith("Razorpay's docs say it turns the webhook off")))
@@ -68,7 +69,7 @@ function Milestones({ inc, pack, atAlert, fix }: { inc: Schemas['IncidentDetail'
   ].sort((a, b) => a.at!.localeCompare(b.at!))
   const done = inc.status === 'closed'
   return (
-    <Card padding="spacing.7">
+    <Card padding="spacing.7" testID="milestones">
       <CardBody>
       <Heading as="h2" size="medium">Timeline</Heading>
       <Box marginTop="spacing.5">
@@ -78,7 +79,7 @@ function Milestones({ inc, pack, atAlert, fix }: { inc: Schemas['IncidentDetail'
               <StepItem key={s.title} title={s.title} timestamp={s.stamp ?? when(s.at!)} description={s.text} stepProgress="full" marker={<StepItemIndicator color={s.tone} />} />
             )),
             <StepItem key="end" title={done ? 'Customers restored' : 'Customers still to restore'} stepProgress="none"
-              description={done ? 'Every grant was checked against your records' : `${inc.tier_counts.exact ?? 0} customers paid and have no access`} marker={<StepItemIndicator color={done ? 'positive' : 'notice'} />} />,
+              description={done ? 'Every grant was checked against your records' : `${inc.tier_counts.exact ?? 0} customers paid and have no access`} marker={done ? <StepItemIndicator color="positive" /> : <LiveStepIndicator color="notice" />} />,
           ]}
         </StepGroup>
       </Box>
