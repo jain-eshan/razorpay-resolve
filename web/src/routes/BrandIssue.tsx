@@ -65,7 +65,7 @@ export default function BrandIssue() {
     { title: 'Hear', done: true, value: 'Alert from Sentry', note: `${clock(t.alert)}, sent to Razorpay` },
     { title: 'Find everyone', done: true, value: `${n(c.affected)} customers hit`, note: `${c.paid_twice} paid twice, ${c.no_order} no order` },
     { title: 'Whose side', done: true, value: 'Your code', note: 'Exact confidence' },
-    { title: 'Fix', done: fixed === c.affected, value: `${n(fixed)} of ${n(c.affected)} put right`, note: closed ? 'closed' : done.length ? 'in progress' : 'needs your approval' },
+    { title: 'Fix', done: fixed === c.affected, value: fixed === c.affected ? `All ${n(c.affected)} put right` : `${n(fixed)} of ${n(c.affected)} put right`, note: closed ? 'closed' : done.length ? 'in progress' : 'needs your approval' },  // "1,240 of 1,240 put right" wrapped in a two-across tile on CI's fonts,
     { title: 'Win back', done: told > 0, value: told > 0 ? `${n(told)} told` : 'No one told yet', note: told > 0 ? 'order confirmed' : 'needs your approval' },
   ]
   const actions = [

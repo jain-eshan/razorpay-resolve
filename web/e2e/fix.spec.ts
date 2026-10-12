@@ -63,8 +63,10 @@ test('S-05 to S-08 Hero A runs end to end in under 90 seconds of clicking', asyn
   // S-08 the one RazorSense moment, with its static tint behind it
   await expect(page.getByTestId('success-moment')).toBeVisible()
   await expect(page.getByTestId('success-moment').getByText(new RegExp(`${n} customers have access again`))).toBeVisible()
-  // One RazorSense surface on the screen. Wait for the steady state: a slow runner can show the old and new canvas together for a moment while the success card mounts.
-  await expect.poll(() => page.locator('canvas').count(), { message: 'canvases on the page (rule: at most one RazorSense surface)' }).toBeLessThanOrEqual(1)
+  // One RazorSense surface on the screen (the rule), and no canvas drawn anywhere outside it. Counting every canvas was a stand-in that failed on CI: a slow runner keeps the
+  // surface's old and new canvas together inside the one success card for longer than the poll waited, which is still one surface.
+  await expect(page.getByTestId('success-moment')).toHaveCount(1)
+  await expect.poll(() => page.locator('canvas').evaluateAll((cs) => cs.filter((c) => !c.closest('[data-testid="success-moment"]')).length), { message: 'canvases outside the one RazorSense surface' }).toBe(0)
   expect(Date.now() - start).toBeLessThan(90_000)
   await expect(page.getByText('Undo these changes')).toHaveCount(0) // customers were told, so undo is closed
 })

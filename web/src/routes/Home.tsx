@@ -23,7 +23,7 @@ const EXPLORE_LINE: Record<string, string> = {
   incidents: 'Every customer a problem hit, and what it cost',
   conversations: 'What customers wrote, and the replies sent',
   access: 'Customers still in after a failed renewal',
-  integration: 'Connect your webhook, then check it before go-live',
+  integration: 'Connect your webhook and check it works',
   channels: 'Choose where customers can reach you',
   autonomy: 'Decide how much Blindspot does on its own',
   learning: 'Tell Blindspot which alerts were false',

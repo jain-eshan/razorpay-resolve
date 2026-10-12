@@ -90,7 +90,7 @@ test('the three approvals go in order, and the last one closes the issue', async
   await expect(btn(page, `Message ${c.no_order} customers`)).toBeEnabled()
   await expect(page.getByTestId('story-4')).toContainText(`${n(c.paid_twice)} of ${n(c.affected)} put right`)
   await btn(page, `Message ${c.no_order} customers`).click()
-  await expect(page.getByTestId('story-4')).toContainText(`${n(c.affected)} of ${n(c.affected)} put right`)
+  await expect(page.getByTestId('story-4')).toContainText(`All ${n(c.affected)} put right`)
   await expect(page.getByTestId('story-5')).toContainText(`${n(c.no_order)} told`)
   await expect(page.getByText('Closed: every customer is put right')).toBeVisible()
   // The closing message says plainly that nothing was really refunded or sent (the footnote under the actions says it from the start, so it is not the proof).
