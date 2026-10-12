@@ -129,22 +129,26 @@ test('Hero B plays end to end with no server: infer, check the page, fix, links 
   await expect(page.getByText('Your code · estimated').first()).toBeVisible()
   await expect(page.getByText('Razorpay could not see this')).toBeVisible()
   await expect(page.getByText('4 signals, strongest first')).toBeVisible()
-  await expect(page.getByText(/What Blindspot cannot see: Anything between the customer's device/)).toBeVisible()
+  await expect(page.getByTestId('cannot-see').getByText(/^Anything between the customer's device/)).toBeVisible()
   await expect(page.getByTestId('orders-chart')).toBeVisible()
   await expect(page.getByText('Instagram replies arrive in a later release.').first()).toBeVisible()
 
   await btn(page, 'Check the pay page now').click()
   await expect(panel(page).getByText(/HTTP 404, no checkout script. The page is still failing/)).toBeVisible()
-  await btn(page, 'Plan the links').click()
-  await expect(panel(page).getByText(/^8 customers, 1 of them held back on purpose/)).toBeVisible()
-  await expect(panel(page).getByText(/Button: Pay the same amount/).first()).toBeVisible()
-  await expect(btn(page, 'Looks right, continue')).toBeDisabled()
-  await btn(page, 'Switch messaging on').click()
-  await expect(panel(page).getByText(/Links go out only after the fix is confirmed. Your pay page still answers 404/)).toBeVisible()
+  // Links are locked until the page has held for 2 hours, and the step says why instead of looking dead.
+  await expect(btn(page, 'Plan the links')).toBeDisabled()
+  await expect(panel(page).getByTestId('links-locked')).toHaveText('Fix your pay page first, then wait for 2 hours of healthy checks.')
 
   await btn(page, 'Your developer fixes the pay page').click()
   await btn(page, 'Move the clock forward 2 hours').click()
   await expect(panel(page).getByText('Healthy', { exact: true })).toBeVisible()
+  await btn(page, 'Plan the links').click()
+  await expect(panel(page).getByText(/^8 customers, 1 of them held back on purpose/)).toBeVisible()
+  await expect(panel(page).getByText(/^The plan is ready and nothing has been sent/)).toBeVisible()
+  await expect(panel(page).getByText(/Button: Pay the same amount/).first()).toBeVisible()
+  await expect(btn(page, 'Looks right, continue')).toBeDisabled()
+  await expect(panel(page).getByText(/Messaging is switched off/)).toBeVisible()  // what holds it back is said, with the way to clear it
+  await btn(page, 'Switch messaging on').click()
   await btn(page, 'Looks right, continue').click()
   await btn(page, 'Send the first 5').click()
   await expect(panel(page).getByText('5 of 7', { exact: true })).toBeVisible()
@@ -169,14 +173,17 @@ test('Hero B plays end to end with no server: infer, check the page, fix, links 
   await expect(page.getByText(/Approved first 5: 5 of 8 done and confirmed/).first()).toBeVisible()
 })
 
-test('Hero B: links cannot be sent before the page has held for two hours, and a stage cannot be skipped', async ({ page }) => {
+test('Hero B: links cannot be planned before the page has held for two hours, the lock says why, and a stage cannot be skipped', async ({ page }) => {
   await page.goto('/incidents/INC-4')
+  await expect(btn(page, 'Plan the links')).toBeDisabled()
+  await expect(panel(page).getByTestId('links-locked')).toContainText('Fix your pay page first')
+  await btn(page, 'Your developer fixes the pay page').click()
+  await expect(panel(page).getByTestId('links-locked')).toHaveText('Your pay page has answered normally for 0 of 2 hours. Links unlock after 2 hours.')
+  await expect(btn(page, 'Plan the links')).toBeDisabled()
+  await btn(page, 'Move the clock forward 2 hours').click()
+  await expect(panel(page).getByTestId('links-locked')).toHaveCount(0)
   await btn(page, 'Plan the links').click()
   await btn(page, 'Switch messaging on').click()
-  await expect(btn(page, 'Looks right, continue')).toBeDisabled()
-  await btn(page, 'Your developer fixes the pay page').click()
-  await expect(panel(page).getByText(/0 of 2 hours/).first()).toBeVisible()
-  await btn(page, 'Move the clock forward 2 hours').click()
   await expect(btn(page, 'Send the first 5')).toHaveCount(0) // the test run has to be approved first
   await expect(btn(page, 'Looks right, continue')).toBeEnabled()
 })
@@ -282,7 +289,7 @@ test('INC-3 plays end to end with no server: why it is Razorpay\'s, access kept 
   await expect(page).toHaveURL(/\/incidents\/INC-3$/)
   await expect(page.getByText("This one is on Razorpay's side")).toBeVisible()
   await expect(page.getByText('6 signals pointing at Razorpay, strongest first')).toBeVisible()
-  await expect(page.getByText(/What Blindspot cannot see: Why the gateway returned the error/)).toBeVisible()
+  await expect(page.getByTestId('cannot-see').getByText(/^Why the gateway returned the error/)).toBeVisible()
   await expect(page.getByTestId('renewal-chart')).toBeVisible()
   await expect(page.getByText(/Paid since/).first()).toBeVisible() // the customers who paid again are listed, with the reason, and left out
 
@@ -356,7 +363,7 @@ test('INC-2 plays end to end with no server: why, who was left out, refunds one 
   await expect(page).toHaveURL(/\/incidents\/INC-2$/)
   await expect(page.getByText('Your webhook was fine. The second charge is the problem')).toBeVisible()
   await expect(page.getByText('6 signals pointing at your side, strongest first')).toBeVisible()
-  await expect(page.getByText(/What Blindspot cannot see: Whether the customer meant to buy twice/)).toBeVisible()
+  await expect(page.getByTestId('cannot-see').getByText(/^Whether the customer meant to buy twice/)).toBeVisible()
   await expect(page.getByTestId('duplicate-chart')).toBeVisible()
   await page.getByText(/^Left out \(5\)/).click()
   await expect(page.getByText(/Two seats for two people/).first()).toBeVisible() // the look-alikes are listed, with the reason, and not touched

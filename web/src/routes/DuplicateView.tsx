@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
-  Alert, AlertTriangleIcon, Badge, Box, Button, Card, CardBody, Heading, SegmentedControl, SegmentedControlItem, StepGroup, StepItem,
+  Alert, AlertTriangleIcon, Badge, Box, Card, CardBody, Heading, SegmentedControl, SegmentedControlItem, StepGroup, StepItem,
   StepItemIndicator, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TablePagination, TableRow, Text,
 } from '@razorpay/blade/components'
 import { Crumbs } from '../components/Crumbs'
@@ -37,7 +36,6 @@ const two = (top: string, bottom: string) => (
 const strength = (w: number) => (w >= 3 ? 'Strong' : w === 2 ? 'Medium' : 'Supporting')
 
 export default function DuplicateView({ id }: { id: string }) {
-  const nav = useNavigate()
   const [version, setVersion] = useState(0)
   const fix = useRef<HTMLDivElement>(null)
   const [tier, setTier] = useState<(typeof TIERS)[number]>('exact')
@@ -79,12 +77,11 @@ export default function DuplicateView({ id }: { id: string }) {
                 <Text size="small" color="surface.text.gray.muted">{sentence(v.confidence)} confidence · started {when(inc.onset_at)} · {inc.id}</Text>
               </Box>
             </Box>
-            <Button variant="secondary" size="medium" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Send to your developer</Button>
           </Box>
         </CardBody>
       </Card>
 
-      <StoryStrip inc={inc} />
+      <StoryStrip inc={inc} members={members} />
 
       <Alert isFullWidth color="information" isDismissible={false} title="Your webhook was fine. The second charge is the problem"
         description={`Both charges reached your server and both orders got access. The Pay button in ${sig.app_version} lets a second tap place a second order, so the customer pays twice for one plan. Blindspot can refund the second charge to the original payment method, one customer at a time, once you approve each.${early}`} />
@@ -106,15 +103,14 @@ export default function DuplicateView({ id }: { id: string }) {
                 </Box>
               ))}
             </Box>
-            {v.what_we_cannot_see.map((t) => <Text key={t} size="small" color="surface.text.gray.muted">What Blindspot cannot see: {t}</Text>)}
           </Panel>
 
           <Panel title={`Orders from ${sig.app_version} by day`} subtitle="The red part is the second order of a double tap">
-            <DuplicateChart buckets={inc.timeline} marks={[{ at: sig.release_at, label: 'Release' }]} />
+            <DuplicateChart buckets={inc.timeline} marks={[{ at: sig.release_at, label: 'App released' }]} />
           </Panel>
 
           <EvidenceLane inc={inc} pack={pack} />
-          <JustYou cannotSee={false} inc={inc} />
+          <JustYou inc={inc} />
           <RootCauseActions inc={inc} pack={pack} fix={fix} closed={done} />
 
           <Panel title="Customers" pad={false} trailing={<Text size="small" color="surface.text.gray.muted">{members?.length ?? 0} looked at, {inc.tier_counts.exact ?? 0} to refund</Text>}>
@@ -160,16 +156,22 @@ export default function DuplicateView({ id }: { id: string }) {
 
           {sample && sample.length > 0 && (
             <Panel title={`${sample.length} customers, side by side`} subtitle="What the customer said, what Razorpay recorded and what your records show. Check a few before you fix.">
-              {sample.map((x) => (
+              {sample.map((x) => {
+                const m = members?.find((y) => y.payment_id === x.payment_id)
+                return (
                 <Box key={x.payment_id} display="flex" flexDirection="column" gap="spacing.3" paddingBottom="spacing.4" borderBottomWidth="thin" borderBottomColor="surface.border.gray.subtle">
-                  <Text size="small" color="surface.text.gray.muted">{x.payment_id}</Text>
+                  <Box display="flex" gap="spacing.3" alignItems="center" flexWrap="wrap">
+                    {m && <Text size="small" weight="semibold">{`${m.customer_masked} · ${rupees(m.amount_paise)}`}</Text>}
+                    <Text size="small" color="surface.text.gray.muted">{x.payment_id}</Text>
+                  </Box>
                   <Box display="flex" gap="spacing.5" flexWrap="wrap">
                     <Lane title="Customer says" items={x.lanes.customer} empty="Did not write in" />
                     <Lane title="Razorpay says" items={x.lanes.razorpay} />
                     <Lane title="Your records say" items={x.lanes.merchant} />
                   </Box>
                 </Box>
-              ))}
+                )
+              })}
             </Panel>
           )}
 
@@ -190,7 +192,6 @@ export default function DuplicateView({ id }: { id: string }) {
                 </StepGroup>
               </Box>
               <StartFix to={fix} closed={done} variant="secondary" wideOnly />
-              <Box marginTop="spacing.5"><Button variant="tertiary" size="small" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Open the evidence page</Button></Box>
             </CardBody>
           </Card>
         </Box>

@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
-  Alert, AlertTriangleIcon, Badge, Box, Button, Card, CardBody, Heading, StepGroup, StepItem, StepItemIndicator, Table, TableBody,
+  Alert, AlertTriangleIcon, Badge, Box, Card, CardBody, Heading, StepGroup, StepItem, StepItemIndicator, Table, TableBody,
   TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TablePagination, TableRow, Text,
 } from '@razorpay/blade/components'
 import { Crumbs } from '../components/Crumbs'
@@ -45,7 +44,6 @@ function sentenceFor(e: Schemas['EvidenceItem'], inc: Schemas['IncidentDetail'],
 const strength = (w: number) => (w >= 3 ? 'Strong' : w === 2 ? 'Medium' : 'Supporting')
 
 export default function Zone1View({ id }: { id: string }) {
-  const nav = useNavigate()
   const [version, setVersion] = useState(0)
   const fix = useRef<HTMLDivElement>(null)
   const { data: inc, error } = useGet<Schemas['IncidentDetail']>(`/api/incidents/${id}`, version)
@@ -90,12 +88,11 @@ export default function Zone1View({ id }: { id: string }) {
                 <Text size="small" color="surface.text.gray.muted">{sentence(v.confidence)} confidence · started {when(inc.onset_at)} · {inc.id}</Text>
               </Box>
             </Box>
-            <Button variant="secondary" size="medium" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Send to your developer</Button>
           </Box>
         </CardBody>
       </Card>
 
-      <StoryStrip inc={inc} />
+      <StoryStrip inc={inc} members={members} />
 
       <Alert isFullWidth color="information" isDismissible={false} title="Razorpay could not see this" description={`Customers never reached a payment, so Razorpay has no record of it. Blindspot worked it out from your orders, your pay page and what customers wrote.${early}`} />
 
@@ -116,15 +113,15 @@ export default function Zone1View({ id }: { id: string }) {
                 </Box>
               ))}
             </Box>
-            {v.what_we_cannot_see.map((t) => <Text key={t} size="small" color="surface.text.gray.muted">What Blindspot cannot see: {t}</Text>)}
           </Panel>
 
           <Panel title="Orders and pay-page checks" subtitle="Hour by hour, against what is normal for each hour">
-            <OrdersChart hours={sig.hourly ?? []} marks={marks} edges={[{ at: v.onset_at, label: 'Started' }, { at: sig.end, label: 'Fixed' }]} />
+            {/* Each line is named for what happened, in the merchant's words: what broke, and when it was fixed. */}
+            <OrdersChart hours={sig.hourly ?? []} marks={marks} edges={sig.kind === 'probe' ? [{ at: v.onset_at, label: 'Pay page broke' }, { at: sig.end, label: 'Pay page fixed' }] : [{ at: v.onset_at, label: 'Checkout broke' }, { at: sig.end, label: 'Checkout fixed' }]} />
           </Panel>
 
           <EvidenceLane inc={inc} pack={pack} />
-          <JustYou cannotSee={false} inc={inc} lines={['These customers never reached a payment, so there are no payments to compare. Blindspot compared your orders and pay-page checks with what is normal for the same hours instead (the chart above).']} />
+          <JustYou inc={inc} lines={['These customers never reached a payment, so there are no payments to compare. Blindspot compared your orders and pay-page checks with what is normal for the same hours instead (the chart above).']} />
           <RootCauseActions inc={inc} pack={pack} fix={fix} closed={inc.status === 'closed'} />
 
           <Panel title="Customers who could not pay" pad={false} trailing={<Text size="small" color="surface.text.gray.muted">{rows.length} customers wrote in or had an order nobody could pay for</Text>}>
@@ -165,9 +162,12 @@ export default function Zone1View({ id }: { id: string }) {
 
           {sample && sample.length > 0 && (
             <Panel title={`${sample.length} customers, side by side`} subtitle="What the customer said, what Razorpay recorded and what your pay page did. Check a few before you fix.">
-              {sample.map((x) => (
+              {sample.map((x) => {
+                // These customers never reached a payment, so the engine keys them by its own customer id (cust_...). A merchant reads the masked name, never that id.
+                const m = members?.find((y) => y.payment_id === x.payment_id)
+                return (
                 <Box key={x.payment_id} display="flex" flexDirection="column" gap="spacing.3" paddingBottom="spacing.4" borderBottomWidth="thin" borderBottomColor="surface.border.gray.subtle">
-                  <Text size="small" color="surface.text.gray.muted">{x.payment_id}</Text>
+                  <Text size="small" weight="semibold">{m ? `${m.customer_masked} · ${m.plan} · ${rupees(m.amount_paise)}` : 'A customer'}</Text>
                   <Box display="flex" gap="spacing.5" flexWrap="wrap">
                     {[['Customer says', x.lanes.customer], ['Razorpay says', x.lanes.razorpay], ['Your pay page says', x.lanes.merchant]].map(([t, items]) => (
                       <Box key={t as string} display="flex" flexDirection="column" gap="spacing.2" flex="1" minWidth="200px">
@@ -177,7 +177,8 @@ export default function Zone1View({ id }: { id: string }) {
                     ))}
                   </Box>
                 </Box>
-              ))}
+                )
+              })}
             </Panel>
           )}
 

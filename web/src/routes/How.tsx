@@ -73,7 +73,7 @@ export default function How() {
       <RulesFail metrics={data.metrics} />
       {effort && (
         <Box display="flex" flexDirection="column" gap="spacing.4">
-          <Box display="flex" flexDirection="column" maxWidth="720px">
+          <Box display="flex" flexDirection="column">
             <Heading as="h2" size="medium">What it asks of you, and what it costs</Heading>
             <Text size="small" color="surface.text.gray.muted">Counted from Blindspot's own plans and runs. The time per approval is an estimate, not timed.</Text>
           </Box>
@@ -97,7 +97,7 @@ export default function How() {
               <TableBody>
                 {rows.map((m) => (
                   <TableRow key={m.name} item={m}>
-                    <TableCell><Text weight="semibold" color="surface.text.gray.subtle">{sentence(m.name).replace(/^Day0 /, 'First check ')}</Text></TableCell>
+                    <TableCell><Text color="surface.text.gray.subtle">{sentence(m.name).replace(/^Day0 /, 'First check ')}</Text></TableCell>
                     <TableCell><Text>{m.value ?? 'n/a'}</Text></TableCell>
                     <TableCell><Text size="small" color="surface.text.gray.muted">{m.target}</Text></TableCell>
                     <TableCell><Badge size="medium" color={TONE[m.status]}>{m.status}</Badge></TableCell>

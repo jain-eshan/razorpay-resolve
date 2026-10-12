@@ -16,11 +16,55 @@ test('the story strip tells the five steps with the issue\'s own numbers, and ma
   await expect(strip.getByTestId('story-2')).toContainText(`${inc.affected} customers hit`)
   await expect(strip.getByTestId('story-2')).toContainText('not only those who wrote in')  // the 68 silent are in the numbers below, not repeated here
   await expect(strip.getByTestId('story-3')).toContainText('Your code')
-  await expect(strip.getByTestId('story-4')).toContainText(`${inc.affected - inc.tier_counts.exact} of ${inc.affected} put right`)
+  await expect(strip.getByTestId('story-4')).toContainText(`0 of ${inc.affected} put right`)  // nothing approved yet, so nothing is put right by Blindspot
   await expect(strip.getByTestId('story-5')).toContainText('No one told yet')
   await expect(strip.getByText('Fix · now')).toBeVisible()  // steps 1 to 3 are done, so it is on the fourth
   await expect(strip.getByText(/· now$/)).toHaveCount(1)
 })
+
+// PRD v3: Blindspot never claims a customer who sorted it out without it. "Put right" counts only what its approved actions did; customers who paid again on their own,
+// or whom the merchant had already given access or refunded, are said beside it. The counts come from the same files the page reads.
+type Member = { exclusion_reason: string | null }
+for (const inc of incs) {
+  test(`${inc.id}: the Fix tile counts only what Blindspot put right, and says who sorted it out on their own`, async ({ page }) => {
+    const members = file<Member[]>(`incidents/${inc.id}/members`)
+    const own = members.filter((m) => /^Paid since\b/.test(m.exclusion_reason ?? '')).length
+    const you = members.filter((m) => m.exclusion_reason === 'already active (manual grant)' || m.exclusion_reason === 'refunded').length
+    await page.goto(`/incidents/${inc.id}`)
+    const fix = page.getByTestId('story-4')
+    await fix.waitFor()
+    await expect(fix).toContainText(`0 of ${inc.affected} put right`)
+    if (own) await expect(fix).toContainText(`${own} paid on their own`)
+    if (you) await expect(fix).toContainText(`${you} fixed by you`)
+    if (inc.id !== 'INC-2') expect(own + you, `${inc.id} has someone to say beside the count, so this test checks something`).toBeGreaterThan(0)
+  })
+}
+
+// "What Blindspot cannot see" is said once on every issue page: one label, then the caveats as a list, not the label in front of each caveat.
+type Caveats = { verdict: { what_we_cannot_see: string[] } }
+for (const inc of incs) {
+  test(`${inc.id}: "What Blindspot cannot see" appears once, with every caveat listed under it`, async ({ page }) => {
+    const caveats = file<Caveats>(`incidents/${inc.id}`).verdict.what_we_cannot_see
+    await page.goto(`/incidents/${inc.id}`)
+    await page.getByTestId('just-you').waitFor()  // the page has loaded, so a count of 0 or 2 below is real
+    await expect(page.getByTestId('cannot-see')).toHaveCount(1)
+    await expect(page.getByText(/What Blindspot cannot see/)).toHaveCount(1)
+    expect(caveats.length).toBeGreaterThan(0)
+    for (const c of caveats) await expect(page.getByTestId('cannot-see').getByText(c, { exact: true })).toBeVisible()
+  })
+}
+
+// One way to send the issue to the developer per page (it lives in the actions card), and no engine customer id (cust_...) anywhere a merchant reads.
+for (const inc of incs) {
+  test(`${inc.id}: one "Send to your developer" on the page, and no raw customer id`, async ({ page }) => {
+    await page.goto(`/incidents/${inc.id}`)
+    await page.getByTestId('fix-panel').waitFor()  // the whole page is in, fix steps included
+    const dev = page.locator('main').getByRole('button', { name: /Send to your developer|Open the evidence (pack|page)/ }).or(page.locator('main').getByRole('link', { name: /page for your developer/ }))
+    await expect(dev).toHaveCount(1)
+    await expect(page.getByTestId('root-cause-actions').getByRole('button', { name: /Send to your developer|Open the evidence pack/ })).toHaveCount(1)
+    expect(await page.locator('main').innerText()).not.toMatch(/\bcust_\w+/)
+  })
+}
 
 for (const inc of incs) {
   test(`${inc.id}: the three numbers at the top equal the data`, async ({ page }) => {
@@ -43,8 +87,6 @@ test('"Is it just you?" says it in plain sentences, strongest first, with the nu
   await expect(panel.getByRole('progressbar')).toHaveCount(0)  // the bars are behind "Show the numbers"
   await panel.getByText(/Show the numbers \(\d+ patterns checked\)/).click()
   expect(await panel.getByRole('progressbar').count()).toBeGreaterThan(2)
-  // The caveat is said once on a page, not twice.
-  await expect(page.getByText(/^What Blindspot cannot see: Why your server answered/)).toHaveCount(1)
   await page.goto('/incidents/INC-4')  // a pay-page issue has no payments to compare
   await expect(page.getByTestId('just-you').getByText(/no payments to compare/)).toBeVisible()
   await page.goto('/incidents/INC-2')
@@ -83,7 +125,7 @@ test('a finished or missing issue: nothing waiting says so; a dead address says 
     await route.fulfill({ json: { ...body, tier_counts: { ...body.tier_counts, exact: 0 } } })
   })
   await page.goto('/incidents/INC-1')
-  await expect(page.getByTestId('root-cause-actions').getByText('Nothing is waiting for you. Every customer has been put right.')).toBeVisible()
+  await expect(page.getByTestId('root-cause-actions').getByText('Nothing is waiting for you. Every step has been approved.')).toBeVisible()
   await expect(page.getByTestId('root-cause-actions').getByRole('button', { name: 'See how it was fixed' })).toBeVisible()
   await page.goto('/incidents/INC-99')
   await expect(page.getByText('We could not find that payment issue')).toBeVisible()
@@ -92,6 +134,8 @@ test('a finished or missing issue: nothing waiting says so; a dead address says 
   await expect(page).toHaveURL(/\/incidents$/)
 })
 
+// Each chart's first mark, named for what happened (not "Started").
+const START: Record<string, string> = { 'INC-1': 'Webhooks broke', 'INC-2': 'App released', 'INC-3': 'Cards failing', 'INC-4': 'Pay page broke' }
 const CHARTS: [string, string, string][] = [['INC-1', 'timeline-chart', 'Webhooks per hour'], ['INC-2', 'duplicate-chart', 'Orders per day'], ['INC-3', 'renewal-chart', 'Card renewals per hour'], ['INC-4', 'orders-chart', 'Orders per hour']]
 for (const [id, tid, unit] of CHARTS) {
   test(`${id}: the chart has its unit on the axis, at most four gridlines, the start marked, and its key inside the card at every width`, async ({ page }) => {
@@ -114,10 +158,16 @@ for (const [id, tid, unit] of CHARTS) {
         const svg = el.querySelector('svg.recharts-surface')!.getBoundingClientRect()
         // The label's pill (the rect behind its text) must end inside the plot's own svg, or its border is cut.
         const marks = [...el.querySelectorAll('.recharts-reference-line')].filter((l) => l.textContent).map((l) => ({ t: l.textContent, r: rect(l.querySelector('rect')!).right, box: svg.right }))
+        // Blade draws a pill on every reference line, even one with no text: a line on the chart must always carry its name.
+        const empty = [...el.querySelectorAll('.recharts-reference-line')].filter((l) => !(l.textContent ?? '').trim()).length
         const x = [...el.querySelectorAll('text')].filter((n) => n.getAttribute('text-anchor') !== 'end' && /\d/.test(n.textContent ?? '')).map(rect).sort((a, b) => a.left - b.left)  // the date labels under the bars
         const y = [...el.querySelectorAll('.recharts-yAxis-tick-labels .recharts-cartesian-axis-tick-value')].map((n) => Number((n.textContent ?? '').replace(/[^\d.]/g, '')))
-        return { marks, xGaps: x.slice(1).map((r, i) => Math.round(r.left - x[i].right)), y }
+        return { marks, empty, xGaps: x.slice(1).map((r, i) => Math.round(r.left - x[i].right)), y }
       })
+      expect(axes.empty, `a line with an empty label pill at ${width}px`).toBe(0)
+      // A mark with no room is not drawn; the key says what it was and when (INC-1's fix is too near the right edge).
+      if (id === 'INC-1') await expect(page.getByTestId('chart-legend')).toContainText('Too close to mark on the chart: Webhooks fixed (Thu 01 Oct, 11:34)')
+      expect(axes.marks.map((mk) => mk.t), `the start is marked by name at ${width}px`).toContain(START[id])
       for (const mk of axes.marks) expect(mk.r, `the label "${mk.t}" inside the chart at ${width}px`).toBeLessThanOrEqual(mk.box)
       expect(axes.y.length, `value ticks found at ${width}px`).toBeGreaterThanOrEqual(3)  // so these checks cannot pass by finding nothing
       expect(axes.xGaps.length, `axis labels found at ${width}px`).toBeGreaterThanOrEqual(1)
@@ -173,14 +223,17 @@ test(`the story strip keeps its height, and its numbers move, as the fix goes fr
   await btn('Run the check').click()
   await btn('Plan the fix').click()
   await btn('Looks right, continue').click()
-  const before = await page.getByTestId('story-4').innerText()  // "4 of 85 put right"
+  const before = await page.getByTestId('story-4').innerText()  // "0 of 85 put right"
   await btn('Grant the first 5').click()
   await expect(page.getByText(/^5 of \d+ confirmed active by your records/)).toBeVisible()
+  await expect.poll(() => page.getByTestId('story-4').innerText(), 'the first 5 count once confirmed').toContain('5 of 85 put right')
   await note()
   await btn(/^Grant the rest/).click()
   await expect(page.getByText(/^\d+ of \d+ confirmed active/).first()).toBeVisible()
-  await expect.poll(() => page.getByTestId('story-4').innerText(), 'the number in the strip moves with the fix').toContain('85 of 85 put right')
-  expect(before).toContain('4 of 85 put right')
+  // 81 given access back by Blindspot; the other 4 the merchant had already handled, so they are said beside the count, not in it.
+  await expect.poll(() => page.getByTestId('story-4').innerText(), 'the number in the strip moves with the fix').toContain('81 of 85 put right')
+  await expect(page.getByTestId('story-4')).toContainText('4 fixed by you')
+  expect(before).toContain('0 of 85 put right')
   await note()
   await btn('Preview the message').click()
   await btn('Switch messaging on').click()
@@ -195,7 +248,7 @@ test(`the story strip keeps its height, and its numbers move, as the fix goes fr
   await btn('Move the clock forward 24 hours').click()
   await btn('Check it held and close').click()
   await expect(page.getByTestId('success-moment')).toBeVisible()
-  await expect(strip.getByText('closed')).toBeVisible()
+  await expect(strip.getByText(/· now$/)).toHaveCount(0)  // closed and the customers told: every step is done
   await note()
   expect(new Set(heights).size, `every tile's text keeps its height from waiting to closed: ${heights.join(' then ')}`).toBe(1)
 })
@@ -256,6 +309,17 @@ test('Accuracy: "where rules fail" shows the report\'s figures with their counts
   await expect(card.getByText(/made up/).first()).toBeVisible()
   await expect(card.getByText(/No model has been run on them yet/)).toBeVisible()  // it says what it does not show
   await expect(card.getByText(/messy_complaints\.json/)).toHaveCount(0)  // no file path in a merchant's page
+})
+
+// Accuracy read as a wall of bold (Eshan, 13 Oct). Only the figures are bold: a stat's label is regular, and so is a check's name in the full table.
+test('Accuracy: stat labels are regular weight and only the figures are bold', async ({ page }) => {
+  await page.goto('/how')
+  const weight = (l: import('@playwright/test').Locator) => l.evaluate((el) => Number(getComputedStyle(el).fontWeight))
+  const label = page.getByText('Stuck customers the first check found', { exact: true })
+  expect(await weight(label)).toBeLessThan(500)
+  expect(await weight(label.locator('xpath=following-sibling::*[1]'))).toBeGreaterThanOrEqual(600)
+  await page.getByRole('button', { name: /^Show all \d+ checks$/ }).click()
+  expect(await weight(page.getByText('First check customers found vs truth', { exact: true }))).toBeLessThan(500)
 })
 
 test('the evidence lane puts each side on one row: whose side shows before anyone reads the text', async ({ page }) => {

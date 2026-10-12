@@ -57,6 +57,13 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
   const holdout = ((rec?.params as { holdout?: string[] } | undefined)?.holdout ?? []).length
   const planned = rec?.items.length ?? 0
   const sent = c.sent ?? 0
+  // Links go out only once the pay page has answered normally for 2 hours (the engine's own gate at approval). Until then the button to plan them is locked and says why,
+  // instead of making a draft that cannot be sent. A checkout issue has no page check: the engine confirms it from the orders, so nothing is locked here.
+  const locked = kind !== 'probe' ? undefined
+    : !health ? 'Checking your pay page.'
+    : health.page_mode !== 'ok' ? `Fix your pay page first, then wait for ${NEED_HOURS} hours of healthy checks.`
+    : !health.signal_healthy ? `Your pay page has answered normally for ${health.healthy_hours} of ${NEED_HOURS} hours. Links unlock after ${NEED_HOURS} hours.`
+    : undefined
   const approve = (a: Action, stage: Action['stage']) =>
     run(`${a.id}:${stage}`, async () => {
       const next = await send<Action>('POST', `/api/actions/${a.id}/approve`, { stage, approver: 'founder' })
@@ -78,15 +85,11 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
       {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Demo" description={`${demoNote} Click through the steps. Each answer comes from the real engine.`} />}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="That did not go through" description={error} />}
 
-      <Turn n={1} title="Send the evidence to your developer">
-        <Text size="small">What failed, when it started, the change that went live just before, and the suggested fix, in one page they can open without signing in.</Text>
-        <Box><Link to={`/incidents/${inc.id}/dev`}><Text color="interactive.text.primary.normal" weight="semibold">Open the page for your developer</Text></Link></Box>
-      </Turn>
-
-      <Turn n={2} analyzing={busy === 'probe'} you={probe ? 'Check the pay page now' : undefined} title={kind === 'probe' ? 'Check your pay page' : 'Confirm checkout works again'} badge={health?.signal_healthy ? ['Healthy', 'positive'] : health ? [health.page_mode === 'ok' ? `Healthy ${health.healthy_hours} of ${NEED_HOURS} h` : `Answers ${health.page_status}`, health.page_mode === 'ok' ? 'notice' : 'negative'] : undefined}>
+      {/* The developer gets the evidence from "Send to your developer" in the actions card above, the one place on the page that offers it. */}
+      <Turn n={1} analyzing={busy === 'probe'} you={probe ? 'Check the pay page now' : undefined} title={kind === 'probe' ? 'Confirm your pay page works again' : 'Confirm checkout works again'} badge={health?.signal_healthy ? ['Healthy', 'positive'] : health ? [health.page_mode === 'ok' ? `Healthy ${health.healthy_hours} of ${NEED_HOURS} h` : `Answers ${health.page_status}`, health.page_mode === 'ok' ? 'notice' : 'negative'] : undefined}>
         {kind === 'probe' ? (
           <>
-            <Text size="small">Blindspot requests your pay page every 5 minutes. Two failed checks in a row raised this. Payment links go out only after the page has answered normally for {NEED_HOURS} hours.</Text>
+            <Text size="small">Your developer fixes the page. Blindspot opens your pay page every 5 minutes, and two failed checks in a row raised this issue. Payment links go out only after the page has answered normally for {NEED_HOURS} hours.</Text>
             <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
               <Button variant="secondary" isLoading={busy === 'probe'} isDisabled={!!busy} onClick={() => run('probe', async () => { setProbe(await send<Schemas['ProbeResult']>('POST', '/api/probes/run')); await refreshHealth() })}>
                 Check the pay page now
@@ -99,17 +102,19 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
         )}
       </Turn>
 
-      <Turn n={3} analyzing={busy === 'plan'} you={rec ? 'Plan the links' : undefined} title="Payment links, a few at a time" badge={rec ? [rec.status === 'done' ? 'Sent' : rec.status === 'drafted' ? 'Draft' : rec.status === 'failed' ? 'Stopped' : `${sent} of ${planned - holdout}`, rec.status === 'done' ? 'positive' : rec.status === 'failed' ? 'negative' : 'neutral'] : undefined}>
+      <Turn n={2} analyzing={busy === 'plan'} you={rec ? 'Plan the links' : undefined} title="Send customers a link to pay again" badge={rec ? [rec.status === 'done' ? 'Sent' : rec.status === 'drafted' ? 'Draft, nothing sent' : rec.status === 'failed' ? 'Stopped' : `${sent} of ${planned - holdout}`, rec.status === 'done' ? 'positive' : rec.status === 'failed' ? 'negative' : 'neutral'] : locked ? ['Locked', 'neutral'] : undefined}>
         {!rec ? (
           <Box display="flex" flexDirection="column" gap="spacing.3" alignItems="flex-start">
-            <Text size="small">Lists who could be sent the link for the same plan and amount: customers who wrote in, never paid, and can be messaged on the channel they used. Changes nothing yet.</Text>
-            <Button isLoading={busy === 'plan'} isDisabled={!!busy} onClick={() => run('plan', async () => { const a = await send<Action>('POST', `/api/incidents/${inc.id}/actions`, { action_type: 'recovery_link', params: {} }); setRec(a); await loadPreview(a); onChanged() })}>
+            <Text size="small">Each customer who wrote in and could not pay gets a link for the same plan and amount, on the channel they used. Planning lists who gets one and sends nothing.</Text>
+            <Button isLoading={busy === 'plan'} isDisabled={!!busy || !!locked} onClick={() => run('plan', async () => { const a = await send<Action>('POST', `/api/incidents/${inc.id}/actions`, { action_type: 'recovery_link', params: {} }); setRec(a); await loadPreview(a); onChanged() })}>
               Plan the links
             </Button>
+            {locked && <Text size="small" color="feedback.text.notice.intense" testID="links-locked">{locked}</Text>}
           </Box>
         ) : (
           <Box display="flex" flexDirection="column" gap="spacing.4">
             <Text weight="semibold">{planned} customers, {holdout} of them held back on purpose.</Text>
+            {rec.status === 'drafted' && <Text size="small">The plan is ready and nothing has been sent. Read the message below, then approve the test run.</Text>}
             <Text size="small" color="surface.text.gray.muted">The held-back customers get nothing. Comparing them with the rest is the only way to tell what the link adds. With so few customers the comparison is a rough guide at best.</Text>
             {previews.map((p) => (
               <Box key={p.template_id + p.language} backgroundColor="surface.background.gray.subtle" borderRadius="medium" padding="spacing.5" display="flex" flexDirection="column" gap="spacing.3">
@@ -122,12 +127,15 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
               </Box>
             ))}
             <Text size="small" color="surface.text.gray.muted">Written from a template. The link is made through Razorpay's payment link API (simulated here), valid for {String((rec.params as { valid_hours?: number }).valid_hours ?? 48)} hours, no discount, one per customer. Messages cannot be unsent.</Text>
+            {/* Whatever holds the links back is said in words, with the way to clear it, so the disabled button below never looks broken. */}
+            {rec.blocked_reason && <Alert isFullWidth color="notice" isDismissible={false} title="Not sent yet" description={rec.blocked_reason} />}
             {rec.blocked_reason?.startsWith('Messaging') && (
-              <Button variant="secondary" isDisabled={!!busy} onClick={() => run('msgon', async () => { const s = await get<Schemas['Settings']>('/api/settings'); await send('PUT', '/api/settings', { ...s, messaging_enabled: true }); setRec(await get<Action>(`/api/actions/${rec.id}`)) })}>
-                Switch messaging on
-              </Button>
+              <Box>
+                <Button variant="secondary" isDisabled={!!busy} onClick={() => run('msgon', async () => { const s = await get<Schemas['Settings']>('/api/settings'); await send('PUT', '/api/settings', { ...s, messaging_enabled: true }); setRec(await get<Action>(`/api/actions/${rec.id}`)) })}>
+                  Switch messaging on
+                </Button>
+              </Box>
             )}
-            {rec.blocked_reason && !rec.blocked_reason.startsWith('Messaging') && <Alert isFullWidth color="notice" isDismissible={false} title="Not yet" description={rec.blocked_reason} />}
             {rec.status === 'failed' && <Alert isFullWidth color="negative" isDismissible={false} title="Stopped" description="A message was refused, so nothing more went out. Check the audit trail for the reason." />}
             {rec.next_stage && (
               <Box>
@@ -141,7 +149,7 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
       </Turn>
 
       {!!sent && (
-        <Turn n={4} you={'Show me what the customers did'} title="What the customers did" badge={sent ? ['Simulated customers', 'neutral'] : undefined}>
+        <Turn n={3} you={'Show me who paid'} title="Who paid after the link" badge={sent ? ['Simulated customers', 'neutral'] : undefined}>
         {!sent ? (
           <Text size="small" color="surface.text.gray.muted">Opens once links are out. Links stay valid for 48 hours, so give it time: move the demo clock forward.</Text>
         ) : (
@@ -154,7 +162,7 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
       </Turn>
       )}
 
-      <Turn n={5} analyzing={busy === 'verify'} you={result ? 'Check it held and close' : undefined} title="Check it held and close" badge={inc.status === 'closed' ? ['Closed', 'positive'] : undefined}>
+      <Turn n={sent ? 4 : 3} analyzing={busy === 'verify'} you={result ? 'Check it held and close' : undefined} title="Check it held and close" badge={inc.status === 'closed' ? ['Closed', 'positive'] : undefined}>
         <Text size="small">{kind === 'probe' ? `Checks that your pay page has answered normally for ${NEED_HOURS} hours.` : 'Checks that orders are getting payment attempts again.'} A recovery that is half sent keeps the payment issue open.</Text>
         <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
           <Button variant="secondary" isLoading={busy === 'verify'} isDisabled={!!busy} onClick={() => run('verify', async () => { setResult(await send<Schemas['VerifyResult']>('POST', `/api/incidents/${inc.id}/verify`)); await refreshHealth(); onChanged() })}>

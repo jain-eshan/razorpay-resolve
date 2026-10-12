@@ -12,10 +12,11 @@ const FADE = 'radial-gradient(ellipse 50% 50% at center, black 62%, transparent 
 
 // The three cards use the product's own words (docs/PRD_V3.md, section 1): the problem, then the five things it does, then the approval rule. Each claim is
 // something Blindspot does today. A new line is checked against the PRD first.
+// Every sentence names its subject (Blindspot, you, your customers): a merchant reads this once, on the first visit, with nothing before it to point back to.
 const STEPS: { art: ArtId | 'hero'; title: string; text: string }[] = [
-  { art: 'hero', title: 'Find every customer a payment problem hit', text: 'Most customers who fail once never try again, and most never complain. Blindspot hears about a problem from your customers or your payment data, then finds everyone it hit, including the ones who never wrote in.' },
-  { art: 'proof', title: 'Know whose side it is, with proof', text: 'Before it blames anyone, Blindspot checks where the failures cluster: one app version, one payment method, one error code. It then says whether the cause is your code, your settings, Razorpay or the bank, and what it cost in rupees.' },
-  { art: 'approve', title: 'Fix it and win customers back, with your approval', text: 'Blindspot fixes what Razorpay can fix, in small steps, and messages the customers who dropped off. Nothing moves money or reaches a customer until you approve it, and it never asks anyone for a password, card number or OTP.' },
+  { art: 'hero', title: 'Find every customer a payment problem hit', text: 'Most customers whose payment fails once never try again, and most never complain. Blindspot spots the problem in your customers\' messages or your payment data, then finds every customer the problem hit, including the ones who never wrote in.' },
+  { art: 'proof', title: 'Know whose side it is, with proof', text: 'Before naming a cause, Blindspot checks where the failed payments pile up: one app version, one payment method, one error code. Then Blindspot says whether the cause is your code, your settings, Razorpay or the bank, and what the problem cost you in rupees.' },
+  { art: 'approve', title: 'Fix it and win customers back, with your approval', text: 'Blindspot fixes what Razorpay can fix, in small steps, and messages the customers who dropped off. No money moves and no customer gets a message until you approve. Blindspot never asks anyone for a password, card number or OTP.' },
 ]
 
 export function WelcomeTour({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -41,7 +42,7 @@ export function WelcomeTour({ open, onClose }: { open: boolean; onClose: () => v
         <Box padding="spacing.6" display="flex" flexDirection="column" gap="spacing.3" minHeight={{ base: '252px', m: '168px' }} testID="welcome-step">
           <Text size="small" weight="semibold" color="surface.text.gray.muted">{`Welcome to Blindspot · ${step + 1} of ${STEPS.length}`}</Text>
           <Heading as="h2" size="large">{s.title}</Heading>
-          <Text color="surface.text.gray.subtle">{s.text}</Text>
+          <Text color="surface.text.gray.subtle" testID="welcome-text">{s.text}</Text>
         </Box>
       </ModalBody>
       <ModalFooter>

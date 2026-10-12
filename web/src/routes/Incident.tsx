@@ -134,12 +134,11 @@ function Incident() {
               <Text size="small" color="surface.text.gray.muted">{sentence(v.confidence)} confidence · started {when(inc.onset_at)} · {inc.id}</Text>
             </Box>
           </Box>
-          <Button variant="secondary" size="medium" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Send to your developer</Button>
         </Box>
         </CardBody>
       </Card>
 
-      <StoryStrip inc={inc} />
+      <StoryStrip inc={inc} members={members} />
 
       {/* The answer, in plain words, full width between the story and the numbers, as on the other issue pages. Slots are the engine's, not typed here. */}
       <Alert isFullWidth color="information" isDismissible={false} title="Your app never heard about these payments"
@@ -152,7 +151,7 @@ function Incident() {
 
 
           <Panel title="What your server did" subtitle="Webhook outcomes, hour by hour">
-            <TimelineChart buckets={inc.timeline} marks={[{ at: v.onset_at, label: 'Started' }, { at: v.resolved_at, label: 'Fixed' }]} />
+            <TimelineChart buckets={inc.timeline} marks={[{ at: v.onset_at, label: 'Webhooks broke' }, { at: v.resolved_at, label: 'Webhooks fixed' }]} />
           </Panel>
 
           <EvidenceLane inc={inc} pack={pack} />
