@@ -54,7 +54,7 @@ type DupView = { board: Schemas['RefundBoard']; members: Schemas['Member'][]; ov
 
 const STAGES = ['dry_run', 'first_5', 'rest'] as const
 const NEXT: Record<string, string | undefined> = { drafted: 'dry_run', dry_run: 'first_5', first_5: 'rest' }
-const NOW = new Date('2026-10-02T10:40:00+05:30')
+export const NOW = new Date('2026-10-02T10:40:00+05:30')
 const label = (s: string) => s.replace('_', ' ')
 
 const st = {

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 
 // A person who has never heard of Blindspot meets the welcome pop-up on the overview: three slides (what it catches, whose side, you approve), then setup.
 // Automated browsers skip the pop-up so it does not cover every other test; `?welcome` asks for it (lib/setup.ts).
-test('the welcome pop-up walks through three slides into setup, and Take the tour opens it again', async ({ page }) => {
+test('the welcome pop-up walks through three slides into setup, and Take a tour opens it again', async ({ page }) => {
   await page.goto('/?welcome')
   const tour = page.getByRole('dialog', { name: 'Welcome to Blindspot' })
   await expect(tour.getByRole('heading', { name: 'Find customers who paid and got nothing' })).toBeVisible()
@@ -22,7 +22,7 @@ test('the welcome pop-up walks through three slides into setup, and Take the tou
   await expect(page).toHaveURL(/\/setup$/)
   await page.goto('/')
   await expect(page.getByRole('dialog')).toHaveCount(0)
-  await page.getByRole('button', { name: 'Take the tour' }).click()
+  await page.getByRole('button', { name: 'Take a tour' }).click()
   await expect(tour).toBeVisible()
   await tour.getByRole('button', { name: 'Look around first' }).click()
   await expect(page.getByRole('dialog')).toHaveCount(0)

@@ -61,7 +61,7 @@ Screen names in the UI follow DESIGN.md section 22, so they differ from the word
 3. **Razorpay's own patterns.** Home follows the dashboard home (cards, date range, detail). Setup follows the Subscriptions "Get started" card (steps visible, stepper, button bottom right). Incident severity follows Ecosystem Health (summary strip, coloured status). Lists follow Ray's urgency groups (labelled dividers).
 4. **Page header carries the page actions** (`PageHeader` `actions` slot, top right): "Take a tour", "Reset setup", the date range.
 5. **One primary action per card.** Approvals show the amount and the count before the button.
-6. **No real brand assets** for Flipkart, Sentry or Slack. Generic look, names in text only, a made-up store brand (Eshan picks the name).
+6. **No real brand assets** for Flipkart, Sentry or Slack: names in text only, generic look, no logos. The store is named Flipkart (Eshan's call, 12 Oct: a demo, not for production, shown to the Razorpay team).
 7. **Phone width works.** Grids stack, the side nav becomes the drawer, charts stay readable at 375px.
 
 ---
@@ -76,16 +76,16 @@ Every task carries its MoSCoW call from the scoring in PRD v3 section 13 (RICE o
 
 PRD: F1, F1a, wireframe 1, section 9 UI fixes 1 to 5.
 
-- [ ] **H1 Header and no tinted panel.** Remove the `surface.background.primary.subtle` hero panel. `PageHeader` with title, and in `actions`: "Take a tour" and "Reset setup" as links, the date range on the right. Files: `web/src/routes/Home.tsx`. Done when: no tinted panel on Home; actions sit top right at 1440px and wrap under the title at 375px.
-- [ ] **H2 Date range.** Blade `Dropdown` with Today, Last 7 days, Last 30 days, This month (custom range via Blade `DatePicker` is a should). Keep it in the URL (`?range=7d`) so it survives reload. Done when: changing it changes the cards, chart and list together.
-- [ ] **H3 Four cards.** Computed in the browser from the incident summaries the API already returns (`IncidentSummary`: `status`, `affected`, `fixed`, `at_risk_paise`, `onset_at`). Cards: open issues (status not closed), customers hit (sum of `affected`), money stuck (sum of `at_risk_paise` on open issues), customers made whole (sum of `fixed`). Rupees recovered needs a new field, so it waits for P2-C1. Reuse `components/Stat.tsx`. Done when: a test checks each card equals the sum from the snapshot data.
-- [ ] **H4 One chart.** New `components/IssuesChart.tsx` on Blade `ChartBar`, stacked by day of `onset_at`. "Show": value (`at_risk_paise`) or volume (`affected`). "Group by": cause (`mismatch_type`, named with `headline()` from `lib/format.ts`) or whose side (`owner`). Method and region come in Phase 2. Done when: both toggles work and the legend uses DESIGN 22 names.
-- [ ] **H5 Issue list.** Open and recent issues in range, sorted by `at_risk_paise`, each row: headline, owner badge, amount, chevron to `/incidents/:id`. Reuse the row pattern in `routes/Incidents.tsx`.
-- [ ] **H6 Ask Ray bar.** Keep the existing `ChatInput` and its answers, as a slim bar under the header; suggestion chips get leading icons (Ray home pattern). Answers stay about the selected range where the data allows.
-- [ ] **H7 Setup card.** Shown while `setupDone() < SETUP_STEPS`: Blade `StepGroup` (horizontal) listing all three steps with ticks for done ones, primary button bottom right. When done: one line, "Setup complete" with "Review". Files: `Home.tsx`, `lib/setup.ts`.
-- [ ] **H8 Reset setup.** Add `resetSetup()` in `lib/setup.ts` (clears saved setup and the welcome flag). The header link asks once (Blade `Modal`), then resets. Done when: after reset the card shows 0 of 3 and the welcome tour is due.
-- [ ] **H9 Tests.** Playwright: range switch, toggles, reset. Update snapshot tests.
-- [ ] **H10 Build log and design review**, as in section 1.
+- [x] **H1 Header and no tinted panel.** Remove the `surface.background.primary.subtle` hero panel. `PageHeader` with title, and in `actions`: "Take a tour" and "Reset setup" as links, the date range on the right. Files: `web/src/routes/Home.tsx`. Done when: no tinted panel on Home; actions sit top right at 1440px and wrap under the title at 375px.
+- [x] **H2 Date range.** Blade `Dropdown` with Today, Last 7 days, Last 30 days, This month (custom range via Blade `DatePicker` is a should). Keep it in the URL (`?range=7d`) so it survives reload. Done when: changing it changes the cards, chart and list together.
+- [x] **H3 Four cards.** Computed in the browser from the incident summaries the API already returns (`IncidentSummary`: `status`, `affected`, `fixed`, `at_risk_paise`, `onset_at`). Cards: open issues (status not closed), customers hit (sum of `affected`), money stuck (sum of `at_risk_paise` on open issues), customers made whole (sum of `fixed`). Rupees recovered needs a new field, so it waits for P2-C1. Reuse `components/Stat.tsx`. Done when: a test checks each card equals the sum from the snapshot data.
+- [x] **H4 One chart.** New `components/IssuesChart.tsx` on Blade `ChartBar`, stacked by day of `onset_at`. "Show": value (`at_risk_paise`) or volume (`affected`). "Group by": cause (`mismatch_type`, named with `headline()` from `lib/format.ts`) or whose side (`owner`). Method and region come in Phase 2. Done when: both toggles work and the legend uses DESIGN 22 names.
+- [x] **H5 Issue list.** Open and recent issues in range, sorted by `at_risk_paise`, each row: headline, owner badge, amount, chevron to `/incidents/:id`. Reuse the row pattern in `routes/Incidents.tsx`.
+- [x] **H6 Ask Ray bar.** Keep the existing `ChatInput` and its answers, as a slim bar under the header; suggestion chips get leading icons (Ray home pattern). Answers stay about the selected range where the data allows.
+- [x] **H7 Setup card.** Shown while `setupDone() < SETUP_STEPS`: Blade `StepGroup` (horizontal) listing all three steps with ticks for done ones, primary button bottom right. When done: one line, "Setup complete" with "Review". Files: `Home.tsx`, `lib/setup.ts`.
+- [x] **H8 Reset setup.** Add `resetSetup()` in `lib/setup.ts` (clears saved setup and the welcome flag). The header link asks once (Blade `Modal`), then resets. Done when: after reset the card shows 0 of 3 and the welcome tour is due.
+- [x] **H9 Tests.** Playwright: range switch, toggles, reset. Update snapshot tests.
+- [x] **H10 Build log and design review**, as in section 1.
 
 MoSCoW for this batch: everything Must (first screen, named feedback from a Razorpay PM and a Flipkart developer), except the custom date range in H2 (Could) and chip icons in H6 (Should).
 
@@ -176,7 +176,7 @@ Helpdesk connector (Freshdesk first), PostHog or Amplitude as an alert source, a
 
 | Question | Blocks | Who |
 |---|---|---|
-| Store brand name | J1 to J8 | Eshan |
+| ~~Store brand name~~ Answered 12 Oct: use Flipkart's real name, in text only (no logo). It is a demo and not for production | J1 to J8 | Eshan |
 | May the prototype change after submission? | Phase 2 plan | Eshan, from the brief or the organisers |
 | Pay-again links (F10) | P2-B6 | Eshan |
 | Does Razorpay keep payer location or network at checkout? | Cut 5 | Ask a Razorpay PM |
