@@ -1073,3 +1073,34 @@ Fifth round (Eshan): the legend was still tall with wide gaps, "See all payment 
 - List overflow: the scroll area inside the list card could not shrink (a flex item's default minimum height), so the footer was pushed out of the card. The fill body now has a minimum height of 0, the rows have 12px of padding above and below instead of 16, the engine's title is one line, and the five issues and the footer fit without scrolling at 1440px.
 - Explore: nine cards, each a page name, a chevron and one line of eight words or fewer in the product's words ("Every customer a problem hit, and what it cost", "Tell Blindspot which alerts were false"), without the long heading, the paragraph or the footer band. The guide pages keep the long text. The grid is about 270px tall, down from about 650px.
 
+
+## 12 Oct 2026, practice: build checks on every screen (all streams)
+
+Eshan asked that the care taken on the Overview become the way every screen is built, and that it be written down. The rules are in `web/DESIGN.md` section 23, the reviewer runs them (`.claude/agents/design-reviewer.md`, C2), the roadmap's "before the PR" list names them, and the root `CLAUDE.md` says to run them before the design review. This entry is the record behind them: what was found on the Overview, why it happened and which check now catches it.
+
+| Round | What Eshan (or the review) found | Cause | The check that now catches it |
+|---|---|---|---|
+| 1 | The Ray glyph sat outside its input and looked orphaned | An icon placed beside a field instead of inside it | A1, A2: nothing floats, every left edge lines up |
+| 1 | The setup card had a wide empty left edge and its heading did not line up with the steps | Blade's horizontal stepper centres its labels | A2, A3, and a custom left-aligned stepper |
+| 1 | The chart was tall and above the list that matters more | No order was written down | A1: write the page's order down (DESIGN 16) |
+| 1 | Legend unreadable at 375px (plot 26px high) | A fixed legend height set by window width | C: try 375, 768, 1024 and 1440px, and measure |
+| 2 | Legend left its card at 1024px | The card is half the page, so the window's width says nothing about it | B1: size from the card's width, measured |
+| 2 | Chat rail scrolled out of view in a long thread | A plain flex child of a scrolling page | D5: sticky bars, and a test that scrolls |
+| 2 | "Continue setup" reopened step 1 | A missing query parameter read as 0 | C and F: try the plain address as well as the parameterised one |
+| 2 | A legend test that could not fail | It measured the wrong element | F1: make the test fail first |
+| 3 | The chat input was see-through: answer buttons drew over it | Blade's buttons are z-index 1 to 2; the bar had none | D5, and a test that checks what is drawn at each button |
+| 3 | I called it "a preview artefact" | I probed the middle of the bar, not where the buttons were | F3, F4: probe the affected point before calling anything an artefact |
+| 3 | The side menu vanished on the chat page | The reference page has no side menu because Ray is its whole product | D1: do not copy a reference blindly; keep the way back |
+| 3 | "rrr" got a table of payment issues | A fallback that answers anything | D3: bad input is said so, with what can be asked |
+| 3 | Tour cards unclear | Wording not from the PRD | A8: the PRD's words, short, true today |
+| 4 | The chart arrived small and then grew | The legend height was set after the width was measured | B2: measure before the first paint; a skeleton of the final size |
+| 4 | The list card changed size when the range changed | The stretched row was set by whichever card was taller, and the list's height depended on its data | B4: one card sets the row; the other fills it |
+| 4 | "₹0" over a large white area | No empty state | B3: an empty state in the same space |
+| 4 | Dropdowns for two or three options | Not read from Blade's guidance | A4 and E: SegmentedControl for 2 to 5 options |
+| 5 | Legend still loose | Blade's legend is 14px with 44px rows and cannot be changed | A5, E: draw your own when it matters |
+| 5 | "See all payment issues" hung out of its card | A flex item that could not shrink | C: the most rows; B1: a list scrolls inside its card |
+| 5 | Explore cards too wordy | Descriptions copied from the guides | A8: a name and one line of about eight words |
+
+Process notes from the round, now in section 23: the Blade docs tool needs `create_blade_skill` and the repo root (not `web/`); `Card` accepts only its own parts and `Box` rejects chart colours (both crashed the page and were caught by the browser run, not by types); a component made inside another's render is remounted every render; the full suite in CI mode needs port 5173 free.
+
+Numbers at the end of the round: 113 browser tests (13 of them in `e2e/home.spec.ts`, including the one that records both cards' sizes from the first frame), `make test` 605, `make eval` 147 pass and 30 reported, two independent design reviews that each failed the build once and passed after fixes.

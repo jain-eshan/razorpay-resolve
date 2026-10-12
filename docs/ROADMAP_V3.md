@@ -42,7 +42,7 @@ How to use it: take the next unticked task in your batch, top to bottom. Each ta
 **Before the PR**
 - [ ] `make test`, `make lint`, `make eval`, and in `web/`: `npx tsc -b`, `npx oxlint`, `CI=1 npx playwright test`.
 - [ ] New routes added to `e2e/layout.spec.ts` (375, 768, 1440px; no errors, no sideways overflow).
-- [ ] DESIGN.md section 19 checklist, item by item.
+- [ ] DESIGN.md section 19 checklist, item by item, and **section 23 (build checks) in full**: composition, stability (nothing changes size because of its data), edge cases, the journey around the screen, tests that can fail. Write what was found in the build log.
 - [ ] Entry in `docs/BUILD_LOG.md`. For `web/` work it ends with `Design review:` and the result.
 - [ ] Run the `design-reviewer` agent (`.claude/agents/design-reviewer.md`) with the entry and the diff. Fix every finding or write why not. Run it again. Open the PR only on pass, or pass with notes listed in the entry. Never write "passed" for a review that did not run.
 

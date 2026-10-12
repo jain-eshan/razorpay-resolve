@@ -540,6 +540,7 @@ Run through this for every screen you add or change.
 8. Production items still inert, none removed, none made clickable?
 9. Looks right at 1440px and at a phone width (the side nav becomes a drawer, grids stack)?
 10. `npx tsc -b`, `npx oxlint` and the snapshot e2e tests pass?
+11. Have you run section 23 (composition, stability, edge cases, the journey around the screen, tests that can fail) and written down what you found?
 
 
 ---
@@ -648,3 +649,61 @@ Test viewers could not tell what the product was without Eshan explaining it, an
 **One answer box per page.** An issue page has one blue box that says what happened in plain words, with "With Blindspot on, you would have known ..." at its end, not a second box.
 
 **Disclaimers are short.** The top banner says the data is made up. A page adds one short "Demo" or "Prototype" note only where it differs from what production would do.
+
+
+---
+
+## 23. Build checks: what to look for, every time
+
+Written 12 Oct 2026 from batch 1.1 (the Overview), which Eshan sent back five times, each time for something the checklist in section 19 did not catch. Section 19 checks rules (tokens, one blue button, names). This section checks the *screen*: how it is composed, what it does when its data changes, and whether the journey around it holds together. **Run all of it on every screen you add or change, before the design review, and write what you found and fixed in the build log.** A check that was not run is written as "not checked", never as passed.
+
+### A. Composition (look at it as a product designer, at 1440, 768 and 375px)
+1. **What is the most important thing, and is it first?** Order the page by the questions a merchant asks: what is wrong, how bad, what do I do, is it getting worse, then everything else. Write the order down in the doc for that page (the Overview's is in section 16).
+2. **Nothing floats.** An icon belongs inside the field or the card it describes (the Ray glyph sat outside its input and looked orphaned). Nothing hangs off a card's edge. Check that every left edge lines up: a heading, its steps, its button.
+3. **No dead space, no block bigger than its job.** A tall chart above the list that matters more, a stepper with an empty left edge, a card that is mostly white under "₹0": each is a defect. If a block is large, say what it earns.
+4. **A control belongs with the thing it controls.** The horizon of a chart sits on the chart, not on the page. Two to five short options are visible choices (`SegmentedControl`), not a dropdown (Blade's own guidance).
+5. **Text size matches its job.** A legend is small text on tight lines. Blade's default legend (14px, 44px a row, not adjustable) was too loose, so the chart draws its own.
+6. **Colour means one thing.** Blue is an action, green is Ray and success, orange is "your side". A chart does not use them for data. One blue primary per view or card.
+7. **Touch targets are 36px or more** on both sides (a rail button measured 16px because a flex parent squeezed it). Text on a button does not wrap ("30 days" broke onto two lines at 375px).
+8. **Copy: the PRD's words, short, true today.** A card is a name and one line of about eight words. A claim in a guide or tour is something the product does now (the cross-merchant "is it just you" is not built, so it is not claimed). Names follow section 22.
+
+### B. Stability: a card never changes size because of its data (Eshan's rule)
+1. **Fixed where the data varies.** The chart's plot has a fixed height. The legend has room for every group that can exist, not only those in this range, so it and the colours stay put. A list scrolls inside its card.
+2. **Loading is the same size as loaded.** A Blade `Skeleton` of the final size stands in. Nothing arrives small and grows. Measure the width **before** the first paint (`useLayoutEffect`), not after, or the first paint is a guess.
+3. **Empty is the same size as full.** A range with nothing in it shows a small `EmptyState` (a green tick, why it is empty, what happens next) in the same space, with its controls disabled. Never a bare "₹0" over white.
+4. **One card sets a row's height.** In a two-card row, the card whose size does not depend on data sets the row; the other is laid over it and fills it (`Panel` `fill`). Otherwise the taller of two data-driven cards moves the other.
+5. **Test it by measuring.** `e2e/home.spec.ts` records both cards' sizes on every frame from the first, changes every range, horizon and toggle, and fails on any difference. Do the same for any new card that shows data.
+
+### C. Edge cases (for every element, list them before building, then try each)
+No data; one row; the most rows; a very long name or title; loading; an error; a range or filter that matches nothing; a disabled state; hover and focus; the first visit and a return visit; 375, 768, 1024, 1440px (1024 is where a half-width card is narrowest, and it caught a legend leaving its card); a window resized while it is open.
+
+### D. The journey around a screen (do not copy a reference blindly)
+1. **Way in and way out.** Razorpay's Ray page drops its side menu because Ray is the whole product there. Ours is one page of Blindspot, so the side menu stays, the page it came from is marked, and a toolbar has Overview (back), History and New chat. If a screen hides the navigation, there must be another obvious way back.
+2. **Find your past.** Anything a user creates (a chat) can be found again, and cleared.
+3. **Bad input.** A question the product cannot answer says so and offers what it can (a fallback that answers "rrr" with a table of issues is wrong). An empty submit does nothing. A link to something that does not exist (another browser, cleared history) says so and offers the next step.
+4. **A browser that refuses storage** still works while the tab is open (keep a copy in memory).
+5. **Order of layers.** Blade's buttons sit at z-index 1 to 2. A sticky bar must be above them (we use 5), and above the answers that scroll under it. A bar with a see-through input is a defect; check where the *buttons* are, not the middle of the bar.
+
+### E. What Blade does that is not obvious (learned the hard way)
+- The Blade docs tool needs `create_blade_skill` run once with the **repo root** as its directory (not `web/`). Read the docs before using a component; they say, for example, when to use a dropdown and when to use a segmented control. The generated `.agents/` and `.claude/skills/ui-code-guidelines` stay out of git.
+- `Card` accepts only `CardHeader`, `CardBody` and `CardFooter` as children, and throws on anything else (it crashed the page). `CardBody` takes a `height`.
+- `Box` `backgroundColor` accepts only `surface.*`, `overlay.*` and `transparent`, and throws on a chart colour. A chart-colour swatch is one plain `<span>` that reads the colour from the theme.
+- A component defined inside another component's render is a new component every render, and React remounts it. Define it at the top level.
+- `TextInput` on the web has no `onSubmit`; use `onKeyDown`. A Blade `Link` text never wraps. `StepGroup` horizontal centres its labels.
+- Blade's chart legend, a button per item, ignores text size. Draw your own when it matters.
+
+### F. Tests must be able to fail
+1. Write the test, then make sure it **fails** against the bug (we shipped a legend test that measured the wrong element and could never fail; the reviewer caught it).
+2. Wait for what you mean. A test that waits for the words of a question finds them on a suggestion chip and moves on early; wait for the answer.
+3. Measure geometry in the browser instead of trusting a screenshot, and probe the *right point*. A screenshot tool that clips a tall page, or a check at the middle of a bar, cost us an "it is only an artefact" that was wrong.
+4. Never call something an artefact until a measurement at the place that is affected says so.
+5. A suite run in CI mode needs port 5173 free (stop your preview first); check `lsof -i :5173`.
+
+### G. Process, in order
+1. Check the CI-failure issues (root `CLAUDE.md`). Read the roadmap task, the PRD section, this section and sections 14 to 22.
+2. Read the Blade docs for any component you have not used. List the edge cases (C) before writing.
+3. Build. Look at it at three widths, in the browser, with real interactions, including the empty state.
+4. Run: `npx tsc -b`, `npx oxlint`, the snapshot suite, then `CI=1 npx playwright test` with the port free. Run `make test`, `make lint` and `make eval` when the backend or the data changed.
+5. Run the design review (`.claude/agents/design-reviewer.md`, which includes this section). Fix every finding or say why not. Run it again until it passes.
+6. Write the build log entry: what was built, what broke and why, what was measured, what was left on purpose, what was not checked.
+7. Open the PR, bind it, switch Auto-fix on. Do not merge unless Eshan says so (he merges himself unless he says otherwise).
