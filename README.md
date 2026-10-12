@@ -2,7 +2,7 @@
 
 Razorpay x ISB AI PM Build Challenge, Track 2. An agent for small Indian merchants (in this prototype rules and SQL decide, and a model is the production design) that owns what happens before and after a payment, where Razorpay's own tools stop looking. It finds every customer a payment problem touched, talks to them to find the payment, says whose side the fault is on, and fixes it with the founder approving.
 
-Read `docs/PRD.md` first, then `docs/SPEC.md` and `docs/BUILD_PLAN.md`. `docs/V1_SPEC.md` applies where the v2 docs are silent. A new session starts at `docs/HANDOFF.md`. What broke and why is in `docs/BUILD_LOG.md`. The submission note and video script are in `docs/SUBMISSION.md`, and the AI build log in `docs/AI_BUILD_LOG.md`.
+Read `docs/PRD_V3.md` and `docs/ROADMAP_V3.md` first (v3, 12 Oct: two ways in for small merchants and big brands, the home dashboard, and the build order). Where v3 is silent, `docs/PRD.md`, then `docs/SPEC.md` and `docs/BUILD_PLAN.md`. `docs/V1_SPEC.md` applies where the v2 docs are silent. A new session starts at `docs/HANDOFF.md`. What broke and why is in `docs/BUILD_LOG.md`. The submission note and video script are in `docs/SUBMISSION.md`, and the AI build log in `docs/AI_BUILD_LOG.md`.
 
 ## Try it in two minutes
 

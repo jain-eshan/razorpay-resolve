@@ -1,6 +1,6 @@
 # Handoff: where Blindspot stands (10 Oct 2026: R0 to R5 on `main` except the items marked "not started" below; R7 submission kit, INC-3, INC-2 with the guarded refund, the INC-3 renewal link and data retention are merged as PRs #16, #19, #25, #26 and #27; the J6 report, the no-false-urgency check, the Guard release check and the roadmap batch as #29, #33 and #34)
 
-Read this first in a new chat, then `docs/PRD.md`. Everything below is true as of the last commit on `main`.
+Read this first in a new chat, then `docs/PRD_V3.md` and `docs/ROADMAP_V3.md` (v3, 12 Oct; the next build is ROADMAP_V3 section 3), then `docs/PRD.md` where v3 is silent. Everything below is true as of the last commit on `main`.
 
 ## 0. Start a new chat here (5 minutes)
 
