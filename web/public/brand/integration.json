@@ -1,0 +1,105 @@
+{
+ "set_up": "Set up by your Razorpay account manager on 12 Sep 2026. In this demo it is read only.",
+ "sections": [
+  {
+   "id": "door",
+   "title": "Alert door",
+   "subtitle": "How your alert tools send Blindspot what they see",
+   "rows": [
+    {
+     "label": "Your alert address",
+     "code": "https://api.razorpay.com/v1/blindspot/alerts/acc_3Fq9Tz7Wd",
+     "note": "One address for your account. Sentry, Datadog and PagerDuty send to it through an alert rule, with no change to your app."
+    },
+    {
+     "label": "Signing",
+     "value": "Every alert must be signed with your signing secret. Unsigned alerts are refused.",
+     "note": "The signing secret is shown once, when you create it. Yours was created on 12 Sep."
+    },
+    {
+     "label": "Counted as payments",
+     "list": [
+      "payment-service",
+      "checkout-service",
+      "order-service"
+     ],
+     "note": "Your payment filter. Alerts from these services are checked against your payments."
+    },
+    {
+     "label": "Left out since 24 Sep",
+     "list": [
+      "catalog-service",
+      "recommendation-service",
+      "search-service"
+     ],
+     "note": "Alerts from any other service are dropped on arrival and never read."
+    },
+    {
+     "label": "What is read from an alert",
+     "list": [
+      "Time window",
+      "Error type",
+      "Service or endpoint",
+      "Platform and app version",
+      "Sample order or payment IDs"
+     ]
+    },
+    {
+     "label": "Never needed",
+     "list": [
+      "Customer names",
+      "Phone numbers or email addresses",
+      "Card or bank details"
+     ],
+     "note": "Fields like these are dropped before an alert is stored."
+    },
+    {
+     "label": "Grouping",
+     "value": "Alerts about one cause within 10 minutes join one payment issue.",
+     "note": "So 200 alerts in a bad release are one issue, posted once."
+    },
+    {
+     "label": "Match before acting",
+     "value": "An alert stays unconfirmed until Razorpay's payment data shows customers were hit. An alert alone is never acted on."
+    }
+   ]
+  },
+  {
+   "id": "slack",
+   "title": "Shared Slack channel",
+   "subtitle": "Where root causes and approvals reach your team",
+   "rows": [
+    {
+     "label": "Channel",
+     "code": "#razorpay-payments",
+     "note": "Blindspot posts only here, never in a channel you did not pick."
+    },
+    {
+     "label": "Who is in it",
+     "value": "Your payments and on-call teams, your Razorpay account manager and Razorpay support."
+    },
+    {
+     "label": "What is posted",
+     "list": [
+      "A root cause, as a thread",
+      "Approval requests for refunds, order lists and messages",
+      "A closing note when an issue is fixed"
+     ]
+    },
+    {
+     "label": "Who can approve",
+     "list": [
+      "Payments lead",
+      "On-call engineering manager"
+     ],
+     "note": "Approve buttons work only for these roles. Everyone else in the channel can read."
+    },
+    {
+     "label": "Razorpay support sign-off",
+     "value": "A Razorpay support engineer signs off every root cause. One that is only likely waits for that sign-off before it is posted.",
+     "note": "The levels are on Settings."
+    }
+   ]
+  }
+ ]
+}

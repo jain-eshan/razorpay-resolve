@@ -5,6 +5,10 @@ import { Alert, Box } from '@razorpay/blade/components'
 import { pickerDue, signIn, useAccount } from './lib/account'
 import { Shell } from './components/Shell'
 import Audit from './routes/Audit'
+import BrandAlerts from './routes/BrandAlerts'
+import BrandAudit from './routes/BrandAudit'
+import BrandConnectors from './routes/BrandConnectors'
+import BrandSettings, { BrandIntegration } from './routes/BrandSettings'
 import Case from './routes/Case'
 import ChatDemo from './routes/ChatDemo'
 import Channels from './routes/Channels'
@@ -45,6 +49,8 @@ export default function App() {
   const { pathname } = useLocation()
   const me = useAccount()
   const chat = pathname.startsWith('/ray')
+  // Pages both accounts have, built for each: the brand's version or Kaksha's on the same path.
+  const brand = me.kind === 'enterprise'
   // The account picker is the way in: a first visit to Overview opens it. It sits outside the dashboard shell.
   if (pathname === '/signin') return <SignIn />
   if (pathname === '/' && pickerDue()) return <Navigate to="/signin" replace />
@@ -75,18 +81,19 @@ export default function App() {
               <Route path="/scan" element={K(<Scan />)} />
               <Route path="/access" element={K(<Leakage />)} />
               <Route path="/release-check" element={K(<ReleaseCheck />)} />
-              <Route path="/connect" element={K(<Connect />)} />
+              <Route path="/connect" element={brand ? <BrandIntegration /> : <Connect />} />
+              <Route path="/alerts" element={<Mine only="flipkart"><BrandAlerts /></Mine>} />
               <Route path="/threads" element={K(<Threads />)} />
               <Route path="/threads/:id" element={K(<ThreadPage />)} />
               <Route path="/cases/:id" element={K(<Case />)} />
-              <Route path="/channels" element={K(<Channels />)} />
+              <Route path="/channels" element={brand ? <BrandConnectors /> : <Channels />} />
               <Route path="/chat-demo" element={K(<ChatDemo />)} />
               <Route path="/help-demo/:surface" element={K(<HelpDemo />)} />
               <Route path="/email-demo" element={K(<EmailDemo />)} />
               <Route path="/ig-demo" element={K(<IgDemo />)} />
               <Route path="/public-demo" element={K(<PublicDemo />)} />
-              <Route path="/audit" element={K(<Audit />)} />
-              <Route path="/settings" element={K(<Settings />)} />
+              <Route path="/audit" element={brand ? <BrandAudit /> : <Audit />} />
+              <Route path="/settings" element={brand ? <BrandSettings /> : <Settings />} />
               <Route path="/how" element={<How />} />
               <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/learning" element={K(<Learning />)} />

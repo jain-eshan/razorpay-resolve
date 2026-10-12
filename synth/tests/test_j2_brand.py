@@ -1,7 +1,8 @@
 import json
+import re
 from datetime import datetime
 
-from synth.brand_world import OUT, world
+from synth.brand_world import OUT, PAGES, PAYMENT_SERVICES, world
 from synth.j2_brand import AFFECTED, NO_ORDER, PAID_TWICE, generate
 
 
@@ -50,6 +51,8 @@ def test_same_seed_same_files_and_the_committed_files_are_current():
     w = world()
     assert json.loads((OUT / "incidents.json").read_text()) == w["incidents"], "web/public/brand is stale: run `uv run python -m synth.brand_world`"
     assert json.loads((OUT / "alerts.json").read_text()) == w["alerts"]
+    for name in PAGES:
+        assert json.loads((OUT / f"{name}.json").read_text()) == w[name], f"{name}.json is stale: run `uv run python -m synth.brand_world`"
     for id_, d in w["details"].items():
         assert json.loads((OUT / "incidents" / f"{id_}.json").read_text()) == d, f"{id_} is stale: run `uv run python -m synth.brand_world`"
 
@@ -63,3 +66,46 @@ def test_the_brand_list_reads_like_the_engine_and_adds_up():
         assert s["status"] == "closed" or s["at_risk_paise"] == d["money_stuck_paise"] > 0
     # every alert that became an issue points at one that exists
     assert all(a["issue"] in w["details"] for a in w["alerts"] if a["status"] == "matched")
+
+
+def test_the_payment_filter_decides_what_is_dropped_and_the_pages_agree():
+    w = world()
+    al = w["alerts"]
+    assert [a["at"] for a in al] == sorted((a["at"] for a in al), reverse=True)  # newest first
+    assert len({a["id"] for a in al}) == len(al)
+    for a in al:
+        payment = a["service"] in PAYMENT_SERVICES or a["tool"] == "Razorpay"
+        assert (a["status"] == "dropped") == (not payment), a  # dropped exactly when the service is not a payment service
+        assert (a["issue"] is not None) == (a["status"] == "matched"), a
+    rows = {r["label"]: r for s in w["integration"]["sections"] for r in s["rows"]}
+    assert rows["Counted as payments"]["list"] == PAYMENT_SERVICES
+    left = next(r for label, r in rows.items() if label.startswith("Left out"))
+    assert left["list"] == sorted({a["service"] for a in al if a["status"] == "dropped"})
+
+
+def test_connectors_count_the_alerts_each_tool_sent():
+    w = world()
+    for g in w["connectors"]["groups"]:
+        for c in g["items"]:
+            if c["kind"] in ("alert", "razorpay"):
+                tool = "Razorpay" if c["kind"] == "razorpay" else c["name"]
+                assert int(c["count"].split()[0]) == sum(1 for a in w["alerts"] if a["tool"] == tool), c
+
+
+def test_the_audit_trail_is_newest_first_and_points_at_real_issues():
+    w = world()
+    ev = w["audit"]["events"]
+    assert [e["at"] for e in ev] == sorted((e["at"] for e in ev), reverse=True)
+    assert all(e["kind"] in w["audit"]["kinds"] for e in ev)
+    assert all(e["ref"] is None or e["ref"] in w["details"] for e in ev)
+    assert sum(1 for e in ev if e["kind"] == "alert") == len(w["alerts"])  # every alert is in the trail
+    # the approvals a judge can make in the tab are FK-1's actions, none of them done in the data
+    fk1 = w["details"]["FK-1"]
+    assert [p["action"] for p in w["audit"]["pending"]] == [a["id"] for a in fk1["actions"] if not a.get("done")]
+
+
+def test_no_page_shows_anything_that_looks_like_a_secret():
+    w = world()
+    text = json.dumps([w[p] for p in PAGES], ensure_ascii=False)
+    assert not re.search(r"rzp_(live|test)_|whsec_|sk_live|sk_test|[A-Za-z0-9+/]{32,}", text)
+    assert "The signing secret is shown once, when you create it." in text

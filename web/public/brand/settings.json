@@ -1,0 +1,115 @@
+{
+ "set_up": "Set by your payments lead with your Razorpay account manager on 12 Sep 2026. In this demo they are read only.",
+ "sections": [
+  {
+   "id": "approvals",
+   "title": "Approvals",
+   "subtitle": "What waits for a person, and who that is",
+   "rows": [
+    {
+     "label": "Level",
+     "value": "Review first",
+     "note": "Every refund, order list and message waits for an approver. Root causes are posted without waiting."
+    },
+    {
+     "label": "Waits for approval",
+     "list": [
+      "Refunds",
+      "Messages to customers",
+      "Order lists sent to your team"
+     ]
+    },
+    {
+     "label": "Who approves",
+     "list": [
+      "Payments lead",
+      "On-call engineering manager"
+     ],
+     "note": "In #razorpay-payments or on the payment issue's page."
+    }
+   ]
+  },
+  {
+   "id": "limits",
+   "title": "Limits",
+   "subtitle": "The most one approval can do",
+   "rows": [
+    {
+     "label": "Refunds in one approval",
+     "value": "₹5,00,000",
+     "note": "More than this needs a second approver."
+    },
+    {
+     "label": "Refunds in a day",
+     "value": "₹20,00,000",
+     "note": "Refunds stop for the day once this much has gone out."
+    },
+    {
+     "label": "Customers in one message approval",
+     "value": "1,000",
+     "note": "More than this needs a second approver."
+    },
+    {
+     "label": "Refunds go to",
+     "value": "The customer's original payment method, and nowhere else."
+    }
+   ]
+  },
+  {
+   "id": "signoff",
+   "title": "Razorpay support sign-off",
+   "subtitle": "No root cause reaches you unseen by a person at Razorpay",
+   "rows": [
+    {
+     "label": "Exact: the signals agree",
+     "value": "Posted at once. A support engineer signs it off in the thread within 15 minutes."
+    },
+    {
+     "label": "Likely",
+     "value": "Held until a support engineer signs it off, then posted."
+    },
+    {
+     "label": "Not sure",
+     "value": "Not posted. Support looks into it and says so in the channel."
+    },
+    {
+     "label": "Since 24 Sep",
+     "value": "3 root causes posted, all exact, all signed off",
+     "note": "The slowest sign-off came 3 minutes after the root cause was posted."
+    }
+   ]
+  },
+  {
+   "id": "slack",
+   "title": "In Slack",
+   "subtitle": "How #razorpay-payments gets your team's attention",
+   "rows": [
+    {
+     "label": "Mentions",
+     "value": "@payments-oncall on every new root cause, and the approvers on every approval request."
+    },
+    {
+     "label": "Quiet hours",
+     "value": "None. Root causes are posted at any hour, and approvals wait for an approver."
+    }
+   ]
+  },
+  {
+   "id": "never",
+   "title": "Never, at any level",
+   "subtitle": "No setting unlocks these",
+   "rows": [
+    {
+     "label": "Blindspot never",
+     "list": [
+      "Refunds to a different payment method",
+      "Touches your app, servers or database",
+      "Changes your Razorpay settings",
+      "Messages customers outside a confirmed payment issue",
+      "Asks anyone for a password, OTP or card details"
+     ]
+    }
+   ]
+  }
+ ]
+}

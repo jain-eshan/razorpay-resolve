@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom'
 import { Alert, AlertTriangleIcon, Badge, Box, Button, Card, CardBody, CheckCircleIcon, ChevronRightIcon, EmptyState, Heading, HistoryIcon, Link, Modal, ModalBody, ModalFooter, ModalHeader, RayIcon, RupeesIcon, Text, TextInput, UsersIcon } from '@razorpay/blade/components'
+import { ActivityIcon, BellIcon, ClipboardIcon, CodeSnippetIcon, FileTextIcon, RadioIcon, SettingsIcon, type IconComponent } from '@razorpay/blade/components'
 import { IssuesChart } from '../components/IssuesChart'
 import { MenuPick } from '../components/MenuPick'
 import { PageHeader } from '../components/PageHeader'
@@ -32,8 +33,17 @@ const EXPLORE_LINE: Record<string, string> = {
   scan: 'Who paid and got nothing in the last 30 days',
 }
 const EXPLORE = ['incidents', 'conversations', 'access', 'integration', 'channels', 'autonomy', 'learning', 'how', 'scan']
-// The brand account's pages (its own pages join here as they are built).
-const EXPLORE_BRAND = ['incidents', 'how']
+// The brand account's pages, in its menu's order, with the menu's icons and a line of its own (eight words or fewer). Seven cards: the first takes a whole row from m,
+// so the other six fill two rows of three (l) or three of two (m).
+const EXPLORE_BRAND: { title: string; to: string; icon: IconComponent; line: string }[] = [
+  { title: 'Payment issues', to: '/incidents', icon: ActivityIcon, line: 'Every customer a problem hit, and what it cost' },
+  { title: 'Alerts', to: '/alerts', icon: BellIcon, line: 'What your alert tools sent, and what happened' },
+  { title: 'Integration', to: '/connect', icon: CodeSnippetIcon, line: 'Your alert door and shared Slack channel' },
+  { title: 'Connectors', to: '/channels', icon: RadioIcon, line: "Alert tools, Slack and Razorpay's own monitor" },
+  { title: 'Settings', to: '/settings', icon: SettingsIcon, line: 'What waits for approval, and who approves' },
+  { title: 'Audit trail', to: '/audit', icon: ClipboardIcon, line: 'Every alert, root cause and approval, newest first' },
+  { title: 'Accuracy', to: '/how', icon: FileTextIcon, line: 'See how often Blindspot gets it right' },
+]
 // Orange when the fix is yours, neutral when it is someone else's (the same as the Payment issues page).
 const OWNER_TONE = { merchant_code: 'notice', merchant_config: 'notice', razorpay: 'neutral', bank: 'neutral', customer: 'neutral', unknown: 'neutral' } as const
 
@@ -176,8 +186,8 @@ export default function Home() {
         {/* Nine cards in the side menu's order, each opening its page (its guide is one click away there, under "How it works").
             Three across from l, so the nine fill three rows; two across at m, where the first takes a whole row so none is left alone. */}
         <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', m: 'repeat(2, minmax(0, 1fr))', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
-          {(brand ? EXPLORE_BRAND : EXPLORE).map((id) => GUIDES.find((g) => g.id === id)!).map((g, i) => (
-            <Box key={g.id} gridColumn={i === 0 ? { base: 'auto', m: '1 / -1', l: 'auto' } : 'auto'}>
+          {(brand ? EXPLORE_BRAND : EXPLORE.map((id) => GUIDES.find((g) => g.id === id)!).map((g) => ({ ...g, line: EXPLORE_LINE[g.id] }))).map((g, i) => (
+            <Box key={g.to} gridColumn={i === 0 ? { base: 'auto', m: '1 / -1', l: brand ? '1 / -1' : 'auto' } : 'auto'}>
               <RouterLink to={g.to} style={{ textDecoration: 'none' }}>
                 <Card height="100%">
                   <CardBody>
@@ -187,7 +197,7 @@ export default function Home() {
                         <Box display="flex" alignItems="center" gap="spacing.3"><g.icon size="medium" color="surface.icon.gray.muted" /><Text weight="semibold">{g.title}</Text></Box>
                         <ChevronRightIcon size="medium" color="surface.icon.gray.muted" />
                       </Box>
-                      <Text size="small" color="surface.text.gray.muted">{EXPLORE_LINE[g.id]}</Text>
+                      <Text size="small" color="surface.text.gray.muted">{g.line}</Text>
                     </Box>
                   </CardBody>
                 </Card>

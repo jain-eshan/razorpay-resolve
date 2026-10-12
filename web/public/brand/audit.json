@@ -1,0 +1,270 @@
+{
+ "kinds": {
+  "alert": "Alert",
+  "root_cause": "Root cause",
+  "sign_off": "Sign-off",
+  "approval": "Approval",
+  "action": "Action",
+  "setup": "Setup"
+ },
+ "events": [
+  {
+   "at": "2026-10-01T20:01:00+05:30",
+   "kind": "action",
+   "summary": "App 8.2 rolled back, said in #razorpay-payments",
+   "actor": "Your on-call engineer",
+   "ref": "FK-1",
+   "id": "EV-30"
+  },
+  {
+   "at": "2026-10-01T19:59:00+05:30",
+   "kind": "sign_off",
+   "summary": "Root cause signed off, confidence exact",
+   "actor": "Razorpay support",
+   "ref": "FK-1",
+   "id": "EV-29"
+  },
+  {
+   "at": "2026-10-01T19:58:00+05:30",
+   "kind": "approval",
+   "summary": "Approval asked in #razorpay-payments: Message 830 customers",
+   "actor": "Blindspot",
+   "ref": "FK-1",
+   "id": "EV-28"
+  },
+  {
+   "at": "2026-10-01T19:58:00+05:30",
+   "kind": "approval",
+   "summary": "Approval asked in #razorpay-payments: Send your order team 830 paid orders",
+   "actor": "Blindspot",
+   "ref": "FK-1",
+   "id": "EV-27"
+  },
+  {
+   "at": "2026-10-01T19:58:00+05:30",
+   "kind": "approval",
+   "summary": "Approval asked in #razorpay-payments: Refund 410 duplicate payments",
+   "actor": "Blindspot",
+   "ref": "FK-1",
+   "id": "EV-26"
+  },
+  {
+   "at": "2026-10-01T19:58:00+05:30",
+   "kind": "root_cause",
+   "summary": "Root cause: Android app 8.2 shows “Payment failed” after successful UPI payments, posted in #razorpay-payments",
+   "actor": "Blindspot",
+   "ref": "FK-1",
+   "id": "EV-25"
+  },
+  {
+   "at": "2026-10-01T19:55:00+05:30",
+   "kind": "alert",
+   "summary": "Datadog alert, Order confirmations below normal on order-service: matched to payments",
+   "actor": "Datadog",
+   "ref": "FK-1",
+   "id": "EV-24"
+  },
+  {
+   "at": "2026-10-01T19:52:00+05:30",
+   "kind": "alert",
+   "summary": "Sentry alert, PaymentVerificationError on payment-service: matched to payments",
+   "actor": "Sentry",
+   "ref": "FK-1",
+   "id": "EV-23"
+  },
+  {
+   "at": "2026-10-01T18:20:00+05:30",
+   "kind": "alert",
+   "summary": "Datadog alert, p95 latency above 2s on search-service: left out by your payment filter",
+   "actor": "Datadog",
+   "ref": null,
+   "id": "EV-22"
+  },
+  {
+   "at": "2026-09-30T11:02:00+05:30",
+   "kind": "alert",
+   "summary": "PagerDuty alert, 5xx errors above 1% on checkout-service: checked, no payment impact",
+   "actor": "PagerDuty",
+   "ref": null,
+   "id": "EV-21"
+  },
+  {
+   "at": "2026-09-29T03:10:00+05:30",
+   "kind": "alert",
+   "summary": "PagerDuty alert, Disk above 90% on recommendation-service: left out by your payment filter",
+   "actor": "PagerDuty",
+   "ref": null,
+   "id": "EV-20"
+  },
+  {
+   "at": "2026-09-28T14:41:00+05:30",
+   "kind": "action",
+   "summary": "Tell 37 customers who wrote in: sent",
+   "actor": "Blindspot",
+   "ref": "FK-2",
+   "id": "EV-19"
+  },
+  {
+   "at": "2026-09-28T14:40:00+05:30",
+   "kind": "approval",
+   "summary": "Approved: Tell 37 customers who wrote in",
+   "actor": "Payments lead",
+   "ref": "FK-2",
+   "id": "EV-18"
+  },
+  {
+   "at": "2026-09-28T14:34:00+05:30",
+   "kind": "action",
+   "summary": "Replay 214 webhooks. Done by Razorpay. Every order was confirmed by 2:34 pm.",
+   "actor": "Razorpay",
+   "ref": "FK-2",
+   "id": "EV-17"
+  },
+  {
+   "at": "2026-09-28T13:26:00+05:30",
+   "kind": "sign_off",
+   "summary": "Root cause signed off, confidence exact",
+   "actor": "Razorpay support",
+   "ref": "FK-2",
+   "id": "EV-16"
+  },
+  {
+   "at": "2026-09-28T13:25:00+05:30",
+   "kind": "action",
+   "summary": "Evidence pack to Razorpay: Payment IDs, the timeline and the cause, so nobody asks you for them again.",
+   "actor": "Blindspot",
+   "ref": "FK-2",
+   "id": "EV-15"
+  },
+  {
+   "at": "2026-09-28T13:24:00+05:30",
+   "kind": "root_cause",
+   "summary": "Root cause: Razorpay is sending your webhooks late, posted in #razorpay-payments",
+   "actor": "Blindspot",
+   "ref": "FK-2",
+   "id": "EV-14"
+  },
+  {
+   "at": "2026-09-28T13:24:00+05:30",
+   "kind": "alert",
+   "summary": "Razorpay alert, Webhook deliveries delayed on Razorpay webhooks: matched to payments",
+   "actor": "Razorpay",
+   "ref": "FK-2",
+   "id": "EV-13"
+  },
+  {
+   "at": "2026-09-27T16:45:00+05:30",
+   "kind": "alert",
+   "summary": "Sentry alert, ImageLoadTimeout on catalog-service: left out by your payment filter",
+   "actor": "Sentry",
+   "ref": null,
+   "id": "EV-12"
+  },
+  {
+   "at": "2026-09-26T22:05:00+05:30",
+   "kind": "alert",
+   "summary": "Datadog alert, Payment success rate below 92% on payment-service: checked, no payment impact",
+   "actor": "Datadog",
+   "ref": null,
+   "id": "EV-11"
+  },
+  {
+   "at": "2026-09-25T11:11:00+05:30",
+   "kind": "action",
+   "summary": "Tell 38 customers: sent",
+   "actor": "Blindspot",
+   "ref": "FK-3",
+   "id": "EV-10"
+  },
+  {
+   "at": "2026-09-25T11:10:00+05:30",
+   "kind": "approval",
+   "summary": "Approved: Tell 38 customers",
+   "actor": "Payments lead",
+   "ref": "FK-3",
+   "id": "EV-9"
+  },
+  {
+   "at": "2026-09-25T11:05:00+05:30",
+   "kind": "action",
+   "summary": "Refund 38 second charges: ₹48,062 back to the original payment method, one customer at a time.",
+   "actor": "Razorpay",
+   "ref": "FK-3",
+   "id": "EV-8"
+  },
+  {
+   "at": "2026-09-24T23:50:00+05:30",
+   "kind": "approval",
+   "summary": "Approved: Refund 38 second charges, ₹48,062",
+   "actor": "On-call engineering manager",
+   "ref": "FK-3",
+   "id": "EV-7"
+  },
+  {
+   "at": "2026-09-24T21:34:00+05:30",
+   "kind": "sign_off",
+   "summary": "Root cause signed off, confidence exact",
+   "actor": "Razorpay support",
+   "ref": "FK-3",
+   "id": "EV-6"
+  },
+  {
+   "at": "2026-09-24T21:31:00+05:30",
+   "kind": "root_cause",
+   "summary": "Root cause: iOS app 6.4 is charging some customers twice, posted in #razorpay-payments",
+   "actor": "Blindspot",
+   "ref": "FK-3",
+   "id": "EV-5"
+  },
+  {
+   "at": "2026-09-24T21:25:00+05:30",
+   "kind": "alert",
+   "summary": "Sentry alert, DuplicateOrderWarning on order-service: matched to payments",
+   "actor": "Sentry",
+   "ref": "FK-3",
+   "id": "EV-4"
+  },
+  {
+   "at": "2026-09-12T11:35:00+05:30",
+   "kind": "setup",
+   "summary": "Approvals set to Review first, refunds up to ₹5,00,000 in one approval",
+   "actor": "Payments lead",
+   "ref": null,
+   "id": "EV-3"
+  },
+  {
+   "at": "2026-09-12T11:20:00+05:30",
+   "kind": "setup",
+   "summary": "Slack channel #razorpay-payments connected",
+   "actor": "Razorpay account manager",
+   "ref": null,
+   "id": "EV-2"
+  },
+  {
+   "at": "2026-09-12T11:00:00+05:30",
+   "kind": "setup",
+   "summary": "Alert door set up for Sentry, Datadog and PagerDuty, counting payment-service, checkout-service, order-service as payments",
+   "actor": "Razorpay account manager",
+   "ref": null,
+   "id": "EV-1"
+  }
+ ],
+ "pending": [
+  {
+   "issue": "FK-1",
+   "action": "refund",
+   "summary": "Approved: Refund 410 duplicate payments. In this demo nothing was refunded or sent."
+  },
+  {
+   "issue": "FK-1",
+   "action": "orders",
+   "summary": "Approved: Send your order team 830 paid orders. In this demo nothing was refunded or sent."
+  },
+  {
+   "issue": "FK-1",
+   "action": "message",
+   "summary": "Approved: Message 830 customers. In this demo nothing was refunded or sent."
+  }
+ ],
+ "pending_actor": "You, in this tab"
+}
