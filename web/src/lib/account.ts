@@ -31,6 +31,11 @@ const fromAddress = (): AccountId | null => {
   try { const v = new URLSearchParams(location.search).get('account'); return v === 'kaksha' || v === 'flipkart' ? v : null } catch { return null }
 }
 let current: AccountId | null = fromAddress() ?? read()
+// Once read, the address drops `?account`: otherwise Back after a switch would show an address that names one account while the tab is signed in as the other.
+try {
+  const url = new URL(location.href)
+  if (url.searchParams.has('account')) { url.searchParams.delete('account'); history.replaceState(history.state, '', url.pathname + url.search + url.hash) }
+} catch { /* no address to tidy */ }
 const listeners = new Set<() => void>()
 export function signIn(id: AccountId) {
   current = id

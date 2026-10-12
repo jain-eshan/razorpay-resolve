@@ -48,10 +48,10 @@
   "tool": "Sentry",
   "title": "DuplicateOrderWarning",
   "service": "order-service",
-  "at": "2026-09-24T21:25:00+05:30",
+  "at": "2026-09-24T21:36:00+05:30",
   "events": 12,
   "status": "matched",
   "issue": "FK-3",
-  "why": "Matched to 38 customers with two payments for one cart"
+  "why": "Added to FK-3, already open from your payments: 38 customers with two payments for one cart"
  }
 ]

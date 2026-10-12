@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Alert, AlertTriangleIcon, Badge, Box, Button, Card, CardBody, CheckCircleIcon, ClockIcon, EmptyState, Heading, RupeesIcon, SegmentedControl, SegmentedControlItem, Table, TableBody,
+  Alert, AlertTriangleIcon, Badge, Box, Button, Card, CardBody, CheckCircleIcon, ClockIcon, EmptyState, Heading, SegmentedControl, SegmentedControlItem, Table, TableBody,
   TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TablePagination, TableRow, Text, UsersIcon,
 } from '@razorpay/blade/components'
 import { AlertCard, PhoneScreen, SlackThread, type AlertPreview, type AppPreview, type SlackPreview } from '../components/BrandPreviews'
@@ -21,7 +21,7 @@ import { useWidth } from '../lib/useWidth'
 
 // One payment issue of the brand account, as `synth/brand_world.py` writes it. Words and figures are the file's; this page lays them out.
 type Group = { id: string; label: string; count: number; amount_paise: number; hint: string; put_right: boolean }
-type Action = { id: string; title: string; text: string; button: string; group?: string; needs?: string; done?: boolean; done_by?: string }
+type Action = { id: string; title: string; text: string; button: string; group?: string; needs?: string; done?: boolean; done_by?: string; told?: number }
 type Customer = { payment_id: string; customer: string; at: string; amount_paise: number; upi_app: string; bank: string; region: string; group: string; what: string; note: string }
 export type BrandIssueData = {
   id: string; kind: string; owner: Schemas['IncidentSummary']['owner']; status: 'open' | 'closed'; confidence: string; headline: string; cause: string; onset_at: string; resolved_at?: string
@@ -75,7 +75,8 @@ export default function BrandIssue({ id }: { id: string }) {
   const closed = d.status === 'closed' || d.actions.every(done)
   // Put right: a group counts once the action that settles it is done (the message settles "no order", and it waits for the orders to be confirmed first).
   const fixed = d.groups.filter((g) => g.put_right || d.actions.some((a) => a.group === g.id && done(a))).reduce((s, g) => s + g.count, 0)
-  const told = d.actions.filter((a) => a.id === 'message' && done(a)).reduce((s, a) => s + (d.groups.find((g) => g.id === a.group)?.count ?? d.complained), 0)
+  // Told: the customers the message reached, which is its group, or its own count when it went only to those who wrote in.
+  const told = d.actions.filter((a) => a.id === 'message' && done(a)).reduce((s, a) => s + (a.told ?? d.groups.find((g) => g.id === a.group)?.count ?? 0), 0)
   const steps: StoryStep[] = [
     { title: 'Hear', done: true, value: d.heard.value, note: d.heard.note },
     { title: 'Find everyone', done: true, value: `${n(d.affected)} customers hit`, note: d.groups.map((g) => `${n(g.count)} ${g.label.toLowerCase()}`).join(', ') },
@@ -86,7 +87,12 @@ export default function BrandIssue({ id }: { id: string }) {
   const next = d.actions.find(ready)?.id  // the one blue button: the first step still waiting that can go now
   const shown = tab ?? d.groups[0].id
   const rows = d.customers.filter((c) => c.group === shown).map((c) => ({ ...c, id: c.payment_id }))
-  const replies = d.actions.filter((a) => !a.done && approved.includes(a.id)).map((a) => `${a.title}: approved by you`)
+  // One line per step that waits for approval, and one for closing: all there from the start, so the Slack preview keeps its size as approvals come in.
+  const replies = d.status === 'closed' ? [] : [
+    ...d.actions.map((a) => ({ text: `${a.title}: ${done(a) ? 'approved by you' : 'waiting for your approval'}`, done: done(a) })),
+    // Both lines are about as long, so the line keeps its two-line room whichever it shows.
+    { text: closed ? 'Closed. In this demo nothing was refunded or sent.' : 'Closes once you have approved every step above.', done: closed },
+  ]
 
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
@@ -113,13 +119,17 @@ export default function BrandIssue({ id }: { id: string }) {
 
       <StoryTiles steps={steps} />
 
-      {closed
-        ? <Alert isFullWidth color="positive" isDismissible={false} title="Closed: every customer is put right" description={`${d.closing}${d.status === 'open' ? ' In this demo nothing was refunded or sent.' : ''}`} />
-        : <Alert isFullWidth color="information" isDismissible={false} title={d.answer.title} description={d.answer.text} />}
+      {/* The answer stays put while approvals come in (the closing goes into the Slack preview and the story strip), so the page does not move under the buttons. An issue that was
+          already closed shows how it was closed. */}
+      <Box testID="brand-answer">
+        {d.status === 'closed'
+          ? <Alert isFullWidth color="positive" isDismissible={false} title="Closed: every customer is put right" description={d.closing} />
+          : <Alert isFullWidth color="information" isDismissible={false} title={d.answer.title} description={d.answer.text} />}
+      </Box>
 
       <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5" testID="brand-stats">
         <Stat label="Customers hit" value={n(d.affected)} hint={d.money_stuck_paise ? `${rupees(d.money_stuck_paise)} ${d.money_note}` : d.money_note} icon={AlertTriangleIcon} tone={closed ? 'neutral' : 'notice'} />
-        {d.groups.map((g, i) => <Stat key={g.id} label={g.label} value={n(g.count)} hint={g.hint} icon={i ? RupeesIcon : UsersIcon} />)}
+        {d.groups.map((g) => <Stat key={g.id} label={g.label} value={n(g.count)} hint={g.hint} icon={UsersIcon} />)}
         {d.groups.length < 2 && <Stat label="Time to root cause" value={`${d.explained_minutes} min`} hint={d.heard.via === 'Razorpay' ? 'from the start, posted by Razorpay' : 'from the release, with proof'} icon={ClockIcon} />}
       </Box>
 
@@ -153,7 +163,7 @@ export default function BrandIssue({ id }: { id: string }) {
           </Field>
           <Field label="Sample payments"><Text size="small" color="surface.text.gray.muted">{d.root.samples.join(', ')}</Text></Field>
         </Panel>
-        <Panel title={d.status === 'closed' ? 'What was done' : 'Actions, need your approval'} fill>
+        <Panel title={d.status === 'closed' ? 'What was done' : 'Actions that need your approval'} fill>
           {d.actions.map((a) => (
             <Box key={a.id} display="flex" flexDirection="column" gap="spacing.2" testID={`action-${a.id}`}>
               <Text weight="semibold">{a.title}</Text>
@@ -170,7 +180,7 @@ export default function BrandIssue({ id }: { id: string }) {
             <Box display="flex" alignItems="center" justifyContent="space-between" gap="spacing.3" flexWrap="wrap" marginTop="auto">
               <Text size="small" color="surface.text.gray.muted">Demo: approving changes this page only. No refund is made and no message is sent.</Text>
               {/* Always there, so the card does not grow on the first approval; it has nothing to undo until then. */}
-              <Button variant="tertiary" size="small" isDisabled={approved.length === 0} onClick={() => startAgain(d.id)}>Start again</Button>
+              <Button variant="tertiary" size="medium" isDisabled={approved.length === 0} onClick={() => startAgain(d.id)}>Start again</Button>
             </Box>
           )}
         </Panel>

@@ -27,7 +27,8 @@ const PROOF: Item[] = [
   { title: 'Settings', to: '/settings', icon: SettingsIcon, only: 'kaksha' },
   { title: 'Alert tuning', to: '/learning', icon: TrendingUpIcon, only: 'kaksha' },
   { title: 'Audit trail', to: '/audit', icon: ClipboardIcon, only: 'kaksha' },
-  { title: 'Accuracy', to: '/how', icon: FileTextIcon },
+  // Its scores are the small-business merchant's (the brand is not scored yet), so it is Kaksha's page for now.
+  { title: 'Accuracy', to: '/how', icon: FileTextIcon, only: 'kaksha' },
 ]
 
 const CORE: [string, IconComponent][] = [['Home', HomeIcon], ['Transactions', RepeatIcon], ['Settlements', WalletIcon], ['Reports', FileTextIcon]]

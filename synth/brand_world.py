@@ -94,7 +94,7 @@ def fk1() -> dict:
             {"id": "paid_twice", "label": "Paid twice", "count": c["paid_twice"], "amount_paise": m["paid_twice"], "hint": f"{rupees(m['paid_twice'])} to refund", "put_right": False},
             {"id": "no_order", "label": "Left with no order", "count": c["no_order"], "amount_paise": m["no_order"], "hint": f"{rupees(m['no_order'])} paid", "put_right": False},
         ],
-        "money_stuck_paise": m["stuck"], "money_note": "paid, no order confirmed",
+        "money_stuck_paise": m["stuck"], "money_note": "to refund or confirm",
         "lane": {
             "axis_from": tl["axis_from"], "axis_to": tl["axis_to"], "onset": tl["rollout"],
             "rows": [
@@ -123,7 +123,7 @@ def fk1() -> dict:
         "closing": f"Explained {mins(tl['alert'], tl['rca'])} minutes after the alert and signed off by Razorpay support at {clock(tl['signoff'])}. The cause was your app, not Razorpay or a bank.",
         "previews": {
             "app": {"platform": platform, "version": ver, "amount_paise": j["customers"][0]["amount_paise"], "item": "Wireless earbuds",
-                    "said": "Payment failed", "true": "Razorpay captured the payment"},
+                    "said": "Payment failed", "said_more": "Something went wrong. Please try again.", "true": "Razorpay captured the payment"},
             "alert": {"tool": "Sentry", "issue": s["issue"], "service": s["service"], "release": f"{platform.lower()}@{ver}", "events": s["events"],
                       "window_minutes": s["window_minutes"], "first_seen": first, "forwarded_at": tl["alert"], "per_minute": s["per_minute"],
                       "rule": "Payment errors, more than 20 in 10 minutes, are sent to Razorpay Blindspot"},
@@ -190,7 +190,7 @@ def fk2() -> dict:
         "actions": [
             {"id": "replay", "title": f"Replay {n} webhooks", "text": "Done by Razorpay. Every order was confirmed by " + clock(done) + ".", "button": "Replayed", "done_by": "Razorpay", "done": True, "group": "confirmed_late"},
             {"id": "pack", "title": "Evidence pack to Razorpay", "text": "Payment IDs, the timeline and the cause, so nobody asks you for them again.", "button": "Sent", "done_by": "Blindspot", "done": True},
-            {"id": "message", "title": f"Tell {complained} customers who wrote in", "text": "Your order is confirmed. Sorry for the wait.", "button": "Sent", "done_by": "you", "done": True},
+            {"id": "message", "title": f"Tell {complained} customers who wrote in", "text": "Your order is confirmed. Sorry for the wait.", "button": "Sent", "done_by": "you", "done": True, "told": complained},
         ],
         "explained_minutes": mins(iso(start), iso(rca)),
         "closing": f"Razorpay posted the root cause at {clock(rca)}, {mins(iso(start), iso(rca))} minutes after it began, and replayed every webhook by {clock(done)}. Razorpay's fault, so the fix was free.",
@@ -220,6 +220,8 @@ def fk3() -> dict:
                           "what": "Charged twice, second charge refunded", "note": "Refund to the original payment method"})
     customers.sort(key=lambda x: x["at"])
     total = sum(x["amount_paise"] for x in customers)
+    first = datetime.fromisoformat(customers[0]["at"])
+    by_alert = sum(1 for x in customers if datetime.fromisoformat(x["at"]) <= alert)
     return {
         "id": "FK-3", "kind": "E", "owner": "merchant_code", "status": "closed", "confidence": "exact",
         "headline": f"{grouped(n)} customers were charged twice on iOS",
@@ -232,14 +234,14 @@ def fk3() -> dict:
                            f"App 6.4.1 fixed it at {clock(fixed_at)}, and every second charge was refunded the next morning."},
         "groups": [{"id": "refunded", "label": "Charged twice", "count": n, "amount_paise": total, "hint": f"{rupees(total)} refunded", "put_right": True}],
         "money_stuck_paise": 0, "money_note": "all refunded",
-        "lane": {"axis_from": iso(t(24, 21, 0)), "axis_to": iso(t(24, 23, 55)), "onset": iso(release), "rows": [
+        "lane": {"axis_from": iso(t(24, 21, 0)), "axis_to": iso(t(24, 23, 40)), "onset": iso(release), "rows": [
             {"name": "Your app", "items": [{"at": iso(release), "label": "6.4 out", "tone": "neutral"}, {"at": iso(fixed_at), "label": "6.4.1 fix", "tone": "positive"}]},
             {"name": "Your checkout", "items": [{"at": iso(first), "to": iso(fixed_at), "label": "second order after a double tap", "tone": "negative"}]},
             {"name": "Razorpay", "items": [{"at": iso(first), "to": iso(fixed_at), "label": "both charges captured", "tone": "positive"}]},
             {"name": "Blindspot", "items": [{"at": iso(alert), "label": "alert", "tone": "information"}]},
         ]},
         "lift": [
-            {"dimension": "app_version", "value": "ios-6.4", "share_affected": 1.0, "share_baseline": 0.0, "lift": None},
+            {"dimension": "app_version", "value": "6.4", "share_affected": 1.0, "share_baseline": 0.0, "lift": None},
             {"dimension": "platform", "value": "iOS", "share_affected": 1.0, "share_baseline": 0.24, "lift": 4.17},
             {"dimension": "method", "value": "upi", "share_affected": 0.6, "share_baseline": 0.56, "lift": 1.07},
         ],
@@ -251,7 +253,7 @@ def fk3() -> dict:
                  "samples": [x["payment_id"] for x in customers[:3]]},
         "actions": [
             {"id": "refund", "title": f"Refund {n} second charges", "text": f"{rupees(total)} back to the original payment method, one customer at a time.", "button": "Refunded", "done_by": "you", "done": True, "group": "refunded"},
-            {"id": "message", "title": f"Tell {n} customers", "text": "We charged you twice by mistake. The second charge is refunded.", "button": "Sent", "done_by": "you", "done": True},
+            {"id": "message", "title": f"Tell {n} customers", "text": "We charged you twice by mistake. The second charge is refunded.", "button": "Sent", "done_by": "you", "done": True, "group": "refunded"},
         ],
         "explained_minutes": mins(iso(release), iso(alert)),
         "closing": f"Found {mins(iso(release), iso(alert))} minutes after the release, from your payments alone. Every second charge was refunded by {clock(refunded)} the next day.",
@@ -259,7 +261,7 @@ def fk3() -> dict:
             {"who": "Razorpay Blindspot", "at": iso(alert), "rca": {
                 "title": "Root cause: iOS app 6.4 is charging some customers twice",
                 "lines": ["Whose side: your app code. Confidence: exact, 3 signals agree.", f"Started: {clock(first)}, after 6.4 went out at {clock(release)}.",
-                          "Affected so far: 9 customers charged twice, all on iOS 6.4.", "Fix: disable the pay button after one tap. Refunds wait for your approval."],
+                          f"Affected so far: {by_alert} customers charged twice, all on iOS 6.4.", "Fix: disable the pay button after one tap. Refunds wait for your approval."],
                 "signed_off": f"Signed off by Razorpay support at {clock(alert + timedelta(minutes=3))}"}},
             {"who": "iOS lead", "at": iso(fixed_at), "text": "6.4.1 is live with the fix."},
         ]}},
@@ -280,8 +282,8 @@ def alerts(issues: dict) -> list[dict]:
          "why": "Checked against Razorpay payments for those 2 minutes: payments and orders were normal, so no issue was opened"},
         {"id": "AL-2", "tool": "Razorpay", "title": "Webhook deliveries delayed", "service": "Razorpay webhooks", "at": issues["FK-2"]["heard"]["at"], "events": 1, "status": "matched", "issue": "FK-2",
          "why": f"Razorpay's own monitor. Matched to {grouped(issues['FK-2']['affected'])} orders waiting for a webhook"},
-        {"id": "AL-1", "tool": "Sentry", "title": "DuplicateOrderWarning", "service": "order-service", "at": iso(t(24, 21, 25)), "events": 12, "status": "matched", "issue": "FK-3",
-         "why": f"Matched to {issues['FK-3']['affected']} customers with two payments for one cart"},
+        {"id": "AL-1", "tool": "Sentry", "title": "DuplicateOrderWarning", "service": "order-service", "at": iso(t(24, 21, 36)), "events": 12, "status": "matched", "issue": "FK-3",
+         "why": f"Added to FK-3, already open from your payments: {issues['FK-3']['affected']} customers with two payments for one cart"},
     ]
 
 

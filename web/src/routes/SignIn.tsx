@@ -7,12 +7,12 @@ import type { ArtId } from '../lib/art'
 
 // What each account shows, in three lines a judge can hold in their head before they pick. Words only: the figures are on the pages behind.
 const SEE: Record<AccountId, { art: ArtId; lines: string[] }> = {
-  kaksha: { art: 'chat', lines: ['Customers write on WhatsApp, Instagram and email', 'Ray tells the founder on WhatsApp', 'Each fix waits for the founder’s approval'] },
+  kaksha: { art: 'chat', lines: ['Your customers write on WhatsApp, Instagram and email', 'Ray tells you on WhatsApp what broke', 'Each fix waits for your approval'] },
   flipkart: { art: 'alert', lines: ['Your own alert tools tell Blindspot', 'The root cause lands in your Slack channel', 'Refunds and messages wait for your approval'] },
 }
 
 // The way in (v3, two accounts): one Razorpay dashboard, two demo merchants. Not a login: there is no password field and nothing to type, so it cannot be taken for a real
-// sign-in page. The page sits outside the dashboard shell, under the same black bar with Razorpay's logo.
+// sign-in page. The page sits outside the dashboard shell, under a dark bar with Razorpay's logo (Blade's cloud surface; the shell's black bar is Blade's TopNav).
 export default function SignIn() {
   const nav = useNavigate()
   const [pick, setPick] = useState<AccountId>(signedIn() ? accountId() : 'kaksha')
@@ -45,7 +45,7 @@ export default function SignIn() {
                             <Text size="small" color="surface.text.gray.muted">{a.line}</Text>
                           </Box>
                         </Box>
-                        {on && <Badge color="primary" size="medium" icon={CheckIcon}>Selected</Badge>}
+                        {on && <Badge color="neutral" size="medium" icon={CheckIcon}>Selected</Badge>}
                       </Box>
                       <Text color="surface.text.gray.subtle">{a.detail}</Text>
                       <Box display="flex" flexDirection="column" gap="spacing.3" marginTop="auto">

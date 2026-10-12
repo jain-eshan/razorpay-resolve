@@ -33,7 +33,7 @@ const EXPLORE_LINE: Record<string, string> = {
 }
 const EXPLORE = ['incidents', 'conversations', 'access', 'integration', 'channels', 'autonomy', 'learning', 'how', 'scan']
 // The brand account's pages (its own pages join here as they are built).
-const EXPLORE_BRAND = ['incidents', 'how']
+const EXPLORE_BRAND = ['incidents']
 // Orange when the fix is yours, neutral when it is someone else's (the same as the Payment issues page).
 const OWNER_TONE = { merchant_code: 'notice', merchant_config: 'notice', razorpay: 'neutral', bank: 'neutral', customer: 'neutral', unknown: 'neutral' } as const
 

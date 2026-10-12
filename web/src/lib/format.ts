@@ -66,8 +66,9 @@ export const dayLabel = (iso: string) =>
 // Whose money the amount is, since it is not always every customer's in the row: for a webhook issue it is what the customers still without access paid.
 export const AMOUNT_NOTE: Record<string, string> = { A: 'paid by those still without access', E: 'still to refund', G: 'still to collect', Z1: 'estimated, still reachable' }
 // The same note in a shopping app's words (orders, not access).
-const AMOUNT_NOTE_ORDER: Record<string, string> = { A: 'paid, order not confirmed', B: 'paid, no order confirmed', E: 'still to refund' }
-export const amountNote = (mismatchType: string): string | undefined => (account().gets === 'order' ? AMOUNT_NOTE_ORDER : AMOUNT_NOTE)[mismatchType]
+const AMOUNT_NOTE_ORDER: Record<string, string> = { A: 'paid, order not confirmed', B: 'to refund or confirm', E: 'still to refund' }
+// Nothing at stake, nothing to say: a closed issue's ₹0 is not "paid, order not confirmed".
+export const amountNote = (mismatchType: string, paise = 1): string | undefined => (paise > 0 ? (account().gets === 'order' ? AMOUNT_NOTE_ORDER : AMOUNT_NOTE)[mismatchType] : undefined)
 
 // The x value of the bucket that holds a moment, for marking it on a chart of hourly or daily buckets. A moment before the first bucket or after the last has none, so no
 // mark is drawn outside the chart.
