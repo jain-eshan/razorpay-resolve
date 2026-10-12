@@ -152,7 +152,8 @@ for (const inc of incs) {
       requestAnimationFrame(tick)
     }, WATCH)
     await page.goto(`/incidents/${inc.id}`)
-    await expect(page.getByTestId('root-cause-actions').getByText('The fix', { exact: true }).or(page.getByTestId('root-cause-actions').getByText('What to do', { exact: true }))).toBeVisible()
+    // This test is about size, not speed: the page first reads the 900 KB hosted-demo file, and a slow CI runner took longer than the default 5 s with the pack delayed on purpose.
+    await expect(page.getByTestId('root-cause-actions').getByText('The fix', { exact: true }).or(page.getByTestId('root-cause-actions').getByText('What to do', { exact: true }))).toBeVisible({ timeout: 15_000 })
     await page.waitForTimeout(1500)
     const seen = await page.evaluate(() => (window as unknown as { __seen: Record<string, string[]> }).__seen)
     for (const id of WATCH) expect(seen[id], `${id} keeps one size from its first frame on ${inc.id}`).toHaveLength(1)
