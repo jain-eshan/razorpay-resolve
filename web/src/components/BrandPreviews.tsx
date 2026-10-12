@@ -91,12 +91,23 @@ export function SlackThread({ s, replies = [] }: { s: SlackPreview; replies?: Re
                 <Text size="small" weight="semibold">{m.rca.title}</Text>
                 {m.rca.lines.map((l) => <Text key={l} size="small">{l}</Text>)}
                 <Text size="xsmall" color="surface.text.gray.muted">{m.rca.signed_off}</Text>
-                {replies.map((r) => <Box key={r.text} minHeight="36px"><Text size="small" color={r.done ? 'feedback.text.positive.intense' : 'surface.text.gray.muted'}>{r.text}</Text></Box>)}
               </Box>
             )}
           </Box>
         </Box>
       ))}
+      {/* The steps that wait for approval, as replies in the thread under everything already posted: muted while waiting, green once approved. Each line keeps two lines of
+          room on a narrow card (one on a wide one, where every line fits on one), so approving never changes the preview's height. */}
+      {replies.length > 0 && (
+        <Box paddingLeft="spacing.10" display="flex" flexDirection="column" gap="spacing.1" testID="slack-replies">
+          <Text size="xsmall" weight="semibold" color="surface.text.gray.muted">{`Replies in the thread (${replies.length})`}</Text>
+          {replies.map((r) => (
+            <Box key={r.text} minHeight={{ base: '36px', l: '18px' }} borderLeftWidth="thin" borderLeftColor="surface.border.gray.subtle" paddingLeft="spacing.3">
+              <Text size="small" truncateAfterLines={2} color={r.done ? 'feedback.text.positive.intense' : 'surface.text.gray.muted'}>{r.text}</Text>
+            </Box>
+          ))}
+        </Box>
+      )}
     </Frame>
   )
 }

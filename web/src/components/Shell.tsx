@@ -101,12 +101,12 @@ export function Shell({ children }: { children: ReactNode }) {
   // The phone menu is a plain Blade Drawer, not SideNav's own phone mode: that mode (SideNav given `onDismiss`) keeps two modal drawers mounted even while closed. Their focus managers hide the whole page from assistive technology, and fight over Tab when the menu is open. A Drawer mounts only while open.
   const nav = (
     <>
-      <SideNavBody>
-        <SideNavSection>{CORE.map(([t, i]) => inert(t, i))}</SideNavSection>
-        <SideNavSection title="BLINDSPOT">{BLINDSPOT.filter(mine).map(link)}</SideNavSection>
-        <SideNavSection title="CONTROL">{PROOF.filter(mine).map(link)}</SideNavSection>
-        <SideNavSection title="PAYMENT PRODUCTS" maxVisibleItems={3}>{PAYMENT_PRODUCTS.map((t) => inert(t, PRODUCT_ICONS[t] ?? LinkIcon))}</SideNavSection>
-      </SideNavBody>
+      {/* A section shows only when this account has items in it, so no heading stands empty. Blade's body takes sections only, hence one list of them. */}
+      <SideNavBody>{[
+        <SideNavSection key="core">{CORE.map(([t, i]) => inert(t, i))}</SideNavSection>,
+        ...([['BLINDSPOT', BLINDSPOT], ['CONTROL', PROOF]] as const).filter(([, items]) => items.some(mine)).map(([title, items]) => <SideNavSection key={title} title={title}>{items.filter(mine).map(link)}</SideNavSection>),
+        <SideNavSection key="products" title="PAYMENT PRODUCTS" maxVisibleItems={3}>{PAYMENT_PRODUCTS.map((t) => inert(t, PRODUCT_ICONS[t] ?? LinkIcon))}</SideNavSection>,
+      ]}</SideNavBody>
       <SideNavFooter>
         <Box display="flex" alignItems="center" justifyContent="space-between" paddingX="spacing.4" paddingY="spacing.3" opacity={0.5}>
           <Box display="flex" alignItems="center" gap="spacing.4"><FlaskIcon size="medium" /><Text>Test Mode</Text></Box>

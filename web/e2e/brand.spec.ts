@@ -94,13 +94,13 @@ test('FK-1: the approvals go in order, show in the Slack preview, and the last o
   await expect(btn(page, message.button)).toBeDisabled()  // "your order is confirmed" cannot go before the orders are
   await btn(page, refund.button).click()
   await expect(page.getByTestId('story-4')).toContainText(`${n(twice.count)} of ${n(fk1.affected)} put right`)
-  await expect(page.getByTestId('slack-rca').getByText(/approved by you/)).toHaveCount(1)
-  await expect(page.getByTestId('slack-rca').getByText(/waiting for your approval/)).toHaveCount(2)
+  await expect(page.getByTestId('slack-replies').getByText(/approved by you/)).toHaveCount(1)
+  await expect(page.getByTestId('slack-replies').getByText(/waiting for your approval/)).toHaveCount(2)
   await btn(page, orders.button).click()
   await btn(page, message.button).click()
   await expect(page.getByTestId('story-4')).toContainText(`All ${n(fk1.affected)} put right`)
   await expect(page.getByTestId('story-5')).toContainText(`${n(noOrder.count)} told`)
-  await expect(page.getByTestId('slack-rca')).toContainText('In this demo nothing was refunded or sent')
+  await expect(page.getByTestId('slack-replies')).toContainText('In this demo nothing was refunded or sent')
   await page.reload()  // kept for this tab
   await expect(page.getByTestId('story-4')).toContainText(`All ${n(fk1.affected)} put right`)
   await btn(page, 'Start again').click()
