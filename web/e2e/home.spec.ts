@@ -37,15 +37,16 @@ test('H2 the date range changes the cards, chart and list together, and survives
   await expect(card(page, 'Customers hit')).toHaveText(String(sum(thisMonth, 'affected')))
   await pick(page, /This month/, 'Today')  // nothing started on 2 Oct: every part says so
   await expect(card(page, 'Open payment issues')).toHaveText('0')
-  await expect(page.getByText(/No open payment issues started today/)).toBeVisible()
-  await expect(page.getByTestId('issues-chart').getByText('no payment issues started today')).toBeVisible()
+  await expect(page.getByText('No open payment issues', { exact: true })).toBeVisible()
+  await expect(page.getByText('None started today. Blindspot checks every 15 minutes.')).toHaveCount(1)  // the list's empty state; the chart keeps showing a week, a day is not a chart
+  await expect(page.getByTestId('issues-chart').getByRole('heading', { name: '₹85,359' })).toBeVisible()
 })
 
 test('H4 the chart has its own time horizon, a Show toggle and a Group by toggle, and says what it adds up to', async ({ page }) => {
   await page.goto('/?range=30d')
   const chart = page.getByTestId('issues-chart')
   await expect(chart.getByRole('heading', { name: rupees(sum(issues, 'at_risk_paise')) })).toBeVisible()  // the card reads without hovering
-  await expect(chart.getByText(`across ${issues.length} payment issues that started last 30 days`)).toBeVisible()
+  await expect(chart.getByText(`${issues.length} payment issues started last 30 days`)).toBeVisible()
   await expect(chart.getByText('Paid, no access')).toBeVisible()  // grouped by cause, named in plain words
   await expect(chart.getByText('₹80k')).toBeVisible()  // the axis ticks carry the unit
   await pick(page, /Show: Value/, 'Volume')
@@ -55,9 +56,8 @@ test('H4 the chart has its own time horizon, a Show toggle and a Group by toggle
   await expect(chart.getByText('Your code')).toBeVisible()
   await expect(chart.getByText('Paid, no access')).toHaveCount(0)
   // The chart's horizon moves on its own: the page's cards keep the page's range.
-  await chart.getByRole('button', { name: 'Last 30 days' }).click()
-  await page.getByRole('menuitem', { name: 'This month' }).click()
-  await expect(chart.getByText(`across ${thisMonth.length} payment issue that started this month`)).toBeVisible()
+  await page.getByRole('radio', { name: 'Month' }).click()
+  await expect(chart.getByText(`${thisMonth.length} payment issue started this month`)).toBeVisible()
   await expect(card(page, 'Customers hit')).toHaveText(String(sum(issues, 'affected')))
 })
 
@@ -268,5 +268,47 @@ test('Ray chat: the toolbar stays in view while a long thread scrolls, and nothi
     expect(box.y, `${name} is on screen after scrolling to the end`).toBeGreaterThanOrEqual(0)
     expect(box.y + box.height).toBeLessThanOrEqual(700)
     expect(box.height, `${name} is at least 36px high`).toBeGreaterThanOrEqual(36)
+  }
+})
+
+test('Nothing on the Overview changes size because of its data: the chart card and the list card stay put from the first paint through every range, horizon and toggle', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  // Record both cards' sizes on every frame from the very first, so a chart that arrives small and then grows is caught.
+  await page.addInitScript(() => {
+    const seen: Record<string, number[][]> = { list: [], chart: [] }
+    ;(window as unknown as { __seen: typeof seen }).__seen = seen
+    const tick = () => {
+      const kids = [...(document.querySelector('[data-testid="home-grid"]')?.children ?? [])]
+      kids.forEach((k, i) => {
+        const r = k.getBoundingClientRect(), key = i === 0 ? 'list' : 'chart', now = [Math.round(r.width), Math.round(r.height)]
+        const last = seen[key][seen[key].length - 1]
+        if (!last || last[0] !== now[0] || last[1] !== now[1]) seen[key].push(now)
+      })
+      requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+  })
+  await page.goto('/?range=7d')
+  await expect(page.getByTestId('issues-chart').getByText('Paid, no access')).toBeVisible()
+  await page.waitForTimeout(1500)
+  const seen = await page.evaluate(() => (window as unknown as { __seen: Record<string, number[][]> }).__seen)
+  expect(seen.chart, 'the chart card keeps one size from its first paint').toHaveLength(1)
+  expect(seen.list, 'the list card keeps one size from its first paint').toHaveLength(1)
+  const sizes = () => page.getByTestId('home-grid').evaluate((g) => [...g.children].map((k) => { const r = k.getBoundingClientRect(); return `${Math.round(r.width)}x${Math.round(r.height)}` }))
+  const base = await sizes()
+  expect(base[0], 'both cards are one height').toBe(base[1].replace(/^\d+/, base[0].split('x')[0]))
+  const steps: [string, () => Promise<void>][] = [
+    ['the page range moves to Today (no issues)', () => pick(page, /Last 7 days/, 'Today')],
+    ['the page range moves to This month', () => pick(page, /Today/, 'This month')],
+    ['the page range moves to 30 days', () => pick(page, /This month/, 'Last 30 days')],
+    ['the chart horizon moves to this month', () => page.getByRole('radio', { name: 'Month' }).click()],
+    ['the chart shows volume', () => pick(page, /Show: Value/, 'Volume')],
+    ['the chart groups by whose side', () => pick(page, /Group by: Cause/, 'Whose side')],
+    ['the chart horizon moves to 7 days', () => page.getByRole('radio', { name: '7 days' }).click()],
+  ]
+  for (const [what, act] of steps) {
+    await act()
+    await page.waitForTimeout(700)
+    expect(await sizes(), `nothing resizes when ${what}`).toEqual(base)
   }
 })

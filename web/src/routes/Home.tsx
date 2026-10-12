@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom'
-import { Alert, AlertTriangleIcon, Badge, Box, Button, Card, CardBody, CheckCircleIcon, ChevronRightIcon, Heading, HistoryIcon, Link, Modal, ModalBody, ModalFooter, ModalHeader, RayIcon, RupeesIcon, Text, TextInput, UsersIcon } from '@razorpay/blade/components'
+import { Alert, AlertTriangleIcon, Badge, Box, Button, Card, CardBody, CheckCircleIcon, ChevronRightIcon, EmptyState, Heading, HistoryIcon, Link, Modal, ModalBody, ModalFooter, ModalHeader, RayIcon, RupeesIcon, Text, TextInput, UsersIcon } from '@razorpay/blade/components'
 import { IssuesChart } from '../components/IssuesChart'
 import { MenuPick } from '../components/MenuPick'
 import { PageHeader } from '../components/PageHeader'
@@ -105,10 +105,18 @@ export default function Home() {
         </Box>
 
         {/* What needs attention comes first and the trend sits beside it, half and half. One column below the large breakpoint. */}
-        <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(2, minmax(0, 1fr))' }} gap="spacing.5" alignItems="stretch">
-          <Panel title="Open payment issues, by money at stake" pad={false}>
-            {open.length === 0 ? <Box padding="spacing.5"><Text size="small" color="surface.text.gray.muted">No open payment issues started {rangeLabel.toLowerCase()}. Blindspot checks every 15 minutes.</Text></Box> : (
-              <Box testID="home-issues">
+        <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(2, minmax(0, 1fr))' }} gap="spacing.5" alignItems="stretch" testID="home-grid">
+          {/* From l the list card is laid over the row without adding to it (absolute inside a relative cell): the chart card alone sets the row's height, so the row never
+              resizes with the number of issues, and a long list scrolls inside its card. Stacked on a smaller screen it is an ordinary card. */}
+          <Box position={{ base: 'static', l: 'relative' }}>
+          <Box position={{ base: 'static', l: 'absolute' }} top="spacing.0" bottom="spacing.0" left="spacing.0" right="spacing.0">
+          <Panel title="Open payment issues, by money at stake" pad={false} fill>
+            {open.length === 0 ? (
+              <Box flexGrow="1" minHeight={{ base: '300px', l: 'spacing.0' }} display="flex" alignItems="center" justifyContent="center" padding="spacing.5">
+                <EmptyState size="small" asset={<CheckCircleIcon size="2xlarge" color="feedback.icon.positive.intense" />} title="No open payment issues" description={`None started ${rangeLabel.toLowerCase()}. Blindspot checks every 15 minutes.`} />
+              </Box>
+            ) : (
+              <Box testID="home-issues" flexGrow="1" minHeight="spacing.0" overflow="auto">
                 {[...open].sort((a, b) => b.at_risk_paise - a.at_risk_paise).map((i, n, all) => (
                   <RouterLink key={i.id} to={`/incidents/${i.id}`} style={{ textDecoration: 'none' }}>
                     <Box padding="spacing.5" display="flex" alignItems="center" justifyContent="space-between" gap="spacing.4" borderBottomWidth={n < all.length - 1 ? 'thin' : 'none'} borderBottomColor="surface.border.gray.subtle">
@@ -129,8 +137,14 @@ export default function Home() {
                 ))}
               </Box>
             )}
+            {/* Always at the foot of the card, so it is the same card whether it holds five issues or none. */}
+            <Box marginTop="auto" padding="spacing.4" borderTopWidth="thin" borderTopColor="surface.border.gray.subtle" display="flex" justifyContent="flex-end">
+              <Button variant="tertiary" size="small" iconPosition="right" icon={ChevronRightIcon} onClick={() => nav('/incidents')}>See all payment issues</Button>
+            </Box>
           </Panel>
-          <IssuesChart key={range} issues={incs ?? []} range={range} />
+          </Box>
+          </Box>
+          <IssuesChart key={range === 'today' ? '7d' : range} issues={incs ?? []} range={range} />
         </Box>
         <Text size="small" color="surface.text.gray.muted">Demo data. Ranges count back from 2 Oct 2026, the day this data was taken.</Text>
       </Box>
