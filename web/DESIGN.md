@@ -415,7 +415,9 @@ Every screen is one of these. Pick one before you write any layout code.
 
 **Settings page**: one `Panel` per topic, label above value, the control on the right, one Save button at the end. Read-only snapshots say so in an `Alert`.
 
-**Home page** (Overview): the hero that says what Blindspot is and what is wrong right now, Ray's input, the setup card, Explore cards, then Ray on WhatsApp (section 16).
+**Home page** (Overview): a dashboard like Razorpay's own home (section 16): the header with the date range, Ray's one-line field, the setup card until setup is done, four cards, the open payment issues beside the issues chart (half and half), then the Explore cards and Ray on WhatsApp.
+
+**Chat page** (Ray, `/ray` and `/ray/:id`): no side menu. A thin rail (a column on the left, a row across the top on a phone) with a hamburger for the history and a plus for a new chat, as on Razorpay's Ray page. The thread sits in a centred column, the input is pinned at the bottom on a white surface over a faint wash. See section 17.
 
 **Agent answer**: section 17.
 
@@ -453,10 +455,13 @@ Every screen is one of these. Pick one before you write any layout code.
 - It never asks for a password, PAN, OTP, card number or any other credential. The recording of Razorpay's onboarding asks for those; ours does not. This is a hard rule from SPEC section 0.
 - Progress is remembered in the browser only (`lib/setup.ts`), because settings are read-only in the demo.
 
-**Overview** (`routes/Home.tsx`, the side menu's first item). From Razorpay's Ray home, with what the product is put first, because a merchant who has never heard of Blindspot could not tell from "What can I do for you today?" (feedback from Eshan's test viewers, 11 Oct 2026).
-- Hero on a soft tinted panel: "Hello, {name}" in muted text, the heading "Catch payment problems before your customers do", one line on what it watches, a "Right now" strip with the open payment issues, customers and amount (read from the data) and "See them", then "Ask Ray" with the Blade `ChatInput`, then three questions a merchant would ask (not page names, which the menu already lists).
-- Under it: the setup card ("Set up Blindspot in 3 easy steps", a `0/3 COMPLETED` badge, "Take the tour" and a blue "Start setup"), then "Explore Blindspot": nine cards in the menu's order, each opening its page, three across from `l`. Then Ray on WhatsApp: the four problems as cards you can pick, one line of figures each, and beside them one clip of the first heads-up for the one picked. The left column is wider (3 to 2 from `xl`), the clip fills its card, and every clip sits in one grid cell with only the picked one visible, so the card is as tall as the longest clip and nothing moves when you pick another.
-- Asking a question turns the page into a conversation (section 17).
+**Overview** (`routes/Home.tsx`, the side menu's first item). A dashboard, as Razorpay's own dashboard home is (v3 roadmap batch 1.1, 12 Oct 2026). The first version was rejected on composition (the Ray glyph floating outside its box, a centred stepper with dead space, a tall chart above the list that matters more), so these are the rules it was rebuilt on.
+- Header: "Overview", one line, then "Take a tour" and "Reset setup" as tertiary buttons and the date range (Today, Last 7 days, Last 30 days, This month), kept in the address (`?range=`). In the demo "today" is 2 Oct 2026, the day the data was taken (`lib/range.ts`); the page says so. Below `l` the actions go under the title.
+- Ask Ray: a single-line field with the Ray glyph inside it and an "Ask" link, the three questions as chips with icons (not on a phone) and "History". A question opens the chat page; a question about a screen goes to that screen.
+- Setup card until setup is done (`components/SetupCard.tsx`): a title, a `0/3 COMPLETED` badge, the one blue button, a thin progress bar and one tile per step (a green tick when done, a blue ring on the next, grey for later). A reached step is a link to `/setup?step=`. When done it folds into one line, "Setup complete", with "Review".
+- Four cards added up in the browser from the issue summaries: open payment issues, customers hit, money stuck, customers made whole. Then, half and half from `l`: the open payment issues by money at stake (each row a link, the amount over its owner badge) and the issues chart (`components/IssuesChart.tsx`).
+- The chart says what its bars add up to in a heading, has its own time horizon (it starts at the page's range), Show (value or volume) and Group by (cause or whose side), and a legend with a reserved height so it never runs over the axis. Chart colours are not blue (an action) or the orange of the owner badges.
+- Under it: Explore Blindspot, nine cards in the menu's order ending in a grey footer band with a grey chevron, then Ray on WhatsApp: the four problems as cards you can pick, one line of figures each, and beside them one clip of the first heads-up for the one picked. The left column is wider (3 to 2 from `xl`), the clip fills its card, and every clip sits in one grid cell with only the picked one visible, so the card is as tall as the longest clip and nothing moves when you pick another.
 
 **Help bubble.** Razorpay's upload screens show a small blue question pill ("What is a Power of Attorney document?") that opens a short answer card. Use the same for any field a merchant may not understand. Not built yet.
 
@@ -473,7 +478,7 @@ Observed 7 Oct 2026 in Razorpay's own agents (Payout, Receivables, Bookkeeping, 
 4. **Propose the action.** The most urgent card has the one blue button ("Auto-Call", "Approve Payment"). Every other card has secondary buttons only ("View Details", "Review Invoice"). Nothing that moves money or messages people happens without that click.
 5. **Confirm.** A success card in a light green tint with a green check, the result in green ("Synced with Tally"), and the reference in monospace ("Voucher #PV-2026-0303-01"), followed by a details card.
 6. **Offer the next step.** A divider, the Ray glyph and "How can I help you next?", then numbered options as plain rows ("1. Call TechCorp now").
-7. **Stay available.** The input ("Ask Ray anything related to Razorpay...") stays pinned at the bottom of the page on a faint gradient. A hamburger and a "+" (new chat) sit in a thin rail on the left.
+7. **Stay available.** The input ("Ask Ray anything related to Razorpay...") stays pinned at the bottom of the page on a faint gradient. A hamburger (the chat history) and a "+" (new chat) sit in a thin rail on the left, and the page has no side menu. `routes/RayChat.tsx` is this page; chats are kept in this browser (`lib/rayChats.ts`: the questions only, the answers are read from the data again), listed in `components/RayHistory.tsx`.
 
 **Mapping to Blindspot.** Detect (the first check, payment issues) is step 2. Whose side and who is affected is step 3. Fix in stages with approval is step 4. Verify and close is step 5. The next-step list is step 6. The Ray home runs steps 1 to 3 and 6. The fix flow on the incident page runs steps 4 to 7 as turns (`Turn`, `UserBubble`, `Analyzing`, `NextSteps` in `components/AgentAnswer.tsx`, used by `FixPanel.tsx` and `Zone1Fix.tsx`): each step is a titled card with one blue button, pressing it adds the founder's bubble above the next step, steps appear as the founder reaches them, and a closed incident ends with "How can I help you next?". There is no OTP and no feedback row yet.
 

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Alert, ArrowLeftIcon, Badge, Box, Button, Card, CardBody, CheckCircleIcon, Heading, HeadsetIcon, Link, MailIcon, SlidersIcon, StepGroup, StepItem, StepItemIndicator, Text, UserCheckIcon, WhatsAppIcon, ZapIcon, type IconComponent } from '@razorpay/blade/components'
 import { SetupScene } from '../components/SetupScene'
 import { rupees, useGet, type Schemas } from '../lib/api'
@@ -44,7 +44,10 @@ function Choice({ icon: Icon, title, text, selected, onPick, badge }: { icon: Ic
 // Choices are not saved: Blindspot's settings are read-only in this prototype. Only how far you got is remembered, in the browser.
 export default function Setup() {
   const nav = useNavigate()
-  const [step, setStep] = useState(Math.min(setupDone(), STEPS.length - 1))
+  // `?step=` opens a step you have already reached (the tiles on the Overview link to it); otherwise setup resumes at the next step.
+  const param = useSearchParams()[0].get('step')
+  const asked = param === null ? -1 : Number(param)
+  const [step, setStep] = useState(Number.isInteger(asked) && asked >= 0 && asked <= setupDone() && asked < STEPS.length ? asked : Math.min(setupDone(), STEPS.length - 1))
   const [channels, setChannels] = useState<string[]>(['help_button', 'whatsapp_payments', 'email'])
   const [level, setLevel] = useState<string>('suggest')
   const { data: scan } = useGet<Schemas['ScanResult']>(step === 2 ? '/api/scan/day0' : null)

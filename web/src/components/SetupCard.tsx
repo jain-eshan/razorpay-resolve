@@ -1,9 +1,10 @@
-import { Badge, Box, Button, Card, CardBody, CheckCircleIcon, Heading, Text } from '@razorpay/blade/components'
+import { Link } from 'react-router-dom'
+import { Badge, Box, Button, Card, CardBody, CheckCircleIcon, ChevronRightIcon, Heading, ProgressBar, Text } from '@razorpay/blade/components'
 import { SETUP_STEP_HELP, SETUP_STEP_NAMES, SETUP_STEPS } from '../lib/setup'
 
-// The three setup steps on the Overview, in the shape of Razorpay's "Get started" strip: a stepper across the top, each step's name and one line under it.
-// Blade's horizontal StepGroup centres every label under its dot, which leaves the left edge empty and the heading out of line with the steps, so this
-// stepper is left-aligned and built from Blade boxes. Done steps carry a green tick, the current step a blue ring, later steps a grey one.
+// The three setup steps on the Overview, in the spirit of Razorpay's "Get started" strip and Shopify's setup guide: a title with its one blue button, a thin
+// progress bar, and one tile per step. A done step has a green tick and says so, the next step has a blue ring and a blue edge, later steps are grey and wait.
+// A tile opens that step in Setup (`/setup?step=`); a step you have not reached yet is not a link.
 export function SetupCard({ done, onStart }: { done: number; onStart: () => void }) {
   return (
     <Card testID="setup-card">
@@ -19,24 +20,26 @@ export function SetupCard({ done, onStart }: { done: number; onStart: () => void
             </Box>
             <Button variant="primary" size="medium" onClick={onStart}>{done === 0 ? 'Start setup' : 'Continue setup'}</Button>
           </Box>
-          <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', m: 'repeat(3, minmax(0, 1fr))' }} gap={{ base: 'spacing.5', m: 'spacing.6' }}>
-            {SETUP_STEP_NAMES.map((name, i) => (
-              <Box key={name} display="flex" flexDirection={{ base: 'row', m: 'column' }} alignItems={{ base: 'flex-start', m: 'stretch' }} gap="spacing.3">
-                <Box display="flex" alignItems="center" gap="spacing.3">
-                  {i < done ? <CheckCircleIcon size="xlarge" color="feedback.icon.positive.intense" /> : (
-                    <Box width="spacing.7" height="spacing.7" flexShrink={0} borderRadius="max" display="flex" alignItems="center" justifyContent="center" borderWidth={i === done ? 'thick' : 'thin'} borderColor={i === done ? 'surface.border.primary.normal' : 'surface.border.gray.normal'}>
+          <ProgressBar value={(done / SETUP_STEPS) * 100} size="small" color="positive" showPercentage={false} accessibilityLabel={`Setup progress: ${done} of ${SETUP_STEPS} steps`} />
+          <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.4">
+            {SETUP_STEP_NAMES.map((name, i) => {
+              const tile = (
+                <Box height="100%" display="flex" alignItems="flex-start" gap="spacing.4" padding="spacing.5" borderRadius="medium" borderWidth="thin"
+                  borderColor={i === done ? 'surface.border.primary.muted' : 'surface.border.gray.subtle'} backgroundColor={i < done ? 'feedback.background.positive.subtle' : 'surface.background.gray.subtle'}>
+                  {i < done ? <Box flexShrink={0} display="flex"><CheckCircleIcon size="xlarge" color="feedback.icon.positive.intense" /></Box> : (
+                    <Box width="spacing.7" height="spacing.7" flexShrink={0} borderRadius="max" display="flex" alignItems="center" justifyContent="center" backgroundColor="surface.background.gray.intense" borderWidth={i === done ? 'thick' : 'thin'} borderColor={i === done ? 'surface.border.primary.normal' : 'surface.border.gray.normal'}>
                       <Text size="small" weight="semibold" color={i === done ? 'surface.text.primary.normal' : 'surface.text.gray.muted'}>{i + 1}</Text>
                     </Box>
                   )}
-                  {/* The line to the next step, across the top on a tablet or wider. On a phone the steps stack and there is no line. */}
-                  {i < SETUP_STEPS - 1 && <Box display={{ base: 'none', m: 'block' }} flexGrow="1" height="spacing.0" borderTopWidth="thin" borderTopColor={i < done ? 'surface.border.gray.normal' : 'surface.border.gray.subtle'} />}
+                  <Box display="flex" flexDirection="column" gap="spacing.1" minWidth="spacing.0">
+                    <Text weight="semibold">{name}</Text>
+                    <Text size="small" color="surface.text.gray.muted">{i < done ? 'Done' : SETUP_STEP_HELP[i]}</Text>
+                  </Box>
+                  {i <= done && <Box marginLeft="auto" flexShrink={0} display="flex" alignSelf="center"><ChevronRightIcon size="medium" color="surface.icon.gray.muted" /></Box>}
                 </Box>
-                <Box display="flex" flexDirection="column" gap="spacing.1">
-                  <Text weight="semibold">{name}</Text>
-                  <Text size="small" color="surface.text.gray.muted">{SETUP_STEP_HELP[i]}</Text>
-                </Box>
-              </Box>
-            ))}
+              )
+              return i <= done ? <Link key={name} to={`/setup?step=${i}`} style={{ textDecoration: 'none' }}>{tile}</Link> : <Box key={name}>{tile}</Box>
+            })}
           </Box>
         </Box>
       </CardBody>
