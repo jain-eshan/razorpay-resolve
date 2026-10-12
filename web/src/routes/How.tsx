@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { AlertTriangleIcon, Badge, Box, Button, Card, CardBody, CheckCircleIcon, ClockIcon, Heading, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
+import { useNavigate } from 'react-router-dom'
+import { AlertTriangleIcon, Badge, Box, Button, Card, CardBody, CheckCircleIcon, ClockIcon, Heading, Link, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text } from '@razorpay/blade/components'
 import { Panel } from '../components/Panel'
 import { useGet, type Schemas } from '../lib/api'
 import { sentence } from '../lib/format'
 import { PageHeader } from '../components/PageHeader'
-import { RulesFail } from '../components/RulesFail'
 import { Stat } from '../components/Stat'
 import { PageSkeleton } from '../components/PageSkeleton'
 
@@ -33,6 +33,7 @@ const minutes = (x: number) => `${Number.isInteger(x) ? x : x.toFixed(1)} min`
 export default function How() {
   const { data, error } = useGet<Schemas['EvalReport']>('/api/eval/report')
   const [all, setAll] = useState(false)
+  const nav = useNavigate()
   if (error) return <Text color="feedback.text.negative.intense">Could not load the report: {error}</Text>
   if (!data) return <PageSkeleton />
   const gates = data.metrics.filter((m) => m.status === 'pass' || m.status === 'fail')
@@ -70,7 +71,8 @@ export default function How() {
           return <Stat key={name} label={label} value={value} hint={hint} icon={m.status === 'pass' ? CheckCircleIcon : m.status === 'fail' ? AlertTriangleIcon : ClockIcon} tone={m.status === 'pass' ? 'positive' : m.status === 'fail' ? 'negative' : 'neutral'} />
         })}
       </Box>
-      <RulesFail metrics={data.metrics} />
+      {/* "Where rules fail" moved to the landing page (v3 batch 1.5, T3); its scores stay in the table below. */}
+      <Text color="surface.text.gray.muted" testID="rules-moved">How today’s rules do on messy complaints, and why that needs an AI agent: <Link href="/how-it-works#why-ai" onClick={(e) => { e.preventDefault(); nav('/how-it-works#why-ai') }}>Why an AI agent</Link></Text>
       {effort && (
         <Box display="flex" flexDirection="column" gap="spacing.4">
           <Box display="flex" flexDirection="column" maxWidth="720px">

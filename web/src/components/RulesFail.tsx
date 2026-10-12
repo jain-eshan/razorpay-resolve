@@ -1,78 +1,84 @@
-import { Box, Card, CardBody, Heading, ProgressBar, Text } from '@razorpay/blade/components'
+import { Box, Card, CardBody, CheckIcon, CloseIcon, Heading, Text } from '@razorpay/blade/components'
 import type { Schemas } from '../lib/api'
+import { useWidth } from '../lib/useWidth'
 
 type Metric = Schemas['EvalMetric']
-const pct = (x: number) => `${Math.round(x * 100)}%`
-// How many messages a figure is out of, when the report says (its target reads "Only the 12 tagged hinglish").
-const outOf = (m?: Metric) => m?.target.match(/Only the (\d+) tagged/)?.[1] ?? m?.target.match(/of (?:the )?(\d+)/)?.[1]
-const KIND: Record<string, string> = { hinglish: 'Hinglish', typo: 'Typos', two_issues: 'Two issues in one message' }
-const tone = (x: number) => (x >= 0.9 ? 'positive' : x >= 0.5 ? 'notice' : 'negative')
+// How many messages a figure is out of, as the report says it ("Both issues of 5 two-in-one messages").
+const outOf = (m?: Metric) => Number(m?.target.match(/Only the (\d+) tagged/)?.[1] ?? m?.target.match(/of (?:the )?(\d+)/)?.[1] ?? 0)
+const KIND: Record<string, string> = { hinglish: 'Hinglish', typo: 'Typos', two_issues: 'Two problems in one message' }
 
-// What each row measures, in a merchant's words. The figure and the count come from the eval report (`eval/messy.py`); only the wording is written here.
 // The engine's names for what a complaint is about, in a merchant's words. The report writes them with spaces ("debited no order").
 const CLAIM: [string, string][] = [['debited no access', 'paid, no access'], ['debited no order', 'paid, no order'], ['charged twice', 'charged twice'], ['refund not received', 'refund not received'],
   ['charged after cancel', 'charged after cancelling'], ['renewal failed', 'renewal failed'], ['payment failed', 'payment failed'], ['page error', 'pay page error'],
   ['checkout not opening', 'checkout would not open'], ['not about a payment', 'not about a payment']]
 const plain = (t: string) => CLAIM.reduce((acc, [from, to]) => acc.replaceAll(from, to), t)
 
-const ROWS: [string, string][] = [
-  ['messy_main_claim_found_clean', 'Plain messages, one issue, the usual words'],
-  ['messy_main_claim_found_forwarded', 'Forwarded emails and pasted chats'],
-  ['messy_main_claim_found_hinglish', 'Hinglish'],
-  ['messy_main_claim_found_typo', 'Typos and short forms'],
-  ['messy_amount_found', 'The amount the customer wrote'],
-  ['messy_both_issues_found', 'Both issues, when a message has two'],
-]
+// Below this width the stat panel goes under the words and the three misreads stack (a misread card needs about 240px for its quote).
+const SIDE = 760
 
-// "Where rules fail" (Track 2: why AI beats a rule, shown with evidence instead of a claim). The rules that read complaints today are scored on made-up messy complaints,
-// labelled by what the customer means. Reported, not gated: it shows where the rules stop. Nothing here is typed in: every figure and every example is from the eval run.
+// "Why an AI agent" on How Blindspot works (Track 2's question: why does AI beat a rule). The point first: how often today's rules misread a messy complaint. Then three real
+// misreads, then what the agent does in production. Every figure and every quote is read from the eval report (`eval/messy.py`, `eval/messy_complaints.json`); only the
+// wording is here. Accuracy keeps the full scores.
 export function RulesFail({ metrics }: { metrics: Metric[] }) {
+  const [ref, room] = useWidth<HTMLDivElement>()
   const by = (n: string) => metrics.find((m) => m.name === n)
   const total = by('messy_complaints_total')?.value
   const overall = by('messy_main_claim_found')?.value
   if (!total || overall == null) return null  // an older report has no such run: show nothing rather than an empty card
+  const wrong = Math.round(total * (1 - overall))
+  const two = by('messy_both_issues_found')
+  const twoN = outOf(two)
+  const twoBoth = Math.round((two?.value ?? 0) * twoN)
   const misses = [1, 2, 3].map((i) => by(`messy_miss_${i}`)?.target.split(' | ')).filter((x): x is string[] => !!x && x.length === 4)
+  const side = room >= SIDE
+  const lead = wrong === 0 ? 'Today’s rules read every messy complaint right' : `Today’s rules misread about 1 in ${Math.round(total / wrong)} messy complaints`
   return (
     <Card testID="rules-fail">
       <CardBody>
-        <Box display="flex" flexDirection="column" gap="spacing.6">
-          <Box display="flex" flexDirection="column" gap="spacing.2" maxWidth="720px">
-            <Heading as="h2" size="medium">Where rules fail</Heading>
-            <Text color="surface.text.gray.muted">{`The rules that read complaints today, tried on ${total} made-up messages written the way customers write: Hinglish, typos, forwarded text, no payment ID, two issues in one. Each is labelled by what the customer means. They read ${pct(overall)} right as the main issue. How that splits, by kind:`}</Text>
-          </Box>
-          <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(2, minmax(0, 1fr))' }} columnGap="spacing.8" rowGap="spacing.5">
-            {ROWS.map(([name, label]) => {
-              const m = by(name)
-              if (m?.value == null) return null
-              const n = outOf(m)
-              return (
-                <Box key={name} display="flex" flexDirection="column" gap="spacing.2" testID={`rules-row-${name}`}>
-                  <Box display="flex" justifyContent="space-between" alignItems="baseline" gap="spacing.4">
-                    <Text weight="semibold">{label}</Text>
-                    <Text weight="semibold">{pct(m.value)}</Text>
-                  </Box>
-                  <ProgressBar value={Math.round(m.value * 100)} color={tone(m.value)} size="small" showPercentage={false} accessibilityLabel={`${label}: ${pct(m.value)}`} />
-                  <Text size="small" color="surface.text.gray.muted">{name === 'messy_both_issues_found' ? `of ${n} two-in-one messages. The rules return one reading, so it cannot be more.` : `of ${n} messages`}</Text>
+        <Box ref={ref} display="flex" flexDirection="column" gap="spacing.7">
+          <Box display="grid" gridTemplateColumns={side ? 'minmax(0, 3fr) minmax(0, 2fr)' : 'minmax(0, 1fr)'} gap="spacing.7" alignItems="center">
+            <Box display="flex" flexDirection="column" gap="spacing.4">
+              <Heading as="h3" size="large">{lead}</Heading>
+              <Text color="surface.text.gray.subtle">{`The rules that sort complaints today were tried on ${total} made-up messages, written the way customers write: Hinglish, typos, two problems in one.${twoN ? ` In ${twoBoth === 0 ? `all ${twoN}` : `${twoN - twoBoth} of the ${twoN}`} messages with two problems, they caught only one.` : ''}`}</Text>
+              <Text color="surface.text.gray.subtle">In production an AI agent reads each message the way a person would, then hands what it read to the same rules. The rules still produce every number and gate every action.</Text>
+            </Box>
+            <Box display="grid" gridTemplateColumns="repeat(2, minmax(0, 1fr))" gap="spacing.5" padding="spacing.6" borderRadius="medium" backgroundColor="surface.background.gray.moderate" testID="rules-stat">
+              <Box display="flex" flexDirection="column" gap="spacing.1">
+                <Heading as="span" size="xlarge">{`${wrong} of ${total}`}</Heading>
+                <Text size="small" color="surface.text.gray.muted">messy complaints misread</Text>
+              </Box>
+              {twoN > 0 && (
+                <Box display="flex" flexDirection="column" gap="spacing.1">
+                  <Heading as="span" size="xlarge">{`${twoBoth} of ${twoN}`}</Heading>
+                  <Text size="small" color="surface.text.gray.muted">two-problem messages read in full</Text>
                 </Box>
-              )
-            })}
+              )}
+            </Box>
           </Box>
           {misses.length > 0 && (
             <Box display="flex" flexDirection="column" gap="spacing.4">
-              <Text weight="semibold">Where it went wrong</Text>
-              <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
+              <Text weight="semibold">{`${misses.length === 3 ? 'Three' : misses.length === 2 ? 'Two' : 'One'} it got wrong`}</Text>
+              <Box display="grid" gridTemplateColumns={side ? `repeat(${misses.length}, minmax(0, 1fr))` : 'minmax(0, 1fr)'} gap="spacing.5">
                 {misses.map(([said, read, means, kind]) => (
-                  <Box key={said} display="flex" flexDirection="column" gap="spacing.3" padding="spacing.5" borderRadius="medium" borderWidth="thin" borderColor="surface.border.gray.subtle" backgroundColor="surface.background.gray.moderate">
+                  <Box key={said} display="flex" flexDirection="column" gap="spacing.4" padding="spacing.5" borderRadius="medium" backgroundColor="surface.background.gray.moderate" testID="rules-miss">
                     <Text size="small" weight="semibold" color="surface.text.gray.muted">{KIND[kind.replace('kind: ', '')] ?? 'Other'}</Text>
-                    <Text weight="semibold">{said}</Text>
-                    <Text size="small" color="surface.text.gray.muted">{plain(read).replace('rules read: ', 'The rules read it as: ')}</Text>
-                    <Text size="small" color="surface.text.gray.muted">{plain(means).replace('it means: ', 'It means: ')}</Text>
+                    <Text size="large" weight="semibold">{said.replace(/^"/, '“').replace(/"$/, '”')}</Text>
+                    <Box display="flex" flexDirection="column" gap="spacing.2" marginTop="auto">
+                      <Box display="flex" alignItems="flex-start" gap="spacing.3">
+                        <Box flexShrink={0} paddingTop="spacing.1" display="flex"><CloseIcon size="small" color="feedback.icon.negative.intense" /></Box>
+                        <Text size="small">{`Rules read it as: ${plain(read.replace('rules read: ', ''))}`}</Text>
+                      </Box>
+                      <Box display="flex" alignItems="flex-start" gap="spacing.3">
+                        <Box flexShrink={0} paddingTop="spacing.1" display="flex"><CheckIcon size="small" color="feedback.icon.positive.intense" /></Box>
+                        <Text size="small">{`The customer means: ${plain(means.replace('it means: ', ''))}`}</Text>
+                      </Box>
+                    </Box>
                   </Box>
                 ))}
               </Box>
             </Box>
           )}
-          <Text size="small" color="surface.text.gray.muted">The messages are made up for this test, and a set this size shows where the rules stop, not how often. No model has been run on them yet, so there is no model score here: that is the next step. In production the agent reads the message the way a person would, and the rules stay for what they do well.</Text>
+          <Text size="small" color="surface.text.gray.muted">The messages are made up for this test. No AI model has been tried on them yet: that is the next build.</Text>
         </Box>
       </CardBody>
     </Card>
