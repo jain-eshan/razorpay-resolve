@@ -44,7 +44,7 @@ export default function Incidents() {
           <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
             <Stat label="Open issues" value={String(open.length)} hint={`of ${data.length} found`} icon={AlertTriangleIcon} tone="notice" />
             <Stat label="Amount involved" value={rupees(data.reduce((a, i) => a + i.at_risk_paise, 0))} hint={estPaise ? `about ${rupees(estPaise)} of it estimated` : `across ${data.length} issues`} icon={RupeesIcon} />
-            <Stat label="Customers affected" value={String(data.reduce((a, i) => a + i.affected, 0))} hint={est ? `about ${est} of them estimated` : 'every one matched to a payment'} icon={UsersIcon} />
+            <Stat label="Customers affected" value={data.reduce((a, i) => a + i.affected, 0).toLocaleString('en-IN')} hint={est ? `about ${est} of them estimated` : 'every one matched to a payment'} icon={UsersIcon} />
           </Box>
         )
       })()}
@@ -75,8 +75,8 @@ export default function Incidents() {
                           <TableCell><Box display="flex" flexDirection="column" paddingY="spacing.3"><Title id={i.id} title={headline(i)} /><Text size="small" color="surface.text.gray.muted">{i.title}</Text></Box></TableCell>
                           <TableCell><Badge size="medium" color={OWNER_TONE[i.owner]}>{cause(i)}</Badge></TableCell>
                           <TableCell><Badge size="medium" color={STATUS_TONE[i.status]}>{sentence(i.status)}</Badge></TableCell>
-                          <TableCell><Box display="flex" flexDirection="column"><Text weight="semibold" color="surface.text.gray.subtle">{i.affected}</Text><Text size="small" color="surface.text.gray.muted">{i.complained} complained</Text></Box></TableCell>
-                          <TableCell><Box display="flex" flexDirection="column"><Text>{rupees(i.at_risk_paise)}</Text>{amountNote(i.mismatch_type) && <Text size="small" color="surface.text.gray.muted">{amountNote(i.mismatch_type)}</Text>}</Box></TableCell>
+                          <TableCell><Box display="flex" flexDirection="column"><Text weight="semibold" color="surface.text.gray.subtle">{i.affected.toLocaleString('en-IN')}</Text><Text size="small" color="surface.text.gray.muted">{i.complained} complained</Text></Box></TableCell>
+                          <TableCell><Box display="flex" flexDirection="column"><Text>{rupees(i.at_risk_paise)}</Text>{amountNote(i.mismatch_type, i.at_risk_paise) && <Text size="small" color="surface.text.gray.muted">{amountNote(i.mismatch_type, i.at_risk_paise)}</Text>}</Box></TableCell>
                           <TableCell><Box display="flex" flexDirection="column"><Text>{when(i.onset_at)}</Text>{i.would_have_alerted_at && <Text size="small" color="surface.text.gray.muted">{knownAt(i.onset_at, i.would_have_alerted_at)}</Text>}</Box></TableCell>
                         </TableRow>
                       ))}
@@ -95,7 +95,7 @@ export default function Incidents() {
                       <Badge size="small" color={OWNER_TONE[i.owner]}>{cause(i)}</Badge>
                       <Badge size="small" color={STATUS_TONE[i.status]}>{sentence(i.status)}</Badge>
                     </Box>
-                    <Text weight="semibold" color="surface.text.gray.subtle">{`${i.affected} customers · ${rupees(i.at_risk_paise)}${amountNote(i.mismatch_type) ? ` ${amountNote(i.mismatch_type)}` : ''}`}</Text>
+                    <Text weight="semibold" color="surface.text.gray.subtle">{`${i.affected.toLocaleString('en-IN')} customers · ${rupees(i.at_risk_paise)}${amountNote(i.mismatch_type, i.at_risk_paise) ? ` ${amountNote(i.mismatch_type, i.at_risk_paise)}` : ''}`}</Text>
                     <Text size="small" color="surface.text.gray.muted">{`Started ${when(i.onset_at)} · ${i.complained} complained`}</Text>
                   </Box>
                 ))}

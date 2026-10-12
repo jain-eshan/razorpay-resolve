@@ -1276,6 +1276,19 @@ Measured: the brand spec (14 tests, from the files: sums, the picker, menus per 
 
 Left on purpose: customer names stay masked (Eshan, 13 Oct). The brand menu has only Overview, Payment issues and Accuracy until T4 adds its own pages, so no menu item ever opens the other merchant's data. Ray and the welcome tour are Kaksha's. The picker's bar is Blade's dark cloud surface, not the shell's black, because the shell's bar is Blade's TopNav and the picker sits outside the shell.
 
+Independent design review, round 1 (a general-purpose agent following `.claude/agents/design-reviewer.md`, measured in Chrome at 375, 768, 1024 and 1440px). Verdict FAIL: 6 majors, 14 minors. Fixed:
+- FK-1's ₹15,69,060 was labelled "paid, no order confirmed", but ₹4,97,890 of it is duplicates from customers who did get an order. It now reads "to refund or confirm", and the list says the same. Two of my tests had locked in the wrong label; they now assert the right one.
+- A closed issue with ₹0 at stake read "₹0 paid, order not confirmed" in the list. No note when nothing is at stake.
+- FK-3's story said "6 told" while its actions said 38 were told: the message action now names the group it went to.
+- Accuracy and the guides showed the small merchant's scores, quotes and figures inside the brand account. Both are Kaksha's pages for now (out of the brand menu, the "How it works" header button hidden, the `Mine` notice by address).
+- "Where it showed up" grew 21 to 38px with every approval, pushing the buttons down. Each step has its reply line in the Slack preview from the start (muted while waiting, green once approved) with two lines of room, and the closing line is about as long as its placeholder; the answer box stays the same box. The size test now watches the preview and the answer too; its first run caught the closing line still being longer.
+- After a switch, Back showed an address naming one account while the tab was signed in as the other. The address drops `?account` once it is read.
+- FK-3's Slack post typed "9 customers" (7 by the alert) and its start time; both are computed now, the Sentry alert matched to FK-3 comes after Blindspot's own, its lane ends on a round time, and "ios-6.4" reads "app 6.4".
+- Minor: grouped counts on the list, the picker in one voice ("your") with a neutral "Selected" badge and docs that say what its bar is, "Start again" at 36px, the Blindspot avatar in the Slack preview not blue, the phone's second line from the file, "Actions that need your approval", the other-account page with a picture and a reading width.
+Left: the brand Overview's Explore row has one card until T4 adds the brand's pages; the open-issues card has white space under its one row at 1440px (it is the same card as Kaksha's, sized by the chart beside it); the "2 Oct" chart tick 4px past the plot at 30 days is older than this change.
+
+Not checked by anyone yet: dark mode, keyboard order in the account menu, a screen reader on the picker.
+
 Not checked by anyone yet: the brand pages at 768 and 1024px by eye (measured by the layout and stability tests only), dark mode, keyboard order in the account menu.
 
 ## 13 Oct 2026, v3 batch 1.5 T3: How Blindspot works becomes the landing page (stream D)

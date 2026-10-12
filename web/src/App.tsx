@@ -66,7 +66,7 @@ export default function App() {
           <Box maxWidth="1120px" marginX="auto" testID="page" padding={{ base: 'spacing.5', m: 'spacing.7' }} paddingBottom="spacing.11">
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/guides/:id" element={<GuidePage />} />
+              <Route path="/guides/:id" element={K(<GuidePage />)} />
               <Route path="/setup" element={K(<Setup />)} />
               <Route path="/incidents" element={<Incidents />} />
               <Route path="/incidents/:id" element={<Incident />} />
@@ -87,7 +87,7 @@ export default function App() {
               <Route path="/public-demo" element={K(<PublicDemo />)} />
               <Route path="/audit" element={K(<Audit />)} />
               <Route path="/settings" element={K(<Settings />)} />
-              <Route path="/how" element={<How />} />
+              <Route path="/how" element={K(<How />)} />
               <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/learning" element={K(<Learning />)} />
               <Route path="/reference" element={<Reference />} />

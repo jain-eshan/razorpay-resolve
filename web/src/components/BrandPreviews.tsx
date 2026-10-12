@@ -7,7 +7,7 @@ import { useNarrow } from '../lib/useNarrow'
 // Where a brand's payment issue showed up outside Razorpay, drawn on the issue page as previews: what the customer's phone said, what the brand's alert tool sent, and the
 // root cause in the brand's Slack channel. Names in text only, no logos and no look-alike colours: each preview is a framed Blade card with the tool's name on it, so it reads
 // as "this is what was there" and never as the tool itself. Every word and figure comes from the issue's file (`synth/brand_world.py`).
-export type AppPreview = { platform: string; version: string; amount_paise: number; item: string; said: string; true: string }
+export type AppPreview = { platform: string; version: string; amount_paise: number; item: string; said: string; said_more: string; true: string }
 export type AlertPreview = { tool: string; issue: string; service: string; release: string; events: number; window_minutes: number; first_seen: string; forwarded_at: string; per_minute: { at: string; events: number }[]; rule: string }
 export type SlackMessage = { who: string; at: string; text?: string; rca?: { title: string; lines: string[]; signed_off: string } }
 export type SlackPreview = { channel: string; messages: SlackMessage[] }
@@ -33,7 +33,7 @@ export function PhoneScreen({ p, count }: { p: AppPreview; count: number }) {
         <Text size="small" color="surface.text.gray.muted">{p.item} · {rupees(p.amount_paise)}</Text>
         <AlertTriangleIcon size="2xlarge" color="feedback.icon.negative.intense" />
         <Heading size="small">{p.said}</Heading>
-        <Text size="small" color="surface.text.gray.muted">Something went wrong. Please try again.</Text>
+        <Text size="small" color="surface.text.gray.muted">{p.said_more}</Text>
       </Box>
       <Box display="flex" alignItems="center" gap="spacing.2" justifyContent="center" flexWrap="wrap">
         <CheckCircleIcon size="small" color="feedback.icon.positive.intense" />
@@ -68,15 +68,17 @@ export function AlertCard({ a }: { a: AlertPreview }) {
   )
 }
 
-// The shared Slack channel: who posted what, and the root cause card. `replies` are the approvals made on the page, shown under the root cause as they would land in the thread.
-export function SlackThread({ s, replies = [] }: { s: SlackPreview; replies?: string[] }) {
+// The shared Slack channel: who posted what, and the root cause card. `replies` are the steps that wait for approval on the page, one line each under the root cause as they would
+// land in the thread: muted while waiting, green once approved. Every line is always there and keeps two lines of room, so approving never makes the preview taller.
+export type Reply = { text: string; done: boolean }
+export function SlackThread({ s, replies = [] }: { s: SlackPreview; replies?: Reply[] }) {
   return (
     <Frame tool="Slack" where={`#${s.channel} · shared with Razorpay`} testID="preview-slack">
       {s.messages.map((m) => (
         <Box key={`${m.who}${m.at}`} display="flex" gap="spacing.4" alignItems="flex-start">
           <Box width="32px" height="32px" flexShrink={0} borderRadius="medium" display="flex" alignItems="center" justifyContent="center"
-            backgroundColor={m.who === 'Razorpay Blindspot' ? 'surface.background.primary.intense' : 'surface.background.gray.moderate'}>
-            <Text size="small" weight="semibold" color={m.who === 'Razorpay Blindspot' ? 'surface.text.staticWhite.normal' : 'surface.text.gray.muted'}>{m.who[0]}</Text>
+            backgroundColor={m.who === 'Razorpay Blindspot' ? 'surface.background.gray.subtle' : 'surface.background.gray.moderate'} borderWidth="thin" borderColor="surface.border.gray.subtle">
+            <Text size="small" weight="semibold" color={m.who === 'Razorpay Blindspot' ? 'surface.text.gray.normal' : 'surface.text.gray.muted'}>{m.who[0]}</Text>
           </Box>
           <Box display="flex" flexDirection="column" gap="spacing.2" minWidth="0px" flex="1">
             <Box display="flex" alignItems="baseline" gap="spacing.3" flexWrap="wrap">
@@ -89,7 +91,7 @@ export function SlackThread({ s, replies = [] }: { s: SlackPreview; replies?: st
                 <Text size="small" weight="semibold">{m.rca.title}</Text>
                 {m.rca.lines.map((l) => <Text key={l} size="small">{l}</Text>)}
                 <Text size="xsmall" color="surface.text.gray.muted">{m.rca.signed_off}</Text>
-                {replies.map((r) => <Text key={r} size="small" color="feedback.text.positive.intense">{r}</Text>)}
+                {replies.map((r) => <Box key={r.text} minHeight="36px"><Text size="small" color={r.done ? 'feedback.text.positive.intense' : 'surface.text.gray.muted'}>{r.text}</Text></Box>)}
               </Box>
             )}
           </Box>

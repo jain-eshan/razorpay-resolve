@@ -77,10 +77,11 @@ test('the brand Overview adds up its own issues', async ({ page }) => {
 test('FK-1: the story, the numbers and where it showed up, all from the file', async ({ page }) => {
   await page.goto(`/incidents/FK-1${BRAND}`)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(fk1.headline)
-  const stats = page.getByTestId('brand-stats')
-  await expect(stats).toContainText(`${rupees(fk1.money_stuck_paise)} paid, no order confirmed`)
-  await expect(stats).toContainText(n(twice.count))
-  await expect(stats).toContainText(n(noOrder.count))
+  const stat = (label: string) => page.getByTestId('brand-stats').getByText(label, { exact: true }).locator('xpath=following-sibling::*[1]')
+  // The total is what is still to refund or to confirm: the duplicates are customers who did get an order.
+  await expect(page.getByTestId('brand-stats')).toContainText(`${rupees(fk1.money_stuck_paise)} to refund or confirm`)
+  await expect(stat(twice.label)).toHaveText(n(twice.count))
+  await expect(stat(noOrder.label)).toHaveText(n(noOrder.count))
   await expect(page.getByTestId('preview-app')).toContainText('Payment failed')
   await expect(page.getByTestId('preview-alert')).toContainText('Sent to Razorpay')
   await expect(page.getByTestId('slack-rca')).toContainText(`${n(fk1.affected)} customers saw “failed” after paying. ${twice.count} paid twice. ${noOrder.count} left with no order.`)
@@ -93,12 +94,13 @@ test('FK-1: the approvals go in order, show in the Slack preview, and the last o
   await expect(btn(page, message.button)).toBeDisabled()  // "your order is confirmed" cannot go before the orders are
   await btn(page, refund.button).click()
   await expect(page.getByTestId('story-4')).toContainText(`${n(twice.count)} of ${n(fk1.affected)} put right`)
-  await expect(page.getByTestId('slack-rca')).toContainText('approved by you')
+  await expect(page.getByTestId('slack-rca').getByText(/approved by you/)).toHaveCount(1)
+  await expect(page.getByTestId('slack-rca').getByText(/waiting for your approval/)).toHaveCount(2)
   await btn(page, orders.button).click()
   await btn(page, message.button).click()
   await expect(page.getByTestId('story-4')).toContainText(`All ${n(fk1.affected)} put right`)
   await expect(page.getByTestId('story-5')).toContainText(`${n(noOrder.count)} told`)
-  await expect(page.getByText(/In this demo nothing was refunded or sent/)).toBeVisible()
+  await expect(page.getByTestId('slack-rca')).toContainText('In this demo nothing was refunded or sent')
   await page.reload()  // kept for this tab
   await expect(page.getByTestId('story-4')).toContainText(`All ${n(fk1.affected)} put right`)
   await btn(page, 'Start again').click()
@@ -112,6 +114,36 @@ test('FK-2: a closed issue on Razorpay\'s side says so, and shows what was done'
   await expect(page.getByText('What was done')).toBeVisible()
   await expect(page.getByTestId('root-cause-actions').getByText('Razorpay', { exact: true }).first()).toBeVisible()
   await expect(page.getByText(/No refund is made/)).toHaveCount(0)  // nothing waits for approval on a closed issue
+})
+
+test('FK-3: the message to customers counts everyone it went to, and the list says nothing about ₹0', async ({ page }) => {
+  const fk3 = fk('FK-3')
+  await page.goto(`/incidents/FK-3${BRAND}`)
+  await expect(page.getByTestId('story-5')).toContainText(`${n(fk3.affected)} told`)
+  await page.goto(`/incidents${BRAND}`)
+  await expect(page.getByText('order not confirmed')).toHaveCount(0)  // FK-2 is closed with ₹0 at stake
+})
+
+test('the brand account shows none of the small merchant\'s pages: no Accuracy, no guides', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto(`/incidents${BRAND}`)
+  await expect(page.getByRole('link', { name: 'Accuracy' })).toHaveCount(0)
+  await expect(btn(page, 'How it works')).toHaveCount(0)
+  await page.goto(`/how${BRAND}`)
+  await expect(page.getByText("This page is part of Kaksha's account")).toBeVisible()
+  await page.goto(`/guides/incidents${BRAND}`)
+  await expect(page.getByText("This page is part of Kaksha's account")).toBeVisible()
+})
+
+test('after a switch, Back and reload show the account the tab is signed in as, not the one an old address named', async ({ page }) => {
+  await page.goto(`/incidents/FK-1${BRAND}`)
+  await expect(page).toHaveURL(/\/incidents\/FK-1$/)  // the address drops ?account once read
+  await page.getByTestId('account-avatar').click()
+  await page.getByRole('menuitem', { name: /Switch to Kaksha/ }).click()
+  await page.goBack()
+  await expect(page.getByText("This page is part of Flipkart's account")).toBeVisible()
+  await page.reload()
+  await expect(page.getByText("This page is part of Flipkart's account")).toBeVisible()
 })
 
 test('the first big-brand demo links land on the brand account\'s open issue', async ({ page }) => {
@@ -130,7 +162,7 @@ test('every figure follows the file: a changed FK-1 changes the page', async ({ 
   await page.route('**/brand/incidents/FK-1.json', (route) => route.fulfill({ json: changed }))
   await page.goto(`/incidents/FK-1${BRAND}`)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(changed.headline)
-  await expect(page.getByTestId('brand-stats')).toContainText(`${rupees(33_333_300)} paid, no order confirmed`)
+  await expect(page.getByTestId('brand-stats')).toContainText(`${rupees(33_333_300)} to refund or confirm`)
   await expect(page.getByTestId('story-2')).toContainText('16 customers hit')
 })
 
@@ -141,7 +173,7 @@ for (const width of [375, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 })
     await page.goto(`/incidents/FK-1${BRAND}`)
     await page.getByTestId('story-strip').waitFor()
-    const ids = ['story-strip', 'brand-stats', 'root-cause-actions']
+    const ids = ['story-strip', 'brand-answer', 'brand-stats', 'where-it-showed-up', 'root-cause-actions']
     const seen: Record<string, string[]> = Object.fromEntries(ids.map((i) => [i, []]))
     const look = async () => { for (const id of ids) seen[id].push(await size(page, id)) }
     await look()
