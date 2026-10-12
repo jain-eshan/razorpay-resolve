@@ -2,7 +2,7 @@
 
 Razorpay x ISB AI PM Build Challenge, Track 2. An agent for small Indian merchants (in this prototype rules and SQL decide, and a model is the production design) that owns what happens before and after a payment, where Razorpay's own tools stop looking. It finds every customer a payment problem touched, talks to them to find the payment, says whose side the fault is on, and fixes it with the founder approving.
 
-Read `docs/PRD_V3.md` and `docs/ROADMAP_V3.md` first (v3, 12 Oct: two ways in for small merchants and big brands, the home dashboard, and the build order). Where v3 is silent, `docs/PRD.md`, then `docs/SPEC.md` and `docs/BUILD_PLAN.md`. `docs/V1_SPEC.md` applies where the v2 docs are silent. A new session starts at `docs/HANDOFF.md`. What broke and why is in `docs/BUILD_LOG.md`. The submission note and video script are in `docs/SUBMISSION.md`, and the AI build log in `docs/AI_BUILD_LOG.md`.
+Read `docs/PRD_V3.md` and `docs/ROADMAP_V3.md` first (v3, 12 Oct: two ways in for small merchants and big brands, the home dashboard, and the build order; the roadmap's "Where Phase 1 stands" block says what is left). Where v3 is silent, `docs/PRD.md`, then `docs/SPEC.md` and `docs/BUILD_PLAN.md`. `docs/V1_SPEC.md` applies where the v2 docs are silent. A new session starts at `docs/HANDOFF.md`. What broke and why is in `docs/BUILD_LOG.md`. The submission note and video script are in `docs/SUBMISSION.md`, and the AI build log in `docs/AI_BUILD_LOG.md`.
 
 ## Try it in two minutes
 
@@ -21,7 +21,9 @@ Page names follow Razorpay's own (`web/DESIGN.md` section 22): Overview, Payment
 
 | Open | What you see |
 |---|---|
-| `/` (Overview) | A welcome pop-up, what Blindspot is and what is wrong right now, Ray, the pages, then both stories as a WhatsApp alert: customers who paid and have no access (Hero A), and customers who could not reach the pay page (Hero B). |
+| `/` (Overview) | A welcome pop-up, then a dashboard: a date range, four cards (open payment issues, customers hit, money stuck, customers made whole), a chart of issues by day (by cause or by whose side), the open issues by money at stake, an Ask Ray bar, the setup card, nine cards to the pages, and Ray's WhatsApp alerts for both stories below. A link at the top, "How Blindspot works", opens the page below. |
+| `/how-it-works` | How Blindspot works: the two journeys (a small merchant, a big brand) as two lanes of five steps, the engine, and what is built today against the production design. No figures on it. |
+| Big-brand example, `/demo/store` then `/demo/alert`, `/demo/slack`, `/demo/incident` | The second journey, on one path with Back and Next. An app release (8.2) makes a pay screen show "Payment failed" for UPI payments Razorpay captured. A monitoring alert names it, the root cause arrives in a shared Slack channel with three approvals, and the issue page opens inside the dashboard: 1,240 customers, 410 paid twice, 830 with no order. Start from "Try a big-brand example" in the Payment issues header. Flipkart, Sentry and Slack appear in text only, with no logos, and every screen says it is made up. An approval changes your browser tab only: nothing is refunded or sent. |
 | Hero A, `INC-1` | A webhook broke after a deploy. 85 customers affected, 68 never complained. Fix them in stages (dry run, first 5, the rest), message them, undo, verify, close. |
 | Hero B, `INC-4` | Razorpay saw nothing, because no payment existed. Blindspot infers it from orders, a pay-page check and complaints, says it is inferred, shows the evidence, and offers recovery links with a few customers held back to measure the effect. |
 | `/chat-demo`, `/email-demo`, `/help-demo/receipt` | A customer talks to the agent. It says it is an AI, finds the payment from an exact identifier, and holds its reply for the founder. |
@@ -70,10 +72,17 @@ The web app has two modes. Without `VITE_MODE=live` it plays the demo from `web/
 | R4 rest, J6 access report (`/access`) | Done, on `main` (PR #29). Contracts v0.11 |
 | No false urgency on every outgoing message; Guard release check (`/release-check`) | Done, on `main` (PR #33). Contracts v0.12 |
 | Roadmap reassessment (`docs/BUILD_PLAN.md` section 14); the three measured PRD metrics; Connect by prompt (`/connect`); Blade charts; thread-crash fix | Done, on `main` (PR #34) |
+| Final audit, safety fixes, honest labels (PR #35); self-explanatory pass: Razorpay names, plain copy, pictures, welcome pop-up (PR #36) | Done, on `main` |
+| Product v3: PRD v3 and the roadmap with scoring (PR #37) | Done, on `main`. `docs/PRD_V3.md`, `docs/ROADMAP_V3.md` |
+| v3 batch 1.1: the Overview becomes a dashboard (PR #38) | Done, on `main` |
+| v3 batch 1.2: the issue page (story strip, evidence lane, "is it just you?") and the charts, plus the "where rules fail" card on Accuracy (PR #39) | Done, on `main` |
+| v3 batch 1.3: the big-brand flow (PR #44) | Done, on `main`. Recorded data and local state, no engine change |
+| v3 batch 1.4: How Blindspot works and the copy pass (PR #42); the product note and AI build log (PR #40, filled for batch 1.3 on 13 Oct) | Done, on `main`. The note and the AI build log wait for Eshan's voice edit |
+| 90-second video, final QA, submission | Not done. See the roadmap, "Where Phase 1 stands" |
 | Investigation agent and three-way eval | Cut from the competition build (no model in the prototype, decision T1). The model is the production design |
 | R6 real Razorpay test-mode rails | Not started. The brief does not require them |
 
-Contract changes are logged in `docs/CONTRACT_CHANGES.md` (currently v0.12). The plan for every release is in `docs/BUILD_PLAN.md`.
+Contract changes are logged in `docs/CONTRACT_CHANGES.md` (currently v0.12; v3 batches 1.1 to 1.4 made none). The plan for every release is in `docs/BUILD_PLAN.md`.
 
 ## What is real and what is simulated
 

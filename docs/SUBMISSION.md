@@ -1,8 +1,8 @@
 # Submission kit (v3, draft)
 
-**Status, 13 Oct 2026: draft for Eshan's voice edit. Not final.** Written from PRD v3, the batch 1.1 and 1.2 build log entries and the committed eval report. Four deliverables: the one-page note (section 1), the 90-second video (section 2, task S5, Eshan's), the working prototype (README), the AI build log (`docs/AI_BUILD_LOG.md`). Section 3 says what is still unverified. Section 4 is what Eshan has to do by hand. Section 7 says where every number comes from.
+**Status, 13 Oct 2026: draft for Eshan's voice edit. Not final.** Written from PRD v3, the batch 1.1, 1.2 and 1.3 build log entries, the big-brand data file (`web/public/brand/j2.json`) and the committed eval report. Four deliverables: the one-page note (section 1), the 90-second video (section 2, task S5, Eshan's), the working prototype (README), the AI build log (`docs/AI_BUILD_LOG.md`). Section 3 says what is still unverified. Section 4 is what Eshan has to do by hand. Section 7 says where every number comes from.
 
-Open placeholders, all waiting for batch 1.3 (the big-brand flow) to merge: one line in the note, one block in appendix 1a, one line in `docs/AI_BUILD_LOG.md`. Search for `TO CONFIRM AFTER BATCH 1.3`.
+No open placeholders: the big-brand line is filled in the note, in appendix 1a and in `docs/AI_BUILD_LOG.md`, from the data file and the built pages (13 Oct, batch 1.3 merged as PR #44). It is still a draft in your voice-edit queue. The `[TO CONFIRM: the session count]` marker in the AI build log is yours.
 
 The brief asks for "one page" and gives no word count. The 450 to 550 word limit is ours (BUILD_PLAN, from the earlier note). The note below is the page. The appendix after it is a longer version for anyone who asks and is not part of the submission.
 
@@ -20,22 +20,21 @@ Rerun `make eval && make snapshot` before recording, and change this file if a n
 **Solution.** One Agent Studio agent, two ways in: a customer's complaint or a brand's own alert. Both start the same five steps: hear it, find everyone hit including the silent, say whose side with proof, fix with approval, win customers back. The lever is recovered revenue, not success rate, which routing owns.
 
 **Track 2, item by item**
-- **Signal.** Payments, orders and webhook logs plus the complaint or alert. For a made-up merchant, 85 customers paid and got no access; 17 complained, 68 never did. The alert fires 55 minutes after the deploy.
-- **Why AI beats a rule.** Rules cover only listed problem types. On 41 made-up messy complaints they read the main issue right 85% of the time (plain 100% of 7, Hinglish 91% of 11, typos 50% of 10), the amount written 54% of 13, and both issues in one message 0% of 5. A model reads those and picks checks for a failure nobody listed. The set is small and made up; no model has run on it yet.
+- **Signal.** Payments, orders and webhook logs plus the complaint or alert. For a made-up merchant, 85 customers paid and got no access; 17 complained, 68 never did. The alert fires 55 minutes after the deploy. For a made-up big brand, an app release hit 1,240 customers: alert at 7:52 pm, root cause in Slack at 7:58.
+- **Why AI beats a rule.** Rules cover only listed problem types. On 41 made-up messy complaints they read the main issue right 85% of the time, the amount written 54%, and both issues in one message 0% of 5. A model reads those and picks checks for a failure nobody listed. The set is small and made up; no model has run on it.
 - **Action and control.** Dry run, first 5, the rest: replay the webhook, grant access, refund a duplicate. Review first by default, with undo. Never revoke access or change Razorpay settings. Refunds go one at a time, ₹5,000 a day, always a person.
 - **Learning.** "Useful or not" moves three settings one step a week, logged. In a six-week invented replay, false alerts fell from 6.2 to 3.2.
 - **Accuracy, trust, failure.** 147 checks pass against hidden ground truth; generator and detector share assumptions, so this shows logic, not real failure rates. The assistant says it is an AI and never asks for a card number, OTP or password. Unsure cases go to a person. An issue closes only after 24 healthy hours.
 
-**Decisions and cuts.** I took the time before and after a payment because RAY, Vulcan and Payment Links own the payment in flight. A Flipkart developer read v2 as "it finds integration errors", so v3 added the big-brand door. No model runs in the prototype, on purpose: a live model step meant 8 hours and no eval a day before the deadline. Left out: fraud, disputes, settlements, plugin merchants, pay-again links, comparing across merchants.
+**Decisions and cuts.** I took the time before and after a payment because RAY, Vulcan and Payment Links own the payment in flight. A Flipkart developer read v2 as "it finds integration errors", so v3 added the big-brand door. No model runs in the prototype: a live model step meant 8 hours and no eval the day before. Left out: fraud, disputes, settlements, plugin merchants.
 
-**Success metrics.** North star: recovered value, verified and incremental. Leading: minutes to alert (55 in the demo), alerts marked wrong under 1 in 5. Guardrail: zero wrong refunds. A six-month pilot has stop gates. Running cost is ₹0.86 cr a year, a bet on retention.
+**Success metrics.** North star: recovered value, verified and incremental. Leading: minutes to alert (55 in the demo), alerts marked wrong under 1 in 5. Guardrail: zero wrong refunds. Running cost is ₹0.86 cr a year, a bet on retention.
 
-**What is real.** Merchant, customers and numbers are made up. SQL and Python produce every number; the hosted demo replays recorded answers. The model is the production design.
+**What is real.** Merchant, customers and numbers are made up. SQL and Python produce every number; the hosted demo replays recorded answers, and the big-brand flow runs on recorded data. The model is the production design.
 
-[TO CONFIRM AFTER BATCH 1.3: one line on the big-brand demo, using only figures the built flow shows.]
 <!-- NOTE END -->
 
-Word count: `sed -n '/^<!-- NOTE START -->/,/^<!-- NOTE END -->/p' docs/SUBMISSION.md | wc -w`. It counts the two marker lines and five bullet dashes, about 13 words above the real text, and it includes the placeholder line (about 17 words). With the placeholder left out it reads 547, so the text is about 534. The placeholder will become one sentence of about 20 words, which lands at about 550. Keep the finished note at or under 550 and recount after your edit.
+Word count: `sed -n '/^<!-- NOTE START -->/,/^<!-- NOTE END -->/p' docs/SUBMISSION.md | wc -w`. It counts the two marker lines and five bullet dashes, about 13 words above the real text. With the big-brand line in it reads 546, so the text is about 533. To make room for that line, three things were cut: the per-kind breakdown of the messy-complaint result (it is in appendix 1a, item 2), "pay-again links" from the list of what was left out, and "a six-month pilot has stop gates" (it is in appendix 1a, item 9). Keep the finished note at or under 550 and recount after your edit.
 
 **Wording to check in your own voice.**
 - "I have not checked it with Razorpay or a second brand": PRD section 14 lists validating the Slack loop as not done. If you have spoken to someone since, change it.
@@ -80,11 +79,11 @@ Limits, stated plainly. The set is small. The build sessions wrote and labelled 
 
 **7. Permissions and trust.** The assistant says it is an AI and never asks for a card number, OTP, UPI PIN or password (0 violations in the eval). It does not invent a deadline (0 in the eval). Customer IDs are masked in logs, conversation text is deleted after 30 days, and every action is logged with who approved it. The product reads no mailbox. Open questions, not settled: Indian rules on disclosing an AI assistant, and the grievance clock for co-branded contacts.
 
-**8. Failure handling.** "Unknown" is a valid owner. When unsure, the assistant hands the case to a person (1.0 correct in the eval). In the big-brand design a likely root cause waits for a Razorpay support engineer's sign-off before it reaches the brand, and an alert stays "unconfirmed" until matched to Razorpay payment data. Both are planned and not built (the console is a Won't in Phase 1; the alert endpoint is Phase 2). An incident never closes on the fix alone. If a model is down in production, the rules answer, as they do in the prototype.
+**8. Failure handling.** "Unknown" is a valid owner. When unsure, the assistant hands the case to a person (1.0 correct in the eval). In the big-brand design a likely root cause waits for a Razorpay support engineer's sign-off before it reaches the brand, and an alert stays "unconfirmed" until matched to Razorpay payment data. Neither is built in the engine (the console is a Won't in Phase 1; the alert endpoint is Phase 2). The demo shows both on recorded data: the alert page, and a Slack thread where the root cause is signed off at 7:59 pm by a scripted approval. An incident never closes on the fix alone. If a model is down in production, the rules answer, as they do in the prototype.
 
 **9. Business outcome.** North star: recovered value, counted only after a check confirms it, net of customers who would have come back anyway. Leading and lagging metrics, guardrails and the metrics dropped as vanity are in PRD section 12. Pilot gates (BUSINESS_CASE section 8): at least 6% of alerted merchants connect, at least 4.5% take Guard, at least 40% of eligible incidents approved for a paid Fix, at least ₹50 of avoided cost per detected incident, fewer than 1 in 5 alerts marked wrong. About 6 months, about 200 opt-in merchants, about ₹0.8 cr. If two gates fail, keep only the free layer, about ₹0.46 cr a year. It costs ₹0.86 cr a year to run and ₹1.19 cr to build in year 1. The three-year total is -₹1.09 cr, or +₹0.28 cr with ₹50 of avoided support cost per detected incident. The case does not include big brands.
 
-**Big-brand flow (batch 1.3).** [TO CONFIRM AFTER BATCH 1.3: what the flow shows (store, alert, Slack thread, brand incident page), with figures read from `web/public/snapshot/j2.json` once it exists. The plan is an app release that breaks payment verification, an alert at 7:52 pm and a root cause in Slack at 7:58 pm, six minutes later. Do not write these as results until the data file and the pages exist. Say that the flow runs on recorded data and local state.]
+**Big-brand flow (batch 1.3).** Four screens on one path, "Try a big-brand example" in the Payment issues header. The brand is Flipkart, in text only: no logo, no look-alike screens, and every screen says "This is not the real Flipkart, Sentry or Slack". (1) `/demo/store`: a pay screen with a "Ship app 8.2" switch. After the switch, a UPI payment that Razorpay captured shows "Payment failed", because the app's server never verified it. (2) `/demo/alert`: a monitoring page, in words only, with 40 events in 10 minutes and "Forwarded to Razorpay". (3) `/demo/slack`: the root cause in a shared channel with three approvals (refund 410 duplicates, send the 830 order list, message the 830 customers). The message stays disabled until the orders are confirmed. (4) `/demo/incident`: the same issue page as every other incident, inside the dashboard: story strip, evidence lane, "is it just you?" from the app-version lift (every affected payment came from app 8.2), root cause "Your code" with exact confidence, three signals. The data: 1,240 customers paid by UPI from app 8.2 between 7:40 and 7:56 pm; 410 paid twice and 830 have no order; ₹15,69,060 stuck, of which ₹4,97,890 to refund and ₹10,71,170 with no order. Timeline: app 8.2 rolled out 7:40 pm, verify calls stop 7:41, errors from 7:44, alert 7:52, root cause 7:58, sign-off 7:59, rollback 8:01. The alert comes 12 minutes after the rollout and the root cause 6 minutes after the alert. What is simulated: all of it. A Python script (`synth/j2_brand.py`, fixed seed) writes the data file, every number on every screen is read from it, and an approval changes this browser tab's state only: no refund is made and no message is sent. What is not built: the alert endpoint in the engine (Phase 2), the support engineer console (a Won't in Phase 1), and the root cause as a model-written document. The Slack loop itself, a brand waiting hours for the gateway's root cause, is from Eshan's previous company and unchecked with Razorpay (item 10 in section 3).
 
 **Carried over from the v2 note, still true.**
 - *Platform asks.* A webhook-health event with an alert to a named contact; bulk self-serve replay; order created, attempted and abandoned events; a "Need help with this payment?" button on error pages.
@@ -143,7 +142,7 @@ Kill criteria: K1 passes on the synthetic world (ratio 4.0). K4 passes on script
 **Added 13 Oct for the v3 note (S3):**
 
 a. Read the note in section 1 and put it in your own voice. Check the three lines under "Wording to check" first. Recount the words after you edit.
-b. After batch 1.3 merges, fill the two `TO CONFIRM AFTER BATCH 1.3` placeholders (the note and appendix 1a) from the built flow, and the one in `docs/AI_BUILD_LOG.md`. Keep only figures the pages show. If batch 1.3 is cut, delete the placeholders and say in the note that big brands are the next segment (ROADMAP_V3 cut order).
+b. Batch 1.3 has merged and the big-brand placeholders are filled (13 Oct), from the data file and the built pages. Read the new line in the note and the "Big-brand flow" block in appendix 1a, and put them in your own voice. If you change the line in the note, recount the words.
 c. Run `make eval && make snapshot` and check that 147 pass, 41 reported-only figures and the messy-complaint figures (85%, 41 messages) are unchanged. Section 7 lists every number to recheck.
 d. Decide whether to say "Flipkart" in the note. ROADMAP_V3 section 7 settled it as text only, no logo. The note names Flipkart once, as the developer who gave feedback.
 e. The PRD's J1 story starts at 6:05 pm, but the product data starts INC-1 at 2:20 pm and alerts at 3:15 pm (`web/public/snapshot/incidents.json`). The note uses only "55 minutes". Fix the PRD doc or the video script so they agree with the data.
@@ -269,16 +268,16 @@ Updated 11 Oct for the renamed pages (web/DESIGN.md section 22).
 | ₹1.19 cr to build; -₹1.09 cr over three years; +₹0.28 cr with ₹50 avoided per incident | `docs/BUSINESS_CASE.md` section 1 (lines 1 to 3) |
 | 15 of 289 merchant posts on this theme | `docs/AI_BUILD_LOG.md` (tool table, Apify row); PRD v3 section 2 for the 289 |
 | Six failed deliveries left no trace on the webhook screens | Section 3 of this file, item 1 |
-| Alert at 7:52 pm, root cause at 7:58 pm, six minutes | Planned only: `docs/ROADMAP_V3.md` task J2 and PRD v3 section 6, J2. Not built. [TO CONFIRM AFTER BATCH 1.3] |
+| 1,240 customers (410 paid twice, 830 no order); alert at 7:52 pm, root cause at 7:58 pm, six minutes; 12 minutes from rollout to alert; ₹15,69,060, ₹4,97,890, ₹10,71,170 | `web/public/brand/j2.json` (`counts`, `money_paise`, `timeline`), written by `synth/j2_brand.py` (test: `synth/tests/test_j2_brand.py`, `web/e2e/brand.spec.ts`). Build log entry "v3 batch 1.3" |
 
 **In `docs/AI_BUILD_LOG.md`**
 
 | Number | Where it comes from |
 |---|---|
-| 113 commits on main | `git rev-list --count origin/main` on 13 Oct |
-| 37 merged pull requests | `gh pr list --state merged` on 13 Oct |
-| About 28,000 lines of Python and TypeScript | `git ls-files '*.py' '*.ts' '*.tsx'` (docs and graphify output left out), summed with `wc -l`: 28,198 |
-| 609 backend tests, 142 browser tests | `docs/BUILD_LOG.md`, 12 Oct entry "v3 batch 1.2" (tests line). 93 browser tests before 12 Oct: PRD v3 section 11 |
+| 126 commits on main | `git rev-list --count origin/main` on 13 Oct |
+| 41 merged pull requests | `gh pr list --state merged --limit 200` on 13 Oct |
+| About 30,000 lines of Python and TypeScript | `git ls-files '*.py' '*.ts' '*.tsx'` (docs and graphify output left out), summed with `wc -l`: 29,973 |
+| 614 backend tests, 187 browser tests | `uv run pytest -q --co` (614 collected) and a full `CI=1 npx playwright test` run (187 passed), both on 13 Oct. Before 12 Oct there were 93 browser tests: PRD v3 section 11 |
 | 147 scored checks pass | R, as above |
 | 41 made-up complaints, 85%, 78% | R, and `docs/BUILD_LOG.md` as above |
 | 26 sessions (10 Oct) | The previous version of the log. Not recounted |
