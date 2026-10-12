@@ -1,5 +1,5 @@
-import { Link as RouterLink } from 'react-router-dom'
-import { AlertTriangleIcon, Badge, Box, RupeesIcon, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text, UsersIcon } from '@razorpay/blade/components'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { AlertTriangleIcon, Badge, Box, Button, RupeesIcon, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text, UsersIcon } from '@razorpay/blade/components'
 import { Panel } from '../components/Panel'
 import { Stat } from '../components/Stat'
 import { rupees, useGet, type Schemas } from '../lib/api'
@@ -28,11 +28,13 @@ const knownAt = (start: string, known: string) => {
 }
 
 export default function Incidents() {
+  const nav = useNavigate()
   const { data, error } = useGet<Schemas['IncidentSummary'][]>('/api/incidents')
   if (!data && !error) return <PageSkeleton />
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <PageHeader title="Payment issues" description="Problems that stopped customers paying or getting what they paid for, biggest first. Each one shows who was hit, the amount involved and whose side the cause is on." guide="incidents" />
+      <PageHeader title="Payment issues" description="Problems that stopped customers paying or getting what they paid for, biggest first. Each one shows who was hit, the amount involved and whose side the cause is on." guide="incidents"
+        actions={<Button variant="tertiary" size="medium" onClick={() => nav('/demo/store')}>Try a big-brand example</Button>} />
       {error && <Text color="feedback.text.negative.intense">Could not load payment issues: {error}. Reload the page to try again.</Text>}
       {data?.length === 0 && <Text>No payment issues. Blindspot checks every 15 minutes.</Text>}
       {data && data.length > 0 && (() => {

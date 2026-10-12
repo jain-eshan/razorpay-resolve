@@ -19,7 +19,9 @@ const says = (l: Lift): string => {
   switch (l.dimension) {
     case 'delivery_outcome': return v === 'failed or never attempted' ? 'had a webhook that failed or was never attempted' : `had a webhook that was ${v}`
     case 'method': return `were paid by ${METHOD[v] ?? v}`
-    case 'app_version': return v === 'none' ? 'came from no app version' : `came from ${v}`
+    case 'app_version': return v === 'none' ? 'came from no app version' : `came from ${/^\d/.test(v) ? 'app ' : ''}${v}`
+    case 'platform': return `came from ${v}`
+    case 'verify_call': return 'had no verify-payment call from your server'
     case 'kind': return `were ${v} payments`
     case 'plan': return `were for the ${PLAN[v] ?? v.replace(/^plan_/, '').replaceAll('_', ' ')} plan`
     case 'error_code': return `failed with ${ERROR[v] ?? `the error ${v}`}`

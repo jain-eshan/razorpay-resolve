@@ -27,6 +27,13 @@ export function StoryStrip({ inc }: { inc: Inc }) {
     { title: 'Fix', done: closed || (inc.affected > 0 && waiting === 0), value: `${fixed} of ${inc.affected} put right`, note: closed ? 'closed' : inc.status === 'open' ? 'needs your approval' : 'in progress' },
     { title: 'Win back', done: closed && told > 0, value: told > 0 ? `${told} told` : 'No one told yet', note: paid > 0 ? `${paid} paid again` : 'needs your approval' },
   ]
+  return <StoryTiles steps={steps} />
+}
+
+export type StoryStep = { title: string; done: boolean; value: string; note: string }
+
+// The five tiles themselves, so an issue that does not fit the engine's fields (the brand demo, where the first signal is an alert and not a complaint) can pass its own steps.
+export function StoryTiles({ steps }: { steps: StoryStep[] }) {
   const now = steps.findIndex((s) => !s.done)  // -1 once every step is done
   return (
     <Card testID="story-strip">
