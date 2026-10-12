@@ -1,5 +1,5 @@
-import { useParams } from 'react-router-dom'
-import { Alert, Box, Button, Card, CardBody, Text } from '@razorpay/blade/components'
+import { useNavigate, useParams } from 'react-router-dom'
+import { Alert, AlertTriangleIcon, Box, Button, Card, CardBody, EmptyState, Text } from '@razorpay/blade/components'
 import { Crumbs } from '../components/Crumbs'
 import { Panel } from '../components/Panel'
 import { useGet, type Schemas } from '../lib/api'
@@ -18,10 +18,15 @@ function download(name: string, type: string, body: string) {
 // S-07. Read-only and shareable: opening the link changes nothing. Payment ids and masked names only, no contact details.
 export default function Dev() {
   const { id = '' } = useParams()
+  const nav = useNavigate()
   const { data: inc, error } = useGet<Schemas['IncidentDetail']>(`/api/incidents/${id}`)
   const { data: pack } = useGet<Schemas['EvidencePack']>(`/api/incidents/${id}/evidence_pack`)
   const { data: members } = useGet<Schemas['Member'][]>(`/api/incidents/${id}/members`)
-  if (error) return <Text color="feedback.text.negative.intense">Could not load {id}: {error}</Text>
+  if (error) return (
+    <EmptyState size="large" asset={<AlertTriangleIcon size="2xlarge" color="surface.icon.gray.muted" />} title="We could not find that payment issue" description={`${id} is not in this demo. It may have been mistyped, or it may be from another version.`}>
+      <Button variant="primary" onClick={() => nav('/incidents')}>See all payment issues</Button>
+    </EmptyState>
+  )
   if (!inc || !pack) return <PageSkeleton />
 
   const csv = ['payment_id,customer,amount_inr,plan,webhook_outcome,your_record,group', ...(members ?? []).map((m) =>

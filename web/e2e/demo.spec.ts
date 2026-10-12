@@ -150,7 +150,7 @@ test('Hero B plays end to end with no server: infer, check the page, fix, links 
   await expect(panel(page).getByText('5 of 7', { exact: true })).toBeVisible()
   await btn(page, 'Check it held and close').click()
   await expect(panel(page).getByText(/Paid since: 0 of 5 customers/)).toBeVisible() // half sent: stays open
-  await expect(page.getByText('Still open')).toBeVisible()
+  await expect(page.getByText('Still open', { exact: true })).toBeVisible()
   await btn(page, /^Send the rest/).click()
   await expect(panel(page).getByText('Sent', { exact: true })).toBeVisible()
 
@@ -293,7 +293,7 @@ test('INC-3 plays end to end with no server: why it is Razorpay\'s, access kept 
   await expect(panel(page).getByText('5 of 24', { exact: true })).toBeVisible()
   await btn(page, 'Check it held and close').click()
   await expect(panel(page).getByText(/19 are still waiting for the next step/)).toBeVisible() // half done stays open
-  await expect(page.getByText('Still open')).toBeVisible()
+  await expect(page.getByText('Still open', { exact: true })).toBeVisible()
   await btn(page, /^Keep access on for the rest/).click()
   await expect(panel(page).getByText('Done', { exact: true })).toBeVisible()
 
@@ -395,7 +395,7 @@ test('INC-2 plays end to end with no server: why, who was left out, refunds one 
   await btn(page, 'Your developer ships the fix').click()
   await btn(page, 'Check it held and close').click()
   await expect(panel(page).getByText(/Verify again later/)).toBeVisible()
-  await expect(page.getByText('Still open')).toBeVisible()
+  await expect(page.getByText('Still open', { exact: true })).toBeVisible()
   await btn(page, 'Move the clock forward 24 hours').click()
   await btn(page, 'Check it held and close').click()
   await expect(page.getByTestId('success-moment')).toBeVisible()

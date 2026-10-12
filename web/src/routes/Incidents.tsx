@@ -3,7 +3,7 @@ import { AlertTriangleIcon, Badge, Box, RupeesIcon, Table, TableBody, TableCell,
 import { Panel } from '../components/Panel'
 import { Stat } from '../components/Stat'
 import { rupees, useGet, type Schemas } from '../lib/api'
-import { ZONE, ZONE_LINE, cause, headline, sentence, when } from '../lib/format'
+import { AMOUNT_NOTE, ZONE, ZONE_LINE, cause, headline, sentence, when } from '../lib/format'
 import { PageHeader } from '../components/PageHeader'
 import { PageSkeleton } from '../components/PageSkeleton'
 
@@ -16,8 +16,6 @@ const EMPTY: Record<string, string> = {
   during: "Razorpay's Success Rate page already covers bank and UPI failures, so Blindspot leaves them out.",
   after: 'Nothing found. Every customer who paid got what they paid for.',
 }
-// Whose money the amount is, since it is not always every customer's in the row: for a webhook issue it is what the customers still without access paid.
-const AMOUNT_NOTE: Record<string, string> = { A: 'paid by those still without access', E: 'still to refund', G: 'still to collect', Z1: 'estimated, still reachable' }
 // "Could have known" on the same day as the start needs only the time.
 // The incident's title as a link that wraps. Blade's Link keeps its text on one line (max-content), which cuts long titles off, so this is the
 // router link around Blade text, as the Explore cards on the home do.

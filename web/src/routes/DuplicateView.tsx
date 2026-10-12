@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Alert, AlertTriangleIcon, Badge, BellOffIcon, Box, Button, Card, CardBody, CheckCircleIcon, Heading, MessageCircleIcon, SegmentedControl, SegmentedControlItem, StepGroup, StepItem,
+  Alert, AlertTriangleIcon, Badge, Box, Button, Card, CardBody, Heading, SegmentedControl, SegmentedControlItem, StepGroup, StepItem,
   StepItemIndicator, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TablePagination, TableRow, Text,
 } from '@razorpay/blade/components'
 import { Crumbs } from '../components/Crumbs'
@@ -9,8 +9,12 @@ import { DuplicateChart } from '../components/DuplicateChart'
 import { DuplicateFix } from '../components/DuplicateFix'
 import { Lane } from '../components/Lane'
 import { Panel } from '../components/Panel'
+import { EvidenceLane } from '../components/EvidenceLane'
+import { IncidentStats } from '../components/IncidentStats'
+import { JustYou } from '../components/JustYou'
+import { RootCauseActions } from '../components/RootCauseActions'
 import { StartFix } from '../components/StartFix'
-import { Stat } from '../components/Stat'
+import { StoryStrip } from '../components/StoryStrip'
 import { rupees, useGet, type Schemas } from '../lib/api'
 import { cause, headline, sentence, when } from '../lib/format'
 import { PageSkeleton } from '../components/PageSkeleton'
@@ -40,8 +44,9 @@ export default function DuplicateView({ id }: { id: string }) {
   const { data: inc, error } = useGet<Schemas['IncidentDetail']>(`/api/incidents/${id}`, version)
   const { data: members } = useGet<Schemas['Member'][]>(`/api/incidents/${id}/members`, version)
   const { data: sample } = useGet<Schemas['SampleTimeline'][]>(`/api/incidents/${id}/sample`, version)
+  const { data: pack, error: packError } = useGet<Schemas['EvidencePack']>(`/api/incidents/${id}/evidence_pack`)
   if (error) return <Text color="feedback.text.negative.intense">Could not load {id}: {error}</Text>
-  if (!inc) return <PageSkeleton />
+  if (!inc || (!pack && !packError)) return <PageSkeleton />  // the page appears whole, so the cards in it do not grow as more of it arrives
   const v = inc.verdict
   const sig = v.signature as unknown as Sig
   const rows = (members ?? []).filter((m) => m.tier === tier).map((m) => ({ ...m, id: m.payment_id }))
@@ -74,21 +79,17 @@ export default function DuplicateView({ id }: { id: string }) {
                 <Text size="small" color="surface.text.gray.muted">{sentence(v.confidence)} confidence · started {when(inc.onset_at)} · {inc.id}</Text>
               </Box>
             </Box>
-            <Button variant="secondary" size="small" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Send to your developer</Button>
+            <Button variant="secondary" size="medium" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Send to your developer</Button>
           </Box>
         </CardBody>
       </Card>
 
+      <StoryStrip inc={inc} />
+
       <Alert isFullWidth color="information" isDismissible={false} title="Your webhook was fine. The second charge is the problem"
         description={`Both charges reached your server and both orders got access. The Pay button in ${sig.app_version} lets a second tap place a second order, so the customer pays twice for one plan. Blindspot can refund the second charge to the original payment method, one customer at a time, once you approve each.${early}`} />
 
-      <Box display="grid" gridTemplateColumns={{ base: 'repeat(2, minmax(0, 1fr))', l: 'repeat(4, minmax(0, 1fr))' }} gap="spacing.5">
-        <Stat label="Charged twice" value={String(inc.affected)} hint={`${rupees(inc.at_risk_paise)} still to refund`} icon={AlertTriangleIcon} tone="notice" />
-        <Stat label="Wrote to you" value={String(inc.complained)} icon={MessageCircleIcon} />
-        <Stat label="Silent" value={String(inc.silent)} hint="never wrote in" icon={BellOffIcon} />
-        <Stat label="Refunds started" value={String(inc.fixed)} hint="the bank takes time to pay them out" icon={CheckCircleIcon} tone="positive" />
-      </Box>
-      <StartFix to={fix} closed={done} top />
+      <IncidentStats inc={inc} />
 
       <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(0, 1fr) 320px' }} gap="spacing.6" alignItems="start">
         <Box display="flex" flexDirection="column" gap="spacing.6" minWidth="0px">
@@ -109,8 +110,12 @@ export default function DuplicateView({ id }: { id: string }) {
           </Panel>
 
           <Panel title={`Orders from ${sig.app_version} by day`} subtitle="The red part is the second order of a double tap">
-            <DuplicateChart buckets={inc.timeline} />
+            <DuplicateChart buckets={inc.timeline} marks={[{ at: sig.release_at, label: 'Release' }]} />
           </Panel>
+
+          <EvidenceLane inc={inc} pack={pack} />
+          <JustYou cannotSee={false} inc={inc} />
+          <RootCauseActions inc={inc} pack={pack} fix={fix} closed={done} />
 
           <Panel title="Customers" pad={false} trailing={<Text size="small" color="surface.text.gray.muted">{members?.length ?? 0} looked at, {inc.tier_counts.exact ?? 0} to refund</Text>}>
             <Box padding="spacing.5">
@@ -168,7 +173,7 @@ export default function DuplicateView({ id }: { id: string }) {
             </Panel>
           )}
 
-          <Box ref={fix}><DuplicateFix inc={inc} onChanged={() => setVersion((n) => n + 1)} /></Box>
+          <Box ref={fix} testID="fix-steps"><DuplicateFix inc={inc} onChanged={() => setVersion((n) => n + 1)} /></Box>
         </Box>
 
         <Box position={{ base: 'static', l: 'sticky' }} top="spacing.5">
@@ -184,7 +189,7 @@ export default function DuplicateView({ id }: { id: string }) {
                   ]}
                 </StepGroup>
               </Box>
-              <StartFix to={fix} closed={done} />
+              <StartFix to={fix} closed={done} variant="secondary" wideOnly />
               <Box marginTop="spacing.5"><Button variant="tertiary" size="small" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Open the evidence page</Button></Box>
             </CardBody>
           </Card>

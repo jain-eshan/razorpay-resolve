@@ -1,8 +1,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Box, ChartBar, ChartBarWrapper, ChartCartesianGrid, ChartTooltip, ChartXAxis, ChartYAxis, CheckCircleIcon, EmptyState, Heading, SegmentedControl, SegmentedControlItem, Skeleton, Text, useTheme } from '@razorpay/blade/components'
+import { Box, ChartBar, ChartBarWrapper, ChartCartesianGrid, ChartTooltip, ChartXAxis, ChartYAxis, CheckCircleIcon, EmptyState, Heading, SegmentedControl, SegmentedControlItem, Skeleton, Text } from '@razorpay/blade/components'
 import { rupees, type Schemas } from '../lib/api'
 import { OWNER, kindName } from '../lib/format'
 import { dayShort, inRange, istDay, RANGES, rangeDays, type RangeId } from '../lib/range'
+import { ChartKey } from './ChartKey'
 import { MenuPick } from './MenuPick'
 import { Panel } from './Panel'
 
@@ -119,28 +120,13 @@ export function IssuesChart({ issues: all, range: pageRange }: { issues: Schemas
                   {names.map((n, i) => <ChartBar key={n} dataKey={n} name={n} stackId="issues" color={`data.background.categorical.${PALETTE[i % PALETTE.length]}.intense`} />)}
                 </ChartBarWrapper>
               </Box>
-              {/* The legend is drawn here, not by the chart: Blade's takes a 44px row per line in 14px text, which left gaps wider than the words. Small text, tight lines, centred. */}
-              <Box testID="chart-legend" display="flex" flexWrap="wrap" justifyContent="center" columnGap="spacing.5" rowGap="spacing.1">
-                {names.map((n, i) => (
-                  <Box key={n} display="flex" alignItems="center" gap="spacing.2">
-                    <Swatch color={PALETTE[i % PALETTE.length]} />
-                    <Text size="small" color="surface.text.gray.muted">{n}</Text>
-                  </Box>
-                ))}
-              </Box>
+              <ChartKey items={names.map((n, i) => ({ name: n, color: PALETTE[i % PALETTE.length] }))} />
             </Box>
           )}
         </Box>
       </Box>
     </Panel>
   )
-}
-
-// A small square in a chart colour. Blade's Box takes only surface and overlay colours (it throws on a data colour), so this one plain span reads the chart's colour from
-// the theme token, which is what Blade's own legend does inside the chart. The colour is the token's, not typed here.
-function Swatch({ color }: { color: (typeof PALETTE)[number] }) {
-  const { theme } = useTheme()
-  return <span aria-hidden="true" style={{ display: 'inline-block', flexShrink: 0, width: 8, height: 8, borderRadius: 2, background: theme.colors.data.background.categorical[color].intense }} />
 }
 
 // An axis tick in rupees, short: ₹56L (lakh) and ₹12k, as Indian merchants write it. Tooltips and the heading show the full figure.

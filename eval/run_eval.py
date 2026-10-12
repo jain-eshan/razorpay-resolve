@@ -26,6 +26,7 @@ from eval.conversation import run as run_conversation
 from eval.founder_effort import run as run_founder_effort
 from eval.handovers import run as run_handovers
 from eval.learning import run as run_learning
+from eval.messy import run as run_messy
 
 world = sqlite3.connect(ROOT / "data" / "world.db")
 world.row_factory = sqlite3.Row
@@ -182,6 +183,10 @@ for name, value, target, ok in run_conversation(world, truth):
 
 # ---- The north star: founder minutes per incident (approvals counted from the engine's own plans, 30 seconds each assumed) ----
 for name, value, target, ok in run_founder_effort(world):
+    add(name, value, target, ok)
+
+# ---- v3 A1: where rules fail. Made-up messy complaints scored against the rules that read complaints today. Reported, not gated. ----
+for name, value, target, ok in run_messy():
     add(name, value, target, ok)
 
 # ---- R5: handovers (Instagram and Messenger control passing, public posts to private messages) ----
