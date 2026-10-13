@@ -174,8 +174,9 @@ export default function Home() {
       <Box display="flex" flexDirection="column" gap="spacing.5">
         <Heading as="h2" size="large">Explore Blindspot</Heading>
         {/* Nine cards in the side menu's order, each opening its page (its guide is one click away there, under "How it works").
-            Three across from l, so the nine fill three rows; two across at m, where the first takes a whole row so none is left alone. */}
-        <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', m: 'repeat(2, minmax(0, 1fr))', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
+            Three across from l, so the nine fill three rows; two across at m, where the first takes a whole row so none is left alone.
+            Every row is as tall as the tallest, so a line that wraps on one machine's font does not make one card taller than the rest. */}
+        <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', m: 'repeat(2, minmax(0, 1fr))', l: 'repeat(3, minmax(0, 1fr))' }} gridAutoRows="1fr" gap="spacing.5">
           {(brand ? EXPLORE_BRAND : EXPLORE).map((id) => GUIDES.find((g) => g.id === id)!).map((g, i) => (
             <Box key={g.id} gridColumn={i === 0 ? { base: 'auto', m: '1 / -1', l: 'auto' } : 'auto'}>
               <RouterLink to={g.to} style={{ textDecoration: 'none' }}>
