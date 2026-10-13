@@ -3,6 +3,7 @@ import {
   Alert, AlertTriangleIcon, Badge, Box, Card, CardBody, Heading, SegmentedControl, SegmentedControlItem, StepGroup, StepItem,
   StepItemIndicator, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TablePagination, TableRow, Text,
 } from '@razorpay/blade/components'
+import { LiveStepIndicator } from '../components/Pulse'
 import { Crumbs } from '../components/Crumbs'
 import { DuplicateChart } from '../components/DuplicateChart'
 import { DuplicateFix } from '../components/DuplicateFix'
@@ -187,7 +188,7 @@ export default function DuplicateView({ id }: { id: string }) {
                   {[
                     ...steps.map((st) => <StepItem key={st.title} title={st.title} timestamp={when(st.at)} description={st.text} stepProgress="full" marker={<StepItemIndicator color={st.tone} />} />),
                     <StepItem key="end" title={done ? 'Closed' : 'Still open'} stepProgress="none" description={done ? 'Everyone is refunded and the app is fixed' : `${inc.tier_counts.exact - inc.fixed} customers still to refund`}
-                      marker={<StepItemIndicator color={done ? 'positive' : 'notice'} />} />,
+                      marker={done ? <StepItemIndicator color="positive" /> : <LiveStepIndicator color="notice" />} />,
                   ]}
                 </StepGroup>
               </Box>

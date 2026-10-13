@@ -3,6 +3,7 @@ import {
   Alert, AlertTriangleIcon, Badge, Box, Card, CardBody, Heading, StepGroup, StepItem, StepItemIndicator, Table, TableBody,
   TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TablePagination, TableRow, Text,
 } from '@razorpay/blade/components'
+import { LiveStepIndicator } from '../components/Pulse'
 import { Crumbs } from '../components/Crumbs'
 import { FeedbackPanel } from '../components/FeedbackPanel'
 import { OrdersChart, type Hour } from '../components/OrdersChart'
@@ -195,7 +196,7 @@ export default function Zone1View({ id }: { id: string }) {
                   {[
                     ...steps.map((st) => <StepItem key={st.title} title={st.title} timestamp={when(st.at)} description={st.text} stepProgress="full" marker={<StepItemIndicator color={st.tone} />} />),
                     <StepItem key="end" title={inc.status === 'closed' ? 'Closed' : 'Still open'} stepProgress="none" description={inc.status === 'closed' ? 'The fix held and every recovery step finished' : `${ready} customers can be sent a link`}
-                      marker={<StepItemIndicator color={inc.status === 'closed' ? 'positive' : 'notice'} />} />,
+                      marker={inc.status === 'closed' ? <StepItemIndicator color="positive" /> : <LiveStepIndicator color="notice" />} />,
                   ]}
                 </StepGroup>
               </Box>

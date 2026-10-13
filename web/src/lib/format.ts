@@ -38,6 +38,12 @@ export const OWNER: Record<string, string> = {
 // "Estimated" when no payment exists to look up (the customer never reached checkout), so the cause is worked out from other signals.
 export const cause = (i: { owner: string; inferred: boolean }) => `${OWNER[i.owner]}${i.inferred ? ' · estimated' : ''}`
 
+// Who a conversation is with, in a merchant's words: a customer matched to the merchant's own records is never shown by the engine's id (cust_...), and a handle or number
+// the customer wrote from is shown as it is. The language as a word.
+export const customerLabel = (ref: string) => (ref.startsWith('cust_') ? 'Known customer' : ref)
+const LANGUAGE: Record<string, string> = { hi_latn: 'Hinglish', hi: 'Hindi', en: 'English' }
+export const languageName = (code: string) => LANGUAGE[code] ?? sentence(code)
+
 export const ZONE: Record<string, string> = { before: 'Before payment', during: 'During payment', after: 'After payment' }
 export const ZONE_LINE: Record<string, string> = {
   before: 'Customers could not pay, so Razorpay never saw an attempt',

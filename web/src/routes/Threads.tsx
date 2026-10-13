@@ -4,7 +4,7 @@ import { Alert, AtSignIcon, Badge, Box, Button, Card, CardBody, HeadsetIcon, Hea
 import { ThreadView } from '../components/ThreadView'
 import { isLive, useGet, type Schemas } from '../lib/api'
 import { demoNote } from '../lib/demo'
-import { CHANNEL, sentence, when } from '../lib/format'
+import { CHANNEL, customerLabel, sentence, when } from '../lib/format'
 import { PageHeader } from '../components/PageHeader'
 import { Panel } from '../components/Panel'
 import { PageSkeleton } from '../components/PageSkeleton'
@@ -43,7 +43,7 @@ export function Threads() {
               <Text weight="semibold">{CHANNEL[t.channel] ?? sentence(t.channel)}</Text>
               <Badge color={t.state === 'human' || t.state === 'handoff' ? 'negative' : t.state === 'resolved' || t.state === 'wait_for_fix' ? 'positive' : 'neutral'}>{sentence(t.state)}</Badge>
               {t.incident_id && <Badge color="neutral">{t.incident_id}</Badge>}
-              <Text size="small" color="surface.text.gray.muted">{when(t.last_inbound_at)} · {t.customer_ref}</Text>
+              <Text size="small" color="surface.text.gray.muted">{when(t.last_inbound_at)} · {customerLabel(t.customer_ref)}</Text>
             </Box>
           </CardBody></Card>
         </Link>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Alert, Badge, Box, Button, Card, CardBody, Heading, RayIcon, Text, TextArea } from '@razorpay/blade/components'
 import { isLive, send, type Schemas } from '../lib/api'
-import { plainTokens, when } from '../lib/format'
+import { CHANNEL, customerLabel, languageName, plainTokens, sentence, when } from '../lib/format'
 
 type Thread = Schemas['ThreadDetail']
 const STATE: Record<string, [string, 'positive' | 'notice' | 'neutral' | 'negative' | 'information']> = {
@@ -33,10 +33,10 @@ export function ThreadView({ thread, onChanged }: { thread: Thread; onChanged: (
   return (
     <Box display="flex" flexDirection="column" gap="spacing.5" testID="thread-view">
       <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
-        <Heading as="h2" size="medium">{thread.channel.replaceAll('_', ' ')}</Heading>
+        <Heading as="h2" size="medium">{CHANNEL[thread.channel] ?? sentence(thread.channel)}</Heading>
         <Badge color={tone}>{label}</Badge>
         {thread.incident_id && <Badge color="neutral">{thread.incident_id}</Badge>}
-        <Text size="small" color="surface.text.gray.muted">{thread.customer_ref} · {thread.language.replace('_', ' ')} · {thread.question_count} of 3 questions</Text>
+        <Text size="small" color="surface.text.gray.muted">{customerLabel(thread.customer_ref)} · {languageName(thread.language)} · {thread.question_count} of 3 questions</Text>
       </Box>
 
       {thread.founder_brief && (

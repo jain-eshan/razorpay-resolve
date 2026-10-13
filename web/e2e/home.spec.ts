@@ -21,7 +21,7 @@ test('H3 the four cards equal the sums from the issue data', async ({ page }) =>
   await expect(card(page, 'Open payment issues')).toHaveText(String(open.length))
   await expect(card(page, 'Customers hit')).toHaveText(String(sum(issues, 'affected')))
   await expect(card(page, 'Money stuck')).toHaveText(rupees(sum(open, 'at_risk_paise')))
-  await expect(card(page, 'Customers made whole')).toHaveText(String(sum(issues, 'fixed')))
+  await expect(card(page, 'No longer waiting')).toHaveText(String(sum(issues, 'fixed')))
 })
 
 test('H2 the date range changes the cards, chart and list together, and survives a reload', async ({ page }) => {
