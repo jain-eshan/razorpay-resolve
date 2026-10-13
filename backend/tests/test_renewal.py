@@ -285,7 +285,7 @@ def test_inc3_pages_over_http(api):
 
 def test_the_day0_scan_counts_only_customers_who_paid_and_adds_the_renewals_in_words(api):
     s = api.post("/api/scan/day0").json()
-    assert s["leaked_customers"] == 81 and "27 card renewals failed" in s["headline"]
+    assert s["leaked_customers"] == 81 and "27 card renewals failed inside Razorpay" in s["headline"]
 
 
 def test_escalation_over_http(api):
