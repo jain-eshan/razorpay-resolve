@@ -121,8 +121,8 @@ test('the demo path: Next goes store, alert, Slack, issue page, then Overview; S
   await btn(page, 'Next: Slack').click()
   await expect(btn(page, `Refund ${c.paid_twice} duplicates`)).toBeVisible()  // the approval is gone
   await btn(page, 'Next: Issue page').click()
-  await btn(page, 'Finish').click()
-  await expect(page).toHaveURL(/\/$/)
+  await btn(page, 'See all issues').click()
+  await expect(page).toHaveURL(/\/demo\/issues$/)
 })
 
 // A card never changes size because of its data (web/DESIGN.md section 23 B). Measured, not looked at: each card's size is read after every state, and all must be the same.
@@ -261,7 +261,7 @@ test('way out: every demo screen but the last offers to leave, to the Payment is
     await expect(page).toHaveURL(/\/incidents$/)
   }
   await page.goto('/demo/incident')
-  await expect(btn(page, 'Leave the demo')).toHaveCount(0)  // the last screen has Finish
+  await expect(btn(page, 'Leave the demo')).toHaveCount(0)  // the last screen has See all issues
 })
 
 test('the blue button: one at most on each screen, and Next is blue only when nothing else is the next thing to do', async ({ page }) => {
@@ -269,7 +269,7 @@ test('the blue button: one at most on each screen, and Next is blue only when no
   const blue = async (u: string) => {
     await page.goto(u)
     await page.waitForLoadState('networkidle')
-    await page.getByTestId('demo-path').getByRole('button', { name: /^(Next|Finish)/ }).waitFor()
+    await page.getByTestId('demo-path').getByRole('button', { name: /^(Next|See all issues)/ }).waitFor()
     await page.waitForTimeout(500)  // Blade fades a button's fill in
     const buttons = await page.getByTestId('page').locator('button').evaluateAll((els) => els.filter((b) => b.getBoundingClientRect().width > 0).map((b) => ({ name: b.textContent, bg: getComputedStyle(b).backgroundColor })))
     expect(buttons.length, `${u}: the check found the page's buttons`).toBeGreaterThanOrEqual(3)  // a check that finds nothing passes: say it found them
@@ -279,6 +279,6 @@ test('the blue button: one at most on each screen, and Next is blue only when no
   expect(await blue('/demo/slack')).toEqual([])  // the three decisions are the screen's own; Next goes blue once they are made
   expect(await blue('/demo/incident')).toEqual([`Refund ${c.paid_twice} duplicates`])
   for (const name of [`Refund ${c.paid_twice} duplicates`, `Send ${c.no_order} order list`, `Message ${c.no_order} customers`]) await btn(page, name).click()
-  expect(await blue('/demo/incident')).toEqual(['Finish'])
+  expect(await blue('/demo/incident')).toEqual(['See all issues'])
   expect(await blue('/demo/slack')).toEqual(['Next: Issue page'])
 })

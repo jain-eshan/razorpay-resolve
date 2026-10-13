@@ -4,6 +4,8 @@ import { BRAND } from './lib/brand'
 import { Shell } from './components/Shell'
 import Audit from './routes/Audit'
 import BrandIssue from './routes/BrandIssue'
+import BrandIssueDetail from './routes/BrandIssueDetail'
+import BrandIssues from './routes/BrandIssues'
 import Case from './routes/Case'
 import ChatDemo from './routes/ChatDemo'
 import Channels from './routes/Channels'
@@ -41,7 +43,7 @@ export default function App() {
   if (pathname === '/demo/store') return <DemoStore />
   if (pathname === '/demo/alert') return <DemoAlert />
   if (pathname === '/demo/slack') return <DemoSlack />
-  const brand = pathname === '/demo/incident'
+  const brand = pathname === '/demo/incident' || pathname === '/demo/issues' || pathname.startsWith('/demo/issues/')
   return (
     <Shell>
         <Box flex="1" overflow="auto" minWidth="0px" backgroundColor="surface.background.gray.moderate" testID="scroller">
@@ -64,6 +66,8 @@ export default function App() {
               <Route path="/incidents/:id" element={<Incident />} />
               <Route path="/incidents/:id/dev" element={<Dev />} />
               <Route path="/demo/incident" element={<BrandIssue />} />
+              <Route path="/demo/issues" element={<BrandIssues />} />
+              <Route path="/demo/issues/:id" element={<BrandIssueDetail />} />
               <Route path="/scan" element={<Scan />} />
               <Route path="/access" element={<Leakage />} />
               <Route path="/release-check" element={<ReleaseCheck />} />

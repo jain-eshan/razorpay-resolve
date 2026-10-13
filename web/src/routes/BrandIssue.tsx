@@ -13,26 +13,8 @@ import { Stat } from '../components/Stat'
 import { StoryTiles, type StoryStep } from '../components/StoryStrip'
 import { rupees } from '../lib/api'
 import { approve, BRAND, canApprove, clock, minutesBetween, STEPS, useApproved, useJ2, type J2Customer } from '../lib/brand'
-import { useWidth } from '../lib/useWidth'
-
-const n = (x: number) => x.toLocaleString('en-IN')
-// A value with a muted line under it, as on the other issue pages.
-const two = (top: string, bottom: string) => (
-  <Box display="flex" flexDirection="column"><Text weight="semibold" color="surface.text.gray.subtle">{top}</Text><Text size="small" color="surface.text.gray.muted">{bottom}</Text></Box>
-)
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <Box display="flex" flexDirection="column" gap="spacing.1">
-    <Text size="small" weight="semibold" color="surface.text.gray.muted">{label}</Text>
-    {children}
-  </Box>
-)
-
-// Root cause and actions, side by side when each gets about 300px and stacked below that. The room is measured, so this is its own component: it is mounted only once the page's data has
-// arrived, and a measurement taken while the skeleton is showing would find no element to measure.
-function Pair({ children }: { children: React.ReactNode }) {
-  const [grid, room] = useWidth<HTMLDivElement>()
-  return <Box ref={grid} display="grid" gridTemplateColumns={room >= 640 ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)'} gap="spacing.5" alignItems="stretch" testID="root-cause-actions">{children}</Box>
-}
+import { n, two } from '../lib/brandBits'
+import { Field, Pair } from '../components/BrandBits'
 
 // J6 (roadmap batch 1.3): the big brand's payment issue, built from the same parts as every other issue page (story strip, three numbers, evidence lane, "Is it just you?", root
 // cause and actions) but fed from the brand's own data (`web/public/brand/j2.json`). It sits inside the Razorpay dashboard, because this is where Razorpay's support engineer and
@@ -80,7 +62,7 @@ export default function BrandIssue() {
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
       <DemoPath at={3} primary={closed} guide={`The same facts as the Slack thread, with the evidence behind them. Approve here or there: ${BRAND} sees one set of approvals.`} />
-      <Crumbs items={[{ label: 'Payment issues', to: '/incidents' }, { label: `${BRAND} app ${j2.app_version}`, to: '/demo/incident' }]} />
+      <Crumbs items={[{ label: 'Payment issues', to: '/demo/issues' }, { label: `${BRAND} app ${j2.app_version}`, to: '/demo/incident' }]} />
 
       <Card padding="spacing.5">
         <CardBody>

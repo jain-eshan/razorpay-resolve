@@ -32,8 +32,8 @@ export function DemoPath({ at, guide, primary = true }: { at: 0 | 1 | 2 | 3; gui
             {!last && <Button variant="tertiary" size="medium" onClick={() => nav('/incidents')}>Leave the demo</Button>}
             <Button variant="tertiary" size="medium" onClick={() => { startAgain(); nav(PATH[0].to) }}>Start again</Button>
             {at > 0 && <Button variant="secondary" size="medium" icon={ArrowLeftIcon} onClick={() => nav(PATH[at - 1].to)}>Back</Button>}
-            <Button variant={primary ? 'primary' : 'secondary'} size="medium" icon={ArrowRightIcon} iconPosition="right" onClick={() => nav(last ? '/' : PATH[at + 1].to)}>
-              {last ? 'Finish' : `Next: ${PATH[at + 1].name}`}
+            <Button variant={primary ? 'primary' : 'secondary'} size="medium" icon={ArrowRightIcon} iconPosition="right" onClick={() => nav(last ? '/demo/issues' : PATH[at + 1].to)}>
+              {last ? 'See all issues' : `Next: ${PATH[at + 1].name}`}
             </Button>
           </Box>
         </Box>

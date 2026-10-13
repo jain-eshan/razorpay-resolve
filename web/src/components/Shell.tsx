@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useState, type ComponentProps, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { BRAND } from '../lib/brand'
 import styled from 'styled-components'
 import {
   ActivityIcon, AtSignIcon, Avatar, Badge, BellIcon, Box, ChevronDownIcon, ClipboardIcon, CodeSnippetIcon, CreditCardIcon, Drawer, DrawerBody, DrawerHeader, FileIcon, FileTextIcon, FlaskIcon, HomeIcon, IconButton, LinkIcon, MenuIcon, RadioIcon, RayIcon, RepeatIcon, SearchInput, SettingsIcon, SideNav, SideNavBody, SideNavFooter, SideNavLink, SideNavSection, Switch, TabNav, TabNavItem, TabNavItems, Text, TopNav, TopNavActions, TopNavBrand, TopNavContent, TrendingUpIcon, UnlockIcon, UsersIcon, useTheme, WalletIcon,
@@ -13,7 +14,7 @@ import {
 type Item = { title: string; to: string; icon: IconComponent; also?: string[] }
 const BLINDSPOT: Item[] = [
   { title: 'Overview', to: '/', icon: RayIcon, also: ['/ray', '/how-it-works'] },
-  { title: 'Payment issues', to: '/incidents', icon: ActivityIcon, also: ['/scan', '/demo/incident'] },
+  { title: 'Payment issues', to: '/incidents', icon: ActivityIcon, also: ['/scan', '/demo/incident', '/demo/issues'] },
   { title: 'Customer complaints', to: '/threads', icon: UsersIcon, also: ['/cases', '/chat-demo', '/help-demo', '/email-demo', '/ig-demo', '/public-demo'] },
   { title: 'Unpaid access', to: '/access', icon: UnlockIcon },
   { title: 'Integration', to: '/connect', icon: CodeSnippetIcon, also: ['/release-check'] },
@@ -70,7 +71,9 @@ export function Shell({ children }: { children: ReactNode }) {
   // A path matches a whole segment, so /how (Accuracy) does not light up on /how-it-works (reached from Overview).
   const at = (p: string) => pathname === p || pathname.startsWith(`${p}/`)
   const on = (i: Item) => (i.to === '/' ? pathname === '/' || (i.also ?? []).some(at) : [i.to, ...(i.also ?? [])].some(at))
-  const link = (i: Item) => <SideNavLink key={i.to} title={i.title} icon={i.icon} href={i.to} isActive={on(i)} as={Link} onClick={() => setOpen(false)} />
+  // On the big-brand demo's pages the account is the brand's, so Payment issues opens the brand's list and the avatar carries its name. The other items still open Kaksha's pages.
+  const brand = pathname.startsWith('/demo/')
+  const link = (i: Item) => <SideNavLink key={i.to} title={i.title} icon={i.icon} href={brand && i.to === '/incidents' ? '/demo/issues' : i.to} isActive={on(i)} as={Link} onClick={() => setOpen(false)} />
   const inert = (title: string, icon: IconComponent) => <SideNavLink key={title} title={title} icon={icon} as={InertItem} />
   // One set of items, shown by the desktop SideNav (hidden below `m`) and by the phone menu below.
   // The phone menu is a plain Blade Drawer, not SideNav's own phone mode: that mode (SideNav given `onDismiss`) keeps two modal drawers mounted even while closed. Their focus managers hide the whole page from assistive technology, and fight over Tab when the menu is open. A Drawer mounts only while open.
@@ -125,7 +128,7 @@ export function Shell({ children }: { children: ReactNode }) {
               <IconButton icon={ActivityIcon} accessibilityLabel="Ecosystem health" isDisabled onClick={noop} />
               <IconButton icon={BellIcon} accessibilityLabel="Announcements" isDisabled onClick={noop} />
             </Box>
-            <Avatar name="Kaksha" size="small" />
+            <Avatar name={brand ? BRAND : 'Kaksha'} size="small" />
           </Box>
         </TopNavActions>
       </TopNav>
