@@ -7,6 +7,8 @@ them out. The brand's name is not in the data: the screens carry it (web/src/lib
   FK-1  1 Oct, open    Android app 8.2 shows "Payment failed" after a UPI payment that went through (the brand's code; `j2_brand.py`). Waits for the brand's approvals.
   FK-2  28 Sep, closed Razorpay delayed the brand's webhooks for 75 minutes, so paid orders sat unconfirmed (Razorpay's side; replayed by Razorpay, free).
   FK-3  24 Sep, closed iOS app 6.4 let a double tap place two orders, so some customers were charged twice (the brand's code; refunded).
+  FK-4 to FK-7  open   Four more, from `brand_extra.py`: HDFC Bank debits not confirmed, two orders for one payment, a blank card pay screen on iOS (before payment), and coupon orders charged
+                       the full price.
 
 Writes `web/public/brand/incidents.json` (the list, in the engine's IncidentSummary shape, so the Overview and the Payment issues page read it unchanged),
 `web/public/brand/incidents/FK-n.json` (each issue's page) and `web/public/brand/alerts.json` (what the alert tools sent, and what became of each alert).
@@ -21,6 +23,8 @@ import random
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from .brand_extra import SIGNOFF as EXTRA_SIGNOFF
+from .brand_extra import extra_issues
 from .j2_brand import BANKS, IST, PRICES, REGIONS, UPI_APPS, iso
 from .j2_brand import generate as fk1_core
 
@@ -62,8 +66,8 @@ def summary(d: dict) -> dict:
     """The issue as the list and the Overview read it: the engine's IncidentSummary fields, plus the customer-first headline."""
     waiting = sum(g["count"] for g in d["groups"] if not g["put_right"])
     return {
-        "id": d["id"], "title": d["cause"], "headline": d["headline"], "mismatch_type": d["kind"], "owner": d["owner"], "status": d["status"], "inferred": False,
-        "opened_by": "signal", "zone": "after", "onset_at": d["onset_at"], "would_have_alerted_at": None,
+        "id": d["id"], "title": d["cause"], "headline": d["headline"], "mismatch_type": d["kind"], "owner": d["owner"], "status": d["status"], "inferred": d.get("inferred", False),
+        "opened_by": "signal", "zone": d.get("zone", "after"), "onset_at": d["onset_at"], "would_have_alerted_at": None,
         "affected": d["affected"], "complained": d["complained"], "silent": d["affected"] - d["complained"], "fixed": d["affected"] - waiting,
         "at_risk_paise": d["money_stuck_paise"],
     }
@@ -298,6 +302,11 @@ def alerts(issues: dict) -> list[dict]:
          "why": "Not a payment service, so it is left out by your payment filter"},
         {"id": "AL-8", "tool": "Sentry", "title": "ImageLoadTimeout", "service": "catalog-service", "at": iso(t(27, 16, 45)), "events": 230, "status": "dropped", "issue": None,
          "why": "Not a payment service, so it is left out by your payment filter"},
+        # The four open issues from `brand_extra.py`: two of them were heard from a tool, two were found in the payments before any alert.
+        {"id": "AL-10", "tool": "Datadog", "title": "Webhook response time above 5s", "service": "order-service", "at": issues["FK-5"]["heard"]["at"], "events": 3, "status": "matched", "issue": "FK-5",
+         "why": f"Matched to {grouped(issues['FK-5']['affected'])} payments with a second order made after a webhook retry"},
+        {"id": "AL-11", "tool": "Sentry", "title": "CheckoutOpenError", "service": "checkout-service", "at": issues["FK-6"]["heard"]["at"], "events": 64, "status": "matched", "issue": "FK-6",
+         "why": f"Matched to about {grouped(issues['FK-6']['affected'])} carts that reached the card pay screen and stopped, all on iOS app 8.3"},
         {"id": "AL-9", "tool": "Datadog", "title": "Payment success rate below 92%", "service": "payment-service", "at": iso(t(26, 22, 5)), "events": 1, "status": "no_impact", "issue": None,
          "why": "Checked against Razorpay payments for those 15 minutes: one bank's UPI was slow, which Razorpay's Success Rate page covers. Every paid order was confirmed"},
     ]
@@ -337,7 +346,7 @@ def signoffs(issues: dict) -> dict:
     """When Razorpay support signed off each root cause, from the times the issues use."""
     tl = fk1_core()["timeline"]
     return {"FK-1": (tl["rca"], tl["signoff"]), "FK-2": (iso(FK2_T["rca"]), iso(FK2_T["rca"] + timedelta(minutes=2))),
-            "FK-3": (iso(FK3_T["alert"]), iso(FK3_T["alert"] + timedelta(minutes=3)))}
+            "FK-3": (iso(FK3_T["alert"]), iso(FK3_T["alert"] + timedelta(minutes=3))), **{k: (iso(p), iso(sg)) for k, (p, sg) in EXTRA_SIGNOFF.items()}}
 
 
 def integration(al: list[dict]) -> dict:
@@ -376,6 +385,7 @@ def settings(issues: dict, al: list[dict]) -> dict:
     so = signoffs(issues)
     slowest = max(mins(a, b) for a, b in so.values())
     exact = sum(1 for d in issues.values() if d["confidence"] == "exact")
+    likely = sum(1 for d in issues.values() if d["confidence"] == "likely")
     return {
         "set_up": f"Set by your payments lead with your Razorpay account manager on {SET_UP.day} {SET_UP.strftime('%b %Y')}. In this demo they are read only.",
         "sections": [
@@ -394,7 +404,7 @@ def settings(issues: dict, al: list[dict]) -> dict:
                 {"label": "Exact: the signals agree", "value": "Posted at once. A support engineer signs it off in the thread within 15 minutes."},
                 {"label": "Likely", "value": "Held until a support engineer signs it off, then posted."},
                 {"label": "Not sure", "value": "Not posted. Support looks into it and says so in the channel."},
-                {"label": "S" + since(al)[1:], "value": f"{plural(exact, 'root cause')} posted, all exact, all signed off",
+                {"label": "S" + since(al)[1:], "value": f"{plural(exact + likely, 'root cause')} posted, {exact} exact and {likely} likely, all signed off",
                  "note": f"The slowest sign-off came {plural(slowest, 'minute')} after the root cause was posted."},
             ]},
             {"id": "slack", "title": "In Slack", "subtitle": f"How #{CHANNEL} gets your team's attention", "rows": [
@@ -455,6 +465,10 @@ def audit(issues: dict, al: list[dict]) -> dict:
     for x in fk1["actions"]:
         ev.append({"at": tl["rca"], "kind": "approval", "summary": f"Approval asked in #{CHANNEL}: {x['title']}", "actor": "Blindspot", "ref": "FK-1"})
     ev.append({"at": tl["rollback"], "kind": "action", "summary": f"App {fk1['previews']['app']['version']} rolled back, said in #{CHANNEL}", "actor": "Your on-call engineer", "ref": "FK-1"})
+    # The four open issues from `brand_extra.py`: like FK-1, each root cause is posted and signed off, and each approval is asked in the channel and waits.
+    for id_ in ("FK-4", "FK-5", "FK-6", "FK-7"):
+        for x in issues[id_]["actions"]:
+            ev.append({"at": so[id_][0], "kind": "approval", "summary": f"Approval asked in #{CHANNEL}: {x['title']}", "actor": "Blindspot", "ref": id_})
     replay, pack, msg2 = fk2_["actions"]
     ev += [
         {"at": iso(FK2_T["rca"] + timedelta(minutes=1)), "kind": "action", "summary": f"{pack['title']}: {pack['text']}", "actor": "Blindspot", "ref": "FK-2"},
@@ -477,13 +491,14 @@ def audit(issues: dict, al: list[dict]) -> dict:
         "kinds": {"alert": "Alert", "root_cause": "Root cause", "sign_off": "Sign-off", "approval": "Approval", "action": "Action", "setup": "Setup"},
         "events": ev,
         # The FK-1 approvals a judge can make on its page. Made in this tab, they are added at the top of the trail with these words.
-        "pending": [{"issue": "FK-1", "action": x["id"], "summary": f"Approved: {x['title']}. In this demo nothing was refunded or sent."} for x in fk1["actions"]],
+        "pending": [{"issue": d["id"], "action": x["id"], "summary": f"Approved: {x['title']}. In this demo nothing was refunded or sent."}
+                    for d in issues.values() if d["status"] == "open" for x in d["actions"] if not x.get("done")],
         "pending_actor": "You, in this tab",
     }
 
 
 def world() -> dict:
-    issues = {d["id"]: d for d in (fk1(), fk2(), fk3())}
+    issues = {d["id"]: d for d in (fk1(), fk2(), fk3(), *extra_issues())}
     al = sorted(alerts(issues), key=lambda a: a["at"], reverse=True)
     return {"incidents": [summary(d) for d in issues.values()], "details": issues, "alerts": al, "integration": integration(al), "settings": settings(issues, al),
             "connectors": connectors(al, issues), "audit": audit(issues, al)}

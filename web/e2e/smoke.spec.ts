@@ -92,7 +92,7 @@ test('S-19 unpaid renewals: the stat is the list, the inside-rule customers are 
 test('payment issues add up and say why a stage is left out; an issue page jumps to its fix', async ({ page }) => {
   await page.goto('/incidents')
   await expect(page.getByText('Customers affected', { exact: true })).toBeVisible()
-  await expect(page.getByText(/Success Rate page already covers bank and UPI failures, so Blindspot leaves them out/)).toBeVisible()
+  await expect(page.getByText(/Success Rate page already covers payments that fail at the bank or the UPI app, so Blindspot leaves them out/)).toBeVisible()
   await page.goto('/incidents/INC-1')
   await expect(page.getByRole('heading', { name: 'Fix it' })).not.toBeInViewport()
   await page.getByTestId('root-cause-actions').getByRole('button', { name: 'Start the fix' }).click()  // the page's one blue button, in the Actions card

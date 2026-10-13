@@ -9,12 +9,60 @@
  },
  "events": [
   {
+   "at": "2026-10-02T09:44:00+05:30",
+   "kind": "approval",
+   "summary": "Approval asked in #razorpay-payments: Message about 640 customers",
+   "actor": "Blindspot",
+   "ref": "FK-6",
+   "id": "EV-51"
+  },
+  {
+   "at": "2026-10-02T09:44:00+05:30",
+   "kind": "approval",
+   "summary": "Approval asked in #razorpay-payments: Send your team about 640 lost carts",
+   "actor": "Blindspot",
+   "ref": "FK-6",
+   "id": "EV-50"
+  },
+  {
+   "at": "2026-10-02T09:44:00+05:30",
+   "kind": "approval",
+   "summary": "Approval asked in #razorpay-payments: Send your app team the cause",
+   "actor": "Blindspot",
+   "ref": "FK-6",
+   "id": "EV-49"
+  },
+  {
+   "at": "2026-10-02T09:44:00+05:30",
+   "kind": "root_cause",
+   "summary": "Root cause: the card pay screen is blank on iOS app 8.3, posted in #razorpay-payments",
+   "actor": "Blindspot",
+   "ref": "FK-6",
+   "id": "EV-48"
+  },
+  {
+   "at": "2026-10-02T09:43:00+05:30",
+   "kind": "sign_off",
+   "summary": "Root cause signed off, confidence likely",
+   "actor": "Razorpay support",
+   "ref": "FK-6",
+   "id": "EV-47"
+  },
+  {
+   "at": "2026-10-02T09:38:00+05:30",
+   "kind": "alert",
+   "summary": "Sentry alert, CheckoutOpenError on checkout-service: matched to payments",
+   "actor": "Sentry",
+   "ref": "FK-6",
+   "id": "EV-46"
+  },
+  {
    "at": "2026-10-01T20:01:00+05:30",
    "kind": "action",
    "summary": "App 8.2 rolled back, said in #razorpay-payments",
    "actor": "Your on-call engineer",
    "ref": "FK-1",
-   "id": "EV-30"
+   "id": "EV-45"
   },
   {
    "at": "2026-10-01T19:59:00+05:30",
@@ -22,7 +70,7 @@
    "summary": "Root cause signed off, confidence exact",
    "actor": "Razorpay support",
    "ref": "FK-1",
-   "id": "EV-29"
+   "id": "EV-44"
   },
   {
    "at": "2026-10-01T19:58:00+05:30",
@@ -30,7 +78,7 @@
    "summary": "Approval asked in #razorpay-payments: Message 830 customers",
    "actor": "Blindspot",
    "ref": "FK-1",
-   "id": "EV-28"
+   "id": "EV-43"
   },
   {
    "at": "2026-10-01T19:58:00+05:30",
@@ -38,7 +86,7 @@
    "summary": "Approval asked in #razorpay-payments: Send your order team 830 paid orders",
    "actor": "Blindspot",
    "ref": "FK-1",
-   "id": "EV-27"
+   "id": "EV-42"
   },
   {
    "at": "2026-10-01T19:58:00+05:30",
@@ -46,7 +94,7 @@
    "summary": "Approval asked in #razorpay-payments: Refund 410 duplicate payments",
    "actor": "Blindspot",
    "ref": "FK-1",
-   "id": "EV-26"
+   "id": "EV-41"
   },
   {
    "at": "2026-10-01T19:58:00+05:30",
@@ -54,7 +102,7 @@
    "summary": "Root cause: Android app 8.2 shows “Payment failed” after successful UPI payments, posted in #razorpay-payments",
    "actor": "Blindspot",
    "ref": "FK-1",
-   "id": "EV-25"
+   "id": "EV-40"
   },
   {
    "at": "2026-10-01T19:55:00+05:30",
@@ -62,7 +110,7 @@
    "summary": "Datadog alert, Order confirmations below normal on order-service: matched to payments",
    "actor": "Datadog",
    "ref": "FK-1",
-   "id": "EV-24"
+   "id": "EV-39"
   },
   {
    "at": "2026-10-01T19:52:00+05:30",
@@ -70,7 +118,47 @@
    "summary": "Sentry alert, PaymentVerificationError on payment-service: matched to payments",
    "actor": "Sentry",
    "ref": "FK-1",
-   "id": "EV-23"
+   "id": "EV-38"
+  },
+  {
+   "at": "2026-10-01T18:31:00+05:30",
+   "kind": "sign_off",
+   "summary": "Root cause signed off, confidence exact",
+   "actor": "Razorpay support",
+   "ref": "FK-5",
+   "id": "EV-37"
+  },
+  {
+   "at": "2026-10-01T18:29:00+05:30",
+   "kind": "approval",
+   "summary": "Approval asked in #razorpay-payments: Message 318 customers",
+   "actor": "Blindspot",
+   "ref": "FK-5",
+   "id": "EV-36"
+  },
+  {
+   "at": "2026-10-01T18:29:00+05:30",
+   "kind": "approval",
+   "summary": "Approval asked in #razorpay-payments: Send your order team 318 duplicate orders",
+   "actor": "Blindspot",
+   "ref": "FK-5",
+   "id": "EV-35"
+  },
+  {
+   "at": "2026-10-01T18:29:00+05:30",
+   "kind": "root_cause",
+   "summary": "Root cause: your server is making two orders for one payment, posted in #razorpay-payments",
+   "actor": "Blindspot",
+   "ref": "FK-5",
+   "id": "EV-34"
+  },
+  {
+   "at": "2026-10-01T18:24:00+05:30",
+   "kind": "alert",
+   "summary": "Datadog alert, Webhook response time above 5s on order-service: matched to payments",
+   "actor": "Datadog",
+   "ref": "FK-5",
+   "id": "EV-33"
   },
   {
    "at": "2026-10-01T18:20:00+05:30",
@@ -78,7 +166,47 @@
    "summary": "Datadog alert, p95 latency above 2s on search-service: left out by your payment filter",
    "actor": "Datadog",
    "ref": null,
-   "id": "EV-22"
+   "id": "EV-32"
+  },
+  {
+   "at": "2026-09-30T20:56:00+05:30",
+   "kind": "sign_off",
+   "summary": "Root cause signed off, confidence exact",
+   "actor": "Razorpay support",
+   "ref": "FK-7",
+   "id": "EV-31"
+  },
+  {
+   "at": "2026-09-30T20:54:00+05:30",
+   "kind": "approval",
+   "summary": "Approval asked in #razorpay-payments: Message 640 customers",
+   "actor": "Blindspot",
+   "ref": "FK-7",
+   "id": "EV-30"
+  },
+  {
+   "at": "2026-09-30T20:54:00+05:30",
+   "kind": "approval",
+   "summary": "Approval asked in #razorpay-payments: Send your app team the mismatch list",
+   "actor": "Blindspot",
+   "ref": "FK-7",
+   "id": "EV-29"
+  },
+  {
+   "at": "2026-09-30T20:54:00+05:30",
+   "kind": "approval",
+   "summary": "Approval asked in #razorpay-payments: Refund the difference to 640 customers",
+   "actor": "Blindspot",
+   "ref": "FK-7",
+   "id": "EV-28"
+  },
+  {
+   "at": "2026-09-30T20:54:00+05:30",
+   "kind": "root_cause",
+   "summary": "Root cause: coupon orders are being charged the full price, posted in #razorpay-payments",
+   "actor": "Blindspot",
+   "ref": "FK-7",
+   "id": "EV-27"
   },
   {
    "at": "2026-09-30T11:02:00+05:30",
@@ -86,6 +214,46 @@
    "summary": "PagerDuty alert, 5xx errors above 1% on checkout-service: checked, no payment impact",
    "actor": "PagerDuty",
    "ref": null,
+   "id": "EV-26"
+  },
+  {
+   "at": "2026-09-29T21:39:00+05:30",
+   "kind": "approval",
+   "summary": "Approval asked in #razorpay-payments: Message 412 customers",
+   "actor": "Blindspot",
+   "ref": "FK-4",
+   "id": "EV-25"
+  },
+  {
+   "at": "2026-09-29T21:39:00+05:30",
+   "kind": "approval",
+   "summary": "Approval asked in #razorpay-payments: Refund 109 second payments",
+   "actor": "Blindspot",
+   "ref": "FK-4",
+   "id": "EV-24"
+  },
+  {
+   "at": "2026-09-29T21:39:00+05:30",
+   "kind": "approval",
+   "summary": "Approval asked in #razorpay-payments: Ask HDFC Bank to confirm",
+   "actor": "Blindspot",
+   "ref": "FK-4",
+   "id": "EV-23"
+  },
+  {
+   "at": "2026-09-29T21:39:00+05:30",
+   "kind": "root_cause",
+   "summary": "Root cause: HDFC Bank has not confirmed payments it debited, posted in #razorpay-payments",
+   "actor": "Blindspot",
+   "ref": "FK-4",
+   "id": "EV-22"
+  },
+  {
+   "at": "2026-09-29T21:38:00+05:30",
+   "kind": "sign_off",
+   "summary": "Root cause signed off, confidence likely",
+   "actor": "Razorpay support",
+   "ref": "FK-4",
    "id": "EV-21"
   },
   {
@@ -264,6 +432,61 @@
    "issue": "FK-1",
    "action": "message",
    "summary": "Approved: Message 830 customers. In this demo nothing was refunded or sent."
+  },
+  {
+   "issue": "FK-4",
+   "action": "ask",
+   "summary": "Approved: Ask HDFC Bank to confirm. In this demo nothing was refunded or sent."
+  },
+  {
+   "issue": "FK-4",
+   "action": "refund",
+   "summary": "Approved: Refund 109 second payments. In this demo nothing was refunded or sent."
+  },
+  {
+   "issue": "FK-4",
+   "action": "message",
+   "summary": "Approved: Message 412 customers. In this demo nothing was refunded or sent."
+  },
+  {
+   "issue": "FK-5",
+   "action": "orders",
+   "summary": "Approved: Send your order team 318 duplicate orders. In this demo nothing was refunded or sent."
+  },
+  {
+   "issue": "FK-5",
+   "action": "message",
+   "summary": "Approved: Message 318 customers. In this demo nothing was refunded or sent."
+  },
+  {
+   "issue": "FK-6",
+   "action": "cause",
+   "summary": "Approved: Send your app team the cause. In this demo nothing was refunded or sent."
+  },
+  {
+   "issue": "FK-6",
+   "action": "carts",
+   "summary": "Approved: Send your team about 640 lost carts. In this demo nothing was refunded or sent."
+  },
+  {
+   "issue": "FK-6",
+   "action": "message",
+   "summary": "Approved: Message about 640 customers. In this demo nothing was refunded or sent."
+  },
+  {
+   "issue": "FK-7",
+   "action": "refund",
+   "summary": "Approved: Refund the difference to 640 customers. In this demo nothing was refunded or sent."
+  },
+  {
+   "issue": "FK-7",
+   "action": "list",
+   "summary": "Approved: Send your app team the mismatch list. In this demo nothing was refunded or sent."
+  },
+  {
+   "issue": "FK-7",
+   "action": "message",
+   "summary": "Approved: Message 640 customers. In this demo nothing was refunded or sent."
   }
  ],
  "pending_actor": "You, in this tab"

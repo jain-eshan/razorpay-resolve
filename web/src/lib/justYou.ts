@@ -26,6 +26,12 @@ const says = (l: Lift): string => {
     case 'plan': return `were for the ${PLAN[v] ?? v.replace(/^plan_/, '').replaceAll('_', ' ')} plan`
     case 'error_code': return `failed with ${ERROR[v] ?? `the error ${v}`}`
     case 'card_network': return `were on ${v} cards`
+    case 'status': return `were still ${v}`
+    case 'bank': return `were with ${v}`
+    case 'coupon': return 'used a coupon'
+    case 'checkout_method': return `tried to pay by ${METHOD[v] ?? v}`
+    case 'server_release': return `came after server release ${v}`
+    case 'order_payment_gap': return 'were larger than the order total'
     default: return `had ${sentence(l.dimension).toLowerCase()} ${v}`
   }
 }

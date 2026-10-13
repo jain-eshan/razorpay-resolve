@@ -30,7 +30,8 @@ export type BrandIssueData = {
   lane: { axis_from: string; axis_to: string; onset: string; rows: Row[] }
   lift: (Omit<Schemas['LiftRow'], 'lift'> & { lift: number | null })[]; compared: string; cannot_see: string[]
   root: { cause: string; fix: string; signals: string[]; samples: string[] }
-  actions: Action[]; explained_minutes: number; closing: string
+  actions: Action[]; explained_minutes: number; explained_from?: string; closing: string
+  zone?: 'before' | 'after'; inferred?: boolean  // a before-payment issue has no payments, so its count is an estimate
   previews: { app?: AppPreview; alert?: AlertPreview; slack?: SlackPreview }
   customers: Customer[]
 }
@@ -73,13 +74,14 @@ export default function BrandIssue({ id }: { id: string }) {
   const done = (a: Action) => !!a.done || approved.includes(a.id)
   const ready = (a: Action) => !done(a) && (!a.needs || done(d.actions.find((x) => x.id === a.needs)!))
   const closed = d.status === 'closed' || d.actions.every(done)
+  const about = d.inferred ? 'About ' : ''  // an estimate says so in every number it appears in
   // Put right: a group counts once the action that settles it is done (the message settles "no order", and it waits for the orders to be confirmed first).
   const fixed = d.groups.filter((g) => g.put_right || d.actions.some((a) => a.group === g.id && done(a))).reduce((s, g) => s + g.count, 0)
   // Told: the customers the message reached, which is its group, or its own count when it went only to those who wrote in.
   const told = d.actions.filter((a) => a.id === 'message' && done(a)).reduce((s, a) => s + (a.told ?? d.groups.find((g) => g.id === a.group)?.count ?? 0), 0)
   const steps: StoryStep[] = [
     { title: 'Hear', done: true, value: d.heard.value, note: d.heard.note },
-    { title: 'Find everyone', done: true, value: `${n(d.affected)} customers hit`, note: d.groups.map((g) => `${n(g.count)} ${g.label.toLowerCase()}`).join(', ') },
+    { title: 'Find everyone', done: true, value: `${about}${n(d.affected)} customers hit`, note: d.groups.map((g) => `${about.toLowerCase()}${n(g.count)} ${g.label.toLowerCase()}`).join(', ') },
     { title: 'Whose side', done: true, value: OWNER[d.owner], note: `${sentence(d.confidence)} confidence` },
     { title: 'Fix', done: fixed === d.affected, value: fixed === d.affected ? `All ${n(d.affected)} put right` : `${n(fixed)} of ${n(d.affected)} put right`, note: closed ? 'closed' : approved.length ? 'in progress' : 'needs your approval' },
     { title: 'Win back', done: told > 0, value: told > 0 ? `${n(told)} told` : 'No one told yet', note: told > 0 ? 'in your name' : 'needs your approval' },
@@ -128,9 +130,9 @@ export default function BrandIssue({ id }: { id: string }) {
       </Box>
 
       <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5" testID="brand-stats">
-        <Stat label="Customers hit" value={n(d.affected)} hint={d.money_stuck_paise ? `${rupees(d.money_stuck_paise)} ${d.money_note}` : d.money_note} icon={AlertTriangleIcon} tone={closed ? 'neutral' : 'notice'} />
-        {d.groups.map((g) => <Stat key={g.id} label={g.label} value={n(g.count)} hint={g.hint} icon={UsersIcon} />)}
-        {d.groups.length < 2 && <Stat label="Time to root cause" value={`${d.explained_minutes} min`} hint={d.heard.via === 'Razorpay' ? 'from the start, posted by Razorpay' : 'from the release, with proof'} icon={ClockIcon} />}
+        <Stat label="Customers hit" value={`${about}${n(d.affected)}`} hint={d.money_stuck_paise ? `${rupees(d.money_stuck_paise)} ${d.money_note}` : d.money_note} icon={AlertTriangleIcon} tone={closed ? 'neutral' : 'notice'} />
+        {d.groups.map((g) => <Stat key={g.id} label={g.label} value={`${about}${n(g.count)}`} hint={g.hint} icon={UsersIcon} />)}
+        {d.groups.length < 2 && <Stat label="Time to root cause" value={`${d.explained_minutes} min`} hint={d.explained_from ?? (d.heard.via === 'Razorpay' ? 'from the start, posted by Razorpay' : 'from the release, with proof')} icon={ClockIcon} />}
       </Box>
 
       {(d.previews.app || d.previews.alert || d.previews.slack) && (
@@ -186,7 +188,7 @@ export default function BrandIssue({ id }: { id: string }) {
         </Panel>
       </Pair>
 
-      <Panel title="Affected customers" subtitle={`${n(d.affected)} found · ${n(fixed)} put right`} pad={false}>
+      <Panel title="Affected customers" subtitle={d.inferred ? `${n(d.affected)} carts seen, so the count above is an estimate · ${n(fixed)} put right` : `${n(d.affected)} found · ${n(fixed)} put right`} pad={false}>
         {d.groups.length > 1 && (
           <Box padding="spacing.5">
             <SegmentedControl label="What happened to them" name="group" value={shown} onChange={({ value }) => setTab(value)}>
@@ -201,7 +203,7 @@ export default function BrandIssue({ id }: { id: string }) {
                 <TableHeaderRow>
                   <TableHeaderCell>Customer</TableHeaderCell>
                   <TableHeaderCell>Amount</TableHeaderCell>
-                  <TableHeaderCell>Paid at</TableHeaderCell>
+                  <TableHeaderCell>{d.zone === 'before' ? 'Left at' : 'Paid at'}</TableHeaderCell>
                   <TableHeaderCell>What happened</TableHeaderCell>
                 </TableHeaderRow>
               </TableHeader>
