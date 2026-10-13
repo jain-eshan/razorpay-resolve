@@ -1,9 +1,9 @@
-import { Link as RouterLink, useNavigate } from 'react-router-dom'
-import { AlertTriangleIcon, Badge, Box, Button, RupeesIcon, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text, UsersIcon } from '@razorpay/blade/components'
+import { Link as RouterLink } from 'react-router-dom'
+import { AlertTriangleIcon, Badge, Box, RupeesIcon, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TableRow, Text, UsersIcon } from '@razorpay/blade/components'
 import { Panel } from '../components/Panel'
 import { Stat } from '../components/Stat'
 import { rupees, useGet, type Schemas } from '../lib/api'
-import { AMOUNT_NOTE, ZONE, ZONE_LINE, cause, headline, sentence, when } from '../lib/format'
+import { amountNote, ZONE, ZONE_LINE, cause, headline, sentence, when } from '../lib/format'
 import { PageHeader } from '../components/PageHeader'
 import { PageSkeleton } from '../components/PageSkeleton'
 
@@ -28,13 +28,11 @@ const knownAt = (start: string, known: string) => {
 }
 
 export default function Incidents() {
-  const nav = useNavigate()
   const { data, error } = useGet<Schemas['IncidentSummary'][]>('/api/incidents')
   if (!data && !error) return <PageSkeleton />
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <PageHeader title="Payment issues" description="Problems that stopped customers paying or getting what they paid for, biggest first. Each one shows who was hit, the amount involved and whose side the cause is on." guide="incidents"
-        actions={<Button variant="tertiary" size="medium" onClick={() => nav('/demo/store')}>Try a big-brand example</Button>} />
+      <PageHeader title="Payment issues" description="Problems that stopped customers paying or getting what they paid for, biggest first. Each one shows who was hit, the amount involved and whose side the cause is on." guide="incidents" />
       {error && <Text color="feedback.text.negative.intense">Could not load payment issues: {error}. Reload the page to try again.</Text>}
       {data?.length === 0 && <Text>No payment issues. Blindspot checks every 15 minutes.</Text>}
       {data && data.length > 0 && (() => {
@@ -46,7 +44,7 @@ export default function Incidents() {
           <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
             <Stat label="Open issues" value={String(open.length)} hint={`of ${data.length} found`} icon={AlertTriangleIcon} tone="notice" />
             <Stat label="Amount involved" value={rupees(data.reduce((a, i) => a + i.at_risk_paise, 0))} hint={estPaise ? `about ${rupees(estPaise)} of it estimated` : `across ${data.length} issues`} icon={RupeesIcon} />
-            <Stat label="Customers affected" value={String(data.reduce((a, i) => a + i.affected, 0))} hint={est ? `about ${est} of them estimated` : 'every one matched to a payment'} icon={UsersIcon} />
+            <Stat label="Customers affected" value={data.reduce((a, i) => a + i.affected, 0).toLocaleString('en-IN')} hint={est ? `about ${est} of them estimated` : 'every one matched to a payment'} icon={UsersIcon} />
           </Box>
         )
       })()}
@@ -77,8 +75,8 @@ export default function Incidents() {
                           <TableCell><Box display="flex" flexDirection="column" paddingY="spacing.3"><Title id={i.id} title={headline(i)} /><Text size="small" color="surface.text.gray.muted">{i.title}</Text></Box></TableCell>
                           <TableCell><Badge size="medium" color={OWNER_TONE[i.owner]}>{cause(i)}</Badge></TableCell>
                           <TableCell><Badge size="medium" color={STATUS_TONE[i.status]}>{sentence(i.status)}</Badge></TableCell>
-                          <TableCell><Box display="flex" flexDirection="column"><Text weight="semibold" color="surface.text.gray.subtle">{i.affected}</Text><Text size="small" color="surface.text.gray.muted">{i.complained} complained</Text></Box></TableCell>
-                          <TableCell><Box display="flex" flexDirection="column"><Text>{rupees(i.at_risk_paise)}</Text>{AMOUNT_NOTE[i.mismatch_type] && <Text size="small" color="surface.text.gray.muted">{AMOUNT_NOTE[i.mismatch_type]}</Text>}</Box></TableCell>
+                          <TableCell><Box display="flex" flexDirection="column"><Text weight="semibold" color="surface.text.gray.subtle">{i.affected.toLocaleString('en-IN')}</Text><Text size="small" color="surface.text.gray.muted">{i.complained} complained</Text></Box></TableCell>
+                          <TableCell><Box display="flex" flexDirection="column"><Text>{rupees(i.at_risk_paise)}</Text>{amountNote(i.mismatch_type, i.at_risk_paise) && <Text size="small" color="surface.text.gray.muted">{amountNote(i.mismatch_type, i.at_risk_paise)}</Text>}</Box></TableCell>
                           <TableCell><Box display="flex" flexDirection="column"><Text>{when(i.onset_at)}</Text>{i.would_have_alerted_at && <Text size="small" color="surface.text.gray.muted">{knownAt(i.onset_at, i.would_have_alerted_at)}</Text>}</Box></TableCell>
                         </TableRow>
                       ))}
@@ -97,7 +95,7 @@ export default function Incidents() {
                       <Badge size="small" color={OWNER_TONE[i.owner]}>{cause(i)}</Badge>
                       <Badge size="small" color={STATUS_TONE[i.status]}>{sentence(i.status)}</Badge>
                     </Box>
-                    <Text weight="semibold" color="surface.text.gray.subtle">{`${i.affected} customers · ${rupees(i.at_risk_paise)}${AMOUNT_NOTE[i.mismatch_type] ? ` ${AMOUNT_NOTE[i.mismatch_type]}` : ''}`}</Text>
+                    <Text weight="semibold" color="surface.text.gray.subtle">{`${i.affected.toLocaleString('en-IN')} customers · ${rupees(i.at_risk_paise)}${amountNote(i.mismatch_type, i.at_risk_paise) ? ` ${amountNote(i.mismatch_type, i.at_risk_paise)}` : ''}`}</Text>
                     <Text size="small" color="surface.text.gray.muted">{`Started ${when(i.onset_at)} · ${i.complained} complained`}</Text>
                   </Box>
                 ))}

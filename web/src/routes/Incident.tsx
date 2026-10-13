@@ -23,6 +23,9 @@ import DuplicateView from './DuplicateView'
 import RenewalView from './RenewalView'
 import Zone1View from './Zone1View'
 import { PageSkeleton } from '../components/PageSkeleton'
+import { Mine } from '../components/Mine'
+import { useAccount } from '../lib/account'
+import BrandIssue from './BrandIssue'
 
 // Restored is not one of the engine's tiers: the engine files a customer Blindspot gave access back to as excluded, "restored by Blindspot". A merchant reads
 // "left out" as skipped, so restored customers get their own tab, and Left out keeps only the ones really left out (given access by hand, refunded).
@@ -85,7 +88,7 @@ function Milestones({ inc, pack, atAlert, fix }: { inc: Schemas['IncidentDetail'
   )
 }
 
-export default function Incident() {
+function Incident() {
   const { id = '' } = useParams()
   const nav = useNavigate()
   const [version, setVersion] = useState(0)
@@ -239,4 +242,14 @@ export default function Incident() {
       </Box>
     </Box>
   )
+}
+
+// A payment issue belongs to one account: FK-n are the brand account's (read from its files), INC-n are the engine's (Kaksha). Opened under the other account, the page says whose
+// it is and offers the switch, instead of showing one merchant's issue inside the other's dashboard.
+export default function IssuePage() {
+  const { id = '' } = useParams()
+  const me = useAccount()
+  if (id.startsWith('FK-')) return <Mine only="flipkart"><BrandIssue id={id} /></Mine>
+  if (me.kind === 'enterprise') return <Mine only="kaksha"><Incident /></Mine>
+  return <Incident />
 }

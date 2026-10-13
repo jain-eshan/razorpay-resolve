@@ -1,7 +1,8 @@
 import json
 from datetime import datetime
 
-from synth.j2_brand import AFFECTED, NO_ORDER, OUT, PAID_TWICE, generate
+from synth.brand_world import OUT, world
+from synth.j2_brand import AFFECTED, NO_ORDER, PAID_TWICE, generate
 
 
 def test_counts_are_the_prds():
@@ -44,6 +45,21 @@ def test_the_pattern_is_the_app_and_not_the_bank_or_the_region():
             assert abs(r["share_affected"] - r["share_baseline"]) < 0.06, (dim, r)
 
 
-def test_same_seed_same_file_and_the_committed_file_is_current():
-    assert generate() == generate()
-    assert json.loads(OUT.read_text()) == generate(), "web/public/brand/j2.json is stale: run `uv run python -m synth.j2_brand`"
+def test_same_seed_same_files_and_the_committed_files_are_current():
+    assert generate() == generate() and world() == world()
+    w = world()
+    assert json.loads((OUT / "incidents.json").read_text()) == w["incidents"], "web/public/brand is stale: run `uv run python -m synth.brand_world`"
+    assert json.loads((OUT / "alerts.json").read_text()) == w["alerts"]
+    for id_, d in w["details"].items():
+        assert json.loads((OUT / "incidents" / f"{id_}.json").read_text()) == d, f"{id_} is stale: run `uv run python -m synth.brand_world`"
+
+
+def test_the_brand_list_reads_like_the_engine_and_adds_up():
+    w = world()
+    for s in w["incidents"]:
+        d = w["details"][s["id"]]
+        assert s["affected"] == sum(g["count"] for g in d["groups"]) == len(d["customers"])
+        assert s["mismatch_type"] in {"A", "B", "E", "F", "G", "Z1"} and s["owner"] in {"merchant_code", "razorpay", "bank"}
+        assert s["status"] == "closed" or s["at_risk_paise"] == d["money_stuck_paise"] > 0
+    # every alert that became an issue points at one that exists
+    assert all(a["issue"] in w["details"] for a in w["alerts"] if a["status"] == "matched")

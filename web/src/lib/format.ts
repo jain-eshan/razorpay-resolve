@@ -1,3 +1,5 @@
+import { account } from './account'
+
 const IST = 'Asia/Kolkata'
 
 // Times arrive with an IST offset. Always show IST, whatever the browser's timezone is.
@@ -44,7 +46,8 @@ export const ZONE_LINE: Record<string, string> = {
 }
 
 // What happened to customers, as a merchant would say it. The engine's title says the technical cause and sits under this one.
-export const headline = (i: { mismatch_type: string; affected: number; title: string }) =>
+// The brand account's issues carry their own headline (`synth/brand_world.py`), in the same voice.
+export const headline = (i: { mismatch_type: string; affected: number; title: string; headline?: string }) => i.headline ??
   ({
     A: `${i.affected} customers paid and did not get access`,
     E: `${i.affected} customers were charged twice`,
@@ -53,14 +56,19 @@ export const headline = (i: { mismatch_type: string; affected: number; title: st
   })[i.mismatch_type] ?? i.title
 
 // The kind of issue as a name, with no count: a chart legend groups several issues of one kind, so the count in `headline()` would be wrong there.
-export const KIND: Record<string, string> = { A: 'Paid, no access', E: 'Charged twice', G: 'Razorpay renewals', Z1: 'Could not pay' }
-export const kindName = (mismatchType: string) => KIND[mismatchType] ?? 'Other'
+// A customer of a shopping app who paid gets an order, not access, so the same kind reads in that merchant's words.
+export const KIND: Record<string, string> = { A: 'Paid, no access', B: 'Told failed, money taken', E: 'Charged twice', G: 'Razorpay renewals', Z1: 'Could not pay' }
+export const kindName = (mismatchType: string) => (mismatchType === 'A' && account().gets === 'order' ? 'Paid, no order' : KIND[mismatchType] ?? 'Other')
 
 export const dayLabel = (iso: string) =>
   new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: '2-digit', month: 'short', timeZone: IST }).format(new Date(iso)).replace(',', '').replace('Sept', 'Sep')
 
 // Whose money the amount is, since it is not always every customer's in the row: for a webhook issue it is what the customers still without access paid.
 export const AMOUNT_NOTE: Record<string, string> = { A: 'paid by those still without access', E: 'still to refund', G: 'still to collect', Z1: 'estimated, still reachable' }
+// The same note in a shopping app's words (orders, not access).
+const AMOUNT_NOTE_ORDER: Record<string, string> = { A: 'paid, order not confirmed', B: 'to refund or confirm', E: 'still to refund' }
+// Nothing at stake, nothing to say: a closed issue's ₹0 is not "paid, order not confirmed".
+export const amountNote = (mismatchType: string, paise = 1): string | undefined => (paise > 0 ? (account().gets === 'order' ? AMOUNT_NOTE_ORDER : AMOUNT_NOTE)[mismatchType] : undefined)
 
 // The x value of the bucket that holds a moment, for marking it on a chart of hourly or daily buckets. A moment before the first bucket or after the last has none, so no
 // mark is drawn outside the chart.
