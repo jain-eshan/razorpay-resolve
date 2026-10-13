@@ -1,69 +1,188 @@
-# AI build log
+# AI build log: Razorpay Resolve
 
-Resolve, Razorpay x ISB AI PM Build Challenge, Track 2. Draft written for Eshan Jain to review and put in his own voice before submitting. The full day-by-day record is `docs/BUILD_LOG.md`.
+Eshan Jain · Razorpay x ISB AI PM Build Challenge, Track 2 · 13 Oct 2026
+[Live prototype](https://razorpay-blindspot.vercel.app/) · [Repository](https://github.com/jain-eshan/razorsense-starter) · [Day-by-day build record](BUILD_LOG.md)
 
-## In one paragraph
+The product was called Blindspot while it was being built and was renamed Resolve on 13 October. Older files and the prototype's web address still use the working name.
 
-I cannot code. AI wrote all of the code. I did the product work: choosing the problem, setting scope, deciding what the product may and may not do, supplying evidence, and checking results against it. I used Claude through Claude Code, one session per piece of work, each on its own branch and merged by pull request after the checks passed. By 13 October the main branch had 170 commits, 48 merged pull requests, about 32,500 lines of Python and TypeScript (tests included), 627 backend tests, 260 browser tests and 147 scored checks that pass against a synthetic world. The research and spec took 5 and 6 October. Most of the building took 6 to 10 October. On 11 and 12 October I restated the product as v3 (two ways in, one engine) and had the Overview, the issue page and the big-brand demo built. [TO CONFIRM: the session count. It was 26 on 10 October and has not been recounted.]
+## Summary
 
-## Tools, what for, and what they changed
+I cannot code. AI wrote all of the code, the tests and the first draft of every document. My job was the product work: picking the problem, deciding what the product may and may not do, supplying evidence, and checking every result before I accepted it.
 
-| Tool | Used for | What it changed |
+What came out in 16 days (28 Sep to 13 Oct), with about 35 Claude Code sessions:
+
+| | |
+|---|---|
+| History on `main` | About 185 commits, 55 merged pull requests |
+| Code | About 32,000 lines of Python and TypeScript, tests included |
+| Checks | 627 backend tests, 260 browser tests at phone, tablet and desktop widths, 147 scored checks against a synthetic world with a hidden answer key |
+| Product | Two demo accounts (a small merchant and a big brand) inside a Razorpay-style dashboard, a WhatsApp demo, an alert-to-Slack demo, 18 illustrations |
+
+The rest of this log follows the five things the form asks for: tools, workflow and prompts, an output I rejected, who did what, and limitations.
+
+## 1. AI tools and models used
+
+| Tool or model | What I used it for | What it changed |
 |---|---|---|
-| Claude, through Claude Code | Research synthesis, the spec, every line of code, tests, documentation | Built the whole prototype in about five days of build time. Tests and a scored evaluation were written with the code, so each claim in the note has a check behind it |
-| Claude as independent reviewer | A separate agent, with no memory of the work, reviewed screens against Razorpay's design rules (`.claude/agents/design-reviewer.md`), and on 10 October reviewed the docs, the code, a judge's view and the demo script. On 12 October independent reviews failed the Overview twice and the issue page twice. A third review of the issue page was stopped to save cost, so its last fixes rest on tests and measurements only | Found faults I would not have seen. Examples below |
-| Claude Docs | The PRD v3 is a Claude Doc where I comment, and the repo holds an export (`docs/PRD_V3.md`) for the coding sessions to read | One editable source for the product, and the build sessions work from the same text I review |
-| Apify | Scraping Reddit and X for founders' own words about payments that succeed and still lose the customer | Gave the three quotes in the note and the evidence the pain is real. Only 15 of 289 merchant posts were on this theme, so the size argument rests on Razorpay's data, not post counts |
-| Razorpay's Blade MCP server and the Blade design system | Reading component documentation before using a component | Kept every screen in Razorpay's own components and tokens, so the prototype looks like an addition to the dashboard. It needed one setup step (`create_blade_skill`, run from the repo root) before its docs tool worked |
-| Playwright, pytest, ruff, GitHub Actions | Browser tests at phone, tablet and desktop widths, backend tests, lint, CI on every pull request, and an alert issue when CI fails on `main` | Caught bugs before I saw them. CI runs the whole suite in about seven minutes |
-| Supabase and Vercel | A webhook receiver that recorded what Razorpay really sends, and the hosted demo | The one real observation in the build: Razorpay's delivery behaviour from a real test payment |
-| CodeRabbit | Automatic pull request review | A second opinion on diffs, until it reached its free limit |
-| An image generation model, from briefs Claude wrote | The 18 pictures in the product (guide heroes, card pictures, the welcome pop-up), in Razorpay's own illustration style: flat isometric, Razorpay blue, one orange accent, no text | Replaced pictures the agent had drawn in code, which test viewers did not read at a glance. Briefs and the style are in `web/DESIGN.md` section 16 |
-| Graphify, and a memory layer I built | A map of the code for the agents, and notes from earlier sessions so a new session does not start from nothing | Saved re-explaining the project to each of the 26 sessions |
+| **Claude Code** with Claude Sonnet 5.5 and Claude Opus 5.5 (the commit trailers record 74 and 24 commits) | Research synthesis, the PRD and spec, every line of code, tests, docs, and separate review sessions | Built the whole prototype in about a week of build time. Tests were written with the code, so each claim in the note has a check behind it |
+| **Claude as a separate reviewer agent** (`.claude/agents/design-reviewer.md`) | A fresh agent with no memory of the build reviewed each batch of screens against Razorpay's design rules and our checklist | Failed screens I would have shipped. Examples in section 3 |
+| **Claude Docs** | The PRD v3, where I comment and edit. The repo holds an export the build sessions read | One source for the product that both I and the coding sessions work from |
+| **ChatGPT and Codex** (exact models not recorded) | A second opinion on research and decisions, a full product review on 13 Oct, and drafts of these submission documents | A different model family caught gaps Claude missed, for example that "approve" and "confirm the root cause" were being treated as one step |
+| **Two NVIDIA Nemotron-family models, run locally through Bionic** | A rough comparison with ChatGPT and Claude on the kind of reading the product needs | Slower and less complete in my setup, sometimes garbled. One input to the decision to keep a live model out of the prototype (section 4) |
+| **Google Gemini (Nano Banana)** | The 18 product illustrations, from briefs Claude wrote in Razorpay's own illustration style | Replaced pictures the agent had drawn in code, which test viewers could not read at a glance |
+| **Apify** | Scraping Reddit and X for merchants' own words about payments (about $3 to $4) | The founder quotes in the note. Only 15 of 289 merchant posts matched this exact theme, so I used them to understand the failure, not to size the market |
+| **Razorpay Blade and its MCP server** | Reading component docs before using a component | Every screen uses Razorpay's own components and tokens, so the prototype looks like part of the dashboard |
+| **CodeRabbit** | Automatic pull request review | A second reader on every diff until the free allowance ran out |
+| **Graphify, and a memory layer I built** | A map of the code for the agents, and notes carried between sessions | A new session did not start from nothing, which saved re-explaining the project about 35 times |
+| **pytest, Playwright, ruff, GitHub Actions** | Backend and browser tests, lint, CI on every pull request, and an issue opened automatically when CI fails on `main` | Bugs were caught before I saw them. CI runs the full suite in about seven minutes |
+| **Supabase and Vercel** | A real webhook receiver for Razorpay test mode, and the hosted demo | The one real observation in the build (section 3) |
 
-## How AI sped the work up
+## 2. Key prompts, workflow and agent setup
 
-- A spec, a data model and a build plan in two days, then parallel sessions building detection, conversation, fixing and screens against interfaces fixed in advance, so they did not collide.
-- A synthetic world with hidden ground truth that the product never sees. Every claim is scored against it, which let me trust a result without reading the code.
-- An independent reviewer after each batch. Each batch was fixed before it merged.
-- On 12 October, two batches (the Overview and the issue page with its charts) went from the roadmap to merged pull requests in one day, taking the browser tests from 93 to 142. Each screen now has a written build checklist (`web/DESIGN.md` section 23) that the reviewer runs, so the faults I found by eye in round one of the Overview are looked for first on the next screen.
-- A measured answer in place of a claim. Instead of building a live model step the day before the deadline, one session wrote 41 made-up messy complaints and scored the rules on them, so "why AI beats a rule" has a number behind it.
+### How the work was set up
 
-## Where I made the decisions
+- **One rule file every session reads** (`CLAUDE.md`). It holds the hard rules (numbers come from SQL or Python, never from a model; nothing moves money or messages customers in bulk without approval; the assistant never asks for credentials), which documents to read first, and the workflow below.
+- **Frozen contracts.** The data shapes, API and message templates were fixed before building, so parallel sessions could build detection, conversations, fixes and screens without breaking each other. Changing one needs a logged entry in `docs/CONTRACT_CHANGES.md`.
+- **One chat, one branch, one pull request.** Each session works in its own copy of the repo, merges only after CI passes, and deletes the branch. If CI fails on `main`, an issue opens automatically, and the next session fixes it before anything else.
+- **A synthetic world with a hidden answer key.** A Python generator creates a merchant, customers, payments and planted failures, plus look-alike cases that should not be flagged. The product never sees the answer key. The 147 scored checks compare what the product found with what was planted. This let me trust a result without reading the code.
+- **Build checks, then a separate reviewer, before every web pull request.** The building session measures each screen at 375, 768 and 1440 px and tries the edge cases. A reviewer agent then checks it against the design rules. The pull request goes up only on a pass, and the build log records what the reviewer could not check.
+- **A written record.** Every piece of work adds an entry to `docs/BUILD_LOG.md`: what was built, what was decided, what the review found and what was fixed.
 
-AI proposed. These were mine.
+### The process, by date
 
-1. **The problem.** I compared four ideas (a pre-debit engine, offer and EMI recovery, international payment failures, and this one) and chose "payments that succeeded and still lost the customer", because Razorpay's own tools cover the payment in flight.
-2. **Scope.** The product owns what happens before and after a payment. It does not rebuild retries, fraud, routing or disputes. I also set what it must never do: ask a customer for a password, card number or OTP, move money without an approval, or refund anywhere but the original method.
-3. **Evidence over comfort.** The first spec called webhook logs undocumented and rested on six AI-simulated personas and an AI scoring panel. I had the facts corrected against Razorpay's documents and refused to quote simulated scores as real judge verdicts. I ran the 24-hour webhook test myself in Razorpay's dashboard and recorded that it did not disable the webhook, so the product labels that behaviour as documented, not observed.
-4. **The prototype uses no model, on purpose.** The product should use AI. The prototype runs on rules and synthetic data, and the note says where a model goes in production: messy complaint text, free-text server errors, causes nobody listed. Razorpay's own engineers say a model reads and deterministic code moves money, and I applied that.
-5. **Refund guardrails.** Original method only, one customer at a time, ₹5,000 a day, no undo. This makes a refund slower. The evaluation reports that cost (10.5 founder minutes against a target of 10) instead of hiding it.
-6. **Business case.** I froze it at what the evidence supports, made detection free, and asked for a pilot with stop rules before any claim of revenue.
-7. **Cuts.** For example the investigation agent, which needs a model, and a monthly report that would be wrong in a demo with no server.
-8. **One branch, one pull request per batch, merged by me after CI.**
-9. **Names and copy from Razorpay, after a user test.** On 11 October I showed the product to people without explaining it, and they could not tell what it was. I had every page, name and picture redone so a merchant understands it at a glance, and told the agent to take names from how Razorpay names its own products rather than invent them. A research agent read Razorpay's docs and my dashboard screenshots; the menu went from 12 items to 10 (`web/DESIGN.md` section 22).
-10. **I restated the product on 12 October, after two pieces of feedback.** A Flipkart developer understood it only as "it finds integration errors". A Razorpay PM asked for an at-a-glance dashboard. I rewrote the problem from first principles: a payment breaks in five places, small merchants hear from customers and big brands hear from their own alerts, so one engine gets two ways in. I also set the lever (recovered orders and revenue, not payment success rate, which Razorpay's routing owns) and the north star (recovered value, verified and incremental). AI drafted the PRD v3 with me in a Claude Doc and checked it against the 5 October research: the big-brand persona has the weakest evidence, and the doc says so.
-11. **The Overview follows Razorpay's own dashboard home.** I rejected the first version on composition, not on bugs: the Ray glyph sat outside its input, the setup card left a wide empty edge, and the chart was tall and above the list that matters more. Five rounds of changes followed in all. The agent's first reaction to one fault was to call it "a preview artefact". I found it was real when I tried the page in my own browser. Out of that came a written checklist for every screen (`web/DESIGN.md` section 23), which I asked for.
-12. **Metrics, and what was dropped as vanity.** I chose a metric tree with one north star, leading and lagging metrics, guardrails (zero wrong refunds or access changes) and a list of counts I will not track: alerts sent, messages sent, customers contacted, conversations handled. Each goes up when the product is noisy and none says whether money came back.
-13. **Prioritisation on two horizons.** Scored with RICE and MoSCoW, once for the judges (reach is the video, the note and the prototype) and once for merchants. The live model step scored 0.6 and became a Won't for the submission: 8 hours, a new dependency and no eval a day before a deadline with no changes after. A measured card ("where the rules fail") scored 2.4 and became a Must. The prototype stays rule-based and says so.
-14. **The big-brand demo names Flipkart, in text only.** The PRD recommended a made-up brand. I decided on 12 October to use Flipkart's name with no logo or look-alike screens, labelled a demo and not for production. Claude Code built the flow on 12 October as one batch: a Python script with a fixed seed writes the data file (1,240 customers, 410 paid twice, 830 with no order), and four screens read every number from it (a pay screen with an app 8.2 switch, a monitoring alert, a Slack thread with three approvals, and the issue page inside the dashboard). A separate review agent failed it on the first pass (four major faults, among them no way out of the demo screens and a closing message that claimed something not built) and the faults were fixed. I took the PRD's recommendation to ship it as a front-end flow on recorded data, not a live alert endpoint, so an approval changes only that browser tab and no refund is made. The Slack loop it dramatises is from my previous company and I have not checked it with Razorpay.
-15. **Spend.** I limited cost on the last day. One independent review was stopped early and the build log says so, rather than saying "passed".
+| Date | What happened |
+|---|---|
+| 28 Sep | Brief received |
+| 30 Sep | A simulated leadership council of AI agents (CEO, CPO, CTO, CFO, CRO, risk, AI lead, red team) debated ideas and chose **First Charge**, a pre-debit stage for UPI AutoPay trials |
+| 2 Oct | Two rounds of AI problem search. A second-opinion review checked First Charge against Razorpay's docs and said do not build it (section 3) |
+| 2 to 4 Oct | Questions drafted for a Razorpay PM and four ISB contacts. No replies by 4 Oct, so I decoupled the build from interviews |
+| 5 Oct | Social listening on Reddit and X: 1,749 posts and 2,075 tweets collected, 289 merchant posts and 120 merchant complaints kept. An idea scoreboard rated nine options |
+| 6 Oct | Picked the problem, wrote the spec and build plan, set up the repo, started building |
+| 6 to 10 Oct | Detection, conversations, fixes, the learning loop, the screens. A real webhook test on Razorpay test mode. On 10 Oct four independent reviewers audited docs, code, a judge's view and the demo |
+| 11 Oct | Showed the product to people without explaining it. They could not tell what it was. Every page, name and picture was redone |
+| 12 Oct | Restated the product as v3 (two ways in, one engine) after feedback from a Flipkart developer and a Razorpay PM. Built the dashboard home, the issue page and the big-brand demo |
+| 13 Oct | Two demo accounts, more big-brand issues, the rename to Resolve, final docs |
 
-## What AI got wrong, and how it was caught
+### Prompts I actually used
 
-- It built a pay-page check that passed a page where checkout does not open. A test I asked for failed on it.
-- It counted founder effort with a formula. A cross-check against a real run showed it had missed one approval.
-- It wrote "nothing is changed" on a screen that sends a test event. An independent reviewer caught it.
-- It stored a customer's card number, CVV and OTP if the customer typed them, and its "never ask for a secret" check let through 27 of 30 new ways of asking. An independent reviewer tried to break the hard rules on 10 October and found both. Both are fixed, with tests that fail without the fix.
-- It showed "Razorpay turns the webhook off" as fact after my own test showed it does not. It now says "Razorpay's docs say".
-- While rewriting the copy, it put ₹56,319 next to all 85 affected customers on the INC-1 page. The amount belongs to the 81 still without access, as another page said. The independent design reviewer caught the contradiction; the customer data settled which page was right.
-- On 12 October, the first Overview layout was rejected on composition. The agent had called a see-through chat input "a preview artefact" after checking the middle of the input, not the point where the answer buttons sit. It was a real stacking fault and a test now scrolls a long thread to catch it.
-- A legend test that could not fail, because it measured the wrong element. The rule since then: break the code on purpose and watch the test fail before trusting it. The same happened with two checks on the issue page, which first matched nothing.
-- A "2 of 85 fixed" tile on the issue page, while the page said 81 customers were still without access. The independent design reviewer caught it. The tile now reads "put right" from the same numbers as the stats card.
-- A root cause card that grew when the evidence pack loaded. The agent's own test missed it because local files load in a blink. The test now delays the pack by 600 milliseconds, and it fails without the fix.
-- The first "where the rules fail" set read 78% for the rules on 40 messages. A review found two messages that two people could read two ways. They were removed, not relabelled to suit the rules, and three typo messages without the rules' keywords were added because typos were under-counted. The score is now 85% of 41, and the log says how it moved.
-- While writing the note, the build session found two places where the PRD disagreed with the data: the 6.2 to 3.2 false alerts are per six-week replay, not "a week", and the INC-1 deploy is at 2:20 pm in the data, not 6:05 pm as in the PRD's story. The note uses the data. The PRD still needs the fix.
+These are quoted from the session records, trimmed with "..." but not reworded.
 
-## What is real and what is not
+**Finding the gap in the idea (6 Oct)**
+> "The initial idea was that we'll do social listening, look for issues which the users have sent to the brands on WhatsApp, email, and on social channels ... Am I missing something out because I cannot see it in your product brief?"
 
-Real: Razorpay's webhook behaviour, observed from a test payment. Simulated: the merchant, customers, channels, messages and every number in the evaluation. The prototype uses no language model: SQL and Python produce every number, and the hosted demo replays recorded answers. The big-brand flow runs on recorded data and local state. External services and sources used: Razorpay's documents and test mode, Supabase, Vercel, GitHub, Meta and Anthropic public documentation for the research, Reddit and X posts, and Razorpay's open-source Blade design system.
+This led to the question that shaped the product: what about the customers who never complain?
+
+**Matching Razorpay's real product (6 Oct)**
+> "go through the logged in razorpay dashboard to understand how their design language is and build the frontend accordingly in line with it"
+
+**The workflow, set once and repeated every batch (7 Oct)**
+> "Yes, go through the same pipeline as always: 1. Add it to the build. 2. Run a design review. 3. Document everything. 4. Open the PR and switch auto-fix on"
+
+**Questioning the build, not just directing it (10 Oct)**
+> "Given that we're building this just as an MVP for the competition ..., do we really think I should integrate the LLM agents or the models, or can we simulate that as well?"
+
+**Rejecting a screen on the journey, not the bug (12 Oct)**
+> "When I open just the Ray, the UI is breaking with the text box being, I think, opaque ... Also, when the chatbot is open, why is everything in the left nav bar going away? How will the user navigate back to the earlier page? Look at all the edge cases. Don't just go blindly from the UI references. Behave like a product designer and stitch the journey properly"
+
+### The reviewer agent's brief (excerpt)
+
+> "You are the design reviewer for Resolve, a product that must look like an addition to the live Razorpay dashboard. You review. You do not edit files."
+>
+> "Tests: for each new test, ask whether it could fail. Say if you could not prove it."
+
+The full brief is in `.claude/agents/design-reviewer.md`. It runs mechanical checks first (type check, lint, hard-coded colours, fixed widths), then structure, content and a look at three screen widths.
+
+## 3. AI outputs I rejected or corrected
+
+### The main one: the AI council's first pick
+
+On 30 September a council of AI agents, each playing a leadership role, chose **First Charge**: a product that contacts UPI AutoPay trial users before their first paid debit and offers to move the date, pause or lower the plan. The memo was confident and well argued. It had an uplift model, a holdout group and guardrails.
+
+I asked for a second opinion that checked every claim against Razorpay's own documentation. It found that the core actions do not exist:
+
+- Subscriptions authorised by UPI or eMandate cannot be updated, so "lower plan" and "move my date" are not possible.
+- Pausing a subscription before its first charge cancels it.
+- Razorpay already ships trial reminders and pre-debit notices, and lists "Renewal Shield" as coming soon.
+
+What was left was "keep or stop", which is not a product. I dropped it.
+
+**Why it mattered:** the council was persuasive because it was internally consistent, not because it was true. Since then every product claim has been checked against Razorpay's docs, and the note names the nearest Razorpay products and how Resolve differs. The parts that were sound (no model in the money path, a rule as the baseline to beat, guardrails in code) carried over into Resolve.
+
+### Others, smaller
+
+| What AI produced | How it was caught | What changed |
+|---|---|---|
+| Copy saying Razorpay turns off a failing webhook, as fact | I ran a 24-hour test in Razorpay test mode with a receiver on Supabase. Retries stopped; the webhook stayed on | The product now says "Razorpay's docs say", and separates what was observed from what is documented |
+| ₹56,319 shown next to all 85 affected customers | The reviewer agent saw another page tie it to the 81 still without access | Customer records decide: 85 affected, 81 still waiting, 2 given access by hand, 2 refunded |
+| A "never ask for a password" check that let through 27 of 30 new ways of asking, and storage that kept a card number, CVV or OTP if a customer typed one | An adversarial reviewer tried to break the hard rules on 10 Oct | Both fixed, with tests I confirmed fail when the fix is removed |
+| An overlapping chat box the agent called "a preview artefact" | I opened the page in my own browser and it was real | A test that scrolls a long thread, and a written checklist for every screen (`web/DESIGN.md` section 23) |
+| Tests that could not fail, because they measured the wrong element or matched nothing | The reviewer's "could this test fail?" question | New rule: break the code on purpose and watch the test go red before trusting it |
+| A first "where rules fail" score of 78% on 40 messages | A review found two messages two people could read two ways | Removed, not relabelled to suit the rules. Three typo messages added. Now 85% on 41, and the log says the number moved because the test set changed, not the product |
+| A big-brand closing message that claimed something not built, and demo screens with no way out | The reviewer failed the first pass with four major faults | Fixed before merge |
+
+## 4. What AI did, and what I decided
+
+| AI did | I decided |
+|---|---|
+| Generated and scored ideas, ran the simulated council, read Razorpay's docs | Which problem to solve, and which ideas to drop: First Charge (the rails do not support it), international payment failures (I could not study the regulatory side well enough in time), onboarding (no clear new fix beyond work already underway) |
+| Wrote the PRD, spec and build plan drafts | Scope: the time before and after a payment, not the payment in flight. No fraud, routing, disputes or settlements |
+| Wrote every line of code and every test | What the product must never do: ask for credentials, move money without approval, refund anywhere but the original method |
+| Built the synthetic world and the evaluation | That every number comes from SQL or Python, never from a model, and that every simulated figure says so |
+| Reviewed its own work through separate agents | When a review was good enough, and when to stop one to save cost (one review on 12 Oct was stopped, and the log says so instead of "passed") |
+| Drafted copy and illustration briefs | Names and copy follow Razorpay's own conventions, after a user test where people could not tell what the product was |
+| Proposed the v2 product | The v3 restatement: two ways in, one engine, after feedback from a Flipkart developer and a Razorpay PM |
+| Proposed adding a live model call | No live model in the prototype (below) |
+
+### Why the prototype has no live model
+
+I tried the reading task in ChatGPT, Claude and two local Nemotron models. ChatGPT and Claude gave fuller, cleaner answers. A live Claude call would have meant a paid API, a new dependency and about eight hours of work the day before a deadline with no changes allowed after, and no time to evaluate it. A model call with no evaluation is a claim, not evidence. So I kept the prototype on rules and measured where rules fail instead.
+
+The design for production:
+
+| Job | Done by | Why |
+|---|---|---|
+| Read messy complaints, Hinglish, unfamiliar errors, two problems in one message | A language model, which can say "unsure" and hand over to a person | Wording varies beyond any keyword list |
+| Match payments, pick affected customers, calculate amounts | Code | These need a traceable answer |
+| Approve and carry out refunds or access changes | Policy checks and the merchant's approval | A plausible answer is not permission |
+
+### Other decisions that cost something
+
+- **Refund guardrails make refunds slower.** One at a time, original method, ₹5,000 a day, no undo. The evaluation estimates 10.5 founder minutes for the duplicate-charge incident against a target of 10, assuming 30 seconds per approval. I kept the guardrails and reported the miss.
+- **Learning has a price.** Stricter alert settings cut false alerts from 6.2 to 3.2 per six-week run but missed a weak outage in 1 run of 5. Reporting only "fewer alerts" would hide that.
+- **Metrics I will not track:** alerts sent, messages sent, customers contacted, conversations handled. Each goes up when the product is noisy, and none says whether money came back.
+- **Flipkart's name, text only.** No logo, no look-alike screens, every screen says the data is made up.
+
+## 5. Known limitations, risks and how the work was checked
+
+### What is real and what is simulated
+
+**Real:** Razorpay's webhook behaviour, observed from a test-mode payment. The founder posts on Reddit and X. Feedback from a Flipkart developer, a Razorpay PM and the people in the 11 Oct user test.
+
+**Simulated:** the merchants, customers, payments, complaints, alerts, Slack thread, approvals, learning results and every number in the evaluation. The hosted demo replays recorded answers from the real engine. In the big-brand demo, an approval changes only that browser tab. No real customer was refunded, messaged or given access.
+
+### How the work was checked
+
+- 147 scored checks against a hidden answer key: who was missed, who was wrongly included, whether repeating an approval acts twice, whether a forbidden action is blocked, whether an issue closes only after it is verified.
+- 627 backend and 260 browser tests, run by CI on every pull request.
+- Tests proven able to fail: for the safety fixes, the code was broken on purpose and the tests went red.
+- Separate reviewer agents on every web batch, and four independent audits on 10 Oct.
+- My own review in a real browser, and a user test with people who had not seen the product.
+
+### Limitations and risks
+
+- **The evaluation is circular.** The generator and the detector were written from the same assumptions. The checks prove the logic, not real-world accuracy.
+- **"Why AI" is not yet proven.** The 41 messy complaints show where rules fail. No model has been scored on them.
+- **The big-brand Slack loop is unvalidated.** It comes from my previous company. No Razorpay transcript or public post mentions it.
+- **Thin merchant evidence.** No formal merchant interviews; the early outreach (2 to 4 Oct) got no replies, and later feedback came from two conversations, not a study. Earlier personas were partly AI-simulated and are treated as hypotheses.
+- **Not built:** the live alert endpoint, the Razorpay support engineer's console, comparison across merchants, live channel integrations, and approvals tied to real logins.
+- **Production would need:** signed integrations, verified customer identity, WhatsApp policy checks, a model evaluation with monitoring, and authenticated approvals.
+
+### What I would test next
+
+Replay real, redacted incidents from 3 to 5 consenting merchants in shadow mode. Score rules against a model on their real complaints. Then pilot approved recovery against their current workflow and measure verified recovered order value, time to recovery, handling minutes, false alerts and wrong actions. Separately, check the Slack root-cause loop with one brand and one Razorpay support engineer.
+
+The question for that pilot: does Resolve help a merchant put more affected customers right, sooner and with less effort, without new mistakes?
+
+---
+
+This log contains no keys, credentials, customer data or private transcripts. The quoted prompts are my own messages.
