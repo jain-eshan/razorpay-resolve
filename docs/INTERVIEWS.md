@@ -1,5 +1,7 @@
 # What Razorpay has said publicly, and what it means for how we build
 
+> **Naming.** The product is called Razorpay Resolve (Resolve inside the dashboard). It was developed under the working name Blindspot, and this file keeps that name in its dated history.
+
 A digest of the interviews, talks, posts and pages we have read, written in our own words, with the tech and product calls each one supports. It exists so that decisions about the demo and about production are made with these facts in front of us, not from memory.
 
 **Full text.** The unabridged transcripts of S1 to S5 are in **`docs/RAZORPAY_TRANSCRIPTS.md`** (about 25,000 words). Read it, not only this digest, before relying on a detail, a figure or a speaker's exact words. Search it with `grep -n -i "<word>" docs/RAZORPAY_TRANSCRIPTS.md`. The file is third-party material kept for private research in this private repository: do not publish or send it outside the team.

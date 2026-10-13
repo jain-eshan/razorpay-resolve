@@ -350,7 +350,7 @@ def test_restored_customers_leave_the_exact_group_with_a_reason(fresh):
     run_grant(fresh)
     after = service.detail(fresh, "INC-1")
     assert before.tier_counts["exact"] == 81 and after.tier_counts["exact"] == 0
-    assert {m.exclusion_reason for m in service.members(fresh, "INC-1", "excluded")} >= {"restored by Blindspot"}
+    assert {m.exclusion_reason for m in service.members(fresh, "INC-1", "excluded")} >= {"restored by Resolve"}
     assert after.affected == before.affected
     assert [a.action_type for a in after.actions] == ["grant"]
 

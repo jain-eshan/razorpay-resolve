@@ -145,7 +145,7 @@
       }
     ],
     "what_we_cannot_see": [
-      "Whether the customer meant to buy twice. Two orders for the same person and plan seconds apart are almost always a double tap, but Blindspot cannot ask the app",
+      "Whether the customer meant to buy twice. Two orders for the same person and plan seconds apart are almost always a double tap, but Resolve cannot ask the app",
       "Whether the bank has already reversed a failed second attempt",
       "Whether the customer saw an error and tapped again, which a fixed app would also stop"
     ]

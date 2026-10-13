@@ -28,11 +28,11 @@ import { Mine } from '../components/Mine'
 import { useAccount } from '../lib/account'
 import BrandIssue from './BrandIssue'
 
-// Restored is not one of the engine's tiers: the engine files a customer Blindspot gave access back to as excluded, "restored by Blindspot". A merchant reads
+// Restored is not one of the engine's tiers: the engine files a customer Resolve gave access back to as excluded, "restored by Resolve". A merchant reads
 // "left out" as skipped, so restored customers get their own tab, and Left out keeps only the ones really left out (given access by hand, refunded).
 const TIERS = ['exact', 'likely', 'check', 'restored', 'excluded'] as const
 const TIER_LABEL = { exact: 'Certain', likely: 'Likely', check: 'By hand', restored: 'Restored', excluded: 'Left out' }
-const RESTORED = 'restored by Blindspot'
+const RESTORED = 'restored by Resolve'
 const inTier = (m: Schemas['Member'], t: (typeof TIERS)[number]) => t === 'restored' ? m.exclusion_reason === RESTORED : t === 'excluded' ? m.tier === 'excluded' && m.exclusion_reason !== RESTORED : m.tier === t
 const OWNER_TONE = { merchant_code: 'notice', merchant_config: 'notice', razorpay: 'neutral', bank: 'neutral', customer: 'neutral', unknown: 'neutral' } as const
 const STATUS_TONE = { open: 'notice', fixing: 'information', verifying: 'information', closed: 'positive' } as const
@@ -53,7 +53,7 @@ function reconcile(inc: Schemas['IncidentDetail'], members: Schemas['Member'][])
     const r = LEFT_OUT[m.exclusion_reason ?? ''] ?? m.exclusion_reason ?? 'other'
     return { ...a, [r]: (a[r] ?? 0) + 1 }
   }, {})).map(([r, n]) => `${n} ${r}`)
-  return `${members.length} found · ${waiting} still without access${restored ? ` · ${restored} restored by Blindspot` : ''}${reasons.length ? ` · left out: ${reasons.join(', ')}` : ''}`
+  return `${members.length} found · ${waiting} still without access${restored ? ` · ${restored} restored by Resolve` : ''}${reasons.length ? ` · left out: ${reasons.join(', ')}` : ''}`
 }
 
 // What happened, in order, in the dashboard's Timeline style. The last step is where the founder's fix lands; while it is still to do, its dot carries the live pulse.
@@ -63,7 +63,7 @@ function Milestones({ inc, pack, atAlert, fix }: { inc: Schemas['IncidentDetail'
   const steps: { at?: string; title: string; text?: string; stamp?: string; tone: 'neutral' | 'negative' | 'information' | 'notice' | 'positive' }[] = [
     { at: v.onset_at, title: 'Your change went live', text: String(v.cause_summary_slots.change ?? ''), tone: 'neutral' as const },
     ...(pack?.first_failure_at ? [{ at: pack.first_failure_at, title: 'First failed delivery', text: `Your server answered ${v.signature.status ?? 'with an error'}`, tone: 'negative' as const }] : []),
-    ...(inc.would_have_alerted_at ? [{ at: inc.would_have_alerted_at, title: 'Blindspot would have alerted', text: `${atAlert ?? 1} customer affected by then`, tone: 'information' as const }] : []),
+    ...(inc.would_have_alerted_at ? [{ at: inc.would_have_alerted_at, title: 'Resolve would have alerted', text: `${atAlert ?? 1} customer affected by then`, tone: 'information' as const }] : []),
     ...(off ? [{ at: off.bucket_start, title: "Razorpay's docs say it turns the webhook off", text: 'After 24 hours of failures. In our own test the retries stopped and the webhook stayed switched on, so this step is documented, not observed', stamp: `Around ${when(off.bucket_start)}`, tone: 'notice' as const }] : []),
     ...(v.resolved_at ? [{ at: v.resolved_at, title: 'Your server answered again', tone: 'positive' as const }] : []),
   ].sort((a, b) => a.at!.localeCompare(b.at!))
@@ -143,7 +143,7 @@ function Incident() {
 
       {/* The answer, in plain words, full width between the story and the numbers, as on the other issue pages. Slots are the engine's, not typed here. */}
       <Alert isFullWidth color="information" isDismissible={false} title="Your app never heard about these payments"
-        description={`Since ${v.cause_summary_slots.change ? `your release ${String(v.cause_summary_slots.change).split(':')[0]} (${when(v.onset_at)})` : 'a change on your side'}, your server has answered Razorpay's payment messages with an error${v.signature.status ? ` (${v.signature.status})` : ''}. Customers were charged, but your app was never told, so it never gave them access.${inc.would_have_alerted_at && atAlert !== null ? ` With Blindspot on, you would have known ${when(inc.would_have_alerted_at)}, when ${atAlert} customer was affected.` : ''}`} />
+        description={`Since ${v.cause_summary_slots.change ? `your release ${String(v.cause_summary_slots.change).split(':')[0]} (${when(v.onset_at)})` : 'a change on your side'}, your server has answered Razorpay's payment messages with an error${v.signature.status ? ` (${v.signature.status})` : ''}. Customers were charged, but your app was never told, so it never gave them access.${inc.would_have_alerted_at && atAlert !== null ? ` With Resolve on, you would have known ${when(inc.would_have_alerted_at)}, when ${atAlert} customer was affected.` : ''}`} />
 
       <IncidentStats inc={inc} />
 
@@ -168,7 +168,7 @@ function Incident() {
 
           <Panel title="Affected customers" subtitle={reconcile(inc, members ?? [])} pad={false}>
             <Box padding="spacing.5">
-              <SegmentedControl label="How sure Blindspot is" name="tier" value={shown} onChange={({ value }) => setTier(value as (typeof TIERS)[number])}>
+              <SegmentedControl label="How sure Resolve is" name="tier" value={shown} onChange={({ value }) => setTier(value as (typeof TIERS)[number])}>
                 {TIERS.filter((t) => t !== 'restored' || count('restored') > 0).map((t) => <SegmentedControlItem key={t} value={t}>{TIER_LABEL[t]} ({count(t)})</SegmentedControlItem>)}
               </SegmentedControl>
             </Box>
@@ -216,7 +216,7 @@ function Incident() {
                   <Box display="flex" gap="spacing.3" alignItems="center" flexWrap="wrap">
                     <Text size="small" weight="semibold">{m ? `${m.customer_masked} · ${rupees(m.amount_paise)}` : s.payment_id}</Text>
                     {m && (m.exclusion_reason === RESTORED
-                      ? <Badge size="small" color="positive">Restored by Blindspot</Badge>
+                      ? <Badge size="small" color="positive">Restored by Resolve</Badge>
                       : <Badge size="small" color={m.tier === 'excluded' ? 'neutral' : 'notice'}>{m.tier === 'excluded' ? `Left out: ${LEFT_OUT[m.exclusion_reason ?? ''] ?? m.exclusion_reason}` : 'Still without access'}</Badge>)}
                     <Text size="small" color="surface.text.gray.muted">{s.payment_id}</Text>
                   </Box>

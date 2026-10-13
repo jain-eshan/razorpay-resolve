@@ -1,7 +1,7 @@
 [project]
 name = "blindspot"
 version = "0.1.0"
-description = "Blindspot (working name): Razorpay x ISB AI PM Build Challenge, Track 2"
+description = "Razorpay Resolve (developed as Blindspot): Razorpay x ISB AI PM Build Challenge, Track 2"
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "fastapi>=0.115",

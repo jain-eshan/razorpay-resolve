@@ -31,7 +31,7 @@ export default function BrandConnectors() {
   const live = all.filter((c) => c.status !== 'later')
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7" testID="brand-connectors">
-      <PageHeader title="Connectors" description="The tools that tell Blindspot about problems, and the channel its answers go to. You can switch any of them off here." />
+      <PageHeader title="Connectors" description="The tools that tell Resolve about problems, and the channel its answers go to. You can switch any of them off here." />
       {error
         ? <Alert isFullWidth color="negative" isDismissible={false} title="Could not load connectors" description={`${error}. Reload the page to try again.`} />
         : <Alert isFullWidth color="information" isDismissible={false} title="Demo: every connector is simulated" description="Try Disconnect and Undo to see how control works. Nothing is saved, and a reload puts everything back." />}

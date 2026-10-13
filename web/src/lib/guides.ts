@@ -3,7 +3,7 @@ import { ActivityIcon, CodeSnippetIcon, FileTextIcon, RadioIcon, SearchIcon, Sli
 
 // Product guides, in the shape of Razorpay's own (Smart Collect, Checkout Rewards, the agent pages): a hero slide, then "What makes X great?" with three cards. Copy rules and the pattern: web/DESIGN.md section 16.
 // To add a guide, add an entry here. The page at /guides/:id, the "How it works" button on a page and the Explore cards on the home read this list.
-// Every sentence must be true of the product today, in plain words, for someone who has never heard of Blindspot. Every figure on a guide is read from the data (lib/guideStats.ts), never typed here.
+// Every sentence must be true of the product today, in plain words, for someone who has never heard of Resolve. Every figure on a guide is read from the data (lib/guideStats.ts), never typed here.
 export type Guide = {
   id: string
   title: string
@@ -29,23 +29,23 @@ const DEMO = 'Figures are from the demo merchant, Kaksha. All data is simulated.
 export const GUIDES: Guide[] = [
   {
     id: 'blindspot',
-    title: 'Blindspot',
+    title: 'Resolve',
     // Razorpay's own guide headings, for the product name (Smart Collect: "What makes Smart Collect great?"). Pages named with a plain noun use the defaults.
-    why: 'What makes Blindspot great?',
-    how: 'How to use Blindspot',
+    why: 'What makes Resolve great?',
+    how: 'How to use Resolve',
     to: '/setup',
     icon: ActivityIcon,
     tagline: 'Find every customer a payment problem hit, and win them back',
     description:
-      'A customer pays and your app gives them nothing, or your pay page breaks and they cannot pay at all. You find out days later, if at all. Razorpay sees the payment. Blindspot covers what breaks around it: it finds every customer hit, says whose side the cause is on, and fixes it and wins them back once you approve.',
+      'A customer pays and your app gives them nothing, or your pay page breaks and they cannot pay at all. You find out days later, if at all. Razorpay sees the payment. Resolve covers what breaks around it: it finds every customer hit, says whose side the cause is on, and fixes it and wins them back once you approve.',
     benefits: [
-      { art: 'crowd', title: 'From one complaint to everyone', text: 'One customer writes in. Blindspot finds every other customer the same problem hit, including the ones who never wrote in.' },
+      { art: 'crowd', title: 'From one complaint to everyone', text: 'One customer writes in. Resolve finds every other customer the same problem hit, including the ones who never wrote in.' },
       { art: 'proof', title: 'Whose side, with proof', text: 'Each payment issue says whether the cause is your code, your settings, Razorpay or the bank, and shows the records behind it.' },
       { art: 'approve', title: 'You approve, it does the rest', text: 'Fixes and messages go out in small steps, and you choose how much happens without asking. It never takes anyone’s access away.' },
     ],
     steps: [
       { art: 'stairs', title: 'Answer three setup questions', text: 'Choose where customers can reach you, decide how much it does on its own, and see what is already broken. It never asks for a password, card details or an OTP.' },
-      { art: 'alert', title: 'Open a payment issue', text: 'When something breaks, Blindspot lists it: who was hit, the amount involved and whose side the cause is on.' },
+      { art: 'alert', title: 'Open a payment issue', text: 'When something breaks, Resolve lists it: who was hit, the amount involved and whose side the cause is on.' },
       { art: 'approve', title: 'Approve the fix', text: 'Check a test run first, then fix the first 5 customers, then the rest. You approve each step.' },
     ],
     links: [{ label: 'See a payment issue', to: '/incidents/INC-1' }, { label: 'How accurate it is', to: '/how' }],
@@ -59,10 +59,10 @@ export const GUIDES: Guide[] = [
     tagline: 'Every customer hit by a payment problem, in one place',
     summary: 'Who was hit, the amount involved and whose side the cause is on, biggest first.',
     description:
-      'A payment can break before it starts (your pay page or checkout does not open), during it (the bank or UPI fails) or after it (the customer paid and your app never gave them what they bought). Razorpay already shows failures during a payment. Blindspot covers before and after, and shows who was hit, the amount and what to do.',
+      'A payment can break before it starts (your pay page or checkout does not open), during it (the bank or UPI fails) or after it (the customer paid and your app never gave them what they bought). Razorpay already shows failures during a payment. Resolve covers before and after, and shows who was hit, the amount and what to do.',
     benefits: [
-      { art: 'zones', title: 'Before, during or after payment', text: 'You see where it broke first, then the cause. Blindspot covers before and after, where Razorpay cannot see.' },
-      { art: 'inferred', title: '“Estimated” means no payment exists', text: 'When customers could not reach a payment, there is nothing to look up. Blindspot says the figures are estimates, shows the evidence, and never moves money on them.' },
+      { art: 'zones', title: 'Before, during or after payment', text: 'You see where it broke first, then the cause. Resolve covers before and after, where Razorpay cannot see.' },
+      { art: 'inferred', title: '“Estimated” means no payment exists', text: 'When customers could not reach a payment, there is nothing to look up. Resolve says the figures are estimates, shows the evidence, and never moves money on them.' },
       { art: 'stairs', title: 'Fix in small steps, with undo', text: 'A test run, then the first 5 customers, then the rest, each checked against your records. You can undo until customers have been told.' },
     ],
     steps: [
@@ -127,14 +127,14 @@ export const GUIDES: Guide[] = [
     tagline: 'See what is already broken, the day you connect',
     summary: 'Compares Razorpay’s records with yours for the last 30 days.',
     description:
-      'The first time you connect, Blindspot compares the last 30 days of Razorpay’s records with your access records and lists the customers who paid and were never given access. It only looks. It changes nothing and messages no one.',
+      'The first time you connect, Resolve compares the last 30 days of Razorpay’s records with your access records and lists the customers who paid and were never given access. It only looks. It changes nothing and messages no one.',
     benefits: [
       { art: 'stuck', title: 'Paid, no access', text: 'The customers who paid you and still have no access, with the amount.' },
       { art: 'search', title: 'Read only', text: 'The first check does not message anyone and does not change any access.' },
       { art: 'alert', title: 'Straight to the cause', text: 'Each group links to the payment issue that explains it.' },
     ],
     steps: [
-      { art: 'search', title: 'It runs once, on its own', text: 'Blindspot compares Razorpay’s payment records with your access records. You do not have to enter anything.' },
+      { art: 'search', title: 'It runs once, on its own', text: 'Resolve compares Razorpay’s payment records with your access records. You do not have to enter anything.' },
       { art: 'stuck', title: 'See who is stuck', text: 'The customers who paid you and never got access, with the amount.' },
       { art: 'alert', title: 'Follow it to the cause', text: 'Each group links to the payment issue that explains it. Nothing is changed and no one is messaged.' },
     ],
@@ -151,7 +151,7 @@ export const GUIDES: Guide[] = [
     tagline: 'You decide how much it does on its own',
     summary: 'It starts on Review first, where nothing happens until you approve.',
     description:
-      'Blindspot starts on Review first, where nothing happens until you approve it. Move it up in Settings when you trust it. A few things are never allowed at any level: taking access away, refunding to a new account, changing Razorpay settings and writing to your database.',
+      'Resolve starts on Review first, where nothing happens until you approve it. Move it up in Settings when you trust it. A few things are never allowed at any level: taking access away, refunding to a new account, changing Razorpay settings and writing to your database.',
     benefits: [
       { art: 'approve', title: 'Review first', text: 'You approve every step: the test run, the first 5, the rest, and every message to a customer. This is where it starts.' },
       { art: 'stairs', title: 'Approve once', text: 'You approve a fix once. It then goes out in steps by itself and stops if anything fails. Messages still need you.' },
@@ -175,7 +175,7 @@ export const GUIDES: Guide[] = [
     tagline: 'Fewer false alarms, one small step a week',
     summary: 'Mark a false alarm or a miss, and it adjusts one alert setting once a week.',
     description:
-      'Tell Blindspot when an alert was a false alarm, or when it missed something. Once a week it moves one alert setting by one step, inside fixed limits, and writes down why. Every change is in the audit trail.',
+      'Tell Resolve when an alert was a false alarm, or when it missed something. Once a week it moves one alert setting by one step, inside fixed limits, and writes down why. Every change is in the audit trail.',
     benefits: [
       { art: 'chat', title: 'You say when it was wrong', text: 'Mark a payment issue as a false alarm, or say that customers wrote in and nothing alerted.' },
       { art: 'sliders', title: 'One step, inside limits', text: 'Each setting moves one notch on a fixed scale, once a week. It cannot jump.' },
@@ -199,14 +199,14 @@ export const GUIDES: Guide[] = [
     tagline: 'Every number is checked against known answers',
     summary: 'Every figure is tested against a made-up merchant whose real problems are known.',
     description:
-      'Blindspot is tested on a made-up merchant whose real problems are written in a separate file the product never reads. Each check compares what it found with those answers. The made-up merchant is tidy, so high scores show the logic works, not how often it would be wrong on real traffic.',
+      'Resolve is tested on a made-up merchant whose real problems are written in a separate file the product never reads. Each check compares what it found with those answers. The made-up merchant is tidy, so high scores show the logic works, not how often it would be wrong on real traffic.',
     benefits: [
       { art: 'lock', title: 'The product never sees the answers', text: 'A test fails the build if any product code opens the file with the answers.' },
       { art: 'report', title: 'Numbers come from SQL or Python', text: 'No number on screen is written by a language model. Messages are filled from templates.' },
       { art: 'inferred', title: 'Read the caveats', text: 'The conversations are scripted and friendly to the rules. Real founders’ messages are the next test.' },
     ],
     steps: [
-      { art: 'report', title: 'Read the checks', text: 'Each one compares what Blindspot found with answers it never sees.' },
+      { art: 'report', title: 'Read the checks', text: 'Each one compares what Resolve found with answers it never sees.' },
       { art: 'inferred', title: 'Read the caveats', text: 'The made-up merchant is tidy. High scores show the logic works, not how often it would be wrong on real traffic.' },
       { art: 'search', title: 'Check one yourself', text: 'Open a payment issue and compare it with the records it shows.' },
     ],
@@ -223,11 +223,11 @@ export const GUIDES: Guide[] = [
     tagline: 'Customers who stopped paying but kept access',
     summary: 'Renewals that failed on the customer’s side, still on after your grace period.',
     description:
-      'When a UPI AutoPay renewal fails because the customer’s account had no money, your app should end access once your grace period runs out. Sometimes it does not, and the amount you are owed grows every day. This is not a payment issue: nothing broke, and you are the one losing money. Blindspot lists those customers and the amount. It never takes access away itself.',
+      'When a UPI AutoPay renewal fails because the customer’s account had no money, your app should end access once your grace period runs out. Sometimes it does not, and the amount you are owed grows every day. This is not a payment issue: nothing broke, and you are the one losing money. Resolve lists those customers and the amount. It never takes access away itself.',
     benefits: [
       { art: 'door', title: 'Only past your grace period', text: 'A customer joins the list only after your grace period has run out. The ones still inside it are shown separately.' },
       { art: 'proof', title: 'Only their side', text: 'Renewals that failed on the bank’s or Razorpay’s side are left out: the customer owes nothing for those.' },
-      { art: 'lock', title: 'Nothing is changed', text: 'It is a list for you to act on. Blindspot never ends anyone’s access.' },
+      { art: 'lock', title: 'Nothing is changed', text: 'It is a list for you to act on. Resolve never ends anyone’s access.' },
     ],
     steps: [
       { art: 'door', title: 'Open the list', text: 'Each row shows the customer, the failed renewal, how long past your grace period they are and when access ends on its own if you do nothing.' },
@@ -247,11 +247,11 @@ export const GUIDES: Guide[] = [
     tagline: 'Set up your webhook right, and check it before every release',
     summary: 'One prompt for your coding agent, then a go-live check before each release.',
     description:
-      'Most of the problems Blindspot finds start with a webhook that was set up wrong or broken by a release. Paste one prompt into your coding agent to set it up properly, then run the go-live check before every release, so a break shows up before a customer finds it.',
+      'Most of the problems Resolve finds start with a webhook that was set up wrong or broken by a release. Paste one prompt into your coding agent to set it up properly, then run the go-live check before every release, so a break shows up before a customer finds it.',
     benefits: [
       { art: 'release', title: 'Stops a bad release', text: 'The check sends your webhook a test payment and opens your pay page. If either fails, it tells you to hold the release.' },
       { art: 'lock', title: 'Never asks for your secret', text: 'The prompt keeps your webhook secret in your own settings. A test payment never gives a real customer anything.' },
-      { art: 'proof', title: 'Each rule has a reason', text: 'Every line of the prompt closes a failure Blindspot has seen, and the page says which one.' },
+      { art: 'proof', title: 'Each rule has a reason', text: 'Every line of the prompt closes a failure Resolve has seen, and the page says which one.' },
     ],
     steps: [
       { art: 'search', title: 'Build with AI', text: 'Copy the prompt into Claude Code, Cursor or any coding agent. It sets up your webhook and writes the tests.' },

@@ -1,115 +1,157 @@
-# Blindspot (working name)
+# Razorpay Resolve
 
-Razorpay x ISB AI PM Build Challenge, Track 2. An agent for small Indian merchants (in this prototype rules and SQL decide, and a model is the production design) that owns what happens before and after a payment, where Razorpay's own tools stop looking. It finds every customer a payment problem touched, talks to them to find the payment, says whose side the fault is on, and fixes it with the founder approving.
+*From payment issue to customer resolution.*
 
-Read `docs/PRD_V3.md` and `docs/ROADMAP_V3.md` first (v3, 12 Oct: two ways in for small merchants and big brands, the home dashboard, and the build order; the roadmap's "Where Phase 1 stands" block says what is left). Where v3 is silent, `docs/PRD.md`, then `docs/SPEC.md` and `docs/BUILD_PLAN.md`. `docs/V1_SPEC.md` applies where the v2 docs are silent. A new session starts at `docs/HANDOFF.md`. What broke and why is in `docs/BUILD_LOG.md`. The submission note and video script are in `docs/SUBMISSION.md`, and the AI build log in `docs/AI_BUILD_LOG.md`.
+**When a payment breaks around the payment gateway, find every customer it hit, say whose side the fault is on, and fix it with the merchant's approval.**
 
-## Try it in two minutes
+Razorpay Resolve (just "Resolve" inside the dashboard) is a working prototype built for the Razorpay x ISB AI PM Build Challenge, Track 2 ("Recover and Grow with AI"). It is a product idea shown as a working demo, built by a product manager (Eshan Jain) with AI coding tools. It is a demo, not a launched Razorpay product, and it is not affiliated with Razorpay. Resolve is the product and Ray remains the chat voice: Resolve investigates payment issues, and Ray brings you the findings and actions. It was developed under the working name **Blindspot**, which is why the live address, the repository name and some internal names (database tables, storage keys) still say `blindspot` or `razorsense`; they were kept so that no submitted link breaks.
 
-Hosted demo, no install: https://razorpay-blindspot.vercel.app/
+> **Status: closed, 13 October 2026.** The build is finished and frozen. No further product changes are planned. This repository is kept as the record of what was built, how it was checked, and why. Everything in it runs on made-up data.
 
-Or run it yourself:
+**Live demo, no install:** https://razorpay-blindspot.vercel.app/
 
-```
-make setup
-make run-web      # http://localhost:5173
-```
+## The problem
 
-No server is needed. The hosted demo replays frames recorded from the real engine on a synthetic merchant (Kaksha, fictional). A page reload starts it over.
+A payment can break before, during or after the gateway. Most customers who fail once leave without complaining, so a founder learns about it days later, if at all. Razorpay's own tools cover the payment while it is in flight. Resolve covers what happens around it: orders created with no payment attempt, customers who paid and got nothing, double charges, failed renewals, and webhooks that stopped arriving.
 
-Page names follow Razorpay's own (`web/DESIGN.md` section 22): Overview, Payment issues, Customer complaints, Unpaid access, Integration, Connectors, Settings, Alert tuning, Audit trail, Accuracy. The first check (`/scan`) ends Setup.
+For one incident the product does five things: hear it, find everyone it hit (including customers who never wrote in), say whose side the fault is on and show the proof, fix it with approval, and win the customers back. The number it cares about is recovered revenue, not payment success rate, because routing owns success rate.
 
-| Open | What you see |
-|---|---|
-| `/` (Overview) | A welcome pop-up, then a dashboard: a date range, four cards (open payment issues, customers hit, money stuck, customers made whole), a chart of issues by day (by cause or by whose side), the open issues by money at stake, an Ask Ray bar, the setup card, nine cards to the pages, and Ray's WhatsApp alerts for both stories below. A link at the top, "How Blindspot works", opens the page below. |
-| `/how-it-works` | How Blindspot works: the two journeys (a small merchant, a big brand) as two lanes of five steps, the engine, and what is built today against the production design. No figures on it. |
-| Two demo accounts, `/signin` | The way in: pick Kaksha (a small business) or Flipkart (a big brand), or switch from the avatar at any time. The same dashboard, built for each. Flipkart's account has its own Overview and Payment issues: FK-1, an app release (8.2) that shows "Payment failed" for UPI payments Razorpay captured (1,240 customers, 410 paid twice, 830 with no order; the root cause in its Slack channel 6 minutes after the Sentry alert; three approvals), FK-2, Razorpay's own webhook delay (closed, fix free), and FK-3, double charges on iOS (refunded). Four more open issues, FK-4 to FK-7, show different causes: HDFC Bank debited customers and never confirmed (the bank's side), a slow webhook that made two orders for one payment, a blank card pay screen on the iPhone app (before payment, so the count is an estimate), and coupon orders charged the full price. Each issue page shows where it showed up: the customer's phone, the alert, the Slack thread. Flipkart appears in text only, with no logos, and every screen says the data is made up. `?account=flipkart` opens straight into it. |
-| Hero A, `INC-1` | A webhook broke after a deploy. 85 customers affected, 68 never complained. Fix them in stages (dry run, first 5, the rest), message them, undo, verify, close. |
-| Hero B, `INC-4` | Razorpay saw nothing, because no payment existed. Blindspot infers it from orders, a pay-page check and complaints, says it is inferred, shows the evidence, and offers recovery links with a few customers held back to measure the effect. |
-| `/chat-demo`, `/email-demo`, `/help-demo/receipt` | A customer talks to the agent. It says it is an AI, finds the payment from an exact identifier, and holds its reply for the founder. |
-| `/ig-demo` | Instagram: the Meta inbox passes a payment thread to Blindspot and takes it back. |
-| `/public-demo` | A public post gets one generic reply with a private link, held for the founder. Nothing about a payment is said in public. |
-| Razorpay side, `INC-3` | Card renewals failed inside Razorpay's gateway while UPI AutoPay was fine and nothing changed on the merchant's side. Blindspot says it is Razorpay's, how sure it is and what it cannot see, keeps customers' access on for 3 days, tells them, and drafts an evidence pack that only goes (simulated) when the founder approves. |
-| `INC-2` | Customers charged twice after an Android release: the merchant's app, not the webhook. Look-alikes are left out with the reason. The founder refunds each second charge to the original method, one customer at a time, under a daily limit, with no undo. |
-| `/access` | Unpaid access. A list, not an action: customers whose UPI renewal failed on their side and who still have access past the merchant's own rule. |
-| `/release-check` | Integration, step 2, the go-live check before a release: a test event to the merchant's webhook and a pay-page check, with what each failure means and what to do. The merchant is simulated. |
-| `/connect` | Integration, step 1 (Build with AI; was Connect by prompt): the text a merchant pastes into a coding agent to wire the webhook and the fulfilment acknowledgement. A proposal. |
-| `/learning` | Alert tuning: what the product changed about its alerts this week and why. On an incident, press "This was a false alarm", then "Review this week now": the alerts that raised it get one step stricter, with a reason, a version and an audit line. A simulated six-week table shows whether it helps. |
-| `/how` | Accuracy: every eval check against hidden ground truth, and what a fix asks of a founder and what it costs. |
+## Two ways in, two demo accounts
 
-## Commands
+Resolve is one dashboard, set up two ways. Open `/signin` (or the landing page `/how-it-works`) and pick an account. You can switch from the avatar at any time.
 
-```
-make setup        # python deps, web deps, git hooks
-make synth        # create data/world.db and data/truth.db (synthetic world, seed 20261006)
-make pipeline     # run detection on the world and save incidents
-make snapshot     # eval, then write web/public/snapshot/ (data and the demo recording) from the real engine. Commit the result.
-make run-web      # http://localhost:5173  (guided demo from the snapshot, no backend needed)
-make run-api      # http://localhost:8000  (set VITE_MODE=live to use it)
-make test         # backend tests, web typecheck and build, secret scan
-make e2e          # Playwright tests (uses your installed Chrome)
-make eval         # compare the pipeline with hidden ground truth; fails on a missed gate
-make contracts    # regenerate openapi.json, snapshot manifest and web types after a contract change
-make lint         # ruff and oxlint
-```
+| Account | Who it is | How Resolve hears about a problem | Where the answer lands |
+|---|---|---|---|
+| **Kaksha** (made up) | A small online business | A customer's complaint on WhatsApp, Instagram, email or a help button | Ray, the assistant, on the founder's WhatsApp |
+| **Flipkart** (a big brand, name used as text only) | A large shopping app | The brand's own alert tools (Sentry, Datadog, PagerDuty) | The brand's Slack channel, with approvals in the thread |
 
-The web app has two modes. Without `VITE_MODE=live` it plays the demo from `web/public/snapshot/`. With `VITE_MODE=live` it talks to the API on port 8000. If the engine or the data changes, run `make snapshot` and commit `web/public/snapshot/`, because the hosted site has no Python.
+Every screen says the data is made up. There are no logos, no password field, and nothing to type.
 
-## Status
+### What is in each account
 
-| Release | State |
-|---|---|
-| R0 to R3: foundations, detect and attribute, fix and verify, channels and conversation | Done, on `main` |
-| Guided demo, dashboard-aligned web shell, UX review | Done, on `main` |
-| R4 first slice: Hero B, customers who cannot reach the pay page (no model) | Done, on `main`. Contracts v0.5 |
-| R5 first slice: handovers (Instagram, Messenger, public posts) | Done, on `main`. Contracts v0.6 |
-| R5 second slice: learning loop, weekly card, Learning screen (no model) | Done, on `main`. Contracts v0.7 |
-| R7 submission kit: one-page note, 90-second script, verify-list status (`docs/SUBMISSION.md`) | Merged (PR #16). Needs Eshan's checks and two recorded takes |
-| R4 and R5 rest, INC-3: card renewals that failed in Razorpay's gateway, and the evidence pack to Razorpay (no model) | Done, on `main` (PR #19). Contracts v0.8 |
-| R4 rest, INC-2: customers charged twice after an app release, and the guarded refund (one customer at a time, original method only, daily limit, no undo) (no model) | Done, on `main` (PR #25). Contracts v0.9 |
-| R4 rest, renewal link for INC-3 | Done, on `main` (PR #26). Contracts v0.10 |
-| Data retention enforced (F-54) | Done, on `main` (PR #27) |
-| R4 rest, J6 access report (`/access`) | Done, on `main` (PR #29). Contracts v0.11 |
-| No false urgency on every outgoing message; Guard release check (`/release-check`) | Done, on `main` (PR #33). Contracts v0.12 |
-| Roadmap reassessment (`docs/BUILD_PLAN.md` section 14); the three measured PRD metrics; Connect by prompt (`/connect`); Blade charts; thread-crash fix | Done, on `main` (PR #34) |
-| Final audit, safety fixes, honest labels (PR #35); self-explanatory pass: Razorpay names, plain copy, pictures, welcome pop-up (PR #36) | Done, on `main` |
-| Product v3: PRD v3 and the roadmap with scoring (PR #37) | Done, on `main`. `docs/PRD_V3.md`, `docs/ROADMAP_V3.md` |
-| v3 batch 1.1: the Overview becomes a dashboard (PR #38) | Done, on `main` |
-| v3 batch 1.2: the issue page (story strip, evidence lane, "is it just you?") and the charts, plus the "where rules fail" card on Accuracy (PR #39) | Done, on `main` |
-| v3 batch 1.3: the big-brand flow (PR #44) | Done, on `main`. Recorded data and local state, no engine change |
-| v3 batch 1.4: How Blindspot works and the copy pass (PR #42); the product note and AI build log (PR #40, filled for batch 1.3 on 13 Oct) | Done, on `main`. The note and the AI build log wait for Eshan's voice edit |
-| 90-second video, final QA, submission | Not done. See the roadmap, "Where Phase 1 stands" |
-| Investigation agent and three-way eval | Cut from the competition build (no model in the prototype, decision T1). The model is the production design |
-| R6 real Razorpay test-mode rails | Not started. The brief does not require them |
+**Kaksha, a small business.** Five issues, each a different cause and owner:
 
-Contract changes are logged in `docs/CONTRACT_CHANGES.md` (currently v0.12; v3 batches 1.1 to 1.4 made none). The plan for every release is in `docs/BUILD_PLAN.md`.
+| Issue | What happened | Whose side |
+|---|---|---|
+| `INC-1` | A deploy broke the webhook. 85 customers paid and got no access; 17 complained and 68 never did. | Merchant's code |
+| `INC-2` | 15 customers were charged twice after an Android release. Refunds go one customer at a time, to the original method, under a daily limit, with no undo. | Merchant's code |
+| `INC-3` | Card renewals failed inside Razorpay's gateway while UPI AutoPay was fine. Resolve says it is Razorpay's, how sure it is and what it cannot see, keeps access on for 3 days, and drafts an evidence pack that goes (simulated) only on approval. | Razorpay |
+| `INC-4` | The pay page returned 404 after a release, so no payment existed for Razorpay to see. Resolve infers it from orders, a pay-page check and complaints, and says it is inferred. | Merchant's code |
+| `INC-5` | Checkout would not open after the Razorpay key changed. | Merchant's setup |
+
+Around the issues: a dashboard (date range, four cards, a chart, open issues ranked by money at stake, an Ask Ray bar), Unpaid renewals (customers whose UPI renewal failed on their side and who still have access past the merchant's own rule), Alert tuning (what the product changed about its own alerts this week and why), a pre-release check, a "build with AI" prompt for wiring the webhook, and demos of a customer talking to the agent on WhatsApp, email, a help button, Instagram and public posts.
+
+**Flipkart, a big brand.** Seven issues, from different places:
+
+| Issue | What happened | Whose side |
+|---|---|---|
+| `FK-1` | App release 8.2 showed "Payment failed" for UPI payments Razorpay had captured. 1,240 customers; 410 paid twice and 830 had no order. The root cause reached Slack 6 minutes after the alert; three approvals. | Brand's code |
+| `FK-2` | Razorpay delayed the brand's webhooks for 75 minutes. Closed, fix free. | Razorpay |
+| `FK-3` | Double charges on iOS 6.4. Refunded. Closed. | Brand's code |
+| `FK-4` | HDFC Bank debited 412 customers and never confirmed, so their orders sat on hold. | The bank |
+| `FK-5` | A slow webhook made two orders for 318 payments. | Brand's code |
+| `FK-6` | A blank card pay screen on iOS app 8.3. This happens before payment, so every number says "About". | Brand's code |
+| `FK-7` | 640 coupon orders were charged the full price. | Brand's code |
+
+The brand account also has its own Alerts (what each alert tool sent and what became of it), Integration, Connectors, Settings and Audit trail pages. Each issue page shows where the problem showed up: the customer's phone, the alert as Sentry sent it, and the Slack thread.
 
 ## What is real and what is simulated
 
-No model is used anywhere in the prototype, on purpose. Triage, extraction, detection and attribution are rules and SQL, and every number on screen comes from SQL or Python. In production a model reads the things rules cannot (messy complaint text, free-text server errors, causes nobody listed) behind the same interfaces, and deterministic code still moves money and access. The prototype shows where it plugs in and does not claim to measure it.
+**No AI model runs in the prototype, on purpose.** Triage, reading complaints, detection and attribution are rules and SQL. Every number on screen comes from SQL or Python and never from a model. In production a model would read what rules cannot (messy complaint text, free-text server errors, causes nobody listed) behind the same interfaces, while ordinary code still moves money and access. The prototype shows where the model plugs in and does not claim to measure it.
 
-Simulated: all Razorpay data, all channels (WhatsApp, email, help button, Instagram, Messenger, public posts), every customer conversation, screenshots (a script supplies the text a reader would return), the merchant's own system, the customers' behaviour after a recovery link, and the six-week learning replay (invented weeks, a scripted founder, invented reply and edit rates). The synthetic world is clean and the generator and detector share assumptions, so near-perfect eval scores show the logic works, not how often it would be wrong on real traffic. The caveats are at the top of `eval/report.md` and in `docs/HANDOFF.md`.
+The one place the repo measures why a model is needed is the "Why an AI agent" section on the landing page. On 41 made-up messy complaints (Hinglish, typos, forwarded text, two problems in one message) the rules read the main issue right 85% of the time, and caught both problems in a two-problem message 0 of 5 times. That set is small and invented, and no model has been run on it.
 
-Proposed Razorpay capabilities that do not exist today are listed in `backend/app/config.py` (`PROPOSED`) and in PRD section 15.
+**Simulated:** all Razorpay data, every channel (WhatsApp, email, help button, Instagram, Messenger, public posts), every customer conversation, the merchant's own system, customer behaviour after a recovery link, the big brand's alert door and Slack, and the six-week learning replay.
 
-## Known limits of the prototype
+**Real:** the detection and attribution engine, the fix-and-verify logic, the safety rules below, and one observation of Razorpay's actual webhook behaviour from a test payment.
 
-These are choices for a synthetic-data prototype, found by an independent code review on 10 Oct 2026. None would be acceptable in production.
+**Read the scores with care.** The synthetic world is clean, and the generator and the detector share assumptions, so near-perfect scores show the logic works. They do not show how often it would be wrong on real traffic.
 
-- **No sign-in.** The approver is a name sent with the request. The API only accepts `merchant:<name>` (a name, never empty) or the autonomy setting acting for the founder. Production uses Razorpay's own dashboard session.
-- **The merchant stand-in lives in the same app** (`/merchant-mock`), and a customer's context (such as a payment id) on `/api/inbound` is taken as given. Production signs it.
-- **The webhook receiver on Supabase records any POST** to it. It exists to observe what Razorpay really sends.
-- **Retention keeps** the redacted complaint text, each sent message's body (first name, amount, bank reference) and a short hash of the customer's handle. The conversation transcript and the real identifiers behind the tokens are removed.
-- **At the autopilot setting**, an incident message goes to everyone in the plan (up to 100) without a pause after the first five. That is what the autonomy matrix in the PRD says, and the default is "Suggest".
-- **The refund limit** is per calendar day, not rolling.
-- **Typed founder replies** are checked for secrets, pressure wording and amounts that are not in the customer's record, but they are the founder's own words and are not otherwise limited.
-- **The model is not here.** Messages the rules cannot read (Devanagari, heavy slang, an unlisted server error) are handled as "not a payment" or handed to the founder. That gap is the production model's job and is not measured in the prototype.
+## What was checked (13 October 2026)
 
+| Check | Result |
+|---|---|
+| Eval against hidden ground truth (`make eval`) | 147 checks pass, 41 are reported only, 0 fail |
+| Backend tests (`make test`) | 627 collected |
+| Browser tests (Playwright, `make e2e`) | 260 test cases, at phone, tablet and desktop widths |
+| Lint and type check (`make lint`, `tsc`) | pass, with one unused-variable warning in a test file |
+| History on `main` | 164 commits, 46 merged pull requests, about 32,500 lines of Python and TypeScript (tests included) |
 
-## Rules that hold everywhere
+CI runs the whole suite on every pull request. Screens were reviewed against Razorpay's own design rules (`web/DESIGN.md`) by an independent reviewer agent before merge. The review notes, including what was not checked (dark mode, screen readers), are in `docs/BUILD_LOG.md`.
+
+## Run it yourself
+
+You need Python 3.12 with [uv](https://docs.astral.sh/uv/), and Node 22 (what CI uses).
+
+```
+make setup        # python deps, web deps, git hooks
+make run-web      # http://localhost:5173
+```
+
+That plays the guided demo from a recorded snapshot of the real engine. It needs no server, and a page reload starts it over. To run the engine live, start `make run-api` (port 8000) and open the web app with `VITE_MODE=live`.
+
+Other commands:
+
+```
+make synth        # create the synthetic world (data/world.db) and its hidden ground truth (data/truth.db), seed 20261006
+make pipeline     # run detection on the world and save the incidents
+make snapshot     # eval, then write web/public/snapshot/ from the real engine (the hosted site has no Python, so commit the result)
+make test         # backend tests, web typecheck and build, secret scan
+make e2e          # Playwright browser tests (uses your installed Chrome)
+make eval         # compare the pipeline with hidden ground truth; fails on a missed gate
+make contracts    # regenerate openapi.json, the snapshot manifest and web types after a contract change
+make lint         # ruff and oxlint
+```
+
+## Where things are
+
+| Folder | What is in it |
+|---|---|
+| `backend/` | The engine (FastAPI): detection, attribution, conversation, fixing, verification, learning, the safety rules |
+| `web/` | The dashboard (React, Vite, Razorpay's Blade design system). `web/DESIGN.md` is the design guide, `web/CLAUDE.md` the build rules |
+| `synth/` | The made-up world: merchants, customers, payments, and the incidents planted in it with known answers |
+| `eval/` | The scored checks against that hidden truth, and the 41 messy complaints |
+| `contracts/` | The frozen API and data contracts (changes are logged in `docs/CONTRACT_CHANGES.md`, currently v0.12) |
+| `merchant_mock/`, `scripts/` | A stand-in for the merchant's own system, and the snapshot and contract scripts |
+| `docs/` | Product, plan, build record. See below |
+
+## Reading the docs
+
+| If you want to know | Read |
+|---|---|
+| What the product is and why | `docs/PRD_V3.md` (the product as it ended up), then `docs/PRD.md` where v3 is silent |
+| The one-page pitch, the answers to the brief, where every figure comes from | `docs/SUBMISSION.md` |
+| How AI was used to build it, and where the human made the calls | `docs/AI_BUILD_LOG.md` |
+| What was built, in what order, what broke and how it was found | `docs/BUILD_LOG.md` |
+| The build order and its checks | `docs/ROADMAP_V3.md`, `docs/BUILD_PLAN.md` |
+| How the engine and data are specified | `docs/SPEC.md`, `docs/V1_SPEC.md` |
+| The business case, with its arithmetic | `docs/BUSINESS_CASE.md` (regenerated by `docs/business_model.py`) |
+| Where the build ended and what a pilot would need | `docs/HANDOFF.md` |
+| Every eval check and its caveats | `eval/report.md` (made by `make eval`) |
+
+## Rules the product keeps
 
 - Numbers come from SQL or Python, never from a model.
 - Nothing moves money or sends bulk messages without the approval the autonomy setting requires. Recovery links always need the founder.
-- The assistant says it is an AI, never asks a customer for credentials, and never discusses a payment in public.
-- Contracts (`contracts/`, `backend/app/schemas.py`, template ids and slots, `synth/config.yaml`) change only through `make contracts` and an entry in `docs/CONTRACT_CHANGES.md`.
-- No secrets in the repo. Razorpay keys are `rzp_test_` only, in `.env`.
+- Refunds go to the original method, one customer at a time, under a daily limit, with no undo.
+- The assistant says it is an AI, never asks a customer for a card number, OTP or password, and never discusses a payment in public.
+- Outgoing messages never use false urgency.
+- An issue closes only after 24 healthy hours.
+
+## Known limits of the prototype
+
+These are choices for a made-up-data prototype. None would be acceptable in production.
+
+- **No real sign-in.** The account picker is a demo switch, and the approver is a name sent with the request. Production would use Razorpay's own dashboard session.
+- **The merchant's system is a stand-in in the same app** (`/merchant-mock`), and a customer's context on `/api/inbound` is taken as given. Production would sign it.
+- **The webhook receiver on Supabase records any POST** sent to it. It exists to observe what Razorpay really sends.
+- **At the autopilot setting**, an incident message goes to everyone in the plan (up to 100) after the first five without a pause. The default is "Suggest".
+- **The refund limit is per calendar day**, not rolling.
+- **Retention keeps** the redacted complaint text, each message body, and a short hash of the customer's handle. Transcripts and real identifiers are removed.
+- **The model is not here.** Messages the rules cannot read (Devanagari, heavy slang, an unlisted server error) are treated as "not a payment" or handed to the founder. That gap is the production model's job and is not measured.
+- **The big brand's alert door is simulated.** Taking alerts straight from Sentry, Datadog or PagerDuty was the next build and was not made. Its Integration page shows a placeholder address on a made-up host.
+- **Customer names are masked**, and Resolve proposes some Razorpay capabilities that do not exist today. They are listed in `backend/app/config.py` (`PROPOSED`) and in PRD section 15.
+
+## Credits
+
+Built with Claude (Claude Code) for all code, tests and docs, with the product decisions, scope and evidence set by Eshan Jain. UI is built on Razorpay's open-source [Blade](https://github.com/razorpay/blade) design system (MIT). Razorpay, RazorSense and Flipkart are trademarks of their owners; they appear here as text to describe the scenario and no logo is used except Razorpay's in the demo header. No secrets are in the repo; Razorpay keys are `rzp_test_` only and live in `.env`.

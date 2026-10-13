@@ -24,7 +24,7 @@ const said = (t: Thread) => t.messages.filter((m) => m.direction === 'outbound' 
 const held = (t: Thread) => said(t).find((m) => m.policy.status === 'draft')
 const told = (t: Thread) => said(t).find((m) => m.policy.class === 'status_reply' && m.policy.status === 'sent')
 const slots = (m?: Msg) => (m?.policy.slots ?? {}) as Record<string, string | undefined>
-// Where the main story is: 0 nobody has written, 1 Blindspot asked for the reference, 2 a reply waits for you, 4 the customer has it (every step done).
+// Where the main story is: 0 nobody has written, 1 Resolve asked for the reference, 2 a reply waits for you, 4 the customer has it (every step done).
 const stageOf = (t?: Thread) => (!t ? 0 : held(t) ? 2 : told(t) ? 4 : 1)
 
 // What just happened and why, in one line, read from the conversation: its state, what it is about, and the amount and plan in the reply.
@@ -33,12 +33,12 @@ function outcome(t: Thread): { title: string; line: string } {
   const sent = told(t)
   const s = slots(draft ?? sent)
   const amount = s.amount ? `₹${Number(s.amount).toLocaleString('en-IN')}` : undefined
-  if (t.state === 'pass_back') return { title: 'Not about a payment, so passed back', line: "Blindspot only takes payment problems. It told the customer Kaksha's team will answer, and kept nothing." }
+  if (t.state === 'pass_back') return { title: 'Not about a payment, so passed back', line: "Resolve only takes payment problems. It told the customer Kaksha's team will answer, and kept nothing." }
   if (t.state === 'handoff' || t.state === 'human') {
     const why = t.founder_brief?.split('\n')[0].replace(/^Why this needs you:\s*/, '') ?? ''
     return {
       title: 'Sent to you. Nothing was refunded.',
-      line: `${/instructions/i.test(why) ? 'The message tried to give Blindspot orders, so it was not followed.' : why} The customer was told Kaksha's team has it.`,
+      line: `${/instructions/i.test(why) ? 'The message tried to give Resolve orders, so it was not followed.' : why} The customer was told Kaksha's team has it.`,
     }
   }
   if (t.claim === 'page_error') {
@@ -48,7 +48,7 @@ function outcome(t: Thread): { title: string; line: string } {
   if (draft && t.claim === 'debited_no_access') return { title: amount ? `Found the ${amount} payment` : 'Found the payment', line: `Your records show ${s.plan ?? 'their purchase'} is not on, so the reply is waiting for your approval.` }
   if (draft) return { title: 'A reply is waiting for you', line: 'Read it and approve it, or write your own.' }
   if (sent) return { title: 'Reply sent', line: `The customer knows ${amount ? `the ${amount}` : 'the payment'} reached Kaksha, it is being fixed, and not to pay again.` }
-  return { title: 'Asked for the UPI ref', line: 'The message had no payment reference. Blindspot said it is an AI and asked for the UPI ref, never an OTP or PIN.' }
+  return { title: 'Asked for the UPI ref', line: 'The message had no payment reference. Resolve said it is an AI and asked for the UPI ref, never an OTP or PIN.' }
 }
 
 // S-14: the customer's WhatsApp on the left, the founder's view of the same conversation on the right, with the main story in four steps above both.
@@ -73,7 +73,7 @@ export default function ChatDemo() {
 
   const steps = [
     { title: 'The customer writes', note: 'On WhatsApp, about a payment' },
-    { title: 'Blindspot checks', note: "Finds the payment, then Kaksha's records" },
+    { title: 'Resolve checks', note: "Finds the payment, then Kaksha's records" },
     { title: 'You approve the reply', note: level === 'suggest' ? 'It waits for you on Review first' : `Your approval level: ${LEVEL[level] ?? level}` },
     { title: 'The customer is told', note: 'On WhatsApp, in their language' },
   ]
@@ -86,11 +86,11 @@ export default function ChatDemo() {
       if (id === MAIN) setMainTid(thread)
     }
     const waiting = t ? held(t) !== undefined : false  // a reply on screen waits for approval: that is the blue button then
-    // The main story's next message: the opening, then the reference Blindspot asks for. While a reply waits, there is nothing for the customer to send.
+    // The main story's next message: the opening, then the reference Resolve asks for. While a reply waits, there is nothing for the customer to send.
     const next = at === 1 && story?.next ? story.next : at === 0 ? story?.text : undefined
-    const say = next ? (at === 0 ? 'Start here. Send this as the customer:' : aside ? 'The main story waits for the UPI ref. Send it as the customer:' : 'Blindspot asked for the UPI ref. Send it as the customer:')
+    const say = next ? (at === 0 ? 'Start here. Send this as the customer:' : aside ? 'The main story waits for the UPI ref. Send it as the customer:' : 'Resolve asked for the UPI ref. Send it as the customer:')
       : at === 4 ? (aside ? 'The main story is done. Play it again:' : 'Done. The customer has the reply.')
-      : aside ? 'The main story is paused. Start it again from the top:' : 'Your turn: approve the reply in your Blindspot view.'
+      : aside ? 'The main story is paused. Start it again from the top:' : 'Your turn: approve the reply in your Resolve view.'
     const above = story && (
       <Box display="flex" flexDirection="column" gap="spacing.3" testID="next-message">
         <Text size="small" weight="semibold">{say}</Text>
@@ -101,7 +101,7 @@ export default function ChatDemo() {
           </Box>
         ) : (at === 4 || aside) && <Box><Button variant="secondary" isDisabled={busy} onClick={() => go(MAIN, story.text)}>Start the main story again</Button></Box>}
         {/* Stacked (below xl), your view sits under the phone and the cases, out of sight: one tap takes you to it. */}
-        {t && <Box display={{ base: 'block', xl: 'none' }}><Button variant="tertiary" onClick={() => founder.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>See your Blindspot view</Button></Box>}
+        {t && <Box display={{ base: 'block', xl: 'none' }}><Button variant="tertiary" onClick={() => founder.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>See your Resolve view</Button></Box>}
       </Box>
     )
     const below = (
@@ -132,7 +132,7 @@ export default function ChatDemo() {
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7">
       <Crumbs items={[{ label: 'Customer complaints', to: '/threads' }, { label: 'Try it: WhatsApp', to: '/chat-demo' }]} />
-      <PageHeader title="Try it: WhatsApp" description="Send a customer's messages on WhatsApp, and see what you see in Blindspot as Kaksha's founder." />
+      <PageHeader title="Try it: WhatsApp" description="Send a customer's messages on WhatsApp, and see what you see in Resolve as Kaksha's founder." />
       <Panel title="The main story" subtitle={!aside ? 'A customer paid, got nothing, and writes to Kaksha. Four steps.'
         : at === 4 ? 'Done. You are trying another case now.' : at === 0 ? 'Not started. You are trying another case.' : 'Paused while you try another case.'}>
         <ChatSteps steps={steps} at={at} />
@@ -143,7 +143,7 @@ export default function ChatDemo() {
           <CustomerChat bare channel="whatsapp_payments" who="+919800012345" title="Kaksha payment help" onThread={setTid} controls={controls} />
         </Panel>
         <Box minWidth="0px" ref={founder}>
-          <Panel title="Your Blindspot view" subtitle="What you see as Kaksha's founder" testID="founder-side">
+          <Panel title="Your Resolve view" subtitle="What you see as Kaksha's founder" testID="founder-side">
             <Box display="flex" gap="spacing.3" alignItems="flex-start" testID="chat-outcome">
               <Box flexShrink={0} display="flex"><RayIcon size="large" color="surface.icon.onSea.onSubtle" /></Box>
               <Box display="flex" flexDirection="column" gap="spacing.1" minWidth="spacing.0">
@@ -159,7 +159,7 @@ export default function ChatDemo() {
               // Holds the founder's side from the start: what will appear here, so the page is never half empty.
               <Box display="flex" flexDirection="column" gap="spacing.5" testID="view-waiting">
                 <Box display="flex" flexDirection="column" gap="spacing.3">
-                  {['The payment Blindspot finds for this customer', "What Kaksha's records say they got", 'The reply, held until you approve it'].map((x, i) => (
+                  {['The payment Resolve finds for this customer', "What Kaksha's records say they got", 'The reply, held until you approve it'].map((x, i) => (
                     <Box key={x} display="flex" gap="spacing.3" alignItems="center">
                       <Box width="spacing.6" height="spacing.6" flexShrink={0} borderRadius="max" display="flex" alignItems="center" justifyContent="center" borderWidth="thin" borderColor="surface.border.gray.normal">
                         <Text size="xsmall" weight="semibold" color="surface.text.gray.muted">{i + 1}</Text>

@@ -12,7 +12,7 @@ from datetime import datetime
 from . import merchant_mock
 from .schemas import ReleaseCheck, ReleaseStep
 
-CI_CALL = "curl -fsS \"$BLINDSPOT_API/api/guard/release-check\" | jq -e '.safe_to_release'"
+CI_CALL = "curl -fsS \"$RESOLVE_API/api/guard/release-check\" | jq -e '.safe_to_release'"
 CANNOT_SEE = [
     "Your code. I only see how your endpoint and your pay page answer.",
     "Every event type. The test is one payment.captured event with a marker id, so a handler that breaks on refunds or subscriptions would pass.",

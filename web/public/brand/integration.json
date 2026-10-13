@@ -5,11 +5,11 @@
   {
    "id": "door",
    "title": "Alert door",
-   "subtitle": "How your alert tools send Blindspot what they see",
+   "subtitle": "How your alert tools send Resolve what they see",
    "rows": [
     {
      "label": "Your alert address",
-     "code": "https://alerts.blindspot.example/acc_3Fq9Tz7Wd",
+     "code": "https://alerts.resolve.example/acc_3Fq9Tz7Wd",
      "note": "A placeholder: the real address is made when the alert door is built. It will be one address per account, and Sentry, Datadog and PagerDuty send to it through an alert rule, with no change to your app."
     },
     {
@@ -73,7 +73,7 @@
     {
      "label": "Channel",
      "code": "#razorpay-payments",
-     "note": "Blindspot posts only here, never in a channel you did not pick."
+     "note": "Resolve posts only here, never in a channel you did not pick."
     },
     {
      "label": "Who is in it",

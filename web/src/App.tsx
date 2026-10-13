@@ -43,7 +43,7 @@ function ToBrandIssue() {
   return <Navigate to="/incidents/FK-1" replace />
 }
 
-// The shell follows the Razorpay dashboard (components/Shell.tsx, web/DESIGN.md section 14): Razorpay's own top bar with Blindspot as one more product tab, and a side nav where everything Razorpay ships is shown inert and Blindspot is added.
+// The shell follows the Razorpay dashboard (components/Shell.tsx, web/DESIGN.md section 14): Razorpay's own top bar with Resolve as one more product tab, and a side nav where everything Razorpay ships is shown inert and Resolve is added.
 export default function App() {
   // Ray's chat page is full width with its own rail, like Razorpay's Ray page: no page container.
   const { pathname } = useLocation()

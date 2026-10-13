@@ -50,7 +50,7 @@ export default function How() {
   const effort = typical && cost && reply ? { typical, cost, reply, longest: longest ? `${minutes(longest.value ?? 0)} for the refunds` : 'n/a', longestNote: 'each one approved one customer at a time on purpose' } : undefined
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <PageHeader guide="how" title="Accuracy" description={`Every number on these pages is tested against a made-up merchant whose real problems are known and hidden from Blindspot. That merchant is tidy, so near-perfect scores are expected here. Real traffic is messier.`} />
+      <PageHeader guide="how" title="Accuracy" description={`Every number on these pages is tested against a made-up merchant whose real problems are known and hidden from Resolve. That merchant is tidy, so near-perfect scores are expected here. Real traffic is messier.`} />
       {/* The answer first: the score, then four checks in plain words, then every check for anyone who wants them. */}
       <Card>
         <CardBody>
@@ -60,7 +60,7 @@ export default function How() {
             </Box>
             <Box display="flex" flexDirection="column" gap="spacing.1">
               <Heading as="h2" size="xlarge">{`${passed} of ${gates.length} scored checks pass`}</Heading>
-              <Text color="surface.text.gray.muted">{`Each one compares Blindspot's answer with the known answers for the made-up merchant. ${reported} more are shown but not counted.`}</Text>
+              <Text color="surface.text.gray.muted">{`Each one compares Resolve's answer with the known answers for the made-up merchant. ${reported} more are shown but not counted.`}</Text>
             </Box>
           </Box>
         </CardBody>
@@ -74,12 +74,12 @@ export default function How() {
         })}
       </Box>
       {/* "Where rules fail" moved to the landing page (v3 batch 1.5, T3); its scores stay in the table below. */}
-      {messy && <Text color="surface.text.gray.muted" testID="rules-moved">{`Today’s rules misread ${messy.wrong} of ${messy.total} messy complaints. `}<Link href="/how-it-works#why-ai" onClick={(e) => { e.preventDefault(); nav('/how-it-works#why-ai') }}>Why Blindspot needs an AI agent</Link></Text>}
+      {messy && <Text color="surface.text.gray.muted" testID="rules-moved">{`Today’s rules misread ${messy.wrong} of ${messy.total} messy complaints. `}<Link href="/how-it-works#why-ai" onClick={(e) => { e.preventDefault(); nav('/how-it-works#why-ai') }}>Why Resolve needs an AI agent</Link></Text>}
       {effort && (
         <Box display="flex" flexDirection="column" gap="spacing.4">
           <Box display="flex" flexDirection="column">
             <Heading as="h2" size="medium">What it asks of you, and what it costs</Heading>
-            <Text size="small" color="surface.text.gray.muted">Counted from Blindspot's own plans and runs. The time per approval is an estimate, not timed.</Text>
+            <Text size="small" color="surface.text.gray.muted">Counted from Resolve's own plans and runs. The time per approval is an estimate, not timed.</Text>
           </Box>
           <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
             <Stat label="Your time, typical payment issue" value={minutes(effort.typical.value ?? 0)} hint={`estimated at ${perApproval} per approval, not timed. Target ${minutes(num(effort.typical.target))} or less. Longest: ${effort.longest}, ${effort.longestNote}`} icon={ClockIcon} tone={effort.typical.status === 'pass' ? 'positive' : 'negative'} />

@@ -12,7 +12,7 @@
    "at": "2026-10-02T09:44:00+05:30",
    "kind": "approval",
    "summary": "Approval asked in #razorpay-payments: Message about 640 customers",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-6",
    "id": "EV-51"
   },
@@ -20,7 +20,7 @@
    "at": "2026-10-02T09:44:00+05:30",
    "kind": "approval",
    "summary": "Approval asked in #razorpay-payments: Send your team about 640 lost carts",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-6",
    "id": "EV-50"
   },
@@ -28,7 +28,7 @@
    "at": "2026-10-02T09:44:00+05:30",
    "kind": "approval",
    "summary": "Approval asked in #razorpay-payments: Send your app team the cause",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-6",
    "id": "EV-49"
   },
@@ -36,7 +36,7 @@
    "at": "2026-10-02T09:44:00+05:30",
    "kind": "root_cause",
    "summary": "Root cause: the card pay screen is blank on iOS app 8.3, posted in #razorpay-payments",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-6",
    "id": "EV-48"
   },
@@ -76,7 +76,7 @@
    "at": "2026-10-01T19:58:00+05:30",
    "kind": "approval",
    "summary": "Approval asked in #razorpay-payments: Message 830 customers",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-1",
    "id": "EV-43"
   },
@@ -84,7 +84,7 @@
    "at": "2026-10-01T19:58:00+05:30",
    "kind": "approval",
    "summary": "Approval asked in #razorpay-payments: Send your order team 830 paid orders",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-1",
    "id": "EV-42"
   },
@@ -92,7 +92,7 @@
    "at": "2026-10-01T19:58:00+05:30",
    "kind": "approval",
    "summary": "Approval asked in #razorpay-payments: Refund 410 duplicate payments",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-1",
    "id": "EV-41"
   },
@@ -100,7 +100,7 @@
    "at": "2026-10-01T19:58:00+05:30",
    "kind": "root_cause",
    "summary": "Root cause: Android app 8.2 shows “Payment failed” after successful UPI payments, posted in #razorpay-payments",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-1",
    "id": "EV-40"
   },
@@ -132,7 +132,7 @@
    "at": "2026-10-01T18:29:00+05:30",
    "kind": "approval",
    "summary": "Approval asked in #razorpay-payments: Message 318 customers",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-5",
    "id": "EV-36"
   },
@@ -140,7 +140,7 @@
    "at": "2026-10-01T18:29:00+05:30",
    "kind": "approval",
    "summary": "Approval asked in #razorpay-payments: Send your order team 318 duplicate orders",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-5",
    "id": "EV-35"
   },
@@ -148,7 +148,7 @@
    "at": "2026-10-01T18:29:00+05:30",
    "kind": "root_cause",
    "summary": "Root cause: your server is making two orders for one payment, posted in #razorpay-payments",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-5",
    "id": "EV-34"
   },
@@ -180,7 +180,7 @@
    "at": "2026-09-30T20:54:00+05:30",
    "kind": "approval",
    "summary": "Approval asked in #razorpay-payments: Message 640 customers",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-7",
    "id": "EV-30"
   },
@@ -188,7 +188,7 @@
    "at": "2026-09-30T20:54:00+05:30",
    "kind": "approval",
    "summary": "Approval asked in #razorpay-payments: Send your app team the mismatch list",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-7",
    "id": "EV-29"
   },
@@ -196,7 +196,7 @@
    "at": "2026-09-30T20:54:00+05:30",
    "kind": "approval",
    "summary": "Approval asked in #razorpay-payments: Refund the difference to 640 customers",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-7",
    "id": "EV-28"
   },
@@ -204,7 +204,7 @@
    "at": "2026-09-30T20:54:00+05:30",
    "kind": "root_cause",
    "summary": "Root cause: coupon orders are being charged the full price, posted in #razorpay-payments",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-7",
    "id": "EV-27"
   },
@@ -220,7 +220,7 @@
    "at": "2026-09-29T21:39:00+05:30",
    "kind": "approval",
    "summary": "Approval asked in #razorpay-payments: Message 412 customers",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-4",
    "id": "EV-25"
   },
@@ -228,7 +228,7 @@
    "at": "2026-09-29T21:39:00+05:30",
    "kind": "approval",
    "summary": "Approval asked in #razorpay-payments: Refund 109 second payments",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-4",
    "id": "EV-24"
   },
@@ -236,7 +236,7 @@
    "at": "2026-09-29T21:39:00+05:30",
    "kind": "approval",
    "summary": "Approval asked in #razorpay-payments: Ask HDFC Bank to confirm",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-4",
    "id": "EV-23"
   },
@@ -244,7 +244,7 @@
    "at": "2026-09-29T21:39:00+05:30",
    "kind": "root_cause",
    "summary": "Root cause: HDFC Bank has not confirmed payments it debited, posted in #razorpay-payments",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-4",
    "id": "EV-22"
   },
@@ -268,7 +268,7 @@
    "at": "2026-09-28T14:41:00+05:30",
    "kind": "action",
    "summary": "Tell 37 customers who wrote in: sent",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-2",
    "id": "EV-19"
   },
@@ -300,7 +300,7 @@
    "at": "2026-09-28T13:25:00+05:30",
    "kind": "action",
    "summary": "Evidence pack to Razorpay: Payment IDs, the timeline and the cause, so nobody asks you for them again.",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-2",
    "id": "EV-15"
   },
@@ -308,7 +308,7 @@
    "at": "2026-09-28T13:24:00+05:30",
    "kind": "root_cause",
    "summary": "Root cause: Razorpay is sending your webhooks late, posted in #razorpay-payments",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-2",
    "id": "EV-14"
   },
@@ -340,7 +340,7 @@
    "at": "2026-09-25T11:11:00+05:30",
    "kind": "action",
    "summary": "Tell 38 customers: sent",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-3",
    "id": "EV-10"
   },
@@ -356,7 +356,7 @@
    "at": "2026-09-25T11:05:00+05:30",
    "kind": "action",
    "summary": "Refund 38 second charges: ₹48,062 back to the original payment method, one customer at a time.",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-3",
    "id": "EV-8"
   },
@@ -388,7 +388,7 @@
    "at": "2026-09-24T21:31:00+05:30",
    "kind": "root_cause",
    "summary": "Root cause: iOS app 6.4 is charging some customers twice, posted in #razorpay-payments",
-   "actor": "Blindspot",
+   "actor": "Resolve",
    "ref": "FK-3",
    "id": "EV-4"
   },

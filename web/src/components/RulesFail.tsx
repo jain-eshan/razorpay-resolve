@@ -36,7 +36,7 @@ function Lines({ n, size, weight, muted, loading, children }: { n: number; size:
   )
 }
 
-// "Why an AI agent" on How Blindspot works (Track 2's question: why does AI beat a rule). The point first: how often today's rules misread a messy complaint and how many
+// "Why an AI agent" on How Resolve works (Track 2's question: why does AI beat a rule). The point first: how often today's rules misread a messy complaint and how many
 // more they read only in part, then three real examples. Every figure and every quote is read from the eval report (`eval/messy.py`, `eval/messy_complaints.json`); only
 // the wording is here. Accuracy keeps the full scores. Without `data` it draws its loading frame, the same size.
 export function RulesFail({ data }: { data?: RulesData }) {

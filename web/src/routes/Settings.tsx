@@ -56,11 +56,11 @@ export default function SettingsPage() {
 
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7" testID="settings">
-      <PageHeader guide="autonomy" title="Settings" description="How much Blindspot does before asking you, and the limits it never goes past." />
+      <PageHeader guide="autonomy" title="Settings" description="How much Resolve does before asking you, and the limits it never goes past." />
       {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Demo: view only" description="Settings cannot be changed in this demo." />}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="Not saved" description={error} />}
 
-      <Panel title="Approvals" subtitle="How much Blindspot may do before it asks you">
+      <Panel title="Approvals" subtitle="How much Resolve may do before it asks you">
         <SegmentedControl label="Level" name="autonomy" value={s.autonomy ?? 'suggest'} onChange={({ value }) => isLive && setS({ ...s, autonomy: value as Settings['autonomy'] })}>
           {LEVELS.map(([v, label]) => <SegmentedControlItem key={v} value={v}>{label}</SegmentedControlItem>)}
         </SegmentedControl>
@@ -83,7 +83,7 @@ export default function SettingsPage() {
         )}
       </Panel>
 
-      <Panel title="What Blindspot is allowed to do">
+      <Panel title="What Resolve is allowed to do">
         {LADDER.map(([lv, name, what, state]) => (
           <Box key={lv} paddingBottom="spacing.4" borderBottomWidth="thin" borderBottomColor="surface.border.gray.subtle">
               <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">

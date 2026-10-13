@@ -107,7 +107,7 @@ export function IssuesChart({ issues: all, range: pageRange }: { issues: Schemas
             <Skeleton width="100%" height="100%" borderRadius="medium" />
           ) : count === 0 ? (
             <Box height="100%" display="flex" alignItems="center" justifyContent="center">
-              <EmptyState size="small" asset={<CheckCircleIcon size="2xlarge" color="feedback.icon.positive.intense" />} title="No payment issues" description={`None started ${rangeLabel}. Blindspot checks every 15 minutes.`} />
+              <EmptyState size="small" asset={<CheckCircleIcon size="2xlarge" color="feedback.icon.positive.intense" />} title="No payment issues" description={`None started ${rangeLabel}. Resolve checks every 15 minutes.`} />
             </Box>
           ) : (
             <Box height="100%" display="flex" flexDirection="column" gap="spacing.4">

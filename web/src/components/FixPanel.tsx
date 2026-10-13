@@ -102,7 +102,7 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="That did not go through" description={error} />}
 
       <Turn n={1} analyzing={busy === 'test'} title="Make sure your app can give access back" badge={tested ? ['Reachable', 'positive'] : grant ? ['Skipped, plan already exists', 'neutral'] : undefined}>
-        <Text size="small">Before anything changes, check that your app answers. Blindspot can only give access through your app. It can never take access away.</Text>
+        <Text size="small">Before anything changes, check that your app answers. Resolve can only give access through your app. It can never take access away.</Text>
         <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
           <Button variant="secondary" isLoading={busy === 'test'} isDisabled={!!busy} onClick={() => run('test', async () => { await refreshHook(); setTested(true) })}>Run the check</Button>
           {tested && hook && <Text size="small">Your app answered. Your webhook {hook.webhook_mode === 'ok' ? 'is answering normally' : `is returning ${hook.webhook_mode}`}.</Text>}

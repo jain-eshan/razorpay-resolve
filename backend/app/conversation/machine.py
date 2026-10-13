@@ -372,7 +372,7 @@ def _public_turn(db: sqlite3.Connection, tid: str, red: Redacted, x: Extraction,
         return
     if label == "real_public_post":
         db.execute("UPDATE threads SET state = 'pass_back', closed_at = ?, handover_state = 'observed_only' WHERE id = ?", (now.isoformat(), tid))
-        handover.note(db, tid, "A real post from the public record. Blindspot only watches it and never replies to a real person's post in this prototype.", now, "observed")
+        handover.note(db, tid, "A real post from the public record. Resolve only watches it and never replies to a real person's post in this prototype.", now, "observed")
         return
     link = f"https://rzp.io/h/{hashlib.sha256(tid.encode()).hexdigest()[:8]}"
     db.execute("UPDATE threads SET handover_state = 'public_invited' WHERE id = ?", (tid,))

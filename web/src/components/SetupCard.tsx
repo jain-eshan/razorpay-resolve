@@ -13,7 +13,7 @@ export function SetupCard({ done, onStart }: { done: number; onStart: () => void
           <Box display="flex" flexWrap="wrap" alignItems="center" justifyContent="space-between" gap="spacing.4">
             <Box display="flex" flexDirection="column" gap="spacing.2">
               <Box display="flex" alignItems="center" gap="spacing.4" flexWrap="wrap">
-                <Heading as="h2" size="medium">Set up Blindspot</Heading>
+                <Heading as="h2" size="medium">Set up Resolve</Heading>
                 <Badge size="medium" color="neutral">{`${done}/${SETUP_STEPS} COMPLETED`}</Badge>
               </Box>
               <Text color="surface.text.gray.muted">Three steps. Nothing changes until you approve it.</Text>

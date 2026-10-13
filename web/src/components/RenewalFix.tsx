@@ -98,7 +98,7 @@ export function RenewalFix({ inc, members, onChanged }: { inc: Schemas['Incident
       <Box display="flex" flexDirection="column" gap="spacing.2">
         <Heading as="h2" size="medium">What you can do</Heading>
         <Text size="small" color="surface.text.gray.muted">
-          The cause is Razorpay's, so Blindspot cannot fix it. It can keep these customers' access on while Razorpay looks, give Razorpay the evidence, and send each customer a renewal link once cards work again. Every step waits for your approval, at every approval level. <Link to="/settings">Settings</Link>
+          The cause is Razorpay's, so Resolve cannot fix it. It can keep these customers' access on while Razorpay looks, give Razorpay the evidence, and send each customer a renewal link once cards work again. Every step waits for your approval, at every approval level. <Link to="/settings">Settings</Link>
         </Text>
       </Box>
 

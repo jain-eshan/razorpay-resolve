@@ -66,7 +66,7 @@ def _member(db, p, ev, run_class: str, complained: bool, disabled_at, now, expor
     elif manual:
         tier, reason = "excluded", "already active (manual grant)"
     elif restored:
-        tier, reason = "excluded", "restored by Blindspot"
+        tier, reason = "excluded", "restored by Resolve"
     elif kind in ("unpaid", "access_cut"):
         tier = "exact"
     elif kind == "no_row":
@@ -99,7 +99,7 @@ def build_cohort(db: sqlite3.Connection, run: Run, disabled_at: str | None, now:
     for r in db.execute(q, (run.first_bad_at.isoformat(), (export_at - RECONCILE_DELAY).isoformat())).fetchall():
         p = dict(r)
         ent = _ent(db, p)
-        restored = ent is not None and ent["source"] == "make_good_grant"  # still part of the incident once Blindspot has restored them
+        restored = ent is not None and ent["source"] == "make_good_grant"  # still part of the incident once Resolve has restored them
         if p["id"] in seen or (mismatch(p, ent) not in ("unpaid", "no_row") and not restored):
             continue
         ev = {"id": p["eid"], "created_at": p["ecreated"]}

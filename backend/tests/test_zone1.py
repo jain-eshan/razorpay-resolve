@@ -277,7 +277,7 @@ def test_links_cannot_be_unsent_and_there_is_no_money_action(fresh):
         executor.revert(fresh, aid)
     assert "revoke" not in autonomy.ACTION_CLASS
     assert set(autonomy.MATRIX["refund"].values()) == {"per_row_web"}  # the one money action is approved a customer at a time at every level
-    with pytest.raises(executor.ActError, match="charged twice|something Blindspot can do"):
+    with pytest.raises(executor.ActError, match="charged twice|something Resolve can do"):
         executor.create(fresh, "INC-4", "refund", {})
 
 

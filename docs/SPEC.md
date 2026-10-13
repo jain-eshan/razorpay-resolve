@@ -1,5 +1,7 @@
 # Blindspot v2: Technical Specification
 
+> **Naming.** The product is called Razorpay Resolve (Resolve inside the dashboard). It was developed under the working name Blindspot, and this file keeps that name in its dated history.
+
 | | |
 |---|---|
 | Version | 2.0, 6 Oct 2026 |

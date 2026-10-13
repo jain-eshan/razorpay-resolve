@@ -1,7 +1,7 @@
 """Turn a renewal run that the monitor found into INC-3 (SPEC 11.4, v1 J5): saved incident, members, verdict, trace. Part of `make pipeline`.
 
 The incident is on Razorpay's side by elimination: nothing changed on the merchant's side, no bank outage covers the hours, one gateway
-error sits on nearly every failure across card networks, and UPI AutoPay renewals in the same hours went through. Blindspot cannot see
+error sits on nearly every failure across card networks, and UPI AutoPay renewals in the same hours went through. Resolve cannot see
 inside Razorpay, so confidence is medium and the verdict says the finding needs Razorpay's review.
 
 Nothing here touches money or access. The fix (a grace extension) and the escalation are separate actions the founder approves."""

@@ -3,7 +3,7 @@ import { WA, waTime } from '../lib/whatsapp'
 
 // A WhatsApp chat as it looks on a phone: green header with the business name and verified tick, the beige wallpaper, a date chip, the yellow
 // "business account" notice, white bubbles with a tail, a time and double ticks on what the customer sent, quick-reply buttons under a message,
-// and the input bar. Used wherever Blindspot shows a message, so the founder sees what the customer sees (web/DESIGN.md section 21).
+// and the input bar. Used wherever Resolve shows a message, so the founder sees what the customer sees (web/DESIGN.md section 21).
 export type WaMessage = { from: 'business' | 'customer'; text: ReactNode; time?: string; buttons?: string[]; read?: boolean; day?: string }
 
 const svg = (d: string, size = 22, color: string = WA.headerText) => (

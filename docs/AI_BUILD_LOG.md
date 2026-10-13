@@ -1,10 +1,10 @@
 # AI build log
 
-Blindspot, Razorpay x ISB AI PM Build Challenge, Track 2. Draft written for Eshan Jain to review and put in his own voice before submitting. The full day-by-day record is `docs/BUILD_LOG.md`.
+Resolve, Razorpay x ISB AI PM Build Challenge, Track 2. Draft written for Eshan Jain to review and put in his own voice before submitting. The full day-by-day record is `docs/BUILD_LOG.md`.
 
 ## In one paragraph
 
-I cannot code. AI wrote all of the code. I did the product work: choosing the problem, setting scope, deciding what the product may and may not do, supplying evidence, and checking results against it. I used Claude through Claude Code, one session per piece of work, each on its own branch and merged by pull request after the checks passed. By 13 October the main branch had 126 commits, 41 merged pull requests, about 30,000 lines of Python and TypeScript (tests included), 614 backend tests, 187 browser tests and 147 scored checks that pass against a synthetic world. The research and spec took 5 and 6 October. Most of the building took 6 to 10 October. On 11 and 12 October I restated the product as v3 (two ways in, one engine) and had the Overview, the issue page and the big-brand demo built. [TO CONFIRM: the session count. It was 26 on 10 October and has not been recounted.]
+I cannot code. AI wrote all of the code. I did the product work: choosing the problem, setting scope, deciding what the product may and may not do, supplying evidence, and checking results against it. I used Claude through Claude Code, one session per piece of work, each on its own branch and merged by pull request after the checks passed. By 13 October the main branch had 164 commits, 46 merged pull requests, about 32,500 lines of Python and TypeScript (tests included), 627 backend tests, 260 browser tests and 147 scored checks that pass against a synthetic world. The research and spec took 5 and 6 October. Most of the building took 6 to 10 October. On 11 and 12 October I restated the product as v3 (two ways in, one engine) and had the Overview, the issue page and the big-brand demo built. [TO CONFIRM: the session count. It was 26 on 10 October and has not been recounted.]
 
 ## Tools, what for, and what they changed
 

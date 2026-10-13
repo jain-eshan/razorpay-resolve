@@ -1,5 +1,7 @@
 # Build log
 
+> **Naming.** The product is called Razorpay Resolve (Resolve inside the dashboard). It was developed under the working name Blindspot, and this file keeps that name in its dated history.
+
 One entry per stream per day: goal, key prompts, what was rejected and why, bugs found by tests or eval, metrics, time spent, decisions.
 
 ## 6 Oct 2026, R0 (integrator)
@@ -1543,3 +1545,41 @@ Tests: `synth/tests/test_brand_extra.py` (8: groups and money add up, every acti
 Not done: a Slack, alert or store screen for each new issue (their Slack previews are in the page; the four-screen story was removed by the two-accounts work); an app or alert phone preview for them (the page shows previews only where the file has them).
 
 Design review: the independent review of the first version (a general-purpose agent following `.claude/agents/design-reviewer.md`; PASS WITH NOTES, content findings fixed) found problems that this version avoids by construction (see above). The ported version has not had its own independent review: it reuses main's issue page and adds data, a two-line page change and one sentence. Checked by me: the list and the FK-4 and FK-6 pages at 1440px. Not checked: 375 and 768px by eye (the measured layout, lane and stability tests cover them), dark mode, keyboard focus.
+
+## 13 Oct 2026, product closed: README, public-facing docs and a CI fix (integrator, docs only)
+
+Goal: Eshan closed the product ("we're not making any changes in the product now") and asked for the GitHub description and all docs a visitor would see to match what was built, in case the repo goes public.
+
+What changed:
+- `README.md` rewritten for a first-time reader: what it is, the closed status, the two demo accounts with every issue (INC-1 to INC-5, FK-1 to FK-7), what is real and simulated, measured numbers, how to run it, where the docs are, known limits. Numbers were measured in this session: `make eval` 147 pass, 41 reported, 0 fail; `uv run pytest` 627 passed; `playwright --list` 260; `make lint` passes with one unused-variable warning in `web/e2e/brand-more.spec.ts`; secret scan clean.
+- `web/README.md` was still the RazorSense starter template; replaced with a short description of this app.
+- `docs/HANDOFF.md`: a closed banner covering PRs #37 to #51. Its sections 2 to 9 (10 Oct) are left as the historical record. `docs/ROADMAP_V3.md`: status note on section 0a. `docs/AI_BUILD_LOG.md` and `docs/SUBMISSION.md`: counts refreshed (164 commits, 46 PRs, 627 and 260 tests, about 32,500 lines).
+- GitHub repository description updated.
+
+CI: main at ebad89f was red (issue #52). One of 260 tests, the INC-2 walkthrough, timed out at 60 s on a slow runner (run took 21 minutes against 14). Not a screen bug: the log shows the click had found its target. Fix in PR #53, one `test.setTimeout`, test code only. Not reproduced on CI; passes locally in 17 s.
+
+Left as it is: PR #46 (open, superseded by #47), the PRD v3 decision boxes (the Claude Doc is the source), and the SUBMISSION video script (S5), which is Eshan's.
+
+Open for Eshan before going public: `docs/RAZORPAY_TRANSCRIPTS.md` says it is third-party material for private research and must not be published, and `docs/INTERVIEWS.md` repeats that. There is also no LICENSE file.
+
+Design review: not applicable, no file under `web/src` changed.
+
+## 13 Oct 2026, rename to Razorpay Resolve (integrator, branding only)
+
+Goal: Eshan named the product Razorpay Resolve ("Resolve" inside the dashboard) and asked for it everywhere the name shows. Decisions with Eshan: name everywhere in this change, the wording audit of "resolved" vs "approved" vs "refund initiated" vs "access verified" later, and no change to the live address or the repo name, so no submitted link breaks.
+
+What changed:
+- Every visible "Blindspot" is now "Resolve" in 85 files: web app, browser tests, backend messages and errors, the data generators (`synth/`), the integration prompt, the docs a visitor reads. "Razorpay Blindspot" (the Slack poster and the alert rule on the brand account) is "Razorpay Resolve". The prompt's placeholders `BLINDSPOT_API` and `blindspot_test` became `RESOLVE_API` and `resolve_test`, because a merchant sees them.
+- `web/src/lib/brand.ts`: the name, full name, tagline and description in one file, used by the product tab, the side-menu heading and the account picker badge. Page title is "Resolve | Razorpay", with a description and link-preview text in `web/index.html` (no preview image yet).
+- The product tab badge and the account picker badge say DEMO, not BETA, so nothing suggests a launched Razorpay product.
+- Landing page: "Two merchant journeys, one recovery workflow" replaces "Two kinds of merchant, one Blindspot".
+- `make snapshot` and `python -m synth.brand_world` were rerun, so the recorded demo and the brand account's files carry the new name. A search of `web/public` finds no "blindspot".
+- The note is 547 words by the file's own count (limit 550).
+
+Kept on purpose (internal names, renaming needs a migration or a contract change): database values such as `with_blindspot` and `to_app = "blindspot"`, the Supabase tables `blindspot_webhook_*`, browser storage keys `blindspot.*`, the picture and guide ids `blindspot`, the package names, the API title in `contracts/openapi.json` ("Blindspot API", frozen, shown only on a developer `/docs` page), and `contracts/schema.sql`'s header comment. The history docs (BUILD_LOG, HANDOFF, PRD, SPEC, BUILD_PLAN, V1_SPEC, ROADMAP_V3, BUSINESS_CASE, INTERVIEWS) keep the old name in their dated text, each with a note on its first line. `docs/PRD_V3.md` was renamed in this repo copy; its source is the Claude Doc, which Eshan has to rename there.
+
+Not in this repo, so for Eshan: the video title card and captions, the PDF, screenshots, the submission form text, and a link-preview image.
+
+What broke: the blanket rename also changed the API title, and `test_openapi_matches_frozen_contract` caught it. Put back.
+
+Design review: no layout changed; "Resolve" and "Razorpay Resolve" are shorter than the old names. Checked by the layout and stability tests; see the verification line below.

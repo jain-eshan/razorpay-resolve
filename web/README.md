@@ -1,35 +1,24 @@
-# RazorSense starter
+# Resolve web app
 
-A starting point for building Razorpay products in **RazorSense**, Razorpay's design language "for the humans in the AI era", using the real [Blade](https://github.com/razorpay/blade) components.
+The dashboard for Razorpay Resolve (developed as Blindspot): a React and Vite app built on Razorpay's open-source [Blade](https://github.com/razorpay/blade) design system, shaped as an addition to the live Razorpay dashboard. The product itself is described in the [root README](../README.md).
 
-It includes:
-- **[DESIGN.md](DESIGN.md)**: the design language in depth
-  - principles
-  - the four emotional states (Calm, Joyful, Caution, Regret)
-  - colour, type, spacing and motion tokens with exact values
-  - component specs and voice and tone
-  - Razorpay product context
-- **A reference app** built from Blade:
-  - the live RazorSense surface switching between emotional states
-  - how each state sounds in copy
-  - an "Ask Ray" chat with the thinking state
-  - a success moment
-- **Blade MCP** wired in (`.mcp.json`), so AI coding tools can read Blade's component docs.
+It has two modes. Without `VITE_MODE=live` it plays a guided demo from the recorded snapshot in `public/snapshot/` (and the big-brand account from `public/brand/`), so it needs no server. With `VITE_MODE=live` it talks to the engine on port 8000.
 
 ## Run it
 
-```bash
-npm install
-```
+From the repo root, `make setup` once, then:
 
 ```bash
-npm run dev
+make run-web      # http://localhost:5173
 ```
 
-Then open http://localhost:5173.
+Or from this folder: `npm ci`, `npm run dev`. Other scripts: `npm run build` (typecheck and build), `npm run lint`, and `make e2e` from the root for the Playwright tests.
 
-## Sources
-- RazorSense: https://razorpay.com/razorsense/
-- Blade: https://github.com/razorpay/blade · Storybook: https://blade.razorpay.com/?path=/story/components-razorsense--default
+## Where to read
 
-Not affiliated with Razorpay. Blade is MIT-licensed; RazorSense assets load from Blade's public CDN.
+- [DESIGN.md](DESIGN.md): the design guide. Sections 14 to 22 are the rules for this product (the shell, page templates, the two demo accounts, names, the build checks).
+- [CLAUDE.md](CLAUDE.md): what each source file is for, the rules for components and copy, and known quirks of Blade.
+
+The product is closed as of 13 October 2026, so these two files describe the app as it was left.
+
+Not affiliated with Razorpay. Blade is MIT-licensed.

@@ -1,11 +1,11 @@
-# Blindspot PRD v3
+# Resolve PRD v3
 
 > **Source of truth:** the PRD v3 Claude Doc (https://claude.ai/code/artifact/31e2f39b-bdfc-43ff-a448-4e41d74e7432), where Eshan comments. This file is an export of it on 12 Oct 2026 so coding sessions can read it. Change the doc first, then re-export here. Where this file and `docs/PRD.md` (v2) disagree, this file wins; v2 still applies where v3 is silent. Build order: `docs/ROADMAP_V3.md`.
 
 
 Eshan Jain · exported 12 Oct 2026
 
-Blindspot is the payment gateway's support engineer for every merchant: it hears about a payment problem from customers or from the merchant's own alerts, finds everyone it hit, says whose side it is with proof, and fixes and wins customers back with the merchant's approval.
+Resolve is the payment gateway's support engineer for every merchant: it hears about a payment problem from customers or from the merchant's own alerts, finds everyone it hit, says whose side it is with proof, and fixes and wins customers back with the merchant's approval.
 
 ## 1. The problem and what we are building
 
@@ -28,7 +28,7 @@ Small merchants learn about it from angry messages days later, or never. Big bra
 
 Whichever door a problem comes through, the engine does the same five things: find everyone affected, including those who never complained; put a rupee number on it; say whose side it is, with evidence; fix what Razorpay can fix, with the merchant's approval; win back the customers who dropped.
 
-**Is it just you?** Before naming whose side a problem is, Blindspot checks where the failures concentrate (one app version, checkout step, bank, region or plugin version) and whether other merchants see the same thing. Only Razorpay can compare across merchants; a single merchant or Sentry cannot. A shared cause, such as a cloud or telecom outage, means nobody wakes the merchant's developer for a bug that is not theirs.
+**Is it just you?** Before naming whose side a problem is, Resolve checks where the failures concentrate (one app version, checkout step, bank, region or plugin version) and whether other merchants see the same thing. Only Razorpay can compare across merchants; a single merchant or Sentry cannot. A shared cause, such as a cloud or telecom outage, means nobody wakes the merchant's developer for a bug that is not theirs.
 
 **The lever we move.** Orders and revenue recovered, and time from first failure to a root cause. We do not claim to raise payment success rate: that is the share of attempts the bank approves, and Razorpay's routing products already own it.
 
@@ -36,7 +36,7 @@ Whichever door a problem comes through, the engine does the same five things: fi
 
 **What it is.** One agent in Agent Studio with two faces. Merchants meet it through RAY, the dashboard and Slack. Their customers meet it as "\[Merchant\] payment help, powered by Razorpay". The agent decides what to look at and which tools to call; the tools (SQL rules, statistical baselines, Razorpay's own APIs) produce every number and carry out every action. Agent Studio's current agents act inside the payment (recovery, mandates, disputes, cart). None hears from the merchant's customers, finds everyone a problem hit, or explains a failure across both sides.
 
-**The pitch in one line.** Razorpay's agents help payments go through; Blindspot handles the ones that broke around the gateway. It hears about the problem, finds everyone affected, says whose side it is using data only Razorpay has, and wins the customers back.
+**The pitch in one line.** Razorpay's agents help payments go through; Resolve handles the ones that broke around the gateway. It hears about the problem, finds everyone affected, says whose side it is using data only Razorpay has, and wins the customers back.
 
 **Out of scope.** Fraud, routing, disputes, settlement explainers. Fixing a merchant's own website code. Anything that moves money or messages customers in bulk without the approval the merchant's autonomy setting requires (hard rule, SPEC section 0). Pay-again links to customers who dropped off are open: see section 14.
 
@@ -94,7 +94,7 @@ We build for ten personas: six on the merchant side (the big-brand team is one p
 
 ## 3. How big brands get answers today, and what replaces it
 
-Big brands get root causes from people, in a shared Slack channel, hours after the alert. Blindspot's alert door does the same investigation in minutes and posts the answer in that same channel. This loop comes from Eshan's previous company; whether Razorpay runs a shared channel for every large account is not verified.
+Big brands get root causes from people, in a shared Slack channel, hours after the alert. Resolve's alert door does the same investigation in minutes and posts the answer in that same channel. This loop comes from Eshan's previous company; whether Razorpay runs a shared channel for every large account is not verified.
 
 **The loop today**
 
@@ -108,7 +108,7 @@ Big brands get root causes from people, in a shared Slack channel, hours after t
 
 **Where it hurts**
 
-| Pain | Today | With Blindspot |
+| Pain | Today | With Resolve |
 | --- | --- | --- |
 | Time to first answer | Depends on who is online; hours | Minutes, any hour |
 | Data gap | Brand sees its side, gateway sees its side, joined by hand | Joined automatically on payment ID, order ID and time |
@@ -116,13 +116,13 @@ Big brands get root causes from people, in a shared Slack channel, hours after t
 | Scale | One support engineer covers many accounts | Every account gets the same depth |
 | Lost customers | Not counted, not contacted | Counted in rupees, won back with approval |
 
-**What replaces it.** The brand forwards payment-related alerts to Razorpay. Blindspot joins them with Razorpay's payment data, writes the RCA, and posts it in the existing Slack channel (or email, or the dashboard). The support engineer stays in the channel and signs off anything Blindspot marks as unsure.
+**What replaces it.** The brand forwards payment-related alerts to Razorpay. Resolve joins them with Razorpay's payment data, writes the RCA, and posts it in the existing Slack channel (or email, or the dashboard). The support engineer stays in the channel and signs off anything Resolve marks as unsure.
 
 **What it will not do.** It does not replace the account manager or the human relationship. It does not change anything in the brand's own systems. An RCA below the confidence bar goes out as a draft for the support engineer, not to the brand.
 
 ## 4. At a glance
 
-![Blindspot at a glance · 3 inputs, 5 steps, 4 outputs](prd_v3/01-at-a-glance.png)
+![Resolve at a glance · 3 inputs, 5 steps, 4 outputs](prd_v3/01-at-a-glance.png)
 
 Every problem runs through the same five steps, whichever way it came in. The founder and the big brand differ only in the door and in where the answer lands.
 
@@ -176,12 +176,12 @@ For: founders and mid-size brands. Today: Built (channels simulated in the proto
 | --- | --- | --- |
 | WhatsApp payments number | A co-branded number, "\[Merchant\] payment help, powered by Razorpay", that says it is an AI assistant. | Pretend to be a person. |
 | Email | A reply-to alias or a forwarding rule on keywords like "payment", "debited", "refund". | Read the rest of the merchant's inbox. |
-| Instagram and Messenger | The merchant hands payment DMs over to Blindspot. | Answer non-payment questions; those go back to the merchant. |
+| Instagram and Messenger | The merchant hands payment DMs over to Resolve. | Answer non-payment questions; those go back to the merchant. |
 | Help button | A "Payment issue?" button on the order and checkout pages. | Replace the merchant's own support. |
 | Public posts | A complaint on X or Instagram gets a generic public reply that moves the person to a private channel. | Link a public post to a payment, or say anything specific in public. |
 | Find the payment | Asks for one identifier (order ID, UPI reference, phone or email) and matches it to the payment. Understands Hinglish. | Ask for an OTP, card number, UPI PIN or password. Ever. |
 | Helpdesk tickets | Read-only connection to Freshdesk, Zendesk or Gorgias. Tickets about payment problems come in like any other complaint. Uses their open APIs; no partnership needed. The right door for mid-size and big brands, whose complaints already live in a helpdesk. | Reply inside the helpdesk or close tickets; the merchant's team keeps the ticket. |
-| AI support bots (partnership) | Bots such as Nugget or Nurix call Blindspot's payment lookup when a customer says money was debited; the case joins Blindspot's incident. Needs a partner and Razorpay's MCP server. | Be built for the submission; it is a partnership pitch. |
+| AI support bots (partnership) | Bots such as Nugget or Nurix call Resolve's payment lookup when a customer says money was debited; the case joins Resolve's incident. Needs a partner and Razorpay's MCP server. | Be built for the submission; it is a partnership pitch. |
 
 ### F4. Alert door: take in the brand's own alerts
 
@@ -235,7 +235,7 @@ For: everyone; the core of the alert door. Today: Built as rules for six problem
 
 For: everyone; it feeds F7. Today: Partial. The backend already computes within-merchant concentration ("lift") for method, card network, error code, app version and response class; the incident page does not show it as this check yet. Cross-merchant cuts are new.
 
-Blindspot cuts the failures eight ways, in the same order every time, and asks where they concentrate. The RCA shows only the cut that explains the problem plus the ones that rule out the obvious alternatives, usually two or three lines.
+Resolve cuts the failures eight ways, in the same order every time, and asks where they concentrate. The RCA shows only the cut that explains the problem plus the ones that rule out the obvious alternatives, usually two or three lines.
 
 | # | Cut | Question it answers | What it catches | Data it needs | Today |
 | --- | --- | --- | --- | --- | --- |
@@ -379,7 +379,7 @@ For: the judges and the video. Not shipped to merchants. Today: New, except the 
 | Big-brand storefront | A shopping site with a checkout funnel and a hidden "break checkout" switch. | Use real brand assets without a decision (section 14). |
 | Monitoring alert screen | A Sentry-style alert firing and being forwarded to Razorpay. | Need a real Sentry account. |
 | Shared Slack channel | The RCA landing in the brand's channel with Razorpay. | Need a real Slack workspace. |
-| "How Blindspot works" page | Both journeys on one page, for the video and for a link on the Overview. | Replace the product's own screens. |
+| "How Resolve works" page | Both journeys on one page, for the video and for a link on the Overview. | Replace the product's own screens. |
 | Instagram, WhatsApp, email and help button demos | Already built. | Change. |
 
 ## 6. User journeys
@@ -390,9 +390,9 @@ Six journeys, one per persona that touches the product. The first two are the de
 
 Kaksha, a two-person test-series business on a custom site. A deploy at 6:05 pm breaks its webhook. Students pay but get no test access.
 
-1. 6:20 pm. A student DMs Kaksha on Instagram: "paisa kat gaya, test nahi khula". Blindspot replies as "Kaksha payment help, powered by Razorpay" and asks for the order ID or UPI reference. \[F3\]
-2. Blindspot finds the payment: captured at Razorpay, webhook answered with an error. \[F3, F2\]
-3. Two more DMs and an email arrive. Blindspot groups them into one incident and widens: 85 students paid since 6:05 pm, 17 complained, 68 did not. 81 still have no access: ₹56,319. \[F5, F6\]
+1. 6:20 pm. A student DMs Kaksha on Instagram: "paisa kat gaya, test nahi khula". Resolve replies as "Kaksha payment help, powered by Razorpay" and asks for the order ID or UPI reference. \[F3\]
+2. Resolve finds the payment: captured at Razorpay, webhook answered with an error. \[F3, F2\]
+3. Two more DMs and an email arrive. Resolve groups them into one incident and widens: 85 students paid since 6:05 pm, 17 complained, 68 did not. 81 still have no access: ₹56,319. \[F5, F6\]
 4. Whose side: merchant code. Evidence lane shows the deploy, the first failed delivery and every retry. Is it just you: yes, no other merchant on the same host shows webhook failures, so it is not a cloud outage. Confidence: exact. \[F7\]
 5. 7:00 pm. The founder gets Ray on WhatsApp: what broke, who it hit, the rupees, and "Fix now". \[F12\]
 6. Founder taps Fix. Dry run, then the first 5 students get access, then the rest. Failed webhooks are replayed once the founder's developer fixes the endpoint (developer page). \[F9\]
@@ -404,12 +404,12 @@ Kaksha, a two-person test-series business on a custom site. A deploy at 6:05 pm 
 A large shopping app. At 7:40 pm it ships Android app 8.2. A bug makes the app show "Payment failed" after a successful UPI payment.
 
 1. 7:52 pm. Sentry fires: "PaymentVerificationError" up 40 times on the payment service. The alert rule forwards it to Razorpay. \[F4\]
-2. Blindspot matches it to Razorpay data: UPI payments from the app are captured normally, but the brand's server never calls "verify payment" for them, and all come from app 8.2. \[F2, F7\]
+2. Resolve matches it to Razorpay data: UPI payments from the app are captured normally, but the brand's server never calls "verify payment" for them, and all come from app 8.2. \[F2, F7\]
 3. Widen: 1,240 customers saw "failed" after paying. 410 paid a second time. 830 left without an order. \[F5, F6\]
 4. Whose side: brand's app code. Confidence: exact (three signals agree). Is it just you: yes, failures sit entirely on app 8.2 and are spread evenly across banks, UPI apps and regions. Not Razorpay, not the bank, not a regional outage. \[F7\]
 5. 7:58 pm. The RCA lands in the shared Slack channel as a thread: cause, sample payment IDs, the app version, the fix (roll back 8.2 or patch the verify call), and the rupees. \[F12\]
 6. A Razorpay support engineer is tagged and signs it off from the console in a minute. \[F13\]
-7. Brand rolls back. Blindspot offers Razorpay-side actions for approval in the thread: refund the 410 duplicates to the original method, and send the brand the list of 830 paid-but-unconfirmed orders to confirm. \[F9\]
+7. Brand rolls back. Resolve offers Razorpay-side actions for approval in the thread: refund the 410 duplicates to the original method, and send the brand the list of 830 paid-but-unconfirmed orders to confirm. \[F9\]
 8. With the brand's approval, the 830 get "Your payment went through, your order is confirmed" in the brand's name. \[F10\]
 9. Close: order confirmations back to normal; account review pack records a brand-side fault explained in 6 minutes. \[F11, F16\]
 
@@ -425,7 +425,7 @@ A large shopping app. At 7:40 pm it ships Android app 8.2. A bug makes the app s
 1. Connects the WooCommerce plugin in setup. \[F1\]
 2. A plugin update stops orders being marked paid. Payment signals flag captured payments with no order update. \[F2\]
 3. WhatsApp alert: whose side (plugin settings), the one setting to change, and the orders affected. \[F7, F12\]
-4. After the change, Blindspot marks the stuck orders and messages those customers. \[F9, F10\]
+4. After the change, Resolve marks the stuck orders and messages those customers. \[F9, F10\]
 
 ### J5. Payer
 
@@ -478,7 +478,7 @@ Show both doors, one brand each, in one video: a small brand through social list
 3. Alert door intake in the backend: one inbound endpoint and the J2 matching rule, with synthetic data for 1,240 customers.
 4. The RCA as a Slack thread mock, with approve buttons.
 5. The support engineer console (one list, one detail).
-6. The "How Blindspot works" page with both journeys, linked from Overview.
+6. The "How Resolve works" page with both journeys, linked from Overview.
 
 Items 1, 2, 4 and 6 are front-end only. Item 3 is the one backend change, and it goes through the contracts process (`make contracts` and an entry in CONTRACT\_CHANGES).
 
@@ -511,9 +511,9 @@ Restructure, do not rebuild. The engine behind the customer door is built (F2, F
 
 ## 10. Built on Razorpay
 
-Blindspot builds almost nothing Razorpay already has. It sits on seven existing pieces and adds the layer that joins them: hearing from customers and alerts, finding everyone affected, and naming whose side.
+Resolve builds almost nothing Razorpay already has. It sits on seven existing pieces and adds the layer that joins them: hearing from customers and alerts, finding everyone affected, and naming whose side.
 
-| Razorpay piece | What Blindspot uses it for | Features |
+| Razorpay piece | What Resolve uses it for | Features |
 | --- | --- | --- |
 | Agent Studio | Where the agent runs: approval limits, guardrails, audit trail, billing | F9, F17, F18 |
 | RAY | The merchant's front door: alerts, approvals, questions | F12 |
@@ -521,9 +521,9 @@ Blindspot builds almost nothing Razorpay already has. It sits on seven existing 
 | Vulcan | The expected success rate per bank and method, to compare against | F2, F7a |
 | Webhook logs and replay | Spotting a broken webhook; replaying missed events as the fix | F2, F9 |
 | Payment Links, Subscription recovery | Pay-again and renewal links in win-back | F10 |
-| Razorpay MCP server | How Blindspot's agent, and partner support bots, look up payments | F3, F7 |
+| Razorpay MCP server | How Resolve's agent, and partner support bots, look up payments | F3, F7 |
 
-**Vulcan's role, stated carefully.** Vulcan decides how a payment is routed and checked while it is in flight. It does not group complaints or explain failures, so we do not claim it finds issues. It supplies the "expected" number per bank and method; Blindspot flags the gap between expected and actual. Whether Vulcan exposes that baseline outside its own team is not verified.
+**Vulcan's role, stated carefully.** Vulcan decides how a payment is routed and checked while it is in flight. It does not group complaints or explain failures, so we do not claim it finds issues. It supplies the "expected" number per bank and method; Resolve flags the gap between expected and actual. Whether Vulcan exposes that baseline outside its own team is not verified.
 
 **What we add on top.** The customer door and alert door, the eight-cut "Is it just you?" check, the incident with everyone affected, the RCA, and the win-back. None of these exists in the stack today.
 
@@ -560,7 +560,7 @@ One agent runs the journey and calls tools; rules and SQL produce every number a
 
 ## 12. Business model, pricing and success metrics
 
-Blindspot is a low-cost bet on keeping merchants, not a revenue line. The frozen base case costs about ₹0.86 cr a year to run and ends three years at -₹1.09 cr, or +₹0.28 cr once avoided support cost is counted. v3 adds big brands, which the frozen case does not include.
+Resolve is a low-cost bet on keeping merchants, not a revenue line. The frozen base case costs about ₹0.86 cr a year to run and ends three years at -₹1.09 cr, or +₹0.28 cr once avoided support cost is counted. v3 adds big brands, which the frozen case does not include.
 
 **The frozen base case** (10 Oct; every number from `docs/business_model.py`; full detail in `docs/BUSINESS_CASE.md`)
 
@@ -622,7 +622,7 @@ The north star is **recovered value**: rupees of payments that were stuck or los
 | Fix approval rate, and minutes to approve | Leading, action | Merchants act on what we show | At least 40% (G-P3) |
 | Win-back conversion against a 10% holdout | Leading, recovery | Messages cause payments, not just follow them | Holdout already used for renewal links |
 | Same cause again within 30 days | Lagging, prevention | The fix held | Set in pilot |
-| Volume kept by merchants after an incident, against matched merchants without Blindspot | Lagging, Razorpay | Merchants did not move volume to another gateway | Set in pilot |
+| Volume kept by merchants after an incident, against matched merchants without Resolve | Lagging, Razorpay | Merchants did not move volume to another gateway | Set in pilot |
 | Support tickets per incident | Lagging, Razorpay cost | The avoided cost the case counts (₹50 per incident) | At least ₹50 avoided (G-P5) |
 | Guard uptake and renewal | Lagging, revenue | Prevention is worth paying for | At least 4.5% (G-P2) |
 | Wrong refunds or access changes | Guardrail | We never make it worse | Zero |
@@ -673,7 +673,7 @@ The next 36 hours and the next year have different customers, so each is scored 
 | "Is it just you?" panel from existing lift rows | Merchant understanding, Track 2 signal | 3 | 2 | 80% | 1.5 | 3.2 | Must |
 | "Where rules fail" card: rules triage scored on messy, Hinglish messages | Why AI beats a rule (Track 2), AI use | 3 | 3 | 80% | 3 | 2.4 | Must |
 | Story strip on every incident | Problem clarity, communication | 3 | 2 | 80% | 2 | 2.4 | Must |
-| How Blindspot works page | Problem clarity, communication | 3 | 2 | 80% | 2 | 2.4 | Must |
+| How Resolve works page | Problem clarity, communication | 3 | 2 | 80% | 2 | 2.4 | Must |
 | Copy pass with the pitch line | Communication | 3 | 1 | 80% | 1 | 2.4 | Must |
 | Remove tinted panel, Ray home order | Communication | 2 | 0.5 | 100% | 0.5 | 2.0 | Must |
 | Monitoring alert screen (J2) | Merchant understanding | 2 | 1 | 80% | 1 | 1.6 | Should |

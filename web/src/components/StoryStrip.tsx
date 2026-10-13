@@ -5,21 +5,21 @@ import { Pulse } from './Pulse'
 
 type Inc = Pick<Schemas['IncidentDetail'], 'status' | 'affected' | 'complained' | 'silent' | 'tier_counts' | 'owner' | 'actions'> & { verdict: Pick<Schemas['IncidentDetail']['verdict'], 'confidence'> }
 
-// How many customers Blindspot has told so far, and how many of them paid again: read from the actions already sent. A message counts once it is approved and delivered
+// How many customers Resolve has told so far, and how many of them paid again: read from the actions already sent. A message counts once it is approved and delivered
 // (`verified`); a pay-again link counts once sent. Reverted and drafted work counts for nothing.
 const reached = (actions: Inc['actions']) => ({
   told: actions.reduce((n, a) => n + (a.action_type === 'message' ? a.item_counts.verified ?? 0 : a.action_type === 'recovery_link' ? a.item_counts.sent ?? 0 : 0), 0),
   paid: actions.reduce((n, a) => n + (a.action_type === 'recovery_link' ? a.item_counts.sent_paid ?? 0 : 0), 0),
 })
 
-// Put right by Blindspot, read from the actions you approved, never from customers who sorted it out without it (PRD v3: no recovery is claimed for a customer who came back
+// Put right by Resolve, read from the actions you approved, never from customers who sorted it out without it (PRD v3: no recovery is claimed for a customer who came back
 // on their own). Access given back (grant) and second charges refunded count once confirmed (`verified`); a pay-again link counts only once the customer paid through it.
 // The actions of one issue all work on the same customers (on a renewal issue the link goes to customers whose access was already kept on), so the largest count is the
 // number of customers, never the sum.
 const putRight = (actions: Inc['actions']) => Math.max(0, ...actions.map((a) =>
   a.action_type === 'grant' || a.action_type === 'refund' ? a.item_counts.verified ?? 0 : a.action_type === 'recovery_link' ? a.item_counts.sent_paid ?? 0 : 0))
 
-// Everyone hit, accounted for: put right by Blindspot, still waiting, fixed by you (access given or refunded by hand), paid again on their own, or not reachable yet (no channel
+// Everyone hit, accounted for: put right by Resolve, still waiting, fixed by you (access given or refunded by hand), paid again on their own, or not reachable yet (no channel
 // to message them on, a closed WhatsApp window, Instagram replies not built). The last is what is left of the customers hit, so the tile, its note and "still to put right"
 // always add up to the customers hit. The note names every group that is not zero; it says nothing until the customers have loaded.
 const others = (affected: number, waiting: number, put: number, members: Schemas['Member'][]) => {
@@ -32,12 +32,12 @@ const others = (affected: number, waiting: number, put: number, members: Schemas
 
 // The five steps every payment issue goes through, with the issue's own numbers (PRD v3, section 1): hear, find everyone, say whose side, fix, win customers back.
 // Where the issue is in them is read from its data: a step is done once its numbers are in, and the first one that is not is the one it is on now.
-// `members` (the customers found) says who needed nothing from Blindspot; until it loads the note shows the status only.
+// `members` (the customers found) says who needed nothing from Resolve; until it loads the note shows the status only.
 export function StoryStrip({ inc, members = [] }: { inc: Inc; members?: Schemas['Member'][] }) {
   const { told, paid } = reached(inc.actions)
   const closed = inc.status === 'closed'
   // The Fix step is done when nothing is left waiting for your approval (the same group counts as "still to put right" in the numbers below), or the issue is closed.
-  // Its number is only what Blindspot's own actions put right, so it never claims a customer who paid again by themselves.
+  // Its number is only what Resolve's own actions put right, so it never claims a customer who paid again by themselves.
   const waiting = (inc.tier_counts.exact ?? 0) + (inc.tier_counts.likely ?? 0) + (inc.tier_counts.check ?? 0)
   // The note says who sorted it out on their own when anyone did, and the status otherwise. Both did not fit two lines in a tile five across, and the status is
   // already on the page twice (the tile's "now" marker and the badge at the top).
@@ -48,7 +48,7 @@ export function StoryStrip({ inc, members = [] }: { inc: Inc; members?: Schemas[
     { title: 'Hear', done: true, value: inc.complained > 0 ? `${inc.complained} wrote in` : 'No complaints yet', note: inc.complained > 0 ? 'seen in your data too' : 'found in your data' },
     { title: 'Find everyone', done: true, value: `${inc.affected} customers hit`, note: inc.silent > 0 ? 'not only those who wrote in' : 'every one wrote in' },
     { title: 'Whose side', done: inc.owner !== 'unknown', value: OWNER[inc.owner], note: `${sentence(inc.verdict.confidence)} confidence` },
-    // Of the customers Blindspot can act for (put right so far, plus still waiting): the rest are in the note, so nothing is counted twice and nobody is left out.
+    // Of the customers Resolve can act for (put right so far, plus still waiting): the rest are in the note, so nothing is counted twice and nobody is left out.
     { title: 'Fix', done: closed || (inc.affected > 0 && waiting === 0), value: put + waiting ? `${put} of ${put + waiting} put right` : 'Nothing left to put right', note: sortedElsewhere || status },
     { title: 'Win back', done: closed && told > 0, value: told > 0 ? `${told} told` : 'No one told yet', note: paid > 0 ? `${paid} paid again` : 'needs your approval' },
   ]

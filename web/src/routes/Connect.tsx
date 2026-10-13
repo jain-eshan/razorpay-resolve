@@ -6,7 +6,7 @@ import { IntegrationSteps } from '../components/IntegrationSteps'
 import { Panel } from '../components/Panel'
 import { CONNECT_PROMPT, CONNECT_WHY } from '../lib/connectPrompt'
 
-// Connect by prompt (PRD D21). Razorpay now gives a merchant a prompt to paste into a coding agent instead of reading the docs. This is the one that connects Blindspot.
+// Connect by prompt (PRD D21). Razorpay now gives a merchant a prompt to paste into a coding agent instead of reading the docs. This is the one that connects Resolve.
 // A page of text and two buttons: it reads nothing from the server and changes nothing.
 export default function Connect() {
   const nav = useNavigate()
@@ -26,9 +26,9 @@ export default function Connect() {
   }
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <PageHeader guide="integration" title="Integration" description="Paste one prompt into your coding agent. It sets up your webhook so every customer who pays gets access, and so Blindspot can tell when one does not. Then run the go-live check." />
+      <PageHeader guide="integration" title="Integration" description="Paste one prompt into your coding agent. It sets up your webhook so every customer who pays gets access, and so Resolve can tell when one does not. Then run the go-live check." />
       <IntegrationSteps />
-      <Alert isFullWidth isDismissible={false} color="information" title="Prototype" description="Razorpay already gives a prompt for the integration; this is the part Blindspot would add. The confirmation address in it is a placeholder, because nothing like it exists at Razorpay yet. Blindspot never asks for your webhook secret." />
+      <Alert isFullWidth isDismissible={false} color="information" title="Prototype" description="Razorpay already gives a prompt for the integration; this is the part Resolve would add. The confirmation address in it is a placeholder, because nothing like it exists at Razorpay yet. Resolve never asks for your webhook secret." />
 
       <Panel title="1. Paste this into your coding agent" subtitle="Claude Code, Cursor, Replit or any agent that can edit your project"
         trailing={<Box flexShrink={0} whiteSpace="nowrap"><Button variant="secondary" icon={copied === 'yes' ? CheckIcon : CopyIcon} onClick={copy}>{copied === 'yes' ? 'Copied' : 'Copy the prompt'}</Button></Box>}>
@@ -43,7 +43,7 @@ export default function Connect() {
         <Box><Button variant="secondary" icon={ShieldIcon} onClick={() => nav('/release-check')}>Open the go-live check</Button></Box>
       </Panel>
 
-      <Panel title="What each rule closes" subtitle="Every line of the prompt is there because Blindspot finds the failure it prevents">
+      <Panel title="What each rule closes" subtitle="Every line of the prompt is there because Resolve finds the failure it prevents">
         <Box display="flex" flexDirection="column" gap="spacing.5">
           {CONNECT_WHY.map((w, i) => (
             <Box key={w.rule} display="flex" flexDirection="column" gap="spacing.1" maxWidth="720px">

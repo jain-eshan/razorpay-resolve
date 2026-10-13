@@ -63,7 +63,7 @@ export function AlertCard({ a }: { a: AlertPreview }) {
           <ChartBar dataKey="events" name="Events" color="data.background.categorical.red.intense" />
         </ChartBarWrapper>
       </Box>
-      <Text size="small" color="surface.text.gray.muted">{a.rule}. Blindspot matches an alert to Razorpay's payments before it acts on it.</Text>
+      <Text size="small" color="surface.text.gray.muted">{a.rule}. Resolve matches an alert to Razorpay's payments before it acts on it.</Text>
     </Frame>
   )
 }
@@ -77,8 +77,8 @@ export function SlackThread({ s, replies = [] }: { s: SlackPreview; replies?: Re
       {s.messages.map((m) => (
         <Box key={`${m.who}${m.at}`} display="flex" gap="spacing.4" alignItems="flex-start">
           <Box width="32px" height="32px" flexShrink={0} borderRadius="medium" display="flex" alignItems="center" justifyContent="center"
-            backgroundColor={m.who === 'Razorpay Blindspot' ? 'surface.background.gray.subtle' : 'surface.background.gray.moderate'} borderWidth="thin" borderColor="surface.border.gray.subtle">
-            <Text size="small" weight="semibold" color={m.who === 'Razorpay Blindspot' ? 'surface.text.gray.normal' : 'surface.text.gray.muted'}>{m.who[0]}</Text>
+            backgroundColor={m.who === 'Razorpay Resolve' ? 'surface.background.gray.subtle' : 'surface.background.gray.moderate'} borderWidth="thin" borderColor="surface.border.gray.subtle">
+            <Text size="small" weight="semibold" color={m.who === 'Razorpay Resolve' ? 'surface.text.gray.normal' : 'surface.text.gray.muted'}>{m.who[0]}</Text>
           </Box>
           <Box display="flex" flexDirection="column" gap="spacing.2" minWidth="0px" flex="1">
             <Box display="flex" alignItems="baseline" gap="spacing.3" flexWrap="wrap">

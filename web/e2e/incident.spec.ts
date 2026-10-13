@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
 
-// The issue page (v3 batch 1.2): the story strip, the three numbers, "Is it just you?", root cause and actions, the charts. "Where rules fail" moved to How Blindspot works (e2e/how-it-works.spec.ts).
+// The issue page (v3 batch 1.2): the story strip, the three numbers, "Is it just you?", root cause and actions, the charts. "Where rules fail" moved to How Resolve works (e2e/how-it-works.spec.ts).
 // Each figure is checked against the same files the page reads, so a number typed into a screen would fail here.
 const file = <T,>(p: string): T => JSON.parse(readFileSync(`public/snapshot/${p}.json`, 'utf8'))
 type Inc = { id: string; affected: number; complained: number; silent: number; fixed: number; at_risk_paise: number; status: string; mismatch_type: string; lift: unknown[]; title: string; tier_counts: { exact: number; likely?: number; check?: number } }
@@ -17,17 +17,17 @@ test('the story strip tells the five steps with the issue\'s own numbers, and ma
   await expect(strip.getByTestId('story-2')).toContainText('not only those who wrote in')  // the 68 silent are in the numbers below, not repeated here
   await expect(strip.getByTestId('story-3')).toContainText('Your code')
   const waiting = (inc.tier_counts?.exact ?? 0) + (inc.tier_counts?.likely ?? 0) + (inc.tier_counts?.check ?? 0)
-  await expect(strip.getByTestId('story-4')).toContainText(`0 of ${waiting} put right`)  // nothing approved yet, so nothing is put right by Blindspot
+  await expect(strip.getByTestId('story-4')).toContainText(`0 of ${waiting} put right`)  // nothing approved yet, so nothing is put right by Resolve
   await expect(strip.getByTestId('story-5')).toContainText('No one told yet')
   await expect(strip.getByText('Fix · now')).toBeVisible()  // steps 1 to 3 are done, so it is on the fourth
   await expect(strip.getByText(/· now$/)).toHaveCount(1)
 })
 
-// PRD v3: Blindspot never claims a customer who sorted it out without it. "Put right" counts only what its approved actions did, out of the customers it can act for; the rest
+// PRD v3: Resolve never claims a customer who sorted it out without it. "Put right" counts only what its approved actions did, out of the customers it can act for; the rest
 // (fixed by you, paid on their own, not reachable yet) are said beside it, and everything adds up to the customers hit. The counts come from the same files the page reads.
 type Member = { exclusion_reason: string | null; tier: string }
 for (const inc of incs) {
-  test(`${inc.id}: the Fix tile counts only what Blindspot put right, and says who sorted it out on their own`, async ({ page }) => {
+  test(`${inc.id}: the Fix tile counts only what Resolve put right, and says who sorted it out on their own`, async ({ page }) => {
     const members = file<Member[]>(`incidents/${inc.id}/members`)
     const own = members.filter((m) => /^Paid since\b/.test(m.exclusion_reason ?? '')).length
     const you = members.filter((m) => m.exclusion_reason === 'already active (manual grant)' || m.exclusion_reason === 'refunded').length
@@ -48,15 +48,15 @@ for (const inc of incs) {
   })
 }
 
-// "What Blindspot cannot see" is said once on every issue page: one label, then the caveats as a list, not the label in front of each caveat.
+// "What Resolve cannot see" is said once on every issue page: one label, then the caveats as a list, not the label in front of each caveat.
 type Caveats = { verdict: { what_we_cannot_see: string[] } }
 for (const inc of incs) {
-  test(`${inc.id}: "What Blindspot cannot see" appears once, with every caveat listed under it`, async ({ page }) => {
+  test(`${inc.id}: "What Resolve cannot see" appears once, with every caveat listed under it`, async ({ page }) => {
     const caveats = file<Caveats>(`incidents/${inc.id}`).verdict.what_we_cannot_see
     await page.goto(`/incidents/${inc.id}`)
     await page.getByTestId('just-you').waitFor()  // the page has loaded, so a count of 0 or 2 below is real
     await expect(page.getByTestId('cannot-see')).toHaveCount(1)
-    await expect(page.getByText(/What Blindspot cannot see/)).toHaveCount(1)
+    await expect(page.getByText(/What Resolve cannot see/)).toHaveCount(1)
     expect(caveats.length).toBeGreaterThan(0)
     for (const c of caveats) await expect(page.getByTestId('cannot-see').getByText(c, { exact: true })).toBeVisible()
   })
@@ -238,7 +238,7 @@ test(`the story strip keeps its height, and its numbers move, as the fix goes fr
   await note()
   await btn(/^Grant the rest/).click()
   await expect(page.getByText(/^\d+ of \d+ confirmed active/).first()).toBeVisible()
-  // 81 given access back by Blindspot; the other 4 the merchant had already handled, so they are said beside the count, not in it.
+  // 81 given access back by Resolve; the other 4 the merchant had already handled, so they are said beside the count, not in it.
   await expect.poll(() => page.getByTestId('story-4').innerText(), 'the number in the strip moves with the fix').toContain('81 of 81 put right')
   await expect(page.getByTestId('story-4')).toContainText('4 fixed by you')
   expect(before).toContain('0 of 81 put right')
@@ -309,12 +309,12 @@ test('Accuracy: stat labels are regular weight and only the figures are bold', a
 
 test('the evidence lane puts each side on one row: whose side shows before anyone reads the text', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 })
-  await page.goto('/incidents/INC-1')  // your change, your server failing, Razorpay fine, Blindspot's alert
+  await page.goto('/incidents/INC-1')  // your change, your server failing, Razorpay fine, Resolve's alert
   const lane = page.getByTestId('evidence-lane')
-  for (const row of ['Your side', 'Your server', 'Razorpay', 'Blindspot']) await expect(lane.getByTestId(`lane-${row}`)).toBeVisible()
+  for (const row of ['Your side', 'Your server', 'Razorpay', 'Resolve']) await expect(lane.getByTestId(`lane-${row}`)).toBeVisible()
   await expect(lane.getByTestId('lane-Your server')).toContainText('answered 401')
   await expect(lane.getByTestId('lane-Razorpay')).toContainText('payments captured normally')
-  await expect(lane.getByTestId('lane-Blindspot')).toContainText('Blindspot would have alerted')
+  await expect(lane.getByTestId('lane-Resolve')).toContainText('Resolve would have alerted')
   await page.goto('/incidents/INC-3')  // Razorpay's side: no row for your side, because nothing changed there
   await expect(page.getByTestId('evidence-lane').getByTestId('lane-Your side')).toHaveCount(0)
   await expect(page.getByTestId('evidence-lane').getByTestId('lane-Razorpay')).toContainText('gateway errors on cards')

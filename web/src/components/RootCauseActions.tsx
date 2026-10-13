@@ -10,7 +10,7 @@ import { StartFix } from './StartFix'
 const OWNER_TONE = { merchant_code: 'notice', merchant_config: 'notice', razorpay: 'neutral', bank: 'neutral', customer: 'neutral', unknown: 'neutral' } as const
 type Inc = Pick<Schemas['IncidentDetail'], 'id' | 'title' | 'owner' | 'inferred' | 'status' | 'mismatch_type' | 'tier_counts'> & { verdict: Pick<Schemas['IncidentDetail']['verdict'], 'confidence'> }
 
-// What Blindspot would do, in a line, for each kind of issue, and for how many customers. Only what is waiting counts: customers already put right are not in `exact`.
+// What Resolve would do, in a line, for each kind of issue, and for how many customers. Only what is waiting counts: customers already put right are not in `exact`.
 const WOULD: Record<string, (n: number) => string> = {
   A: (n) => `Give ${n} customers their access back, in steps`,
   E: (n) => `Refund ${n} second charges to the original payment method, one customer at a time`,
@@ -33,7 +33,7 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 
 // The two cards under the evidence on an issue page (wireframe 3): the root cause, then the actions that wait for approval. The page's one blue button is in the actions card.
 // "Send to your developer" lives here and nowhere else on the page (Eshan, 13 Oct: it was offered three times): beside the cause and the fix the developer has to ship,
-// and next to Blindspot's own part of the fix, so the two things to do sit together. On Razorpay's side it opens the evidence pack instead.
+// and next to Resolve's own part of the fix, so the two things to do sit together. On Razorpay's side it opens the evidence pack instead.
 // The cause, the change and the fix are the engine's (the evidence pack); nothing here is typed in. The page loads the pack with the incident, so this card never grows
 // when it arrives; `pack` is missing only when it failed to load.
 export function RootCauseActions({ inc, pack, fix, closed }: { inc: Inc; pack?: Schemas['EvidencePack']; fix: RefObject<HTMLDivElement>; closed: boolean }) {

@@ -10,7 +10,7 @@ type Channel = Schemas['Channel']
 
 const ICON: Record<string, IconComponent> = { help_button: HeadsetIcon, whatsapp_payments: WhatsAppIcon, email: MailIcon, ig_dm: InstagramIcon, fb_dm: FacebookIcon, public_mention: AtSignIcon, ray_forward: CornerUpRightIcon, paste: ClipboardIcon, csv: FileTextIcon }
 // Channels the agent does not reply on: complaints you bring in yourself. One line each, since they have no consent or identity to show.
-const INTAKE: Record<string, string> = { ray_forward: 'Complaints Ray passes on to Blindspot.', paste: 'Paste in a complaint from anywhere.', csv: 'Many complaints at once, from a file.' }
+const INTAKE: Record<string, string> = { ray_forward: 'Complaints Ray passes on to Resolve.', paste: 'Paste in a complaint from anywhere.', csv: 'Many complaints at once, from a file.' }
 
 // The icon in a tinted tile, grey once the channel is off.
 function Tile({ type, on }: { type: string; on: boolean }) {
@@ -134,7 +134,7 @@ export default function Channels() {
           {kept && <Text size="small" color="surface.text.gray.muted">Messages kept for {kept.retention_days} days. Allowed by {kept.granted_by}.</Text>}
         </Panel>
       )}
-      {group('Where customers write to you', 'Blindspot answers here as your payment help.', talking, 3, card)}
+      {group('Where customers write to you', 'Resolve answers here as your payment help.', talking, 3, card)}
       {group('Ways you bring complaints in', 'Nothing is sent from these. They only add complaints to Customer complaints.', intake, 3, (c) => (
         <Card key={c.id} height="100%">
           <CardBody>

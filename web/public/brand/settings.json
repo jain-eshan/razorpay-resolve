@@ -100,7 +100,7 @@
    "subtitle": "No setting unlocks these",
    "rows": [
     {
-     "label": "Blindspot never",
+     "label": "Resolve never",
      "list": [
       "Refunds to a different payment method",
       "Touches your app, servers or database",

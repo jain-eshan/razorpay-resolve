@@ -12,7 +12,7 @@ type Health = { page_mode: string; page_status: number; healthy_hours: number; s
 const BUTTON: Record<string, string> = { dry_run: 'Looks right, continue', first_5: 'Send the first 5', rest: 'Send the rest' }
 const NEED_HOURS = 2
 
-// Hero B. The cause is on the merchant's side and Blindspot only infers it, so the fix is the developer's. What Blindspot does here is
+// Hero B. The cause is on the merchant's side and Resolve only infers it, so the fix is the developer's. What Resolve does here is
 // check the fix held, then offer the customers who could not pay a link, in stages, with a few held back to measure what the link adds.
 export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; onChanged: () => void }) {
   const nav = useNavigate()
@@ -77,7 +77,7 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
       <Box display="flex" flexDirection="column" gap="spacing.2">
         <Heading as="h2" size="medium">Fix it</Heading>
         <Text size="small" color="surface.text.gray.muted">
-          This is estimated, not seen by Razorpay, so Blindspot never changes your site or moves money. Payment links always wait for your approval, at every approval level.{' '}
+          This is estimated, not seen by Razorpay, so Resolve never changes your site or moves money. Payment links always wait for your approval, at every approval level.{' '}
           <Link to="/settings">Settings</Link>
         </Text>
       </Box>
@@ -89,7 +89,7 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
       <Turn n={1} analyzing={busy === 'probe'} you={probe ? 'Check the pay page now' : undefined} title={kind === 'probe' ? 'Confirm your pay page works again' : 'Confirm checkout works again'} badge={health?.signal_healthy ? ['Healthy', 'positive'] : health ? [health.page_mode === 'ok' ? `Healthy ${health.healthy_hours} of ${NEED_HOURS} h` : `Answers ${health.page_status}`, health.page_mode === 'ok' ? 'notice' : 'negative'] : undefined}>
         {kind === 'probe' ? (
           <>
-            <Text size="small">Your developer fixes the page. Blindspot opens your pay page every 5 minutes, and two failed checks in a row raised this issue. Payment links go out only after the page has answered normally for {NEED_HOURS} hours.</Text>
+            <Text size="small">Your developer fixes the page. Resolve opens your pay page every 5 minutes, and two failed checks in a row raised this issue. Payment links go out only after the page has answered normally for {NEED_HOURS} hours.</Text>
             <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
               <Button variant="secondary" isLoading={busy === 'probe'} isDisabled={!!busy} onClick={() => run('probe', async () => { setProbe(await send<Schemas['ProbeResult']>('POST', '/api/probes/run')); await refreshHealth() })}>
                 Check the pay page now
@@ -98,7 +98,7 @@ export function Zone1Fix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; o
             </Box>
           </>
         ) : (
-          <Text size="small">A page check cannot see a checkout that will not open, because the page itself loads. Blindspot confirms the fix from the orders that came after: at least 3 of them got a payment attempt.</Text>
+          <Text size="small">A page check cannot see a checkout that will not open, because the page itself loads. Resolve confirms the fix from the orders that came after: at least 3 of them got a payment attempt.</Text>
         )}
       </Turn>
 

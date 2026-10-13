@@ -5,7 +5,7 @@ Stands alone: it reads nothing from `synth/config.yaml`, so no frozen contract m
 (a test checks the committed file against a fresh run). Every number the demo screens show comes from this file; none is typed into a screen.
 
 The story, in IST on 1 Oct 2026 (the evening before the demo's "today", 2 Oct 10:40, so it is inside every date range): app 8.2 ships at 7:40 pm and its server stops calling "verify payment" for UPI at 7:41. Razorpay captures every payment normally. Errors reach
-Sentry from 7:44 and the alert fires at 7:52. Blindspot posts the RCA at 7:58, a Razorpay support engineer signs it off at 7:59, the brand rolls back at 8:01.
+Sentry from 7:44 and the alert fires at 7:52. Resolve posts the RCA at 7:58, a Razorpay support engineer signs it off at 7:59, the brand rolls back at 8:01.
 1,240 customers paid by UPI from app 8.2 between 7:40 and 7:56 pm and saw "Payment failed". 410 of them paid a second time (by 7:58 pm, when the RCA is posted, so the numbers it states are final) and got an order; 830 left with no order.
 
 Run: `uv run python -m synth.brand_world` (writes the files). The brand's name is not here: the screens carry it (web/src/lib/account.ts).

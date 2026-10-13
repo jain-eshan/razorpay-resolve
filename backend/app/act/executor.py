@@ -145,7 +145,7 @@ def create(db: sqlite3.Connection, incident_id: str, action_type: str, params: d
         if not db.execute("SELECT 1 FROM incidents WHERE id = ?", (incident_id,)).fetchone():
             raise ActError(404, f"Incident {incident_id} not found.")
         if action_type not in autonomy.ACTION_CLASS:
-            raise ActError(422, f"'{action_type}' is not something Blindspot can do yet.")
+            raise ActError(422, f"'{action_type}' is not something Resolve can do yet.")
         if action_type == "refund" and not _is_dup(db, incident_id):
             raise ActError(422, "Refunds are only for customers who were charged twice.")
         if action_type == "grant" and _is_dup(db, incident_id):

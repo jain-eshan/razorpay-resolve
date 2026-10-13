@@ -77,14 +77,14 @@ test('S-04 a case opens from the snapshot without a server', async ({ page, requ
 test('S-19 unpaid renewals: the stat is the list, the inside-rule customers are apart, and there is nothing to press', async ({ page }) => {
   await page.goto('/access')
   await expect(page.getByRole('heading', { name: 'Unpaid renewals' })).toBeVisible()
-  await expect(page.getByText('Blindspot never takes access away')).toBeVisible()
+  await expect(page.getByText('Resolve never takes access away')).toBeVisible()
   await expect(page.getByText(/^\d+ customers? past your grace period$/)).toBeVisible()
   const stat = Number((await page.getByText('Kept access', { exact: true }).locator('xpath=following-sibling::*[1]').innerText()).replace(/\D/g, ''))
   expect(stat).toBeGreaterThan(0)
   await expect(page.getByRole('row')).toHaveCount(stat + 4)  // one row per customer in the list, plus the four inside the rule
   await expect(page.getByText(/\d+ more are still inside their grace period/)).toBeVisible()
   await expect(page.getByText('Left out, and why')).toBeVisible()
-  await expect(page.getByText('What Blindspot cannot see')).toBeVisible()
+  await expect(page.getByText('What Resolve cannot see')).toBeVisible()
   await expect(page.getByRole('button', { name: /revoke|remove|cut|send|approve|refund|grant|fix|message|extend/i })).toHaveCount(0)  // nothing here changes anything (the page has no main landmark to scope to, so the check is by name)
   await expect(page.getByRole('link', { name: 'Unpaid renewals' }).first()).toBeVisible()  // reachable from the side nav
 })
@@ -92,7 +92,7 @@ test('S-19 unpaid renewals: the stat is the list, the inside-rule customers are 
 test('payment issues add up and say why a stage is left out; an issue page jumps to its fix', async ({ page }) => {
   await page.goto('/incidents')
   await expect(page.getByText('Customers affected', { exact: true })).toBeVisible()
-  await expect(page.getByText(/Success Rate page already covers payments that fail at the bank or the UPI app, so Blindspot leaves them out/)).toBeVisible()
+  await expect(page.getByText(/Success Rate page already covers payments that fail at the bank or the UPI app, so Resolve leaves them out/)).toBeVisible()
   await page.goto('/incidents/INC-1')
   await expect(page.getByRole('heading', { name: 'Fix it' })).not.toBeInViewport()
   await page.getByTestId('root-cause-actions').getByRole('button', { name: 'Start the fix' }).click()  // the page's one blue button, in the Actions card
@@ -127,7 +127,7 @@ test('S-21 build with AI: the prompt names the rules, copies exactly, and leads 
   await expect(prompt).toContainText('X-Razorpay-Event-Id')
   await expect(prompt).toContainText('Grant the customer access in our own database FIRST')
   await expect(prompt).toContainText('fulfilment acknowledgement')
-  await expect(prompt).toContainText('blindspot_test')
+  await expect(prompt).toContainText('resolve_test')
   await expect(prompt).not.toContainText(/rzp_(test|live)_|whsec_/)  // a prompt carries no key and no secret
   await page.getByRole('button', { name: 'Copy the prompt' }).click()
   await expect(page.getByRole('button', { name: 'Copied' })).toBeVisible()

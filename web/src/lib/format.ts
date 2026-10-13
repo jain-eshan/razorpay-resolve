@@ -111,7 +111,7 @@ export const chartMarks = (starts: string[], marks: { at: string | null | undefi
 
 // The engine's notes on a bucket ("change point", "alert would fire at 20:15"), said the way a merchant would read them, for the list under a chart.
 export const markerText = (markers: string[]) =>
-  markers.filter((m) => m !== 'change point').map((m) => sentence(m.replace(/^alert would fire at/, 'Blindspot would have alerted at'))).join(' · ')
+  markers.filter((m) => m !== 'change point').map((m) => sentence(m.replace(/^alert would fire at/, 'Resolve would have alerted at'))).join(' · ')
 
 // The top of a chart's value axis: room above the tallest bar, in three equal steps of a round whole number (0, 10, 20, 30 and not 0, 15, 32), so the gridlines read.
 export const yTop = (max: number) => {

@@ -55,12 +55,12 @@ const plain = (t: string) => t
   .replace(/your (\d+) hour rule/gi, (_, h: string) => `your ${h} hour grace period`)
   .replace(/when your rule ran out\. That is the rule working\./, 'when their grace period ended. That is your grace period working.')
   .replace('Those rows are not leaks.', 'Those customers are not a problem.')
-  .replace('It reads the payments it has been given.', 'Blindspot sees only the attempts made so far.')
+  .replace('It reads the payments it has been given.', 'Resolve sees only the attempts made so far.')
 
 // J6, "Unpaid renewals". UPI renewals that failed on the customer's side while access stayed on past the merchant's own rule. A report: nothing here changes anything.
 // It is its own page, not a payment issue (Batch 1.5 T6): a payment issue is an event (something broke, it has a cause and a fix, then it closes) and the customer
 // lost out. This is a balance that grows every day: the payment failed as it should, the customer kept access, so the merchant is the one losing money, and what to
-// do about it (end access, or send a payment link) is the merchant's business call, which Blindspot never makes.
+// do about it (end access, or send a payment link) is the merchant's business call, which Resolve never makes.
 export default function Leakage() {
   const { data, error } = useGet<Schemas['LeakageReport']>('/api/leakage')
   if (!data && !error) return <PageSkeleton />
@@ -75,7 +75,7 @@ export default function Leakage() {
             <Stat label="Kept access" value={String(data.customers)} hint={`customers past your ${data.grace_hours} hour grace period`} icon={UnlockIcon} tone={data.customers ? 'notice' : 'positive'} />
             <Stat label="Longest past it" value={data.customers ? span(data.longest_over_hours) : 'None'} hint={data.customers ? 'and it grows every day' : `your grace period is ${data.grace_hours} hours`} icon={ClockIcon} />
           </Box>
-          <Alert isFullWidth isDismissible={false} color="information" title="Blindspot never takes access away" description="What to do is your call: end access in your own system, or send the customer your own payment link." />
+          <Alert isFullWidth isDismissible={false} color="information" title="Resolve never takes access away" description="What to do is your call: end access in your own system, or send the customer your own payment link." />
 
           <Panel title={data.customers ? `${plural(data.customers, 'customer')} past your grace period` : 'Nobody is past their grace period'}
             subtitle={data.customers ? 'Longest past it first. Access ends on its own at the end of the period they did not pay for, unless you end it sooner.' : 'Every failed renewal was paid again or had access ended in time.'} pad={false}>
@@ -88,7 +88,7 @@ export default function Leakage() {
             </Panel>
           )}
 
-          <Panel title="How Blindspot checked" subtitle="Each step keeps only the customers who still fit">
+          <Panel title="How Resolve checked" subtitle="Each step keeps only the customers who still fit">
             <Box display="flex" flexDirection="column" gap="spacing.3">
               {data.funnel.map((s) => (
                 <Box key={s.label} display="flex" justifyContent="space-between" gap="spacing.4"><Text>{plain(s.label)}</Text><Text weight="semibold">{String(s.count)}</Text></Box>
@@ -101,7 +101,7 @@ export default function Leakage() {
               </Box>
             )}
             <Box display="flex" flexDirection="column" gap="spacing.2" paddingTop="spacing.4" borderTopWidth="thin" borderTopColor="surface.border.gray.subtle">
-              <Text size="small" weight="semibold" color="surface.text.gray.subtle">What Blindspot cannot see</Text>
+              <Text size="small" weight="semibold" color="surface.text.gray.subtle">What Resolve cannot see</Text>
               {data.cannot_see.map((c) => <Text key={c} size="small" color="surface.text.gray.muted">{plain(c)}</Text>)}
             </Box>
           </Panel>
