@@ -72,14 +72,14 @@ The one place the repo measures why a model is needed is the "Why an AI agent" s
 | Eval against hidden ground truth (`make eval`) | 147 checks pass, 41 are reported only, 0 fail |
 | Backend tests (`make test`) | 627 collected |
 | Browser tests (Playwright, `make e2e`) | 260 test cases, at phone, tablet and desktop widths |
-| Lint and type check | clean |
+| Lint and type check (`make lint`, `tsc`) | pass, with one unused-variable warning in a test file |
 | History on `main` | 164 commits, 46 merged pull requests, about 32,500 lines of Python and TypeScript (tests included) |
 
-Every merged pull request passed CI. Screens were reviewed against Razorpay's own design rules (`web/DESIGN.md`) by an independent reviewer agent before merge. The review notes, including what was not checked (dark mode, screen readers), are in `docs/BUILD_LOG.md`.
+CI runs the whole suite on every pull request. Screens were reviewed against Razorpay's own design rules (`web/DESIGN.md`) by an independent reviewer agent before merge. The review notes, including what was not checked (dark mode, screen readers), are in `docs/BUILD_LOG.md`.
 
 ## Run it yourself
 
-You need Python 3.12+ with [uv](https://docs.astral.sh/uv/), and Node 20+.
+You need Python 3.12 with [uv](https://docs.astral.sh/uv/), and Node 22 (what CI uses).
 
 ```
 make setup        # python deps, web deps, git hooks

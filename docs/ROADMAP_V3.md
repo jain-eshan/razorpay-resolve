@@ -18,7 +18,7 @@ How to use it: take the next unticked task in your batch, top to bottom. Each ta
 
 ## 0a. Where Phase 1 stands, 13 Oct (the day of submission)
 
-Batches 1.1, 1.2, 1.3 and 1.4 part a are merged. What is left is the kit and the checks. Submit by 9 pm; the portal closes at 11:59 pm IST and nothing changes after.
+**Update, 13 Oct, after the batches below: the product is closed and frozen.** Batches 1.1 to 1.5 are merged, and so are FK-4 to FK-7 on the Flipkart account (PR #51). The table below is how the day began; S3 and S4 are drafted, and S5 to S7 are Eshan's by-hand items. Original text: Batches 1.1, 1.2, 1.3 and 1.4 part a are merged. What is left is the kit and the checks. Submit by 9 pm; the portal closes at 11:59 pm IST and nothing changes after.
 
 | Task | Who | State | What it needs |
 |---|---|---|---|

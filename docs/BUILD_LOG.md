@@ -1543,3 +1543,21 @@ Tests: `synth/tests/test_brand_extra.py` (8: groups and money add up, every acti
 Not done: a Slack, alert or store screen for each new issue (their Slack previews are in the page; the four-screen story was removed by the two-accounts work); an app or alert phone preview for them (the page shows previews only where the file has them).
 
 Design review: the independent review of the first version (a general-purpose agent following `.claude/agents/design-reviewer.md`; PASS WITH NOTES, content findings fixed) found problems that this version avoids by construction (see above). The ported version has not had its own independent review: it reuses main's issue page and adds data, a two-line page change and one sentence. Checked by me: the list and the FK-4 and FK-6 pages at 1440px. Not checked: 375 and 768px by eye (the measured layout, lane and stability tests cover them), dark mode, keyboard focus.
+
+## 13 Oct 2026, product closed: README, public-facing docs and a CI fix (integrator, docs only)
+
+Goal: Eshan closed the product ("we're not making any changes in the product now") and asked for the GitHub description and all docs a visitor would see to match what was built, in case the repo goes public.
+
+What changed:
+- `README.md` rewritten for a first-time reader: what it is, the closed status, the two demo accounts with every issue (INC-1 to INC-5, FK-1 to FK-7), what is real and simulated, measured numbers, how to run it, where the docs are, known limits. Numbers were measured in this session: `make eval` 147 pass, 41 reported, 0 fail; `uv run pytest` 627 passed; `playwright --list` 260; `make lint` passes with one unused-variable warning in `web/e2e/brand-more.spec.ts`; secret scan clean.
+- `web/README.md` was still the RazorSense starter template; replaced with a short description of this app.
+- `docs/HANDOFF.md`: a closed banner covering PRs #37 to #51. Its sections 2 to 9 (10 Oct) are left as the historical record. `docs/ROADMAP_V3.md`: status note on section 0a. `docs/AI_BUILD_LOG.md` and `docs/SUBMISSION.md`: counts refreshed (164 commits, 46 PRs, 627 and 260 tests, about 32,500 lines).
+- GitHub repository description updated.
+
+CI: main at ebad89f was red (issue #52). One of 260 tests, the INC-2 walkthrough, timed out at 60 s on a slow runner (run took 21 minutes against 14). Not a screen bug: the log shows the click had found its target. Fix in PR #53, one `test.setTimeout`, test code only. Not reproduced on CI; passes locally in 17 s.
+
+Left as it is: PR #46 (open, superseded by #47), the PRD v3 decision boxes (the Claude Doc is the source), and the SUBMISSION video script (S5), which is Eshan's.
+
+Open for Eshan before going public: `docs/RAZORPAY_TRANSCRIPTS.md` says it is third-party material for private research and must not be published, and `docs/INTERVIEWS.md` repeats that. There is also no LICENSE file.
+
+Design review: not applicable, no file under `web/src` changed.
