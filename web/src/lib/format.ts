@@ -38,6 +38,12 @@ export const OWNER: Record<string, string> = {
 // "Estimated" when no payment exists to look up (the customer never reached checkout), so the cause is worked out from other signals.
 export const cause = (i: { owner: string; inferred: boolean }) => `${OWNER[i.owner]}${i.inferred ? ' · estimated' : ''}`
 
+// Who a conversation is with, in a merchant's words: a customer matched to the merchant's own records is never shown by the engine's id (cust_...), and a handle or number
+// the customer wrote from is shown as it is. The language as a word.
+export const customerLabel = (ref: string) => (ref.startsWith('cust_') ? 'Known customer' : ref)
+const LANGUAGE: Record<string, string> = { hi_latn: 'Hinglish', hi: 'Hindi', en: 'English' }
+export const languageName = (code: string) => LANGUAGE[code] ?? sentence(code)
+
 export const ZONE: Record<string, string> = { before: 'Before payment', during: 'During payment', after: 'After payment' }
 export const ZONE_LINE: Record<string, string> = {
   before: 'Customers could not pay, so Razorpay never saw an attempt',
@@ -82,20 +88,30 @@ export const bucketAt = (starts: string[], iso: string | null | undefined, label
 }
 
 // Marks on a chart are labelled, but two marks a few buckets apart would print their labels over each other (a start and a fix an hour and a half apart on a 24 hour
-// chart are 35px apart), and a label on one of the last few buckets runs out of the plot (on a phone, the pill is cut by the edge). The later mark keeps its line and
-// loses its label in both cases; `full` keeps what it said, and ChartKey prints it under the chart so nothing is lost.
-export const thinLabels = (lines: { x: string; label: string }[], categories: string[]) => {
+// chart are 35px apart), and a label on one of the last few buckets runs out of the plot (on a phone, the pill is cut by the edge). Blade's reference line always draws
+// its label pill, even with no text (an empty 80px pill), so a mark with no room for its label is not drawn at all: `drawn` keeps the ones that fit, and `dropped` says
+// the others, with the moment they happened, for the note under the chart (ChartKey). Every line on a chart therefore has a name on it. `at` is the moment itself.
+type Mark = { x: string; label: string; at?: string | null }
+export const thinLabels = (lines: Mark[], categories: string[]) => {
   const near = Math.max(4, Math.ceil(categories.length / 8))
   const edge = Math.max(2, Math.ceil(categories.length / 10))
   const sorted = [...lines].sort((a, b) => categories.indexOf(a.x) - categories.indexOf(b.x))
-  return sorted.map((l, i) => {
-    const crowded = i > 0 && categories.indexOf(l.x) - categories.indexOf(sorted[i - 1].x) < near
+  const drawn: Mark[] = [], dropped: Mark[] = []
+  for (const l of sorted) {
+    const last = drawn[drawn.length - 1]
+    const crowded = !!last && categories.indexOf(l.x) - categories.indexOf(last.x) < near
     const atEdge = categories.length - 1 - categories.indexOf(l.x) < edge
-    return { ...l, full: l.label, label: crowded || atEdge ? '' : l.label }
-  })
+    ;(crowded || atEdge ? dropped : drawn).push(l)
+  }
+  return { drawn, dropped: dropped.map((l) => `${l.label} (${l.at ? when(l.at) : l.x})`) }
 }
-// What a mark that lost its label said, for the note under the chart.
-export const droppedMarks = (lines: { x: string; full: string; label: string }[]) => lines.filter((l) => !l.label && l.full).map((l) => `${l.full}, ${l.x}`)
+// The marks of a chart of buckets that start at `starts` and are labelled by `label`: each placed in its bucket (none outside the chart), then thinned as above.
+export const chartMarks = (starts: string[], marks: { at: string | null | undefined; label: string }[], label: (start: string) => string) =>
+  thinLabels(marks.flatMap((m) => { const x = bucketAt(starts, m.at, label); return x ? [{ x, label: m.label, at: m.at }] : [] }), starts.map(label))
+
+// The engine's notes on a bucket ("change point", "alert would fire at 20:15"), said the way a merchant would read them, for the list under a chart.
+export const markerText = (markers: string[]) =>
+  markers.filter((m) => m !== 'change point').map((m) => sentence(m.replace(/^alert would fire at/, 'Blindspot would have alerted at'))).join(' · ')
 
 // The top of a chart's value axis: room above the tallest bar, in three equal steps of a round whole number (0, 10, 20, 30 and not 0, 15, 32), so the gridlines read.
 export const yTop = (max: number) => {

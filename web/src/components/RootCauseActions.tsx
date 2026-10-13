@@ -32,6 +32,8 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 )
 
 // The two cards under the evidence on an issue page (wireframe 3): the root cause, then the actions that wait for approval. The page's one blue button is in the actions card.
+// "Send to your developer" lives here and nowhere else on the page (Eshan, 13 Oct: it was offered three times): beside the cause and the fix the developer has to ship,
+// and next to Blindspot's own part of the fix, so the two things to do sit together. On Razorpay's side it opens the evidence pack instead.
 // The cause, the change and the fix are the engine's (the evidence pack); nothing here is typed in. The page loads the pack with the incident, so this card never grows
 // when it arrives; `pack` is missing only when it failed to load.
 export function RootCauseActions({ inc, pack, fix, closed }: { inc: Inc; pack?: Schemas['EvidencePack']; fix: RefObject<HTMLDivElement>; closed: boolean }) {
@@ -61,7 +63,7 @@ export function RootCauseActions({ inc, pack, fix, closed }: { inc: Inc; pack?: 
         </Field>
       </Panel>
       <Panel title="Actions, need your approval" fill>
-        {finished ? <Text>{closed ? 'Everything was approved and done. The steps are kept below.' : 'Nothing is waiting for you. Every customer has been put right.'}</Text> : (
+        {finished ? <Text>{closed ? 'Everything was approved and done. The steps are kept below.' : 'Nothing is waiting for you. Every step has been approved.'}</Text> : (
           <Box display="flex" flexDirection="column" gap="spacing.3">
             <Text>{(WOULD[inc.mismatch_type] ?? ((n: number) => `Put right ${n} customers`))(waiting)}</Text>
             <Text size="small" color="surface.text.gray.muted">{HOW[inc.mismatch_type] ?? STEPS}</Text>

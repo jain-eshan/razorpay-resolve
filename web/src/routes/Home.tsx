@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom'
 import { Alert, AlertTriangleIcon, Badge, Box, Button, Card, CardBody, CheckCircleIcon, ChevronRightIcon, EmptyState, Heading, HistoryIcon, Link, Modal, ModalBody, ModalFooter, ModalHeader, RayIcon, RupeesIcon, Text, TextInput, UsersIcon } from '@razorpay/blade/components'
+import { ActivityIcon, BellIcon, ClipboardIcon, CodeSnippetIcon, RadioIcon, SettingsIcon, type IconComponent } from '@razorpay/blade/components'
 import { IssuesChart } from '../components/IssuesChart'
 import { MenuPick } from '../components/MenuPick'
 import { PageHeader } from '../components/PageHeader'
@@ -8,10 +9,11 @@ import { PageSkeleton } from '../components/PageSkeleton'
 import { Panel } from '../components/Panel'
 import { SetupCard } from '../components/SetupCard'
 import { Stat } from '../components/Stat'
+import { UnpaidRenewalsRow } from '../components/UnpaidRenewalsRow'
 import { RayHistory } from '../components/RayHistory'
 import { WelcomeTour } from '../components/WelcomeTour'
 import { useAccount } from '../lib/account'
-import { rupees, useGet, type Schemas } from '../lib/api'
+import { get, rupees, useGet, type Schemas } from '../lib/api'
 import { cause, headline } from '../lib/format'
 import { GUIDES } from '../lib/guides'
 import { addTurn, route } from '../lib/rayChats'
@@ -23,7 +25,7 @@ import Ray from './Ray'
 const EXPLORE_LINE: Record<string, string> = {
   incidents: 'Every customer a problem hit, and what it cost',
   conversations: 'What customers wrote, and the replies sent',
-  access: 'Customers still in after a failed renewal',
+  access: 'Money owed by customers who kept access',
   integration: 'Connect your webhook and check it works',
   channels: 'Choose where customers can reach you',
   autonomy: 'Decide how much Blindspot does on its own',
@@ -32,8 +34,16 @@ const EXPLORE_LINE: Record<string, string> = {
   scan: 'Who paid and got nothing in the last 30 days',
 }
 const EXPLORE = ['incidents', 'conversations', 'access', 'integration', 'channels', 'autonomy', 'learning', 'how', 'scan']
-// The brand account's pages (its own pages join here as they are built).
-const EXPLORE_BRAND = ['incidents']
+// The brand account's pages, in its menu's order, with the menu's icons and a line of its own (eight words or fewer). Six cards: two rows of three (l), three rows of two (m).
+// Accuracy is the small merchant's page for now, so it is not here.
+const EXPLORE_BRAND: { title: string; to: string; icon: IconComponent; line: string }[] = [
+  { title: 'Payment issues', to: '/incidents', icon: ActivityIcon, line: 'Every customer a problem hit, and what it cost' },
+  { title: 'Alerts', to: '/alerts', icon: BellIcon, line: 'What your alert tools sent, and what happened' },
+  { title: 'Integration', to: '/connect', icon: CodeSnippetIcon, line: 'Your alert door and shared Slack channel' },
+  { title: 'Connectors', to: '/channels', icon: RadioIcon, line: "Alert tools, Slack and Razorpay's own monitor" },
+  { title: 'Settings', to: '/settings', icon: SettingsIcon, line: 'What waits for approval, and who approves' },
+  { title: 'Audit trail', to: '/audit', icon: ClipboardIcon, line: 'Every alert, root cause and approval, newest first' },
+]
 // Orange when the fix is yours, neutral when it is someone else's (the same as the Payment issues page).
 const OWNER_TONE = { merchant_code: 'notice', merchant_config: 'notice', razorpay: 'neutral', bank: 'neutral', customer: 'neutral', unknown: 'neutral' } as const
 
@@ -62,7 +72,19 @@ export default function Home() {
   const range = parseRange(params.get('range'))
   const pickRange = (id: RangeId) => setParams((p) => { p.set('range', id); return p }, { replace: true })
   const { data: incs, error } = useGet<Schemas['IncidentSummary'][]>('/api/incidents')
-  if (!incs && !error) return <PageSkeleton />
+  // Still waiting, per issue, from the same counts as its own page ("still to put right"), so this card agrees with every issue page and moves when a fix runs. The engine's
+  // stored `fixed` also counts customers who paid again on their own, so it is not used for Kaksha. The brand's list already counts only what was put right.
+  const [waiting, setWaiting] = useState<Record<string, number>>()
+  const ids = brand ? '' : (incs ?? []).map((i) => i.id).join(',')
+  useEffect(() => {
+    if (!ids) return
+    let live = true
+    Promise.all(ids.split(',').map((id) => get<Schemas['IncidentDetail']>(`/api/incidents/${id}`).then((d) => [id, (d.tier_counts.exact ?? 0) + (d.tier_counts.likely ?? 0) + (d.tier_counts.check ?? 0)] as const)))
+      .then((rows) => live && setWaiting(Object.fromEntries(rows)), () => live && setWaiting({}))
+    return () => { live = false }
+  }, [ids])
+  if ((!incs && !error) || (ids && !waiting)) return <PageSkeleton />
+  const stillWaiting = (i: Schemas['IncidentSummary']) => waiting?.[i.id] ?? i.affected - i.fixed
 
   const issues = (incs ?? []).filter((i) => inRange(i.onset_at, range))
   const open = issues.filter((i) => i.status !== 'closed')
@@ -123,8 +145,11 @@ export default function Home() {
           <Stat label="Open payment issues" value={String(open.length)} hint={issues.length ? `of ${issues.length} that started ${rangeLabel.toLowerCase()}` : `none started ${rangeLabel.toLowerCase()}`} icon={AlertTriangleIcon} tone="notice" />
           <Stat label="Customers hit" value={hit.toLocaleString('en-IN')} hint={!hit ? `none ${rangeLabel.toLowerCase()}` : brand ? `across ${issues.length} payment issues` : `${issues.reduce((a, i) => a + i.silent, 0)} never wrote in`} icon={UsersIcon} />
           <Stat label="Money stuck" value={rupees(open.reduce((a, i) => a + i.at_risk_paise, 0))} hint="on open issues" icon={RupeesIcon} />
-          <Stat label="Customers made whole" value={issues.reduce((a, i) => a + i.fixed, 0).toLocaleString('en-IN')} hint={hit ? `of ${hit.toLocaleString('en-IN')} hit` : `none hit ${rangeLabel.toLowerCase()}`} icon={CheckCircleIcon} tone="positive" />
+          {/* The engine's `fixed` counts every customer who no longer needs anything, including those who paid again on their own, so the card says that and claims no credit (PRD v3: never count a customer who came back on their own as won back). */}
+          <Stat label="No longer waiting" value={issues.reduce((a, i) => a + i.affected - stillWaiting(i), 0).toLocaleString('en-IN')} hint={hit ? `of ${hit.toLocaleString('en-IN')} hit, put right or sorted on their own` : `none hit ${rangeLabel.toLowerCase()}`} icon={CheckCircleIcon} tone="positive" />
         </Box>
+        {/* Kaksha's unpaid renewals: a balance it is owed, not a payment issue, so a row of its own under the four cards (DESIGN.md section 16). Not tied to the range. */}
+        {!brand && <UnpaidRenewalsRow />}
 
         {/* What needs attention comes first and the trend sits beside it, half and half. One column below the large breakpoint. */}
         <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(2, minmax(0, 1fr))' }} gap="spacing.5" alignItems="stretch" testID="home-grid">
@@ -177,8 +202,8 @@ export default function Home() {
             Three across from l, so the nine fill three rows; two across at m, where the first takes a whole row so none is left alone.
             Every row is as tall as the tallest, so a line that wraps on one machine's font does not make one card taller than the rest. */}
         <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', m: 'repeat(2, minmax(0, 1fr))', l: 'repeat(3, minmax(0, 1fr))' }} gridAutoRows="1fr" gap="spacing.5">
-          {(brand ? EXPLORE_BRAND : EXPLORE).map((id) => GUIDES.find((g) => g.id === id)!).map((g, i) => (
-            <Box key={g.id} gridColumn={i === 0 ? { base: 'auto', m: '1 / -1', l: 'auto' } : 'auto'}>
+          {(brand ? EXPLORE_BRAND : EXPLORE.map((id) => GUIDES.find((g) => g.id === id)!).map((g) => ({ ...g, line: EXPLORE_LINE[g.id] }))).map((g, i) => (
+            <Box key={g.to} gridColumn={i === 0 && !brand ? { base: 'auto', m: '1 / -1', l: 'auto' } : 'auto'}>
               <RouterLink to={g.to} style={{ textDecoration: 'none' }}>
                 <Card height="100%">
                   <CardBody>
@@ -188,7 +213,7 @@ export default function Home() {
                         <Box display="flex" alignItems="center" gap="spacing.3"><g.icon size="medium" color="surface.icon.gray.muted" /><Text weight="semibold">{g.title}</Text></Box>
                         <ChevronRightIcon size="medium" color="surface.icon.gray.muted" />
                       </Box>
-                      <Text size="small" color="surface.text.gray.muted">{EXPLORE_LINE[g.id]}</Text>
+                      <Text size="small" color="surface.text.gray.muted">{g.line}</Text>
                     </Box>
                   </CardBody>
                 </Card>

@@ -113,7 +113,7 @@ export function DuplicateFix({ inc, onChanged }: { inc: Schemas['IncidentDetail'
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="That did not go through" description={error} />}
 
       <Turn n={1} analyzing={busy === 'plan' || busy?.startsWith(`${plan?.id}:`)} you={!plan ? undefined : reviewed ? 'Looks right, continue' : 'Plan the refunds'}
-        title="Refund the second charge" badge={plan ? [plan.status === 'done' ? 'Done' : plan.status === 'drafted' ? 'Waiting for you' : `${refunded} of ${total}`, plan.status === 'done' ? 'positive' : 'notice'] : undefined}>
+        title="Refund each customer's second charge" badge={plan ? [plan.status === 'done' ? 'Done' : plan.status === 'drafted' ? 'Waiting for you' : `${refunded} of ${total}`, plan.status === 'done' ? 'positive' : 'notice'] : undefined}>
         {!plan ? (
           <Box display="flex" flexDirection="column" gap="spacing.3" alignItems="flex-start">
             <Text size="small">Lists the {inc.tier_counts.exact} customers charged twice and what each would get back. Each refund goes to the original payment method, in full. The two seats bought for two people, and the second attempts the bank reverses by itself, are left out. Changes nothing yet.</Text>
@@ -162,7 +162,7 @@ export function DuplicateFix({ inc, onChanged }: { inc: Schemas['IncidentDetail'
       </Turn>
 
       {refunded > 0 && (
-        <Turn n={2} analyzing={busy === 'msgplan'} you="Tell the customers" title="Tell the customers" badge={msg ? [msg.status === 'done' ? 'Sent' : msg.status === 'drafted' ? 'Draft' : 'In progress', msg.status === 'done' ? 'positive' : 'neutral'] : undefined}>
+        <Turn n={2} analyzing={busy === 'msgplan'} you="Tell the customers" title="Tell customers about their refund" badge={msg ? [msg.status === 'done' ? 'Sent' : msg.status === 'drafted' ? 'Draft' : 'In progress', msg.status === 'done' ? 'positive' : 'neutral'] : undefined}>
           {!msg ? (
             <Box display="flex" flexDirection="column" gap="spacing.3" alignItems="flex-start">
               <Text size="small">One message to each customer with their refund id and the bank reference to quote if it does not show up. A refund gets its bank reference after the bank has processed it: a couple of hours for UPI, longer for netbanking and cards. {processed} of {total} have one so far.</Text>

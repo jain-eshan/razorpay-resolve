@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
-  Alert, AlertTriangleIcon, Badge, Box, Button, Card, CardBody, Heading, StepGroup, StepItem, StepItemIndicator, Table, TableBody,
+  Alert, AlertTriangleIcon, Badge, Box, Card, CardBody, Heading, StepGroup, StepItem, StepItemIndicator, Table, TableBody,
   TableCell, TableHeader, TableHeaderCell, TableHeaderRow, TablePagination, TableRow, Text,
 } from '@razorpay/blade/components'
+import { LiveStepIndicator } from '../components/Pulse'
 import { Crumbs } from '../components/Crumbs'
 import { Lane } from '../components/Lane'
 import { Panel } from '../components/Panel'
@@ -34,7 +34,6 @@ const two = (top: string, bottom: string) => (
 const strength = (w: number) => (w >= 3 ? 'Strong' : w === 2 ? 'Medium' : 'Supporting')
 
 export default function RenewalView({ id }: { id: string }) {
-  const nav = useNavigate()
   const [version, setVersion] = useState(0)
   const fix = useRef<HTMLDivElement>(null)
   const { data: inc, error } = useGet<Schemas['IncidentDetail']>(`/api/incidents/${id}`, version)
@@ -81,7 +80,7 @@ export default function RenewalView({ id }: { id: string }) {
         </CardBody>
       </Card>
 
-      <StoryStrip inc={inc} />
+      <StoryStrip inc={inc} members={members} />
 
       <Alert isFullWidth color="information" isDismissible={false} title="This one is on Razorpay's side"
         description={`Your card renewals failed inside Razorpay's gateway. Nothing changed on your side and your webhook was healthy. Blindspot cannot see inside Razorpay, so it shows what points there and what it cannot see, and says how sure it is.${early}`} />
@@ -103,15 +102,14 @@ export default function RenewalView({ id }: { id: string }) {
                 </Box>
               ))}
             </Box>
-            {v.what_we_cannot_see.map((t) => <Text key={t} size="small" color="surface.text.gray.muted">What Blindspot cannot see: {t}</Text>)}
           </Panel>
 
           <Panel title="Renewals by the hour" subtitle="Card against UPI AutoPay, in the same hours">
-            <RenewalChart hours={sig.hourly ?? []} marks={marks} edges={[{ at: sig.first_failure_at, label: 'Started' }, { at: sig.resolved_at, label: 'Ended' }]} />
+            <RenewalChart hours={sig.hourly ?? []} marks={marks} edges={[{ at: sig.first_failure_at, label: 'Cards failing' }, { at: sig.resolved_at, label: 'Cards fixed' }]} />
           </Panel>
 
           <EvidenceLane inc={inc} pack={pack} />
-          <JustYou cannotSee={false} inc={inc} />
+          <JustYou inc={inc} />
           <RootCauseActions inc={inc} pack={pack} fix={fix} closed={inc.status === 'closed'} />
 
           <Panel title="Customers whose renewal failed" pad={false} trailing={<Text size="small" color="surface.text.gray.muted">{rows.length} renewals, {keep} to keep access on for</Text>}>
@@ -155,16 +153,22 @@ export default function RenewalView({ id }: { id: string }) {
 
           {sample && sample.length > 0 && (
             <Panel title={`${sample.length} customers, side by side`} subtitle="What the customer said, what Razorpay recorded and what your records show. Check a few before you fix.">
-              {sample.map((x) => (
+              {sample.map((x) => {
+                const m = members?.find((y) => y.payment_id === x.payment_id)
+                return (
                 <Box key={x.payment_id} display="flex" flexDirection="column" gap="spacing.3" paddingBottom="spacing.4" borderBottomWidth="thin" borderBottomColor="surface.border.gray.subtle">
-                  <Text size="small" color="surface.text.gray.muted">{x.payment_id}</Text>
+                  <Box display="flex" gap="spacing.3" alignItems="center" flexWrap="wrap">
+                    {m && <Text size="small" weight="semibold">{`${m.customer_masked} · ${rupees(m.amount_paise)}`}</Text>}
+                    <Text size="small" color="surface.text.gray.muted">{x.payment_id}</Text>
+                  </Box>
                   <Box display="flex" gap="spacing.5" flexWrap="wrap">
                     <Lane title="Customer says" items={x.lanes.customer} empty="Did not write in" />
                     <Lane title="Razorpay says" items={x.lanes.razorpay} />
                     <Lane title="Your records say" items={x.lanes.merchant} />
                   </Box>
                 </Box>
-              ))}
+                )
+              })}
             </Panel>
           )}
 
@@ -180,12 +184,11 @@ export default function RenewalView({ id }: { id: string }) {
                   {[
                     ...steps.map((st) => <StepItem key={st.title} title={st.title} timestamp={when(st.at)} description={st.text} stepProgress="full" marker={<StepItemIndicator color={st.tone} />} />),
                     <StepItem key="end" title={inc.status === 'closed' ? 'Closed' : 'Still open'} stepProgress="none" description={inc.status === 'closed' ? 'Access is kept and cards work again' : `${keep} customers still to keep access on for`}
-                      marker={<StepItemIndicator color={inc.status === 'closed' ? 'positive' : 'notice'} />} />,
+                      marker={inc.status === 'closed' ? <StepItemIndicator color="positive" /> : <LiveStepIndicator color="notice" />} />,
                   ]}
                 </StepGroup>
               </Box>
               <StartFix to={fix} closed={inc.status === 'closed'} variant="secondary" wideOnly />
-              <Box marginTop="spacing.5"><Button variant="tertiary" size="small" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Open the evidence page</Button></Box>
             </CardBody>
           </Card>
         </Box>

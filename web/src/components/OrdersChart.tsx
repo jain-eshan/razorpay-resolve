@@ -1,5 +1,5 @@
 import { Box, ChartCartesianGrid, ChartLine, ChartLineWrapper, ChartReferenceLine, ChartTooltip, ChartXAxis, ChartYAxis, Text } from '@razorpay/blade/components'
-import { bucketAt, droppedMarks, thinLabels, yTop, hourLabel } from '../lib/format'
+import { chartMarks, markerText, yTop, hourLabel } from '../lib/format'
 import { ChartKey } from './ChartKey'
 import { useNarrow } from '../lib/useNarrow'
 
@@ -14,7 +14,7 @@ export function OrdersChart({ hours, marks, edges = [] }: { hours: Hour[]; marks
   const marked = hours.filter((h) => marks[h.at]?.length)
   const failing = hours.filter((h) => h.probe_failed > 0).length
   const data = hours.map((h) => ({ hour: hourLabel(h.at), arrived: h.orders, normal: Math.round(h.expected * 10) / 10, untried: h.zero_attempts }))
-  const lines = thinLabels(edges.map((m) => ({ x: bucketAt(hours.map((h) => h.at), m.at, hourLabel), label: m.label })).filter((m): m is { x: string; label: string } => !!m.x), data.map((d) => d.hour))
+  const lines = chartMarks(hours.map((h) => h.at), edges, hourLabel)
   return (
     <Box display="flex" flexDirection="column" gap="spacing.4">
       <Box height="280px" testID="orders-chart">
@@ -26,14 +26,14 @@ export function OrdersChart({ hours, marks, edges = [] }: { hours: Hour[]; marks
           <ChartLine type="linear" dataKey="arrived" name="Orders that arrived" color="data.background.categorical.green.intense" />
           <ChartLine type="linear" dataKey="normal" name="Normal for that hour" color="data.background.categorical.gray.intense" strokeStyle="dashed" />
           <ChartLine type="linear" dataKey="untried" name="Orders nobody tried to pay for" color="data.background.categorical.red.intense" />
-          {lines.map((m) => <ChartReferenceLine key={m.x} x={m.x} label={m.label} />)}
+          {lines.drawn.map((m) => <ChartReferenceLine key={m.x} x={m.x} label={m.label} />)}
         </ChartLineWrapper>
       </Box>
-      <ChartKey items={[{ name: 'Orders that arrived', color: 'green' }, { name: 'Normal for that hour', color: 'gray' }, { name: 'Orders nobody tried to pay for', color: 'red' }]} notes={droppedMarks(lines)} />
+      <ChartKey items={[{ name: 'Orders that arrived', color: 'green' }, { name: 'Normal for that hour', color: 'gray' }, { name: 'Orders nobody tried to pay for', color: 'red' }]} notes={lines.dropped} />
       <Box display="flex" flexDirection="column" gap="spacing.2">
         <Text size="small" color="surface.text.gray.muted">{`Orders by hour over ${hours.length} hours. ` + (failing ? `The pay page failed its checks in ${failing} of them.` : 'The pay page passed its checks in every hour.')}</Text>
         {marked.map((h) => (
-          <Text key={h.at} size="small">{hourLabel(h.at)} · {marks[h.at].join(' · ')}</Text>
+          <Text key={h.at} size="small">{hourLabel(h.at)} · {markerText(marks[h.at])}</Text>
         ))}
       </Box>
     </Box>

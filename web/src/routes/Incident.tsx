@@ -13,6 +13,7 @@ import { IncidentStats } from '../components/IncidentStats'
 import { JustYou } from '../components/JustYou'
 import { Lane } from '../components/Lane'
 import { Panel } from '../components/Panel'
+import { LiveStepIndicator } from '../components/Pulse'
 import { RootCauseActions } from '../components/RootCauseActions'
 import { StartFix } from '../components/StartFix'
 import { StoryStrip } from '../components/StoryStrip'
@@ -55,7 +56,7 @@ function reconcile(inc: Schemas['IncidentDetail'], members: Schemas['Member'][])
   return `${members.length} found · ${waiting} still without access${restored ? ` · ${restored} restored by Blindspot` : ''}${reasons.length ? ` · left out: ${reasons.join(', ')}` : ''}`
 }
 
-// What happened, in order, in the dashboard's Timeline style. The last step is where the founder's fix lands.
+// What happened, in order, in the dashboard's Timeline style. The last step is where the founder's fix lands; while it is still to do, its dot carries the live pulse.
 function Milestones({ inc, pack, atAlert, fix }: { inc: Schemas['IncidentDetail']; pack?: Schemas['EvidencePack']; atAlert: number | null; fix: RefObject<HTMLDivElement> }) {
   const v = inc.verdict
   const off = inc.timeline.find((b) => b.markers.some((m) => m.startsWith("Razorpay's docs say it turns the webhook off")))
@@ -68,7 +69,7 @@ function Milestones({ inc, pack, atAlert, fix }: { inc: Schemas['IncidentDetail'
   ].sort((a, b) => a.at!.localeCompare(b.at!))
   const done = inc.status === 'closed'
   return (
-    <Card padding="spacing.7">
+    <Card padding="spacing.7" testID="milestones">
       <CardBody>
       <Heading as="h2" size="medium">Timeline</Heading>
       <Box marginTop="spacing.5">
@@ -78,7 +79,7 @@ function Milestones({ inc, pack, atAlert, fix }: { inc: Schemas['IncidentDetail'
               <StepItem key={s.title} title={s.title} timestamp={s.stamp ?? when(s.at!)} description={s.text} stepProgress="full" marker={<StepItemIndicator color={s.tone} />} />
             )),
             <StepItem key="end" title={done ? 'Customers restored' : 'Customers still to restore'} stepProgress="none"
-              description={done ? 'Every grant was checked against your records' : `${inc.tier_counts.exact ?? 0} customers paid and have no access`} marker={<StepItemIndicator color={done ? 'positive' : 'notice'} />} />,
+              description={done ? 'Every grant was checked against your records' : `${inc.tier_counts.exact ?? 0} customers paid and have no access`} marker={done ? <StepItemIndicator color="positive" /> : <LiveStepIndicator color="notice" />} />,
           ]}
         </StepGroup>
       </Box>
@@ -134,12 +135,11 @@ function Incident() {
               <Text size="small" color="surface.text.gray.muted">{sentence(v.confidence)} confidence · started {when(inc.onset_at)} · {inc.id}</Text>
             </Box>
           </Box>
-          <Button variant="secondary" size="medium" onClick={() => nav(`/incidents/${inc.id}/dev`)}>Send to your developer</Button>
         </Box>
         </CardBody>
       </Card>
 
-      <StoryStrip inc={inc} />
+      <StoryStrip inc={inc} members={members} />
 
       {/* The answer, in plain words, full width between the story and the numbers, as on the other issue pages. Slots are the engine's, not typed here. */}
       <Alert isFullWidth color="information" isDismissible={false} title="Your app never heard about these payments"
@@ -152,7 +152,7 @@ function Incident() {
 
 
           <Panel title="What your server did" subtitle="Webhook outcomes, hour by hour">
-            <TimelineChart buckets={inc.timeline} marks={[{ at: v.onset_at, label: 'Started' }, { at: v.resolved_at, label: 'Fixed' }]} />
+            <TimelineChart buckets={inc.timeline} marks={[{ at: v.onset_at, label: 'Webhooks broke' }, { at: v.resolved_at, label: 'Webhooks fixed' }]} />
           </Panel>
 
           <EvidenceLane inc={inc} pack={pack} />

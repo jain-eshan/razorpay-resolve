@@ -1,5 +1,16 @@
 [
  {
+  "id": "AL-6",
+  "tool": "Datadog",
+  "title": "Order confirmations below normal",
+  "service": "order-service",
+  "at": "2026-10-01T19:55:00+05:30",
+  "events": 1,
+  "status": "matched",
+  "issue": "FK-1",
+  "why": "Same cause as the Sentry alert at 7:52 pm, so it joined that issue instead of opening a second one"
+ },
+ {
   "id": "AL-5",
   "tool": "Sentry",
   "title": "PaymentVerificationError",
@@ -33,6 +44,17 @@
   "why": "Checked against Razorpay payments for those 2 minutes: payments and orders were normal, so no issue was opened"
  },
  {
+  "id": "AL-7",
+  "tool": "PagerDuty",
+  "title": "Disk above 90%",
+  "service": "recommendation-service",
+  "at": "2026-09-29T03:10:00+05:30",
+  "events": 1,
+  "status": "dropped",
+  "issue": null,
+  "why": "Not a payment service, so it is left out by your payment filter"
+ },
+ {
   "id": "AL-2",
   "tool": "Razorpay",
   "title": "Webhook deliveries delayed",
@@ -42,6 +64,28 @@
   "status": "matched",
   "issue": "FK-2",
   "why": "Razorpay's own monitor. Matched to 214 orders waiting for a webhook"
+ },
+ {
+  "id": "AL-8",
+  "tool": "Sentry",
+  "title": "ImageLoadTimeout",
+  "service": "catalog-service",
+  "at": "2026-09-27T16:45:00+05:30",
+  "events": 230,
+  "status": "dropped",
+  "issue": null,
+  "why": "Not a payment service, so it is left out by your payment filter"
+ },
+ {
+  "id": "AL-9",
+  "tool": "Datadog",
+  "title": "Payment success rate below 92%",
+  "service": "payment-service",
+  "at": "2026-09-26T22:05:00+05:30",
+  "events": 1,
+  "status": "no_impact",
+  "issue": null,
+  "why": "Checked against Razorpay payments for those 15 minutes: one bank's UPI was slow, which Razorpay's Success Rate page covers. Every paid order was confirmed"
  },
  {
   "id": "AL-1",

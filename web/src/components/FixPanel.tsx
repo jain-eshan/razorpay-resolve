@@ -101,7 +101,7 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
       {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Demo" description={`${demoNote} Click through the steps. Each answer comes from the real engine.`} />}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="That did not go through" description={error} />}
 
-      <Turn n={1} analyzing={busy === 'test'} title="Check your app can give access" badge={tested ? ['Reachable', 'positive'] : grant ? ['Skipped, plan already exists', 'neutral'] : undefined}>
+      <Turn n={1} analyzing={busy === 'test'} title="Make sure your app can give access back" badge={tested ? ['Reachable', 'positive'] : grant ? ['Skipped, plan already exists', 'neutral'] : undefined}>
         <Text size="small">Before anything changes, check that your app answers. Blindspot can only give access through your app. It can never take access away.</Text>
         <Box display="flex" gap="spacing.4" alignItems="center" flexWrap="wrap">
           <Button variant="secondary" isLoading={busy === 'test'} isDisabled={!!busy} onClick={() => run('test', async () => { await refreshHook(); setTested(true) })}>Run the check</Button>
@@ -110,7 +110,7 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
       </Turn>
 
       {(tested || !!grant) && (
-        <Turn n={2} analyzing={busy === 'plan'} you={'Run the check'} title="Test run" badge={grant && grant.status !== 'reverted' ? [grant.status === 'drafted' ? 'Waiting for you' : 'Reviewed', grant.status === 'drafted' ? 'notice' : 'positive'] : undefined}>
+        <Turn n={2} analyzing={busy === 'plan'} you={'Run the check'} title="See who gets their access back" badge={grant && grant.status !== 'reverted' ? [grant.status === 'drafted' ? 'Waiting for you' : 'Reviewed', grant.status === 'drafted' ? 'notice' : 'positive'] : undefined}>
         {!grant || grant.status === 'reverted' ? (
           <Box display="flex" flexDirection="column" gap="spacing.3" alignItems="flex-start">
             <Text size="small">Lists who would be switched on. Changes nothing.</Text>
@@ -133,7 +133,7 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
       )}
 
       {!!grant && grant.status !== 'drafted' && (
-        <Turn n={3} analyzing={busy === 'undo' || busy === `${grant.id}:${grant.next_stage}`} you={grant.status === 'reverted' ? 'Undo the grants' : 'Looks right, continue'} title="Give access: 5 first, then the rest" badge={grant.status !== 'reverted' ? [grant.status === 'done' ? 'Done' : grant.status === 'failed' ? 'Stopped' : `${done} of ${total}`, grant.status === 'done' ? 'positive' : grant.status === 'failed' ? 'negative' : 'notice'] : undefined}>
+        <Turn n={3} analyzing={busy === 'undo' || busy === `${grant.id}:${grant.next_stage}`} you={grant.status === 'reverted' ? 'Undo the grants' : 'Looks right, continue'} title="Give customers their access back, 5 first" badge={grant.status !== 'reverted' ? [grant.status === 'done' ? 'Done' : grant.status === 'failed' ? 'Stopped' : `${done} of ${total}`, grant.status === 'done' ? 'positive' : grant.status === 'failed' ? 'negative' : 'notice'] : undefined}>
         {grant.status === 'reverted' ? (
           <Text size="small">Undone. Every record is back to how it was. Plan again whenever you are ready.</Text>
         ) : (
@@ -155,7 +155,7 @@ export function FixPanel({ inc, members, onChanged }: { inc: Schemas['IncidentDe
       )}
 
       {done > 0 && (
-        <Turn n={4} analyzing={busy === 'msgplan'} you={'Tell the customers'} title="Tell customers" badge={msg ? [msg.status === 'done' ? 'Sent' : msg.status === 'drafted' ? 'Draft' : 'In progress', msg.status === 'done' ? 'positive' : 'neutral'] : undefined}>
+        <Turn n={4} analyzing={busy === 'msgplan'} you={'Tell the customers'} title="Tell customers their access is back" badge={msg ? [msg.status === 'done' ? 'Sent' : msg.status === 'drafted' ? 'Draft' : 'In progress', msg.status === 'done' ? 'positive' : 'neutral'] : undefined}>
         {done === 0 ? (
           <Text size="small" color="surface.text.gray.muted">Opens once access is confirmed for at least one customer, because the message says access is on.</Text>
         ) : !msg ? (

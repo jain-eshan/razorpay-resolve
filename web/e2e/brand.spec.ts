@@ -44,11 +44,11 @@ test('each account has its own menu: the brand has no customer complaints or ren
   await page.goto('/incidents')  // not Overview: its Explore cards carry the same names
   const nav = page  // the side menu (at this width there is no phone drawer to confuse it with)
   await expect(nav.getByRole('link', { name: 'Customer complaints' })).toBeVisible()
-  await expect(nav.getByRole('link', { name: 'Unpaid access' })).toBeVisible()
+  await expect(nav.getByRole('link', { name: 'Unpaid renewals' })).toBeVisible()
   await page.goto(`/incidents${BRAND}`)
   await expect(nav.getByRole('link', { name: 'Payment issues' })).toBeVisible()
   await expect(nav.getByRole('link', { name: 'Customer complaints' })).toHaveCount(0)
-  await expect(nav.getByRole('link', { name: 'Unpaid access' })).toHaveCount(0)
+  await expect(nav.getByRole('link', { name: 'Unpaid renewals' })).toHaveCount(0)
 })
 
 test('a page or an issue of the other account says whose it is and offers the switch, instead of showing the other merchant', async ({ page }) => {
@@ -69,7 +69,7 @@ test('the brand Overview adds up its own issues', async ({ page }) => {
   await expect(card('Open payment issues')).toHaveText(String(open.length))
   await expect(card('Customers hit')).toHaveText(n(list.reduce((s, i) => s + i.affected, 0)))
   await expect(card('Money stuck')).toHaveText(rupees(open.reduce((s, i) => s + i.at_risk_paise, 0)))
-  await expect(card('Customers made whole')).toHaveText(n(list.reduce((s, i) => s + i.fixed, 0)))
+  await expect(card('No longer waiting')).toHaveText(n(list.reduce((s, i) => s + i.fixed, 0)))
   await expect(page.getByText('Answers reach your team in Slack')).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'Ask Ray' })).toHaveCount(0)
 })

@@ -74,19 +74,19 @@ test('S-04 a case opens from the snapshot without a server', async ({ page, requ
 })
 
 // J6. A report, not an action: it lists customers whose UPI renewal failed and who still have access past the merchant's rule, and offers nothing that changes anything.
-test('S-19 unpaid access: the stat is the list, the inside-rule customers are apart, and there is nothing to press', async ({ page }) => {
+test('S-19 unpaid renewals: the stat is the list, the inside-rule customers are apart, and there is nothing to press', async ({ page }) => {
   await page.goto('/access')
-  await expect(page.getByRole('heading', { name: 'Unpaid access' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Unpaid renewals' })).toBeVisible()
   await expect(page.getByText('Blindspot never takes access away')).toBeVisible()
-  await expect(page.getByText(/\d+ customers failed a UPI renewal, are past your 48 hour grace period and still have access/)).toBeVisible()
-  const stat = Number((await page.getByText('Past their grace period', { exact: true }).locator('xpath=following-sibling::*[1]').innerText()).replace(/\D/g, ''))
+  await expect(page.getByText(/^\d+ customers? past your grace period$/)).toBeVisible()
+  const stat = Number((await page.getByText('Kept access', { exact: true }).locator('xpath=following-sibling::*[1]').innerText()).replace(/\D/g, ''))
   expect(stat).toBeGreaterThan(0)
   await expect(page.getByRole('row')).toHaveCount(stat + 4)  // one row per customer in the list, plus the four inside the rule
   await expect(page.getByText(/\d+ more are still inside their grace period/)).toBeVisible()
   await expect(page.getByText('Left out, and why')).toBeVisible()
-  await expect(page.getByText('What I cannot see')).toBeVisible()
+  await expect(page.getByText('What Blindspot cannot see')).toBeVisible()
   await expect(page.getByRole('button', { name: /revoke|remove|cut|send|approve|refund|grant|fix|message|extend/i })).toHaveCount(0)  // nothing here changes anything (the page has no main landmark to scope to, so the check is by name)
-  await expect(page.getByRole('link', { name: 'Unpaid access' }).first()).toBeVisible()  // reachable from the side nav
+  await expect(page.getByRole('link', { name: 'Unpaid renewals' }).first()).toBeVisible()  // reachable from the side nav
 })
 
 test('payment issues add up and say why a stage is left out; an issue page jumps to its fix', async ({ page }) => {
