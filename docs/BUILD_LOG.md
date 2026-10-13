@@ -1607,3 +1607,14 @@ Not done on purpose: "put right" (34 uses, understood as is) and the "resolved" 
 Tests: two specs expected the old sentences or "Exact confidence" and were updated; the first-check report now repeats the phrase four times, so its test takes the first match. 260 browser tests (CI mode) and 627 backend tests pass; looked at the issue page at 1440 and 375px.
 
 Design review: self-checked at 1440 and 375px; no independent review run.
+
+## 13 Oct 2026, account logos and a write-up for each account (stream A)
+
+Eshan asked for a logo for Kaksha, Flipkart's real logo on the Flipkart account "so the product has more authenticity", and a write-up of each company in place of the plain "Small business" and "Enterprise" labels.
+- `components/AccountLogo.tsx` draws an account's square logo (`public/brand/kaksha-mark.svg`, drawn for the demo: a white K on indigo with an amber dot; `public/brand/flipkart-mark.png`, Flipkart's bag icon from the file Eshan supplied, cropped and shrunk to 144px). It sits beside the name on the account picker, in the avatar menu (header and "Switch to") and on the two journey cards of How Resolve works.
+- `lib/account.ts`: `line` is now what the company does ("Test series for exam prep", "Online marketplace"), `detail` is a three-sentence write-up, and the new `persona` says who each account stands for. The picker shows both under the name, with "Who it is for" above the persona. The picker's subtitle and the line on How Resolve works no longer say "small business" or "big brand".
+- This reverses the 12 Oct rule "Flipkart in text only, no logo". The bag icon is the only brand asset used; Sentry, Slack and the rest stay in text, and every account page still says the data is made up and this is not the real Flipkart. ROADMAP_V3, SUBMISSION and DESIGN.md section 15 are updated to match.
+- Not used: the wide "Flipkart" wordmark Eshan also supplied, because the name is already written next to the icon. It can replace the icon on the picker card if wanted.
+- Tests: `brand`, `how-it-works`, `shell` and `layout` specs pass (104, CI mode). Looked at the picker at 1440, 768 and 375px (no sideways overflow, the two cards the same height at 768) and at How Resolve works at 375px.
+
+Design review: pass with notes. The `design-reviewer` agent is not registered in this session, so a general-purpose agent ran its file's method in quick mode (mechanical checks, section 23 on `/signin` and `/how-it-works` at 375, 768 and 1440px, the avatar menu at 1440px). Fixed from it: the two logos had different corners (both are now square files rounded by one wrapper), and no test could fail on the logos (the picker test now checks both logos load and the persona line shows). Left on purpose: the top-bar avatar keeps initials, as on the live dashboard. Not checked: dark mode, the avatar menu at 375 and 768px, keyboard use of the menu, a real phone, the full snapshot suite.
