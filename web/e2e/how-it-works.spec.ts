@@ -110,7 +110,7 @@ test('why an AI agent: the lead figure, the counts and the three misreads come f
   expect(metric('messy_both_issues_found').target).toContain(`of ${twoN} two-in-one`)
   await expect(card.getByTestId('rules-stat')).toContainText(`${main - both} moreread only in part`)
   await expect(card.getByText(both === 0 ? `In each of the ${twoN} with two problems, they caught one and missed the other.` : /they caught one and missed the other/)).toBeVisible()
-  await expect(card.getByText('Three it got wrong or half right')).toBeVisible()
+  await expect(card.getByText('Three the rules got wrong or half right')).toBeVisible()
   await expect(page.getByTestId('why-ai').getByText(/so an AI agent reads each message first, and the rules still produce every number\.$/)).toBeVisible()
   await expect(card.getByText(new RegExp(`tried on ${total} made-up messages`))).toBeVisible()
   const misses = card.getByTestId('rules-miss')

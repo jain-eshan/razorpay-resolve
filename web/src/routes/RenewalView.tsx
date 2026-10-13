@@ -105,7 +105,7 @@ export default function RenewalView({ id }: { id: string }) {
           </Panel>
 
           <Panel title="Renewals by the hour" subtitle="Card against UPI AutoPay, in the same hours">
-            <RenewalChart hours={sig.hourly ?? []} marks={marks} edges={[{ at: sig.first_failure_at, label: 'Cards failing' }, { at: sig.resolved_at, label: 'Cards work again' }]} />
+            <RenewalChart hours={sig.hourly ?? []} marks={marks} edges={[{ at: sig.first_failure_at, label: 'Cards failing' }, { at: sig.resolved_at, label: 'Cards fixed' }]} />
           </Panel>
 
           <EvidenceLane inc={inc} pack={pack} />
