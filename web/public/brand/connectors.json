@@ -10,8 +10,8 @@
      "kind": "alert",
      "status": "connected",
      "sends": "Sends: Alerts from your Sentry rules; the payment filter keeps the payment ones",
-     "count": "3 alerts since 24 Sep",
-     "last": "Last alert 1 Oct, 7:52 pm",
+     "count": "4 alerts since 24 Sep",
+     "last": "Last alert 2 Oct, 9:38 am",
      "off": "Disconnected. Alerts from Sentry are refused until you connect it again."
     },
     {
@@ -20,7 +20,7 @@
      "kind": "alert",
      "status": "connected",
      "sends": "Sends: Alerts from your Datadog monitors; the payment filter keeps the payment ones",
-     "count": "3 alerts since 24 Sep",
+     "count": "4 alerts since 24 Sep",
      "last": "Last alert 1 Oct, 7:55 pm",
      "off": "Disconnected. Alerts from Datadog are refused until you connect it again."
     },
@@ -62,8 +62,8 @@
      "kind": "slack",
      "status": "connected",
      "sends": "Root causes, approval requests and closing notes, in #razorpay-payments only",
-     "count": "3 root causes posted since 24 Sep",
-     "last": "Last root cause 1 Oct, 7:58 pm",
+     "count": "7 root causes posted since 24 Sep",
+     "last": "Last root cause 2 Oct, 9:44 am",
      "off": "Disconnected. Root causes and approval requests show only on this dashboard."
     }
    ]

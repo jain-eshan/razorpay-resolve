@@ -15,14 +15,14 @@ const [twice, noOrder] = fk1.groups
 const BRAND = '?account=flipkart'
 
 test('the brand data adds up: the groups make the customers hit, and the money is the sum of the payments', () => {
-  for (const id of ['FK-1', 'FK-2', 'FK-3']) {
+  for (const id of ['FK-1', 'FK-2', 'FK-3', 'FK-4', 'FK-5', 'FK-6', 'FK-7']) {
     const d = fk(id)
     expect(d.groups.reduce((s, g) => s + g.count, 0), id).toBe(d.affected)
     expect(d.customers, id).toHaveLength(d.affected)
     for (const g of d.groups) expect(d.customers.filter((c) => c.group === g.id).reduce((s, c) => s + c.amount_paise, 0), `${id} ${g.id}`).toBe(g.amount_paise)
   }
   expect(fk1.money_stuck_paise).toBe(twice.amount_paise + noOrder.amount_paise)
-  expect(list.map((i) => i.id)).toEqual(['FK-1', 'FK-2', 'FK-3'])
+  expect(list.map((i) => i.id)).toEqual(['FK-1', 'FK-2', 'FK-3', 'FK-4', 'FK-5', 'FK-6', 'FK-7'])
 })
 
 test('the way in: the account picker, then the brand account, then a switch back from the avatar', async ({ page }) => {

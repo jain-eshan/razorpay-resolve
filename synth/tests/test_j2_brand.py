@@ -99,9 +99,10 @@ def test_the_audit_trail_is_newest_first_and_points_at_real_issues():
     assert all(e["kind"] in w["audit"]["kinds"] for e in ev)
     assert all(e["ref"] is None or e["ref"] in w["details"] for e in ev)
     assert sum(1 for e in ev if e["kind"] == "alert") == len(w["alerts"])  # every alert is in the trail
-    # the approvals a judge can make in the tab are FK-1's actions, none of them done in the data
-    fk1 = w["details"]["FK-1"]
-    assert [p["action"] for p in w["audit"]["pending"]] == [a["id"] for a in fk1["actions"] if not a.get("done")]
+    # the approvals a judge can make in the tab are the open issues' actions (FK-1, then FK-4 to FK-7), none of them done in the data
+    open_actions = [(d["id"], a["id"]) for d in w["details"].values() if d["status"] == "open" for a in d["actions"] if not a.get("done")]
+    assert [(p["issue"], p["action"]) for p in w["audit"]["pending"]] == open_actions
+    assert {i for i, _ in open_actions} == {"FK-1", "FK-4", "FK-5", "FK-6", "FK-7"}
 
 
 def test_no_page_shows_anything_that_looks_like_a_secret():

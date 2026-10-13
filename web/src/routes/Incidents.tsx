@@ -13,7 +13,7 @@ const STATUS_TONE = { open: 'notice', fixing: 'information', verifying: 'informa
 // Why a zone can be empty, so a 0 reads as covered, not as missing data. From the Incidents guide: Blindspot covers before and after the payment.
 const EMPTY: Record<string, string> = {
   before: 'Nothing found. Your pay page and checkout opened normally.',
-  during: "Razorpay's Success Rate page already covers bank and UPI failures, so Blindspot leaves them out.",
+  during: "Razorpay's Success Rate page already covers payments that fail at the bank or the UPI app, so Blindspot leaves them out.",
   after: 'Nothing found. Every customer who paid got what they paid for.',
 }
 // "Could have known" on the same day as the start needs only the time.

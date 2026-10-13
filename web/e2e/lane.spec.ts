@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test'
 // The evidence lane's look (v3 batch 1.5, T5) and the live pulse on what is still happening. The lane's text and the Kaksha issues' geometry are in incident.spec.ts.
 
 // The same geometry checks as the Kaksha issues, for the brand account's lanes, whose axis is fixed to a stretch of one evening and whose moments carry their time.
-for (const id of ['FK-1', 'FK-2', 'FK-3']) {
+for (const id of ['FK-1', 'FK-2', 'FK-3', 'FK-4', 'FK-5', 'FK-6', 'FK-7']) {
   test(`${id}: the brand lane fits its card at every width: nothing outside, clipped or touching`, async ({ page }) => {
     for (const width of [375, 768, 1024, 1100, 1440]) {
       await page.setViewportSize({ width, height: 900 })

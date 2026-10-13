@@ -74,7 +74,7 @@
     },
     {
      "label": "Since 24 Sep",
-     "value": "3 root causes posted, all exact, all signed off",
+     "value": "7 root causes posted, 5 exact and 2 likely, all signed off",
      "note": "The slowest sign-off came 3 minutes after the root cause was posted."
     }
    ]
