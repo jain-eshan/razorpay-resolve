@@ -71,7 +71,7 @@ export function RulesFail({ data }: { data?: RulesData }) {
           </Box>
           {shown > 0 && (
             <Box display="flex" flexDirection="column" gap="spacing.4">
-              <Text weight="semibold">{`${shown === 3 ? 'Three' : shown === 2 ? 'Two' : 'One'} it got wrong or half right`}</Text>
+              <Text weight="semibold">{`${shown === 3 ? 'Three' : shown === 2 ? 'Two' : 'One'} the rules got wrong or half right`}</Text>
               <Box display="grid" gridTemplateColumns={side ? `repeat(${shown}, minmax(0, 1fr))` : 'minmax(0, 1fr)'} gap="spacing.5">
                 {Array.from({ length: shown }, (_, i) => {
                   const [said, read, means, kind] = d.misses[i] ?? ['', '', '', '']

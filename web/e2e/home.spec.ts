@@ -21,7 +21,9 @@ test('H3 the four cards equal the sums from the issue data', async ({ page }) =>
   await expect(card(page, 'Open payment issues')).toHaveText(String(open.length))
   await expect(card(page, 'Customers hit')).toHaveText(String(sum(issues, 'affected')))
   await expect(card(page, 'Money stuck')).toHaveText(rupees(sum(open, 'at_risk_paise')))
-  await expect(card(page, 'No longer waiting')).toHaveText(String(sum(issues, 'fixed')))
+  // No longer waiting: customers hit minus those each issue page says are still to put right (its tier counts), not the engine's stored `fixed`.
+  const waiting = issues.reduce((a, i) => { const t = JSON.parse(readFileSync(`public/snapshot/incidents/${i.id}.json`, 'utf8')).tier_counts; return a + (t.exact ?? 0) + (t.likely ?? 0) + (t.check ?? 0) }, 0)
+  await expect(card(page, 'No longer waiting')).toHaveText(String(sum(issues, 'affected') - waiting))
 })
 
 test('H2 the date range changes the cards, chart and list together, and survives a reload', async ({ page }) => {

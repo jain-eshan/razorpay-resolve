@@ -188,7 +188,7 @@
    "at": "2026-09-25T11:05:00+05:30",
    "kind": "action",
    "summary": "Refund 38 second charges: ₹48,062 back to the original payment method, one customer at a time.",
-   "actor": "Razorpay",
+   "actor": "Blindspot",
    "ref": "FK-3",
    "id": "EV-8"
   },

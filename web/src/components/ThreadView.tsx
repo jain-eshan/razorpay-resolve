@@ -40,7 +40,7 @@ export function ThreadView({ thread, onChanged }: { thread: Thread; onChanged: (
       </Box>
 
       {thread.founder_brief && (
-        <Alert isFullWidth color="notice" isDismissible={false} title="Why this needs you" description={thread.founder_brief} />
+        <Alert isFullWidth color="notice" isDismissible={false} title="Why this needs you" description={thread.founder_brief.replace(/^Why this needs you:\s*/, '')} />
       )}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="Not sent" description={error} />}
 

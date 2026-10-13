@@ -312,8 +312,8 @@ APPROVERS = ["Payments lead", "On-call engineering manager"]
 REFUND_PER_APPROVAL, REFUND_PER_DAY, MESSAGE_PER_APPROVAL = 5_00_000_00, 20_00_000_00, 1_000
 # What each alert tool sends, as its alert rule says. Razorpay's monitor is Razorpay's own and needs no rule.
 TOOLS = [
-    {"id": "sentry", "name": "Sentry", "rule": f"Payment errors, more than 20 in {GROUP_MINUTES} minutes"},
-    {"id": "datadog", "name": "Datadog", "rule": "Monitors on order confirmations and payment success rate"},
+    {"id": "sentry", "name": "Sentry", "rule": "Alerts from your Sentry rules; the payment filter keeps the payment ones"},
+    {"id": "datadog", "name": "Datadog", "rule": "Alerts from your Datadog monitors; the payment filter keeps the payment ones"},
     {"id": "pagerduty", "name": "PagerDuty", "rule": "Incidents on the services your payment filter lists"},
 ]
 
@@ -343,11 +343,11 @@ def signoffs(issues: dict) -> dict:
 def integration(al: list[dict]) -> dict:
     left_out = sorted({a["service"] for a in al if a["status"] == "dropped"})
     return {
-        "set_up": f"Set up by your Razorpay account manager on {SET_UP.day} {SET_UP.strftime('%b %Y')}. In this demo it is read only.",
+        "demo": "Demo: the alert door is simulated", "set_up": f"Taking alerts straight from Sentry, Datadog and PagerDuty is the next build, so nothing here receives alerts. Shown as your account manager would set it up ({SET_UP.day} {SET_UP.strftime('%b %Y')}), read only.",
         "sections": [
             {"id": "door", "title": "Alert door", "subtitle": "How your alert tools send Blindspot what they see", "rows": [
-                {"label": "Your alert address", "code": "https://api.razorpay.com/v1/blindspot/alerts/acc_3Fq9Tz7Wd",
-                 "note": "One address for your account. Sentry, Datadog and PagerDuty send to it through an alert rule, with no change to your app."},
+                {"label": "Your alert address", "code": "https://alerts.blindspot.example/acc_3Fq9Tz7Wd",
+                 "note": "A placeholder: the real address is made when the alert door is built. It will be one address per account, and Sentry, Datadog and PagerDuty send to it through an alert rule, with no change to your app."},
                 {"label": "Signing", "value": "Every alert must be signed with your signing secret. Unsigned alerts are refused.",
                  "note": f"The signing secret is shown once, when you create it. Yours was created on {SET_UP.day} {SET_UP.strftime('%b')}."},
                 {"label": "Counted as payments", "list": PAYMENT_SERVICES,
@@ -465,7 +465,7 @@ def audit(issues: dict, al: list[dict]) -> dict:
     refund3, msg3 = fk3_["actions"]
     ev += [
         {"at": iso(FK3_T["fixed"] + timedelta(minutes=10)), "kind": "approval", "summary": f"Approved: {refund3['title']}, {fk3_['groups'][0]['hint'].replace(' refunded', '')}", "actor": APPROVERS[1], "ref": "FK-3"},
-        {"at": iso(FK3_T["refunded"]), "kind": "action", "summary": f"{refund3['title']}: {refund3['text']}", "actor": "Razorpay", "ref": "FK-3"},
+        {"at": iso(FK3_T["refunded"]), "kind": "action", "summary": f"{refund3['title']}: {refund3['text']}", "actor": "Blindspot", "ref": "FK-3"},
         {"at": iso(FK3_T["refunded"] + timedelta(minutes=5)), "kind": "approval", "summary": f"Approved: {msg3['title']}", "actor": APPROVERS[0], "ref": "FK-3"},
         {"at": iso(FK3_T["refunded"] + timedelta(minutes=6)), "kind": "action", "summary": f"{msg3['title']}: sent", "actor": "Blindspot", "ref": "FK-3"},
     ]

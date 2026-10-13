@@ -19,12 +19,15 @@ const reached = (actions: Inc['actions']) => ({
 const putRight = (actions: Inc['actions']) => Math.max(0, ...actions.map((a) =>
   a.action_type === 'grant' || a.action_type === 'refund' ? a.item_counts.verified ?? 0 : a.action_type === 'recovery_link' ? a.item_counts.sent_paid ?? 0 : 0))
 
-// Customers who needed nothing from Blindspot, from the engine's own reason for leaving them out: they paid again on their own, or you had already given access or refunded
-// them yourself. Said beside the count, never in it.
-const onTheirOwn = (members: Schemas['Member'][]) => {
+// Everyone hit, accounted for: put right by Blindspot, still waiting, fixed by you (access given or refunded by hand), paid again on their own, or not reachable yet (no channel
+// to message them on, a closed WhatsApp window, Instagram replies not built). The last is what is left of the customers hit, so the tile, its note and "still to put right"
+// always add up to the customers hit. The note names every group that is not zero; it says nothing until the customers have loaded.
+const others = (affected: number, waiting: number, put: number, members: Schemas['Member'][]) => {
+  if (!members.length) return ''
   const paid = members.filter((m) => /^Paid since\b/.test(m.exclusion_reason ?? '')).length
   const you = members.filter((m) => m.exclusion_reason === 'already active (manual grant)' || m.exclusion_reason === 'refunded').length
-  return [paid ? `${paid} paid on their own` : '', you ? `${you} fixed by you` : ''].filter(Boolean).join(', ')
+  const unreachable = Math.max(0, affected - waiting - put - paid - you)
+  return [you ? `${you} fixed by you` : '', paid ? `${paid} paid on their own` : '', unreachable ? `${unreachable} can't be reached yet` : ''].filter(Boolean).join(', ')
 }
 
 // The five steps every payment issue goes through, with the issue's own numbers (PRD v3, section 1): hear, find everyone, say whose side, fix, win customers back.
@@ -38,13 +41,15 @@ export function StoryStrip({ inc, members = [] }: { inc: Inc; members?: Schemas[
   const waiting = (inc.tier_counts.exact ?? 0) + (inc.tier_counts.likely ?? 0) + (inc.tier_counts.check ?? 0)
   // The note says who sorted it out on their own when anyone did, and the status otherwise. Both did not fit two lines in a tile five across, and the status is
   // already on the page twice (the tile's "now" marker and the badge at the top).
-  const others = onTheirOwn(members)
+  const put = putRight(inc.actions)
+  const sortedElsewhere = others(inc.affected, waiting, put, members)
   const status = closed ? 'closed' : waiting === 0 ? 'all approved' : inc.status === 'open' ? 'needs your approval' : 'in progress'
   const steps = [
     { title: 'Hear', done: true, value: inc.complained > 0 ? `${inc.complained} wrote in` : 'No complaints yet', note: inc.complained > 0 ? 'seen in your data too' : 'found in your data' },
     { title: 'Find everyone', done: true, value: `${inc.affected} customers hit`, note: inc.silent > 0 ? 'not only those who wrote in' : 'every one wrote in' },
     { title: 'Whose side', done: inc.owner !== 'unknown', value: OWNER[inc.owner], note: `${sentence(inc.verdict.confidence)} confidence` },
-    { title: 'Fix', done: closed || (inc.affected > 0 && waiting === 0), value: `${putRight(inc.actions)} of ${inc.affected} put right`, note: others || status },
+    // Of the customers Blindspot can act for (put right so far, plus still waiting): the rest are in the note, so nothing is counted twice and nobody is left out.
+    { title: 'Fix', done: closed || (inc.affected > 0 && waiting === 0), value: put + waiting ? `${put} of ${put + waiting} put right` : 'Nothing left to put right', note: sortedElsewhere || status },
     { title: 'Win back', done: closed && told > 0, value: told > 0 ? `${told} told` : 'No one told yet', note: paid > 0 ? `${paid} paid again` : 'needs your approval' },
   ]
   return <StoryTiles steps={steps} />

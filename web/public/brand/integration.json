@@ -1,5 +1,6 @@
 {
- "set_up": "Set up by your Razorpay account manager on 12 Sep 2026. In this demo it is read only.",
+ "demo": "Demo: the alert door is simulated",
+ "set_up": "Taking alerts straight from Sentry, Datadog and PagerDuty is the next build, so nothing here receives alerts. Shown as your account manager would set it up (12 Sep 2026), read only.",
  "sections": [
   {
    "id": "door",
@@ -8,8 +9,8 @@
    "rows": [
     {
      "label": "Your alert address",
-     "code": "https://api.razorpay.com/v1/blindspot/alerts/acc_3Fq9Tz7Wd",
-     "note": "One address for your account. Sentry, Datadog and PagerDuty send to it through an alert rule, with no change to your app."
+     "code": "https://alerts.blindspot.example/acc_3Fq9Tz7Wd",
+     "note": "A placeholder: the real address is made when the alert door is built. It will be one address per account, and Sentry, Datadog and PagerDuty send to it through an alert rule, with no change to your app."
     },
     {
      "label": "Signing",

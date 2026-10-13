@@ -9,7 +9,7 @@ import { useGet } from '../lib/api'
 // demo cannot change them, so there are no controls and no Save button; an Alert says so.
 type Row = { label: string; value?: string; code?: string; list?: string[]; note?: string }
 type Section = { id: string; title: string; subtitle: string; rows: Row[] }
-type Data = { set_up: string; sections: Section[] }
+type Data = { set_up: string; demo?: string; sections: Section[] }
 
 function Setting({ row, wide }: { row: Row; wide: boolean }) {
   return (
@@ -31,7 +31,7 @@ function Sections({ path, title, description, testID }: { path: string; title: s
     <Box display="flex" flexDirection="column" gap="spacing.7" testID={testID}>
       <PageHeader title={title} description={description} />
       {error && <Alert isFullWidth color="negative" isDismissible={false} title={`Could not load ${title.toLowerCase()}`} description={`${error}. Reload the page to try again.`} />}
-      {data && <Alert isFullWidth color="information" isDismissible={false} title="Demo: view only" description={data.set_up} />}
+      {data && <Alert isFullWidth color="information" isDismissible={false} title={data.demo ?? 'Demo: view only'} description={data.set_up} />}
       {data?.sections.map((s) => (
         <Panel key={s.id} title={s.title} subtitle={s.subtitle} testID={`section-${s.id}`}>
           {/* Two settings a row from m; a topic with one setting gives it the whole row. */}

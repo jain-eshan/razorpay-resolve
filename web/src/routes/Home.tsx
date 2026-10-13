@@ -13,7 +13,7 @@ import { UnpaidRenewalsRow } from '../components/UnpaidRenewalsRow'
 import { RayHistory } from '../components/RayHistory'
 import { WelcomeTour } from '../components/WelcomeTour'
 import { useAccount } from '../lib/account'
-import { rupees, useGet, type Schemas } from '../lib/api'
+import { get, rupees, useGet, type Schemas } from '../lib/api'
 import { cause, headline } from '../lib/format'
 import { GUIDES } from '../lib/guides'
 import { addTurn, route } from '../lib/rayChats'
@@ -72,7 +72,19 @@ export default function Home() {
   const range = parseRange(params.get('range'))
   const pickRange = (id: RangeId) => setParams((p) => { p.set('range', id); return p }, { replace: true })
   const { data: incs, error } = useGet<Schemas['IncidentSummary'][]>('/api/incidents')
-  if (!incs && !error) return <PageSkeleton />
+  // Still waiting, per issue, from the same counts as its own page ("still to put right"), so this card agrees with every issue page and moves when a fix runs. The engine's
+  // stored `fixed` also counts customers who paid again on their own, so it is not used for Kaksha. The brand's list already counts only what was put right.
+  const [waiting, setWaiting] = useState<Record<string, number>>()
+  const ids = brand ? '' : (incs ?? []).map((i) => i.id).join(',')
+  useEffect(() => {
+    if (!ids) return
+    let live = true
+    Promise.all(ids.split(',').map((id) => get<Schemas['IncidentDetail']>(`/api/incidents/${id}`).then((d) => [id, (d.tier_counts.exact ?? 0) + (d.tier_counts.likely ?? 0) + (d.tier_counts.check ?? 0)] as const)))
+      .then((rows) => live && setWaiting(Object.fromEntries(rows)), () => live && setWaiting({}))
+    return () => { live = false }
+  }, [ids])
+  if ((!incs && !error) || (ids && !waiting)) return <PageSkeleton />
+  const stillWaiting = (i: Schemas['IncidentSummary']) => waiting?.[i.id] ?? i.affected - i.fixed
 
   const issues = (incs ?? []).filter((i) => inRange(i.onset_at, range))
   const open = issues.filter((i) => i.status !== 'closed')
@@ -134,7 +146,7 @@ export default function Home() {
           <Stat label="Customers hit" value={hit.toLocaleString('en-IN')} hint={!hit ? `none ${rangeLabel.toLowerCase()}` : brand ? `across ${issues.length} payment issues` : `${issues.reduce((a, i) => a + i.silent, 0)} never wrote in`} icon={UsersIcon} />
           <Stat label="Money stuck" value={rupees(open.reduce((a, i) => a + i.at_risk_paise, 0))} hint="on open issues" icon={RupeesIcon} />
           {/* The engine's `fixed` counts every customer who no longer needs anything, including those who paid again on their own, so the card says that and claims no credit (PRD v3: never count a customer who came back on their own as won back). */}
-          <Stat label="No longer waiting" value={issues.reduce((a, i) => a + i.fixed, 0).toLocaleString('en-IN')} hint={hit ? `of ${hit.toLocaleString('en-IN')} hit, put right or sorted on their own` : `none hit ${rangeLabel.toLowerCase()}`} icon={CheckCircleIcon} tone="positive" />
+          <Stat label="No longer waiting" value={issues.reduce((a, i) => a + i.affected - stillWaiting(i), 0).toLocaleString('en-IN')} hint={hit ? `of ${hit.toLocaleString('en-IN')} hit, put right or sorted on their own` : `none hit ${rangeLabel.toLowerCase()}`} icon={CheckCircleIcon} tone="positive" />
         </Box>
         {/* Kaksha's unpaid renewals: a balance it is owed, not a payment issue, so a row of its own under the four cards (DESIGN.md section 16). Not tied to the range. */}
         {!brand && <UnpaidRenewalsRow />}

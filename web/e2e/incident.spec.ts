@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test'
 // The issue page (v3 batch 1.2): the story strip, the three numbers, "Is it just you?", root cause and actions, the charts. "Where rules fail" moved to How Blindspot works (e2e/how-it-works.spec.ts).
 // Each figure is checked against the same files the page reads, so a number typed into a screen would fail here.
 const file = <T,>(p: string): T => JSON.parse(readFileSync(`public/snapshot/${p}.json`, 'utf8'))
-type Inc = { id: string; affected: number; complained: number; silent: number; fixed: number; at_risk_paise: number; status: string; mismatch_type: string; lift: unknown[]; title: string; tier_counts: { exact: number } }
+type Inc = { id: string; affected: number; complained: number; silent: number; fixed: number; at_risk_paise: number; status: string; mismatch_type: string; lift: unknown[]; title: string; tier_counts: { exact: number; likely?: number; check?: number } }
 const incs = [1, 2, 3, 4, 5].map((i) => file<Inc>(`incidents/INC-${i}`))
 const rupees = (paise: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(paise / 100)
 
@@ -16,15 +16,16 @@ test('the story strip tells the five steps with the issue\'s own numbers, and ma
   await expect(strip.getByTestId('story-2')).toContainText(`${inc.affected} customers hit`)
   await expect(strip.getByTestId('story-2')).toContainText('not only those who wrote in')  // the 68 silent are in the numbers below, not repeated here
   await expect(strip.getByTestId('story-3')).toContainText('Your code')
-  await expect(strip.getByTestId('story-4')).toContainText(`0 of ${inc.affected} put right`)  // nothing approved yet, so nothing is put right by Blindspot
+  const waiting = (inc.tier_counts?.exact ?? 0) + (inc.tier_counts?.likely ?? 0) + (inc.tier_counts?.check ?? 0)
+  await expect(strip.getByTestId('story-4')).toContainText(`0 of ${waiting} put right`)  // nothing approved yet, so nothing is put right by Blindspot
   await expect(strip.getByTestId('story-5')).toContainText('No one told yet')
   await expect(strip.getByText('Fix · now')).toBeVisible()  // steps 1 to 3 are done, so it is on the fourth
   await expect(strip.getByText(/· now$/)).toHaveCount(1)
 })
 
-// PRD v3: Blindspot never claims a customer who sorted it out without it. "Put right" counts only what its approved actions did; customers who paid again on their own,
-// or whom the merchant had already given access or refunded, are said beside it. The counts come from the same files the page reads.
-type Member = { exclusion_reason: string | null }
+// PRD v3: Blindspot never claims a customer who sorted it out without it. "Put right" counts only what its approved actions did, out of the customers it can act for; the rest
+// (fixed by you, paid on their own, not reachable yet) are said beside it, and everything adds up to the customers hit. The counts come from the same files the page reads.
+type Member = { exclusion_reason: string | null; tier: string }
 for (const inc of incs) {
   test(`${inc.id}: the Fix tile counts only what Blindspot put right, and says who sorted it out on their own`, async ({ page }) => {
     const members = file<Member[]>(`incidents/${inc.id}/members`)
@@ -33,9 +34,16 @@ for (const inc of incs) {
     await page.goto(`/incidents/${inc.id}`)
     const fix = page.getByTestId('story-4')
     await fix.waitFor()
-    await expect(fix).toContainText(`0 of ${inc.affected} put right`)
+    const waiting = (inc.tier_counts?.exact ?? 0) + (inc.tier_counts?.likely ?? 0) + (inc.tier_counts?.check ?? 0)
+    const unreachable = inc.affected - waiting - own - you
+    await expect(fix).toContainText(`0 of ${waiting} put right`)
     if (own) await expect(fix).toContainText(`${own} paid on their own`)
     if (you) await expect(fix).toContainText(`${you} fixed by you`)
+    if (unreachable > 0) await expect(fix).toContainText(`${unreachable} can't be reached yet`)
+    // The tile and its note account for every customer hit, and "still to put right" below says the same waiting count.
+    const said = (await fix.innerText()).match(/\d+(?= (fixed by you|paid on their own|can't be reached yet))/g)?.map(Number) ?? []
+    expect(waiting + said.reduce((a, n) => a + n, 0), `${inc.id}: the Fix tile adds up to the customers hit`).toBe(inc.affected)
+    await expect(page.getByTestId('incident-stats')).toContainText(`${waiting} still to put right`)
     if (inc.id !== 'INC-2') expect(own + you, `${inc.id} has someone to say beside the count, so this test checks something`).toBeGreaterThan(0)
   })
 }
@@ -223,17 +231,17 @@ test(`the story strip keeps its height, and its numbers move, as the fix goes fr
   await btn('Run the check').click()
   await btn('Plan the fix').click()
   await btn('Looks right, continue').click()
-  const before = await page.getByTestId('story-4').innerText()  // "0 of 85 put right"
+  const before = await page.getByTestId('story-4').innerText()  // "0 of 81 put right" (81 waiting; the 4 you fixed are in the note)
   await btn('Grant the first 5').click()
   await expect(page.getByText(/^5 of \d+ confirmed active by your records/)).toBeVisible()
-  await expect.poll(() => page.getByTestId('story-4').innerText(), 'the first 5 count once confirmed').toContain('5 of 85 put right')
+  await expect.poll(() => page.getByTestId('story-4').innerText(), 'the first 5 count once confirmed').toContain('5 of 81 put right')
   await note()
   await btn(/^Grant the rest/).click()
   await expect(page.getByText(/^\d+ of \d+ confirmed active/).first()).toBeVisible()
   // 81 given access back by Blindspot; the other 4 the merchant had already handled, so they are said beside the count, not in it.
-  await expect.poll(() => page.getByTestId('story-4').innerText(), 'the number in the strip moves with the fix').toContain('81 of 85 put right')
+  await expect.poll(() => page.getByTestId('story-4').innerText(), 'the number in the strip moves with the fix').toContain('81 of 81 put right')
   await expect(page.getByTestId('story-4')).toContainText('4 fixed by you')
-  expect(before).toContain('0 of 85 put right')
+  expect(before).toContain('0 of 81 put right')
   await note()
   await btn('Preview the message').click()
   await btn('Switch messaging on').click()
