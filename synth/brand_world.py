@@ -10,6 +10,8 @@ them out. The brand's name is not in the data: the screens carry it (web/src/lib
 
 Writes `web/public/brand/incidents.json` (the list, in the engine's IncidentSummary shape, so the Overview and the Payment issues page read it unchanged),
 `web/public/brand/incidents/FK-n.json` (each issue's page) and `web/public/brand/alerts.json` (what the alert tools sent, and what became of each alert).
+The brand's own pages (T4) read `integration.json` (the alert door and the Slack channel), `connectors.json`, `settings.json` (approvals, limits, Razorpay support sign-off)
+and `audit.json` (what happened on the account, newest first), all in the same folder.
 Run: `uv run python -m synth.brand_world`.
 """
 from __future__ import annotations
@@ -143,10 +145,15 @@ def fk1() -> dict:
     }
 
 
+# When things happened on FK-2 and FK-3, kept here so the audit trail reads the same times as the issue pages.
+FK2_T = {"start": t(28, 13, 5), "end": t(28, 14, 20), "rca": t(28, 13, 24), "done": t(28, 14, 34)}
+FK3_T = {"release": t(24, 21, 10), "first": t(24, 21, 12), "alert": t(24, 21, 31), "fixed": t(24, 23, 40), "refunded": t(25, 11, 5)}
+
+
 def fk2() -> dict:
     """Razorpay's side: its webhook queue for this account backed up for 75 minutes. Payments were captured, but the brand's order service waits for the webhook, so orders sat unconfirmed."""
     rng = random.Random(20260928)
-    start, end, rca, done = t(28, 13, 5), t(28, 14, 20), t(28, 13, 24), t(28, 14, 34)
+    start, end, rca, done = FK2_T["start"], FK2_T["end"], FK2_T["rca"], FK2_T["done"]
     n, complained = 214, 37
     customers = []
     for i in range(n):
@@ -209,7 +216,7 @@ def fk2() -> dict:
 def fk3() -> dict:
     """The brand's code: iOS app 6.4 did not disable the pay button after a tap, so a double tap placed two orders and charged twice."""
     rng = random.Random(20260924)
-    release, first, alert, fixed_at, refunded = t(24, 21, 10), t(24, 21, 12), t(24, 21, 31), t(24, 23, 40), t(25, 11, 5)
+    release, first, alert, fixed_at, refunded = (FK3_T[k] for k in ("release", "first", "alert", "fixed", "refunded"))
     n = 38
     customers = []
     for i in range(n):
@@ -284,12 +291,206 @@ def alerts(issues: dict) -> list[dict]:
          "why": f"Razorpay's own monitor. Matched to {grouped(issues['FK-2']['affected'])} orders waiting for a webhook"},
         {"id": "AL-1", "tool": "Sentry", "title": "DuplicateOrderWarning", "service": "order-service", "at": iso(t(24, 21, 36)), "events": 12, "status": "matched", "issue": "FK-3",
          "why": f"Added to FK-3, already open from your payments: {issues['FK-3']['affected']} customers with two payments for one cart"},
+        # Added for the Alerts page (T4): a second alert about FK-1 that joined it instead of opening an issue of its own, and the noise a payment filter is for.
+        {"id": "AL-6", "tool": "Datadog", "title": "Order confirmations below normal", "service": "order-service", "at": iso(t(1, 19, 55)), "events": 1, "status": "matched", "issue": "FK-1",
+         "why": f"Same cause as the Sentry alert at {clock(a['forwarded_at'])}, so it joined that issue instead of opening a second one"},
+        {"id": "AL-7", "tool": "PagerDuty", "title": "Disk above 90%", "service": "recommendation-service", "at": iso(t(29, 3, 10)), "events": 1, "status": "dropped", "issue": None,
+         "why": "Not a payment service, so it is left out by your payment filter"},
+        {"id": "AL-8", "tool": "Sentry", "title": "ImageLoadTimeout", "service": "catalog-service", "at": iso(t(27, 16, 45)), "events": 230, "status": "dropped", "issue": None,
+         "why": "Not a payment service, so it is left out by your payment filter"},
+        {"id": "AL-9", "tool": "Datadog", "title": "Payment success rate below 92%", "service": "payment-service", "at": iso(t(26, 22, 5)), "events": 1, "status": "no_impact", "issue": None,
+         "why": "Checked against Razorpay payments for those 15 minutes: one bank's UPI was slow, which Razorpay's Success Rate page covers. Every paid order was confirmed"},
     ]
+
+
+# The brand's own pages (T4): Integration, Connectors, Settings and Audit trail. All of it is read-only in the demo, set up by an account manager, and every line is built here.
+SET_UP = datetime(2026, 9, 12, 11, 0, tzinfo=IST)
+PAYMENT_SERVICES = ["payment-service", "checkout-service", "order-service"]
+GROUP_MINUTES = 10
+CHANNEL = "razorpay-payments"
+APPROVERS = ["Payments lead", "On-call engineering manager"]
+REFUND_PER_APPROVAL, REFUND_PER_DAY, MESSAGE_PER_APPROVAL = 5_00_000_00, 20_00_000_00, 1_000
+# What each alert tool sends, as its alert rule says. Razorpay's monitor is Razorpay's own and needs no rule.
+TOOLS = [
+    {"id": "sentry", "name": "Sentry", "rule": f"Payment errors, more than 20 in {GROUP_MINUTES} minutes"},
+    {"id": "datadog", "name": "Datadog", "rule": "Monitors on order confirmations and payment success rate"},
+    {"id": "pagerduty", "name": "PagerDuty", "rule": "Incidents on the services your payment filter lists"},
+]
+
+
+def day(d: datetime | str) -> str:
+    d = datetime.fromisoformat(d) if isinstance(d, str) else d
+    return f"{d.day} {d.strftime('%b')}, {clock(d)}"
+
+
+def plural(n: int, one: str, many: str | None = None) -> str:
+    return f"{grouped(n)} {one if n == 1 else (many or one + 's')}"
+
+
+def since(al: list[dict]) -> str:
+    """The alerts cover the days before the demo's "today" (2 Oct); the pages say from when, not "this week"."""
+    d = datetime.fromisoformat(min(a["at"] for a in al))
+    return f"since {d.day} {d.strftime('%b')}"
+
+
+def signoffs(issues: dict) -> dict:
+    """When Razorpay support signed off each root cause, from the times the issues use."""
+    tl = fk1_core()["timeline"]
+    return {"FK-1": (tl["rca"], tl["signoff"]), "FK-2": (iso(FK2_T["rca"]), iso(FK2_T["rca"] + timedelta(minutes=2))),
+            "FK-3": (iso(FK3_T["alert"]), iso(FK3_T["alert"] + timedelta(minutes=3)))}
+
+
+def integration(al: list[dict]) -> dict:
+    left_out = sorted({a["service"] for a in al if a["status"] == "dropped"})
+    return {
+        "set_up": f"Set up by your Razorpay account manager on {SET_UP.day} {SET_UP.strftime('%b %Y')}. In this demo it is read only.",
+        "sections": [
+            {"id": "door", "title": "Alert door", "subtitle": "How your alert tools send Blindspot what they see", "rows": [
+                {"label": "Your alert address", "code": "https://api.razorpay.com/v1/blindspot/alerts/acc_3Fq9Tz7Wd",
+                 "note": "One address for your account. Sentry, Datadog and PagerDuty send to it through an alert rule, with no change to your app."},
+                {"label": "Signing", "value": "Every alert must be signed with your signing secret. Unsigned alerts are refused.",
+                 "note": f"The signing secret is shown once, when you create it. Yours was created on {SET_UP.day} {SET_UP.strftime('%b')}."},
+                {"label": "Counted as payments", "list": PAYMENT_SERVICES,
+                 "note": "Your payment filter. Alerts from these services are checked against your payments."},
+                {"label": f"Left out {since(al)}", "list": left_out, "note": "Alerts from any other service are dropped on arrival and never read."},
+                {"label": "What is read from an alert", "list": ["Time window", "Error type", "Service or endpoint", "Platform and app version", "Sample order or payment IDs"]},
+                {"label": "Never needed", "list": ["Customer names", "Phone numbers or email addresses", "Card or bank details"],
+                 "note": "Fields like these are dropped before an alert is stored."},
+                {"label": "Grouping", "value": f"Alerts about one cause within {GROUP_MINUTES} minutes join one payment issue.",
+                 "note": "So 200 alerts in a bad release are one issue, posted once."},
+                {"label": "Match before acting", "value": "An alert stays unconfirmed until Razorpay's payment data shows customers were hit. An alert alone is never acted on."},
+            ]},
+            {"id": "slack", "title": "Shared Slack channel", "subtitle": "Where root causes and approvals reach your team", "rows": [
+                {"label": "Channel", "code": f"#{CHANNEL}", "note": "Blindspot posts only here, never in a channel you did not pick."},
+                {"label": "Who is in it", "value": "Your payments and on-call teams, your Razorpay account manager and Razorpay support."},
+                {"label": "What is posted", "list": ["A root cause, as a thread", "Approval requests for refunds, order lists and messages", "A closing note when an issue is fixed"]},
+                {"label": "Who can approve", "list": APPROVERS, "note": "Approve buttons work only for these roles. Everyone else in the channel can read."},
+                {"label": "Razorpay support sign-off", "value": "A Razorpay support engineer signs off every root cause. One that is only likely waits for that sign-off before it is posted.",
+                 "note": "The levels are on Settings."},
+            ]},
+        ],
+    }
+
+
+def settings(issues: dict, al: list[dict]) -> dict:
+    so = signoffs(issues)
+    slowest = max(mins(a, b) for a, b in so.values())
+    exact = sum(1 for d in issues.values() if d["confidence"] == "exact")
+    return {
+        "set_up": f"Set by your payments lead with your Razorpay account manager on {SET_UP.day} {SET_UP.strftime('%b %Y')}. In this demo they are read only.",
+        "sections": [
+            {"id": "approvals", "title": "Approvals", "subtitle": "What waits for a person, and who that is", "rows": [
+                {"label": "Level", "value": "Review first", "note": "Every refund, order list and message waits for an approver. Root causes are posted without waiting."},
+                {"label": "Waits for approval", "list": ["Refunds", "Messages to customers", "Order lists sent to your team"]},
+                {"label": "Who approves", "list": APPROVERS, "note": f"In #{CHANNEL} or on the payment issue's page."},
+            ]},
+            {"id": "limits", "title": "Limits", "subtitle": "The most one approval can do", "rows": [
+                {"label": "Refunds in one approval", "value": rupees(REFUND_PER_APPROVAL), "note": "More than this needs a second approver."},
+                {"label": "Refunds in a day", "value": rupees(REFUND_PER_DAY), "note": "Refunds stop for the day once this much has gone out."},
+                {"label": "Customers in one message approval", "value": grouped(MESSAGE_PER_APPROVAL), "note": "More than this needs a second approver."},
+                {"label": "Refunds go to", "value": "The customer's original payment method, and nowhere else."},
+            ]},
+            {"id": "signoff", "title": "Razorpay support sign-off", "subtitle": "No root cause reaches you unseen by a person at Razorpay", "rows": [
+                {"label": "Exact: the signals agree", "value": "Posted at once. A support engineer signs it off in the thread within 15 minutes."},
+                {"label": "Likely", "value": "Held until a support engineer signs it off, then posted."},
+                {"label": "Not sure", "value": "Not posted. Support looks into it and says so in the channel."},
+                {"label": "S" + since(al)[1:], "value": f"{plural(exact, 'root cause')} posted, all exact, all signed off",
+                 "note": f"The slowest sign-off came {plural(slowest, 'minute')} after the root cause was posted."},
+            ]},
+            {"id": "slack", "title": "In Slack", "subtitle": f"How #{CHANNEL} gets your team's attention", "rows": [
+                {"label": "Mentions", "value": "@payments-oncall on every new root cause, and the approvers on every approval request."},
+                {"label": "Quiet hours", "value": "None. Root causes are posted at any hour, and approvals wait for an approver."},
+            ]},
+            {"id": "never", "title": "Never, at any level", "subtitle": "No setting unlocks these", "rows": [
+                {"label": "Blindspot never", "list": ["Refunds to a different payment method", "Touches your app, servers or database", "Changes your Razorpay settings",
+                                                      "Messages customers outside a confirmed payment issue", "Asks anyone for a password, OTP or card details"]},
+            ]},
+        ],
+    }
+
+
+def connectors(al: list[dict], issues: dict) -> dict:
+    def seen(tool: str) -> dict:
+        mine = [a for a in al if a["tool"] == tool]
+        last = max(mine, key=lambda a: a["at"]) if mine else None
+        return {"count": f"{plural(len(mine), 'alert')} {since(al)}", "last": f"Last alert {day(last['at'])}" if last else f"No alerts {since(al)}"}
+    posted = [p for p, _ in signoffs(issues).values()]
+    # `title` is the small label over each card's name: what kind of connector it is.
+    return {
+        "groups": [
+            {"id": "alerts", "title": "Alert tool", "items": [
+                {"id": x["id"], "name": x["name"], "kind": "alert", "status": "connected", "sends": f"Sends: {x['rule']}", **seen(x["name"]),
+                 "off": f"Disconnected. Alerts from {x['name']} are refused until you connect it again."} for x in TOOLS]},
+            {"id": "razorpay", "title": "Razorpay's own monitor", "items": [
+                {"id": "razorpay", "name": "Razorpay webhooks", "kind": "razorpay", "status": "on", "sends": "Sends: webhook deliveries to your servers that are late or failing", **seen("Razorpay"),
+                 "off": "Switched off. Razorpay will not tell you when it delivers your webhooks late."}]},
+            {"id": "answers", "title": "Where answers go", "items": [
+                {"id": "slack", "name": "Slack", "kind": "slack", "status": "connected", "sends": f"Root causes, approval requests and closing notes, in #{CHANNEL} only",
+                 "count": f"{plural(len(posted), 'root cause')} posted {since(al)}", "last": f"Last root cause {day(max(posted))}",
+                 "off": "Disconnected. Root causes and approval requests show only on this dashboard."}]},
+            {"id": "later", "title": "Helpdesk", "items": [
+                {"id": "freshdesk", "name": "Freshdesk", "kind": "helpdesk", "status": "later", "sends": "Customer tickets about payments, so a complaint can start a payment issue too",
+                 "count": "", "last": "", "off": ""}]},
+        ],
+    }
+
+
+def audit(issues: dict, al: list[dict]) -> dict:
+    """What happened on the account, newest first: alerts in, root causes posted and signed off, approvals and what they did. Approvals made in this tab are added by the page."""
+    so = signoffs(issues)
+    fk1, fk2_, fk3_ = issues["FK-1"], issues["FK-2"], issues["FK-3"]
+    tl = fk1_core()["timeline"]
+    word = {"matched": "matched to payments", "dropped": "left out by your payment filter", "no_impact": "checked, no payment impact"}
+    ev = [
+        {"at": iso(SET_UP), "kind": "setup", "summary": f"Alert door set up for Sentry, Datadog and PagerDuty, counting {', '.join(PAYMENT_SERVICES)} as payments", "actor": "Razorpay account manager", "ref": None},
+        {"at": iso(SET_UP + timedelta(minutes=20)), "kind": "setup", "summary": f"Slack channel #{CHANNEL} connected", "actor": "Razorpay account manager", "ref": None},
+        {"at": iso(SET_UP + timedelta(minutes=35)), "kind": "setup", "summary": f"Approvals set to Review first, refunds up to {rupees(REFUND_PER_APPROVAL)} in one approval", "actor": "Payments lead", "ref": None},
+    ]
+    for a in al:
+        ev.append({"at": a["at"], "kind": "alert", "summary": f"{a['tool']} alert, {a['title']} on {a['service']}: {word[a['status']]}", "actor": a["tool"], "ref": a["issue"]})
+    for id_, (posted, signed) in so.items():
+        title = issues[id_]["previews"]["slack"]["messages"][0 if id_ != "FK-1" else 1]["rca"]["title"]
+        ev.append({"at": posted, "kind": "root_cause", "summary": f"{title}, posted in #{CHANNEL}", "actor": "Blindspot", "ref": id_})
+        ev.append({"at": signed, "kind": "sign_off", "summary": f"Root cause signed off, confidence {issues[id_]['confidence']}", "actor": "Razorpay support", "ref": id_})
+    for x in fk1["actions"]:
+        ev.append({"at": tl["rca"], "kind": "approval", "summary": f"Approval asked in #{CHANNEL}: {x['title']}", "actor": "Blindspot", "ref": "FK-1"})
+    ev.append({"at": tl["rollback"], "kind": "action", "summary": f"App {fk1['previews']['app']['version']} rolled back, said in #{CHANNEL}", "actor": "Your on-call engineer", "ref": "FK-1"})
+    replay, pack, msg2 = fk2_["actions"]
+    ev += [
+        {"at": iso(FK2_T["rca"] + timedelta(minutes=1)), "kind": "action", "summary": f"{pack['title']}: {pack['text']}", "actor": "Blindspot", "ref": "FK-2"},
+        {"at": iso(FK2_T["done"]), "kind": "action", "summary": f"{replay['title']}. {replay['text']}", "actor": "Razorpay", "ref": "FK-2"},
+        {"at": iso(FK2_T["done"] + timedelta(minutes=6)), "kind": "approval", "summary": f"Approved: {msg2['title']}", "actor": APPROVERS[0], "ref": "FK-2"},
+        {"at": iso(FK2_T["done"] + timedelta(minutes=7)), "kind": "action", "summary": f"{msg2['title']}: sent", "actor": "Blindspot", "ref": "FK-2"},
+    ]
+    refund3, msg3 = fk3_["actions"]
+    ev += [
+        {"at": iso(FK3_T["fixed"] + timedelta(minutes=10)), "kind": "approval", "summary": f"Approved: {refund3['title']}, {fk3_['groups'][0]['hint'].replace(' refunded', '')}", "actor": APPROVERS[1], "ref": "FK-3"},
+        {"at": iso(FK3_T["refunded"]), "kind": "action", "summary": f"{refund3['title']}: {refund3['text']}", "actor": "Razorpay", "ref": "FK-3"},
+        {"at": iso(FK3_T["refunded"] + timedelta(minutes=5)), "kind": "approval", "summary": f"Approved: {msg3['title']}", "actor": APPROVERS[0], "ref": "FK-3"},
+        {"at": iso(FK3_T["refunded"] + timedelta(minutes=6)), "kind": "action", "summary": f"{msg3['title']}: sent", "actor": "Blindspot", "ref": "FK-3"},
+    ]
+    # Newest first; at the same minute the later step first (the approvals asked come after the root cause they belong to).
+    ev = [e for _, e in sorted(enumerate(ev), key=lambda x: (x[1]["at"], x[0]), reverse=True)]
+    for i, e in enumerate(ev):
+        e["id"] = f"EV-{len(ev) - i}"
+    return {
+        "kinds": {"alert": "Alert", "root_cause": "Root cause", "sign_off": "Sign-off", "approval": "Approval", "action": "Action", "setup": "Setup"},
+        "events": ev,
+        # The FK-1 approvals a judge can make on its page. Made in this tab, they are added at the top of the trail with these words.
+        "pending": [{"issue": "FK-1", "action": x["id"], "summary": f"Approved: {x['title']}. In this demo nothing was refunded or sent."} for x in fk1["actions"]],
+        "pending_actor": "You, in this tab",
+    }
 
 
 def world() -> dict:
     issues = {d["id"]: d for d in (fk1(), fk2(), fk3())}
-    return {"incidents": [summary(d) for d in issues.values()], "details": issues, "alerts": alerts(issues)}
+    al = sorted(alerts(issues), key=lambda a: a["at"], reverse=True)
+    return {"incidents": [summary(d) for d in issues.values()], "details": issues, "alerts": al, "integration": integration(al), "settings": settings(issues, al),
+            "connectors": connectors(al, issues), "audit": audit(issues, al)}
+
+
+# The brand pages' files beside alerts.json, each read at /api/brand/<name> (web/src/lib/api.ts).
+PAGES = ("integration", "settings", "connectors", "audit")
 
 
 def write(out: Path = OUT) -> dict:
@@ -299,9 +500,12 @@ def write(out: Path = OUT) -> dict:
     for id_, d in w["details"].items():
         (out / "incidents" / f"{id_}.json").write_text(json.dumps(d, separators=(",", ":"), ensure_ascii=False) + "\n")
     (out / "alerts.json").write_text(json.dumps(w["alerts"], indent=1, ensure_ascii=False) + "\n")
+    for name in PAGES:
+        (out / f"{name}.json").write_text(json.dumps(w[name], indent=1, ensure_ascii=False) + "\n")
     return w
 
 
 if __name__ == "__main__":
     w = write()
-    print("brand: " + ", ".join(f"{i['id']} {i['status']} {i['affected']} hit" for i in w["incidents"]) + f"; {len(w['alerts'])} alerts -> web/public/brand/")
+    print("brand: " + ", ".join(f"{i['id']} {i['status']} {i['affected']} hit" for i in w["incidents"]) + f"; {len(w['alerts'])} alerts, "
+          + f"{len(w['audit']['events'])} audit events, {', '.join(PAGES)} -> web/public/brand/")

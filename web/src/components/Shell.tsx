@@ -18,15 +18,16 @@ type Item = { title: string; to: string; icon: IconComponent; also?: string[]; o
 const BLINDSPOT: Item[] = [
   { title: 'Overview', to: '/', icon: RayIcon, also: ['/ray', '/how-it-works'] },
   { title: 'Payment issues', to: '/incidents', icon: ActivityIcon, also: ['/scan', '/demo/incident'] },
+  { title: 'Alerts', to: '/alerts', icon: BellIcon, only: 'flipkart' },
   { title: 'Customer complaints', to: '/threads', icon: UsersIcon, also: ['/cases', '/chat-demo', '/help-demo', '/email-demo', '/ig-demo', '/public-demo'], only: 'kaksha' },
   { title: 'Unpaid renewals', to: '/access', icon: UnlockIcon, only: 'kaksha' },
-  { title: 'Integration', to: '/connect', icon: CodeSnippetIcon, also: ['/release-check'], only: 'kaksha' },
+  { title: 'Integration', to: '/connect', icon: CodeSnippetIcon, also: ['/release-check'] },
 ]
 const PROOF: Item[] = [
-  { title: 'Connectors', to: '/channels', icon: RadioIcon, only: 'kaksha' },
-  { title: 'Settings', to: '/settings', icon: SettingsIcon, only: 'kaksha' },
+  { title: 'Connectors', to: '/channels', icon: RadioIcon },
+  { title: 'Settings', to: '/settings', icon: SettingsIcon },
   { title: 'Alert tuning', to: '/learning', icon: TrendingUpIcon, only: 'kaksha' },
-  { title: 'Audit trail', to: '/audit', icon: ClipboardIcon, only: 'kaksha' },
+  { title: 'Audit trail', to: '/audit', icon: ClipboardIcon },
   // Its scores are the small-business merchant's (the brand is not scored yet), so it is Kaksha's page for now.
   { title: 'Accuracy', to: '/how', icon: FileTextIcon, only: 'kaksha' },
 ]

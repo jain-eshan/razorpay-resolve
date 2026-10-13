@@ -28,6 +28,9 @@ const brandPath = (path: string): string | undefined => {
   const p = path.split('?')[0]
   if (p === '/api/incidents') return '/brand/incidents.json'
   if (p === '/api/alerts') return '/brand/alerts.json'
+  // The brand's own pages (Integration, Connectors, Settings, Audit trail): one file each.
+  const page = p.match(/^\/api\/brand\/(integration|connectors|settings|audit)$/)
+  if (page) return `/brand/${page[1]}.json`
   const m = p.match(/^\/api\/incidents\/(FK-\d+)$/)
   return m ? `/brand/incidents/${m[1]}.json` : undefined
 }
