@@ -1,8 +1,8 @@
 // How far the merchant got in the first-run setup (routes/Setup.tsx). Kept in the browser only: setup has no server side in this prototype.
 export const SETUP_STEPS = 3
 // The three steps, as Setup and the Overview's setup card name them.
-export const SETUP_STEP_NAMES = ['Where customers write', 'Approvals', 'First check']
-export const SETUP_STEP_HELP = ['Where customers can reach you', 'How much it does on its own', 'What is already broken']
+export const SETUP_STEP_NAMES = ['Where customers reach you', 'Approvals', 'First check']
+export const SETUP_STEP_HELP = ['Pick the places you want to hear from', 'How much it does on its own', 'What is already broken']
 const KEY = 'blindspot.setup'
 
 export function setupDone(): number {

@@ -68,7 +68,7 @@ export default function Setup() {
     scan ? (
       <Box key="s" display="flex" flexDirection="column" gap="spacing.5">
         <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', m: 'repeat(2, minmax(0, 1fr))' }} gap="spacing.5">
-          {[[String(scan.leaked_customers), 'customers paid and have no access'], [rupees(scan.leaked_paise), 'paid by those customers']].map(([v, l]) => (
+          {[[String(scan.leaked_customers), 'customers paid and did not get access'], [rupees(scan.leaked_paise), 'paid by those customers']].map(([v, l]) => (
             <Box key={l} backgroundColor="surface.background.gray.subtle" borderRadius="medium" padding="spacing.6" display="flex" flexDirection="column" gap="spacing.2">
               <Heading size="2xlarge">{v}</Heading>
               <Text color="surface.text.gray.muted">{l}</Text>

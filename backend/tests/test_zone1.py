@@ -170,7 +170,7 @@ def test_cases_for_these_customers_say_no_payment_exists(world):
 
 
 def test_scan_headline_mentions_the_before_payment_incidents(world):
-    assert "81 customers paid but never got access" in service.scan_day0(world).headline and "(2 separate problems)" in service.scan_day0(world).headline
+    assert "81 customers paid and did not get access" in service.scan_day0(world).headline and "(2 separate problems)" in service.scan_day0(world).headline
 
 
 # ---------- contact rules ----------

@@ -270,14 +270,14 @@ def scan_day0(db: sqlite3.Connection, days: int = 30) -> ScanResult:
     incs = summaries(db)
     customers, paise = 0, 0
     for i in incs:
-        if i.zone == "before" or i.mismatch_type in ("G", "E"):  # customers who paid and have no access: renewals that never succeeded and second charges are different counts
+        if i.zone == "before" or i.mismatch_type in ("G", "E"):  # customers who paid and did not get access: renewals that never succeeded and second charges are different counts
             continue
         cohort = _cohort(db, _row(db, i.id))[1]
         live = [m for m in cohort if m.tier != "excluded"]
         customers += len(live)
         paise += sum(m.amount_paise for m in live)
     # One short line per kind of problem, joined by newlines (the screens split them). Each starts with its number and says who was affected.
-    lines = [f"{customers} customers paid but never got access." if customers else "No customer paid without getting access."]
+    lines = [f"{customers} customers paid and did not get access." if customers else "No customer paid without getting access."]
     before = [i for i in incs if i.zone == "before"]
     if before:
         lines.append(f"About {sum(i.affected for i in before)} customers could not pay at all, because your pay page or checkout failed ({len(before)} separate problems).")

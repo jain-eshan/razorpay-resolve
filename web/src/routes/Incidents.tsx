@@ -43,7 +43,7 @@ export default function Incidents() {
         return (
           <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
             <Stat label="Open issues" value={String(open.length)} hint={`of ${data.length} found`} icon={AlertTriangleIcon} tone="notice" />
-            <Stat label="Amount involved" value={rupees(data.reduce((a, i) => a + i.at_risk_paise, 0))} hint={estPaise ? `about ${rupees(estPaise)} of it estimated` : `across ${data.length} issues`} icon={RupeesIcon} />
+            <Stat label="Money stuck" value={rupees(data.reduce((a, i) => a + i.at_risk_paise, 0))} hint={estPaise ? `about ${rupees(estPaise)} of it estimated` : `across ${data.length} issues`} icon={RupeesIcon} />
             <Stat label="Customers affected" value={data.reduce((a, i) => a + i.affected, 0).toLocaleString('en-IN')} hint={est ? `about ${est} of them estimated` : 'every one matched to a payment'} icon={UsersIcon} />
           </Box>
         )

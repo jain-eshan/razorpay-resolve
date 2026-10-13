@@ -34,11 +34,11 @@ test('S-03 incident page: numbers add up, tiers switch, replay limits shown', as
 test('S-17 the first check plays its checklist, then states what it found', async ({ page }) => {
   await page.goto('/scan')
   await expect(page.getByTestId('scan-running')).toBeVisible()  // every visit plays the scan
-  await expect(page.getByText(/\d+ customers paid but never got access/)).toBeVisible({ timeout: 15_000 })
-  await expect(page.getByRole('heading', { name: /customers paid and have no access/ })).toBeVisible()
+  await expect(page.getByText(/\d+ customers paid and did not get access/).first()).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('heading', { name: /customers paid and did not get access/ }).first()).toBeVisible()
   await page.getByRole('button', { name: 'Run it again' }).click()
   await expect(page.getByTestId('scan-running')).toBeVisible()  // it can be run again
-  await expect(page.getByText(/\d+ customers paid but never got access/)).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText(/\d+ customers paid and did not get access/).first()).toBeVisible({ timeout: 15_000 })
   await page.getByRole('button', { name: /^Start the fix/ }).click()
   await expect(page).toHaveURL(/\/incidents\/INC-\d+$/)
   await page.goto('/scan')

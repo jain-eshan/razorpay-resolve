@@ -1,6 +1,6 @@
 {
   "days": 30,
-  "headline": "81 customers paid but never got access.\nAbout 25 customers could not pay at all, because your pay page or checkout failed (2 separate problems).\n15 customers were charged twice after an app release.\n27 card renewals failed inside Razorpay's gateway, not on your side.",
+  "headline": "81 customers paid and did not get access.\nAbout 25 customers could not pay at all, because your pay page or checkout failed (2 separate problems).\n15 customers were charged twice after an app release.\n27 card renewals failed inside Razorpay's gateway, not on your side.",
   "leaked_customers": 81,
   "leaked_paise": 5631900,
   "incidents": [

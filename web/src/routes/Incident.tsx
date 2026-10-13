@@ -79,7 +79,7 @@ function Milestones({ inc, pack, atAlert, fix }: { inc: Schemas['IncidentDetail'
               <StepItem key={s.title} title={s.title} timestamp={s.stamp ?? when(s.at!)} description={s.text} stepProgress="full" marker={<StepItemIndicator color={s.tone} />} />
             )),
             <StepItem key="end" title={done ? 'Customers restored' : 'Customers still to restore'} stepProgress="none"
-              description={done ? 'Every grant was checked against your records' : `${inc.tier_counts.exact ?? 0} customers paid and have no access`} marker={done ? <StepItemIndicator color="positive" /> : <LiveStepIndicator color="notice" />} />,
+              description={done ? 'Every grant was checked against your records' : `${inc.tier_counts.exact ?? 0} customers paid and did not get access`} marker={done ? <StepItemIndicator color="positive" /> : <LiveStepIndicator color="notice" />} />,
           ]}
         </StepGroup>
       </Box>
@@ -128,7 +128,7 @@ function Incident() {
           </Box>
           <Box display="flex" flexDirection="column" gap="spacing.2" flex="1" minWidth="240px">
             <Heading as="h1" size="medium">{headline(inc)}</Heading>
-            <Text size="small" color="surface.text.gray.muted">{`Cause: ${inc.title}`}</Text>
+            <Text size="small" color="surface.text.gray.muted">{`Technical cause: ${inc.title}`}</Text>
             <Box display="flex" gap="spacing.3" alignItems="center" flexWrap="wrap">
               <Badge color={OWNER_TONE[inc.owner]} size="medium">{cause(inc)}</Badge>
               <Badge color={STATUS_TONE[inc.status]} size="medium">{STATUS_LABEL[inc.status]}</Badge>

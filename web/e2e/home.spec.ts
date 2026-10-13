@@ -97,7 +97,7 @@ test('H7 the setup card lists the three steps, and folds into one line when setu
   await page.goto('/')
   const setup = page.getByTestId('setup-card')
   await expect(setup.getByText('0/3 COMPLETED')).toBeVisible()
-  for (const step of ['Where customers write', 'Approvals', 'First check']) await expect(setup.getByText(step, { exact: true })).toBeVisible()
+  for (const step of ['Where customers reach you', 'Approvals', 'First check']) await expect(setup.getByText(step, { exact: true })).toBeVisible()
   await setup.getByRole('button', { name: 'Start setup' }).click()
   await expect(page).toHaveURL(/\/setup$/)
   await page.evaluate(() => localStorage.setItem('blindspot.setup', '3'))
@@ -150,7 +150,7 @@ test('Ray chat: a question is kept in the history, the history reopens it, and t
   await page.getByRole('textbox', { name: 'Ask Ray' }).fill('Who paid and did not get access?')
   await page.getByRole('textbox', { name: 'Ask Ray' }).press('Enter')
   await expect(page).toHaveURL(/\/ray\/\w+$/)
-  await expect(page.getByRole('heading', { name: /customers paid and have no access/ })).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByRole('heading', { name: /customers paid and did not get access/ })).toBeVisible({ timeout: 10_000 })
   // The side menu stays, with Overview marked as where you are; "Overview" at the top of the page goes back.
   await expect(page.getByRole('link', { name: 'Payment issues' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Overview' }).first()).toHaveAttribute('aria-current', 'page')
@@ -179,7 +179,7 @@ test('Ray chat edge cases: a question Ray cannot answer, an address from another
   await page.getByRole('textbox', { name: 'Ask Ray' }).press('Enter')
   await expect(page.getByText('I can answer from your payment data')).toBeVisible()  // Ray says so, and offers what it can answer
   await page.getByText('Who paid and did not get access?').last().click()  // an offered question runs in the same chat
-  await expect(page.getByRole('heading', { name: /customers paid and have no access/ })).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByRole('heading', { name: /customers paid and did not get access/ })).toBeVisible({ timeout: 10_000 })
   await page.getByRole('textbox', { name: 'Ask Ray' }).fill('   ')  // an empty question does nothing
   await page.getByRole('textbox', { name: 'Ask Ray' }).press('Enter')
   await expect(page.getByTestId('ray-thread').getByText('rrr')).toHaveCount(1)
@@ -215,9 +215,9 @@ test('Setup tiles open the matching step, and a step not reached yet is not a li
   await page.goto('/')
   const setup = page.getByTestId('setup-card')
   await expect(setup.getByRole('link')).toHaveCount(1)  // only the next step
-  await setup.getByRole('link', { name: /Where customers write/ }).click()
+  await setup.getByRole('link', { name: /Where customers reach you/ }).click()
   await expect(page).toHaveURL(/\/setup\?step=0$/)
-  await expect(page.getByText('Step 1 of 3: Where customers write')).toBeVisible()
+  await expect(page.getByText('Step 1 of 3: Where customers reach you')).toBeVisible()
   await page.evaluate(() => localStorage.setItem('blindspot.setup', '2'))
   await page.goto('/')
   await expect(page.getByTestId('setup-card').getByRole('link')).toHaveCount(3)  // two done and the next
@@ -242,7 +242,7 @@ test('Ray chat: the toolbar stays in view while a long thread scrolls, and nothi
     await expect(page.getByRole('heading', { name: answers })).toHaveCount(count, { timeout: 10_000 })  // wait for the answer, not for the words of the question (the chips use them too)
   }
   await ask('What is broken right now?', /payment issues?, ₹[\d,]+ involved/, 1)
-  await ask('Who paid and did not get access?', /customers paid and have no access/, 1)
+  await ask('Who paid and did not get access?', /customers paid and did not get access/, 1)
   await ask('What is broken right now?', /payment issues?, ₹[\d,]+ involved/, 2)
   const scroller = page.getByTestId('scroller')
   // Scroll the thread in steps. At every step, whatever sits under the middle of a button in the thread that overlaps the toolbar or the dock must be that bar, not the button.

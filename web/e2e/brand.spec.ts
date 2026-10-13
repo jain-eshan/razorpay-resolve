@@ -128,7 +128,7 @@ test('the brand account shows none of the small merchant\'s pages: no Accuracy, 
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto(`/incidents${BRAND}`)
   await expect(page.getByRole('link', { name: 'Accuracy' })).toHaveCount(0)
-  await expect(btn(page, 'How it works')).toHaveCount(0)
+  await expect(btn(page, 'About this page')).toHaveCount(0)
   await page.goto(`/how${BRAND}`)
   await expect(page.getByText("This page is part of Kaksha's account")).toBeVisible()
   await page.goto(`/guides/incidents${BRAND}`)

@@ -209,7 +209,7 @@ def fk5() -> dict:
                  "fix": "Answer the webhook straight away, and ignore a payment ID that already has an order. Cancel the duplicate orders.",
                  "signals": [f"webhooks answered slowly from {clock(onset)}", "every payment has two orders", "every one came after server release 3.14"], "samples": [c["payment_id"] for c in cust[:3]]},
         "actions": [
-            {"id": "orders", "title": f"Send your order team {n} duplicate orders", "text": f"The list has payment IDs, order IDs and times: {waiting} are not packed yet and can be cancelled, {packed} are packed already and have to be stopped before dispatch.",
+            {"id": "orders", "title": f"Send your order team the list of {n} duplicate orders", "text": f"The list has payment IDs, order IDs and times: {waiting} are not packed yet and can be cancelled, {packed} are packed already and have to be stopped before dispatch.",
              "button": f"Send {n} order list"},
             {"id": "message", "title": f"Message {n} customers", "text": "Tells them they were charged once, a second order was made by mistake and is being cancelled. In your name. It waits until your order team has the list.",
              "button": f"Message {n} customers", "needs": "orders", "group": "duplicate"},

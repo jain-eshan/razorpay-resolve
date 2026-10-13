@@ -126,7 +126,7 @@ export function SetupScene({ step, channels, level }: { step: number; channels: 
   // The sweep crosses in two 960ms steps and holds for one, a few times, and ends on the result. Each customer changes colour as the line passes it.
   const sweep = 2 * T, cycle = 3 * T, x0 = 16, x1 = 224
   return (
-    <Stage label="A check passes over every customer. The ones who paid and have no access turn orange." tiles={null}>
+    <Stage label="A check passes over every customer. The ones who paid and did not get access turn orange." tiles={null}>
       {PEOPLE.map(([x, y], i) => {
         const bad = STUCK.has(i)
         const fill = bad ? p.peach : p.mint, stroke = bad ? p.orange : p.green

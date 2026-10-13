@@ -58,7 +58,7 @@ export function ScanAnswer() {
   if (!data) return <Analyzing />
   return (
     <AgentAnswer
-      title={`${data.leaked_customers} customers paid and have no access`}
+      title={`${data.leaked_customers} customers paid and did not get access`}
       text="I checked Razorpay's records against your access records. Nothing has been changed."
       next={[{ label: 'See what caused it', onClick: () => nav('/scan') }, { label: 'See all payment issues', onClick: () => nav('/incidents') }]}
     >

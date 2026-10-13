@@ -120,7 +120,7 @@ def fk1() -> dict:
         "actions": [
             {"id": "refund", "title": f"Refund {c['paid_twice']} duplicate payments", "text": f"{rupees(m['paid_twice'])} goes back to each customer's original payment method.",
              "button": f"Refund {c['paid_twice']} duplicates", "group": "paid_twice"},
-            {"id": "orders", "title": f"Send your order team {c['no_order']} paid orders", "text": f"{rupees(m['no_order'])} was paid with no order. The list has payment IDs, amounts and times, to confirm each order.",
+            {"id": "orders", "title": f"Send your order team the list of {c['no_order']} paid orders", "text": f"{rupees(m['no_order'])} was paid with no order. The list has payment IDs, amounts and times, to confirm each order.",
              "button": f"Send {c['no_order']} order list"},
             {"id": "message", "title": f"Message {c['no_order']} customers", "text": "Tells them their payment went through and their order is confirmed, in your name. It waits until the orders are confirmed.",
              "button": f"Message {c['no_order']} customers", "needs": "orders", "group": "no_order"},
