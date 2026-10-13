@@ -276,16 +276,18 @@ def scan_day0(db: sqlite3.Connection, days: int = 30) -> ScanResult:
         live = [m for m in cohort if m.tier != "excluded"]
         customers += len(live)
         paise += sum(m.amount_paise for m in live)
-    head = f"I found {customers} customers in the last {days} days who paid and have no access." if customers else f"No mismatches found in the last {days} days."
+    # One short line per kind of problem, joined by newlines (the screens split them). Each starts with its number and says who was affected.
+    lines = [f"{customers} customers paid but never got access." if customers else "No customer paid without getting access."]
     before = [i for i in incs if i.zone == "before"]
     if before:
-        head += f" Before the payment, {len(before)} more times customers could not pay, about {sum(i.affected for i in before)} lost orders."
+        lines.append(f"About {sum(i.affected for i in before)} customers could not pay at all, because your pay page or checkout failed ({len(before)} separate problems).")
     twice = [i for i in incs if i.mismatch_type == "E"]
     if twice:
-        head += f" {sum(i.affected for i in twice)} customers were charged twice after an app release."
+        lines.append(f"{sum(i.affected for i in twice)} customers were charged twice after an app release.")
     renewals = [i for i in incs if i.mismatch_type == "G"]
     if renewals:
-        head += f" On Razorpay's side, {sum(i.affected for i in renewals)} card renewals failed with a gateway error."
+        lines.append(f"{sum(i.affected for i in renewals)} card renewals failed inside Razorpay's gateway, not on your side.")
+    head = "\n".join(lines)
     return ScanResult(days=days, headline=head, leaked_customers=customers, leaked_paise=paise, incidents=incs)
 
 

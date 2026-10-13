@@ -124,7 +124,7 @@ function Report({ data }: { data: Scan }) {
           <Figure label="Payment issues found in total" value={String(data.incidents.length)} />
           <Badge size="large" color={fine ? 'positive' : 'negative'}>{fine ? 'All clear' : 'Needs urgent attention'}</Badge>
         </Box>
-        <Text color="surface.text.gray.subtle">{data.headline} Checked against Razorpay's records and your access records. Nothing has been changed.</Text>
+        <Text color="surface.text.gray.subtle">{data.headline.split('\n').join(' ')} Checked against Razorpay's records and your access records. Nothing has been changed.</Text>
       </Hero>
 
       {sorted.length > 0 && (

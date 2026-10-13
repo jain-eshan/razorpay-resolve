@@ -75,7 +75,11 @@ export default function Setup() {
             </Box>
           ))}
         </Box>
-        <Alert isFullWidth isDismissible={false} color={scan.leaked_customers ? 'notice' : 'positive'} title={scan.headline} description="Nothing has been changed." />
+        <Alert isFullWidth isDismissible={false} color={scan.leaked_customers ? 'notice' : 'positive'} title={`What Resolve found in the last ${scan.days} days`}
+          description={<Box display="flex" flexDirection="column" gap="spacing.2" testID="scan-found">
+            {scan.headline.split('\n').map((l) => <Text key={l} size="small">{l}</Text>)}
+            <Text size="small" color="surface.text.gray.muted">Resolve only looked. Nothing has been changed.</Text>
+          </Box>} />
       </Box>
     ) : <Text key="s" color="surface.text.gray.muted">Checking Razorpay's records against your access records</Text>,
   ]
@@ -115,7 +119,7 @@ export default function Setup() {
             {body[step]}
             {NOTE[step] && <Alert isFullWidth isDismissible={false} color="information" description={NOTE[step]} />}
             <Box display="flex" flexDirection="column" gap="spacing.4" marginTop="auto">
-              <Button variant="primary" size="large" isFullWidth onClick={next} isDisabled={step === 2 && !scan}>{step === 2 ? 'See what I found' : 'Continue'}</Button>
+              <Button variant="primary" size="large" isFullWidth onClick={next} isDisabled={step === 2 && !scan}>{step === 2 ? 'Open the full report' : 'Continue'}</Button>
               <Text size="small" color="surface.text.gray.muted">{step < 2 ? 'Your choices are not saved in this demo. ' : ''}Resolve never asks for passwords, card details or OTPs.</Text>
             </Box>
           </Box>
