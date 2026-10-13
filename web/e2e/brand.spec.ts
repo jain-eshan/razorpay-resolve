@@ -30,6 +30,12 @@ test('the way in: the account picker, then the brand account, then a switch back
   await expect(page).toHaveURL(/\/signin$/)
   await expect(page.getByRole('heading', { name: 'Choose a demo account' })).toBeVisible()
   await expect(page.locator('input[type="password"]')).toHaveCount(0)  // not a login: nothing to type
+  for (const id of ['kaksha', 'flipkart']) {  // each card has its logo, loaded, and says who it is for
+    const logo = page.getByTestId(`account-${id}`).getByTestId(`logo-${id}`).locator('img')
+    await expect(logo).toBeVisible()
+    expect(await logo.evaluate((i: HTMLImageElement) => i.naturalWidth)).toBeGreaterThan(0)
+    await expect(page.getByTestId(`account-${id}`).getByText('Who it is for')).toBeVisible()
+  }
   await page.getByTestId('account-flipkart').click()
   await btn(page, 'Continue as Flipkart').click()
   await expect(page.getByText(/Demo account\. Flipkart's customers/)).toBeVisible()

@@ -79,7 +79,7 @@ Screen names in the UI follow DESIGN.md section 22, so they differ from the word
 3. **Razorpay's own patterns.** Home follows the dashboard home (cards, date range, detail). Setup follows the Subscriptions "Get started" card (steps visible, stepper, button bottom right). Incident severity follows Ecosystem Health (summary strip, coloured status). Lists follow Ray's urgency groups (labelled dividers).
 4. **Page header carries the page actions** (`PageHeader` `actions` slot, top right): "Take a tour", "Reset setup", the date range.
 5. **One primary action per card.** Approvals show the amount and the count before the button.
-6. **No real brand assets** for Flipkart, Sentry or Slack: names in text only, generic look, no logos. The store is named Flipkart (Eshan's call, 12 Oct: a demo, not for production, shown to the Razorpay team).
+6. **No real brand assets** for Flipkart, Sentry or Slack: names in text only, generic look, no logos. The store is named Flipkart (Eshan's call, 12 Oct: a demo, not for production, shown to the Razorpay team). One exception, Eshan's call on 13 Oct: Flipkart's own bag icon marks its demo account, so the demo reads as a real big brand. Sentry, Slack and the rest stay in text.
 7. **Phone width works.** Grids stack, the side nav becomes the drawer, charts stay readable at 375px.
 
 ---
@@ -207,7 +207,7 @@ Helpdesk connector (Freshdesk first), PostHog or Amplitude as an alert source, a
 
 | Question | Blocks | Who |
 |---|---|---|
-| ~~Store brand name~~ Answered 12 Oct: use Flipkart's real name, in text only (no logo). It is a demo and not for production | J1 to J8 | Eshan |
+| ~~Store brand name~~ Answered 12 Oct: use Flipkart's real name, in text only (no logo). It is a demo and not for production. Changed 13 Oct: its bag icon is also used on the account | J1 to J8 | Eshan |
 | May the prototype change after submission? | Phase 2 plan | Eshan, from the brief or the organisers |
 | Pay-again links (F10) | P2-B6 | Eshan |
 | Does Razorpay keep payer location or network at checkout? | Cut 5 | Ask a Razorpay PM |

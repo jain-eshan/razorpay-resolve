@@ -6,6 +6,7 @@ import {
   Menu, MenuDivider, MenuHeader, MenuItem, MenuOverlay,
   type IconComponent,
 } from '@razorpay/blade/components'
+import { AccountLogo } from './AccountLogo'
 import { ACCOUNTS, signIn, useAccount, type AccountId } from '../lib/account'
 import { NAME } from '../lib/brand'
 
@@ -72,8 +73,8 @@ function AccountMenu() {
     <Menu>
       <Avatar name={me.name} size="small" testID="account-avatar" />
       <MenuOverlay>
-        <MenuHeader title={me.name} subtitle={`${me.line} · ${me.mid}`} />
-        <MenuItem title={`Switch to ${other.name}`} description={other.line} leading={<Avatar name={other.name} size="xsmall" />} onClick={() => { signIn(other.id); nav('/') }} />
+        <MenuHeader title={me.name} subtitle={`${me.line} · ${me.mid}`} leading={<AccountLogo account={me} size={32} />} />
+        <MenuItem title={`Switch to ${other.name}`} description={other.line} leading={<AccountLogo account={other} size={24} />} onClick={() => { signIn(other.id); nav('/') }} />
         <MenuDivider />
         <MenuItem title="See both demo accounts" onClick={() => nav('/signin')} />
       </MenuOverlay>

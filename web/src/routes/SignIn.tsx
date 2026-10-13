@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRightIcon, Avatar, Badge, Box, Button, Card, CardBody, CheckIcon, Heading, Text } from '@razorpay/blade/components'
+import { ArrowRightIcon, Badge, Box, Button, Card, CardBody, CheckIcon, Heading, Text } from '@razorpay/blade/components'
+import { AccountLogo } from '../components/AccountLogo'
 import { GuideArt } from '../components/GuideArt'
 import { NAME } from '../lib/brand'
 import { ACCOUNTS, accountId, signIn, signedIn, type AccountId } from '../lib/account'
@@ -27,7 +28,7 @@ export default function SignIn() {
           <Box display="flex" flexDirection="column" gap="spacing.3" alignItems={{ base: 'flex-start', m: 'center' }} textAlign={{ base: 'left', m: 'center' }}>
             <Badge color="positive" size="medium">{NAME} · Demo</Badge>
             <Heading as="h1" size="xlarge">Choose a demo account</Heading>
-            <Text color="surface.text.gray.muted">The same dashboard, set up for a small business or for a big brand. You can switch from your avatar at any time.</Text>
+            <Text color="surface.text.gray.muted">The same dashboard, set up for two very different merchants. You can switch from your avatar at any time.</Text>
           </Box>
           <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', m: 'repeat(2, minmax(0, 1fr))' }} gap="spacing.6">
             {(Object.keys(ACCOUNTS) as AccountId[]).map((id) => {
@@ -40,7 +41,7 @@ export default function SignIn() {
                       <GuideArt art={SEE[id].art} height="160px" />
                       <Box display="flex" alignItems="center" justifyContent="space-between" gap="spacing.4">
                         <Box display="flex" alignItems="center" gap="spacing.3">
-                          <Avatar name={a.name} size="medium" />
+                          <AccountLogo account={a} size={48} />
                           <Box display="flex" flexDirection="column">
                             <Heading as="h2" size="medium">{a.name}</Heading>
                             <Text size="small" color="surface.text.gray.muted">{a.line}</Text>
@@ -49,6 +50,10 @@ export default function SignIn() {
                         {on && <Badge color="neutral" size="medium" icon={CheckIcon}>Selected</Badge>}
                       </Box>
                       <Text color="surface.text.gray.subtle">{a.detail}</Text>
+                      <Box display="flex" flexDirection="column" gap="spacing.2">
+                        <Text size="small" weight="semibold">Who it is for</Text>
+                        <Text size="small" color="surface.text.gray.subtle">{a.persona}</Text>
+                      </Box>
                       <Box display="flex" flexDirection="column" gap="spacing.3" marginTop="auto">
                         {SEE[id].lines.map((l) => (
                           <Box key={l} display="flex" alignItems="flex-start" gap="spacing.3">

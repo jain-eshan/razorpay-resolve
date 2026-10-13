@@ -1,8 +1,9 @@
 import { useEffect, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { m } from 'framer-motion'
-import { ActivityIcon, ArrowDownIcon, ArrowRightIcon, Avatar, BellIcon, Box, Button, Card, CardBody, CheckIcon, ChevronRightIcon, ClockIcon, FileTextIcon, Heading, MessageSquareIcon, SlackIcon, Text, UserCheckIcon, WhatsAppIcon, type IconComponent } from '@razorpay/blade/components'
+import { ActivityIcon, ArrowDownIcon, ArrowRightIcon, BellIcon, Box, Button, Card, CardBody, CheckIcon, ChevronRightIcon, ClockIcon, FileTextIcon, Heading, MessageSquareIcon, SlackIcon, Text, UserCheckIcon, WhatsAppIcon, type IconComponent } from '@razorpay/blade/components'
 import { Accent } from '../components/Accent'
+import { AccountLogo } from '../components/AccountLogo'
 import { Crumbs } from '../components/Crumbs'
 import { GuideArt } from '../components/GuideArt'
 import { RulesFail } from '../components/RulesFail'
@@ -139,7 +140,7 @@ function Hero() {
               <Button variant="primary" size="large" icon={ArrowRightIcon} iconPosition="right" onClick={() => open('kaksha')}>{`See it as ${ACCOUNTS.kaksha.name}`}</Button>
               <Button variant="secondary" size="large" onClick={() => open('flipkart')}>{`See it as ${ACCOUNTS.flipkart.name}`}</Button>
             </Box>
-            <Text size="small" color="surface.text.gray.muted">{`Two demo accounts: ${ACCOUNTS.kaksha.name}, a small business, and ${ACCOUNTS.flipkart.name}, a big brand. Every customer and payment in them is made up.`}</Text>
+            <Text size="small" color="surface.text.gray.muted">{`Two demo accounts: ${ACCOUNTS.kaksha.name}, a test-series business run by two founders, and ${ACCOUNTS.flipkart.name}, a large online marketplace. Every customer and payment in them is made up.`}</Text>
           </Box>
         </Box>
       </CardBody>
@@ -157,7 +158,7 @@ function Journey({ j }: { j: (typeof JOURNEYS)[number] }) {
         <Box display="flex" flexDirection="column" gap="spacing.5" height="100%">
           <GuideArt art={j.art} height="160px" />
           <Box display="flex" alignItems="center" gap="spacing.3">
-            <Avatar name={a.name} size="medium" />
+            <AccountLogo account={a} size={48} />
             <Box display="flex" flexDirection="column">
               <Heading as="h3" size="medium">{a.name}</Heading>
               <Text size="small" color="surface.text.gray.muted">{a.line}</Text>
