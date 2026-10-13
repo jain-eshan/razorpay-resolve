@@ -1618,3 +1618,16 @@ Eshan asked for a logo for Kaksha, Flipkart's real logo on the Flipkart account 
 - Tests: `brand`, `how-it-works`, `shell` and `layout` specs pass (104, CI mode). Looked at the picker at 1440, 768 and 375px (no sideways overflow, the two cards the same height at 768) and at How Resolve works at 375px.
 
 Design review: pass with notes. The `design-reviewer` agent is not registered in this session, so a general-purpose agent ran its file's method in quick mode (mechanical checks, section 23 on `/signin` and `/how-it-works` at 375, 768 and 1440px, the avatar menu at 1440px). Fixed from it: the two logos had different corners (both are now square files rounded by one wrapper), and no test could fail on the logos (the picker test now checks both logos load and the persona line shows). Left on purpose: the top-bar avatar keeps initials, as on the live dashboard. Not checked: dark mode, the avatar menu at 375 and 768px, keyboard use of the menu, a real phone, the full snapshot suite.
+
+## 13 Oct 2026, the Overview moves when a fix runs (stream D)
+
+Eshan, recording the demo: after closing INC-1 the Overview still showed it open with ₹56,319 stuck, and the Unpaid renewals row pushed the issues below the fold.
+
+- `lib/demo.ts`: in the hosted demo `/api/incidents` takes each issue's status and money stuck from its own page's state (INC-1 to INC-4), so the Overview, the Payment issues list and the chart follow the fix. Before any click every issue matches the recorded list.
+- `routes/Home.tsx`: "No longer waiting" is now "Customers put right" with "₹X restored": only what Resolve put right since the recorded data (each issue's still-waiting count and money stuck, against the recorded file), so customers who paid again on their own are not counted. 0 and ₹0 at the start; 81 and ₹56,319 once INC-1 is closed. The brand account keeps its own count, with no rupee line.
+- The Unpaid renewals row left the Overview (`components/UnpaidRenewalsRow.tsx` deleted); the page stays in the side menu.
+- Tests: a new demo test closes INC-1 and checks every card moves by INC-1's own numbers; the Overview-row tests for Unpaid renewals became one side-menu test.
+
+Measured: `tsc -b` clean, oxlint clean on the changed files, 70 browser tests (demo, home, smoke, brand, unpaid renewals) passed before the rename; the rerun with the layout spec was still running at commit time.
+
+Design review: not run, at Eshan's request to save time on submission day. Section 23 checks not run beyond the stability and layout tests; the change removes a row and renames a card.

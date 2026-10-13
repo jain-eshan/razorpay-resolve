@@ -21,9 +21,9 @@ test('H3 the four cards equal the sums from the issue data', async ({ page }) =>
   await expect(card(page, 'Open payment issues')).toHaveText(String(open.length))
   await expect(card(page, 'Customers hit')).toHaveText(String(sum(issues, 'affected')))
   await expect(card(page, 'Money stuck')).toHaveText(rupees(sum(open, 'at_risk_paise')))
-  // No longer waiting: customers hit minus those each issue page says are still to put right (its tier counts), not the engine's stored `fixed`.
-  const waiting = issues.reduce((a, i) => { const t = JSON.parse(readFileSync(`public/snapshot/incidents/${i.id}.json`, 'utf8')).tier_counts; return a + (t.exact ?? 0) + (t.likely ?? 0) + (t.check ?? 0) }, 0)
-  await expect(card(page, 'No longer waiting')).toHaveText(String(sum(issues, 'affected') - waiting))
+  // Customers put right: only what Resolve itself has done since the recorded data, so nothing before the first fix (customers who paid again on their own are not counted).
+  await expect(card(page, 'Customers put right')).toHaveText('0')
+  await expect(page.getByTestId('home-cards').getByText('₹0 restored')).toBeVisible()
 })
 
 test('H2 the date range changes the cards, chart and list together, and survives a reload', async ({ page }) => {

@@ -228,6 +228,16 @@ export async function demoGet(path: string): Promise<unknown | undefined> {
     return f.data
   }
   if (p === '/api/messages/preview') return q.includes(ZID) ? d.zone1.previews : d.fix.messages.previews[st.lang]
+  // The list takes each issue's state from its own page, so the Overview, the issue list and the chart move when the demo user fixes one.
+  // Before any click every issue's page matches the recorded list, so nothing changes until then.
+  if (p === '/api/incidents') {
+    const list = await stat<Schemas['IncidentSummary'][]>('incidents')
+    return Promise.all(list.map(async (i) => {
+      if (!/^INC-[1-4]$/.test(i.id)) return i
+      const now = (await demoGet(`/api/incidents/${i.id}`)) as Schemas['IncidentDetail']
+      return { ...i, status: now.status, at_risk_paise: now.at_risk_paise }
+    }))
+  }
   if (p === '/api/incidents/INC-1') return incident(d)
   if (p === '/api/incidents/INC-1/members') {
     const tier = new URLSearchParams(q).get('tier')

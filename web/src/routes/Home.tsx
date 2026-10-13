@@ -9,7 +9,6 @@ import { PageSkeleton } from '../components/PageSkeleton'
 import { Panel } from '../components/Panel'
 import { SetupCard } from '../components/SetupCard'
 import { Stat } from '../components/Stat'
-import { UnpaidRenewalsRow } from '../components/UnpaidRenewalsRow'
 import { RayHistory } from '../components/RayHistory'
 import { WelcomeTour } from '../components/WelcomeTour'
 import { useAccount } from '../lib/account'
@@ -75,12 +74,21 @@ export default function Home() {
   // Still waiting, per issue, from the same counts as its own page ("still to put right"), so this card agrees with every issue page and moves when a fix runs. The engine's
   // stored `fixed` also counts customers who paid again on their own, so it is not used for Kaksha. The brand's list already counts only what was put right.
   const [waiting, setWaiting] = useState<Record<string, number>>()
+  // Put right by Resolve: how far each issue's "still waiting" and money stuck have dropped since the recorded data, which only Resolve's own fixes do.
+  // Customers who paid again on their own were never waiting, so they are not counted (PRD v3: never count a customer who came back on their own as won back).
+  const [putRight, setPutRight] = useState({ customers: 0, paise: 0 })
   const ids = brand ? '' : (incs ?? []).map((i) => i.id).join(',')
   useEffect(() => {
     if (!ids) return
     let live = true
-    Promise.all(ids.split(',').map((id) => get<Schemas['IncidentDetail']>(`/api/incidents/${id}`).then((d) => [id, (d.tier_counts.exact ?? 0) + (d.tier_counts.likely ?? 0) + (d.tier_counts.check ?? 0)] as const)))
-      .then((rows) => live && setWaiting(Object.fromEntries(rows)), () => live && setWaiting({}))
+    const still = (d: Schemas['IncidentDetail']) => (d.tier_counts.exact ?? 0) + (d.tier_counts.likely ?? 0) + (d.tier_counts.check ?? 0)
+    const recorded = (id: string) => fetch(`/snapshot/incidents/${id}.json`).then((r) => (r.ok ? (r.json() as Promise<Schemas['IncidentDetail']>) : undefined), () => undefined)
+    Promise.all(ids.split(',').map(async (id) => [id, await get<Schemas['IncidentDetail']>(`/api/incidents/${id}`), await recorded(id)] as const))
+      .then((rows) => {
+        if (!live) return
+        setWaiting(Object.fromEntries(rows.map(([id, d]) => [id, still(d)])))
+        setPutRight(rows.reduce((a, [, d, r]) => (r ? { customers: a.customers + Math.max(0, still(r) - still(d)), paise: a.paise + Math.max(0, r.at_risk_paise - d.at_risk_paise) } : a), { customers: 0, paise: 0 }))
+      }, () => live && setWaiting({}))
     return () => { live = false }
   }, [ids])
   if ((!incs && !error) || (ids && !waiting)) return <PageSkeleton />
@@ -145,11 +153,10 @@ export default function Home() {
           <Stat label="Open payment issues" value={String(open.length)} hint={issues.length ? `of ${issues.length} that started ${rangeLabel.toLowerCase()}` : `none started ${rangeLabel.toLowerCase()}`} icon={AlertTriangleIcon} tone="notice" />
           <Stat label="Customers hit" value={hit.toLocaleString('en-IN')} hint={!hit ? `none ${rangeLabel.toLowerCase()}` : brand ? `across ${issues.length} payment issues` : `${issues.reduce((a, i) => a + i.silent, 0)} never wrote in`} icon={UsersIcon} />
           <Stat label="Money stuck" value={rupees(open.reduce((a, i) => a + i.at_risk_paise, 0))} hint="on open issues" icon={RupeesIcon} />
-          {/* The engine's `fixed` counts every customer who no longer needs anything, including those who paid again on their own, so the card says that and claims no credit (PRD v3: never count a customer who came back on their own as won back). */}
-          <Stat label="No longer waiting" value={issues.reduce((a, i) => a + i.affected - stillWaiting(i), 0).toLocaleString('en-IN')} hint={hit ? `of ${hit.toLocaleString('en-IN')} hit, put right or sorted on their own` : `none hit ${rangeLabel.toLowerCase()}`} icon={CheckCircleIcon} tone="positive" />
+          {/* Kaksha: only what Resolve put right, with the money that came back. The brand's list already counts only what was put right; it has no rupee figure for it. */}
+          <Stat label="Customers put right" value={(brand ? issues.reduce((a, i) => a + i.affected - stillWaiting(i), 0) : putRight.customers).toLocaleString('en-IN')}
+            hint={brand ? (hit ? `of ${hit.toLocaleString('en-IN')} hit` : `none hit ${rangeLabel.toLowerCase()}`) : `${rupees(putRight.paise)} restored`} icon={CheckCircleIcon} tone="positive" />
         </Box>
-        {/* Kaksha's unpaid renewals: a balance it is owed, not a payment issue, so a row of its own under the four cards (DESIGN.md section 16). Not tied to the range. */}
-        {!brand && <UnpaidRenewalsRow />}
 
         {/* What needs attention comes first and the trend sits beside it, half and half. One column below the large breakpoint. */}
         <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(2, minmax(0, 1fr))' }} gap="spacing.5" alignItems="stretch" testID="home-grid">

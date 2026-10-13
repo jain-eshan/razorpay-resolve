@@ -61,6 +61,39 @@ test('Hero A plays end to end with no server: fix in stages, undo, message, veri
   await expect(page.getByText(/Approved rest/).first()).toBeVisible()
 })
 
+// The Overview reads the same demo state as the issue page, so closing INC-1 moves every card by INC-1's own numbers and takes it off the open list.
+test('closing INC-1 in the demo moves the Overview: one issue fewer, its money no longer stuck, its customers put right with the money restored', async ({ page }) => {
+  const card = (label: string) => page.getByTestId('home-cards').getByText(label, { exact: true }).locator('xpath=following-sibling::*[1]')
+  const num = async (label: string) => Number((await card(label).innerText()).replace(/[^\d]/g, ''))
+  await page.goto('/')
+  await expect(page.getByTestId('home-issues').getByRole('link').first()).toBeVisible()
+  const before = { open: await num('Open payment issues'), stuck: await num('Money stuck'), done: await num('Customers put right'), rows: await page.getByTestId('home-issues').getByRole('link').count() }
+
+  await page.getByTestId('home-issues').getByRole('link').first().click()  // the biggest issue is INC-1
+  await expect(page).toHaveURL(/\/incidents\/INC-1$/)
+  const exact = Number((await page.getByText(/^Certain \(\d+\)/).innerText()).match(/\d+/)![0])
+  await btn(page, 'Run the check').click()
+  await btn(page, 'Plan the fix').click()
+  const owed = Number((await panel(page).getByText(new RegExp(`^${exact} customers, ₹`)).innerText()).match(/₹([\d,]+)/)![1].replace(/,/g, ''))
+  await btn(page, 'Looks right, continue').click()
+  await btn(page, 'Grant the first 5').click()
+  await btn(page, /^Grant the rest/).click()
+  await expect(panel(page).getByText(new RegExp(`^${exact} of ${exact} confirmed active`))).toBeVisible()
+  await btn(page, 'Your developer ships the fix').click()
+  await btn(page, 'Move the clock forward 24 hours').click()
+  await btn(page, 'Check it held and close').click()
+  await expect(page.getByTestId('success-moment')).toBeVisible()
+
+  await page.getByRole('link', { name: 'Overview', exact: true }).first().click()
+  await expect(page.getByRole('heading', { level: 1, name: 'Overview' })).toBeVisible()
+  await expect(card('Open payment issues')).toHaveText(String(before.open - 1))
+  await expect(card('Money stuck')).toHaveText(`₹${(before.stuck - owed).toLocaleString('en-IN')}`)
+  await expect(card('Customers put right')).toHaveText((before.done + exact).toLocaleString('en-IN'))
+  await expect(page.getByTestId('home-cards').getByText(`₹${owed.toLocaleString('en-IN')} restored`)).toBeVisible()  // the same amount the closing check reported
+  await expect(page.getByTestId('home-issues').getByRole('link')).toHaveCount(before.rows - 1)
+  await expect(page.getByTestId('home-issues').getByText('85 customers paid and did not get access')).toHaveCount(0)
+})
+
 test('the stages cannot be skipped in the demo either', async ({ page }) => {
   await page.goto('/incidents/INC-1')
   await btn(page, 'Run the check').click()
