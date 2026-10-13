@@ -1,5 +1,5 @@
 import { Box, ChartBar, ChartBarWrapper, ChartCartesianGrid, ChartReferenceLine, ChartTooltip, ChartXAxis, ChartYAxis, Text } from '@razorpay/blade/components'
-import { bucketAt, droppedMarks, thinLabels, yTop, dayLabel } from '../lib/format'
+import { chartMarks, markerText, yTop, dayLabel } from '../lib/format'
 import type { Schemas } from '../lib/api'
 import { ChartKey } from './ChartKey'
 import { useNarrow } from '../lib/useNarrow'
@@ -10,7 +10,7 @@ export function DuplicateChart({ buckets, marks = [] }: { buckets: Schemas['Time
   const narrow = useNarrow()
   const marked = buckets.filter((b) => b.markers.length)
   const data = buckets.map((b) => ({ day: dayLabel(b.bucket_start), fine: b.ok, doubled: b.server_error }))
-  const lines = thinLabels(marks.map((m) => ({ x: bucketAt(buckets.map((b) => b.bucket_start), m.at, dayLabel), label: m.label })).filter((m): m is { x: string; label: string } => !!m.x), data.map((d) => d.day))
+  const lines = chartMarks(buckets.map((b) => b.bucket_start), marks, dayLabel)
   return (
     <Box display="flex" flexDirection="column" gap="spacing.4">
       <Box height="280px" testID="duplicate-chart">
@@ -21,14 +21,14 @@ export function DuplicateChart({ buckets, marks = [] }: { buckets: Schemas['Time
           <ChartTooltip />
           <ChartBar dataKey="fine" name="Orders that were fine" color="data.background.categorical.green.intense" stackId="orders" />
           <ChartBar dataKey="doubled" name="Second order of a double tap" color="data.background.categorical.red.intense" stackId="orders" />
-          {lines.map((m) => <ChartReferenceLine key={m.x} x={m.x} label={m.label} />)}
+          {lines.drawn.map((m) => <ChartReferenceLine key={m.x} x={m.x} label={m.label} />)}
         </ChartBarWrapper>
       </Box>
-      <ChartKey items={[{ name: 'Orders that were fine', color: 'green' }, { name: 'Second order of a double tap', color: 'red' }]} notes={droppedMarks(lines)} />
+      <ChartKey items={[{ name: 'Orders that were fine', color: 'green' }, { name: 'Second order of a double tap', color: 'red' }]} notes={lines.dropped} />
       <Box display="flex" flexDirection="column" gap="spacing.2">
         {marked.map((b) => (
           <Text key={b.bucket_start} size="small">
-            {dayLabel(b.bucket_start)} · {b.markers.join(' · ')}
+            {dayLabel(b.bucket_start)} · {markerText(b.markers)}
           </Text>
         ))}
       </Box>

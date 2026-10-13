@@ -5,12 +5,17 @@ import { expect, test } from '@playwright/test'
 test('the welcome pop-up walks through three slides into setup, and Take a tour opens it again', async ({ page }) => {
   await page.goto('/?welcome')
   const tour = page.getByRole('dialog', { name: 'Welcome to Blindspot' })
+  // A merchant reads each slide once, cold: no sentence leans on "it" to point back at something (Eshan, 13 Oct: "what is 'it'?").
+  const noIt = async () => expect(await tour.getByTestId('welcome-text').innerText()).not.toMatch(/\bit\b/i)
   await expect(tour.getByRole('heading', { name: 'Find every customer a payment problem hit' })).toBeVisible()
+  await noIt()
   await tour.getByRole('button', { name: 'Next' }).click()
   await expect(tour.getByRole('heading', { name: 'Know whose side it is, with proof' })).toBeVisible()
+  await noIt()
   const height = (await tour.boundingBox())?.height  // measured once the opening animation is over
   await tour.getByRole('button', { name: 'Next' }).click()
   await expect(tour.getByRole('heading', { name: 'Fix it and win customers back, with your approval' })).toBeVisible()
+  await noIt()
   expect((await tour.boundingBox())?.height, 'the window keeps one height on every slide').toBe(height)
   await tour.getByRole('button', { name: 'Back' }).click()
   await tour.getByRole('button', { name: 'Back' }).click()

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Box, Collapsible, CollapsibleBody, CollapsibleButton, ProgressBar, Text } from '@razorpay/blade/components'
+import { Box, Collapsible, CollapsibleBody, CollapsibleButton, List, ListItem, ProgressBar, Text } from '@razorpay/blade/components'
 import type { Schemas } from '../lib/api'
 import { sentence } from '../lib/format'
 import { justYou, PLAN } from '../lib/justYou'
@@ -9,7 +9,7 @@ import { Panel } from './Panel'
 // It compares the affected payments with all payments on a normal day, for this merchant only. Other merchants are not compared yet, and the panel says so.
 // `lines` stands in when there are no payments to compare (a customer who never reached the pay page has none): the caller passes what the engine saw instead.
 // `compared` says what the affected payments were compared with, when it is not the merchant's own payments on a normal day (the brand demo compares with the half hour before the release).
-export function JustYou({ inc, lines, cannotSee = true, compared }: { inc: Pick<Schemas['IncidentDetail'], 'lift'> & { verdict: Pick<Schemas['IncidentDetail']['verdict'], 'what_we_cannot_see'> }; lines?: string[]; cannotSee?: boolean; compared?: string }) {
+export function JustYou({ inc, lines, compared }: { inc: Pick<Schemas['IncidentDetail'], 'lift'> & { verdict: Pick<Schemas['IncidentDetail']['verdict'], 'what_we_cannot_see'> }; lines?: string[]; compared?: string }) {
   const { lines: said, weak, sorted } = justYou(inc.lift)
   const none = sorted.length === 0
   const [open, setOpen] = useState(false)
@@ -50,8 +50,13 @@ export function JustYou({ inc, lines, cannotSee = true, compared }: { inc: Pick<
           </CollapsibleBody>
         </Collapsible>
       )}
-      {/* Said once per page: the views that already list it under "What we saw" turn it off here. */}
-      {cannotSee && inc.verdict.what_we_cannot_see.map((s) => <Text key={s} size="small" color="surface.text.gray.muted">What Blindspot cannot see: {s}</Text>)}
+      {/* Said once per page, here on every issue page: one label and the caveats as a short list, not the label repeated before each caveat. */}
+      {inc.verdict.what_we_cannot_see.length > 0 && (
+        <Box display="flex" flexDirection="column" gap="spacing.2" paddingTop="spacing.4" borderTopWidth="thin" borderTopColor="surface.border.gray.subtle" testID="cannot-see">
+          <Text size="small" weight="semibold" color="surface.text.gray.subtle">What Blindspot cannot see</Text>
+          <List size="small">{inc.verdict.what_we_cannot_see.map((s) => <ListItem key={s}>{s}</ListItem>)}</List>
+        </Box>
+      )}
     </Panel>
   )
 }

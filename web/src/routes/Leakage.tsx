@@ -16,7 +16,7 @@ const span = (h: number) => {
   return t % 24 === 0 ? plural(t / 24, 'day') : `${plural(Math.floor(t / 24), 'day')} ${plural(t % 24, 'hour')}`
 }
 
-const COLUMNS = 'minmax(170px, 1.6fr) minmax(190px, 1.8fr) minmax(210px, 2fr) minmax(100px, 0.9fr) minmax(150px, 1.4fr)'
+const COLUMNS = 'minmax(170px, 1.6fr) minmax(190px, 1.8fr) minmax(210px, 2fr) minmax(100px, 0.9fr) minmax(190px, 1.6fr)'
 
 function RowsTable({ rows, third }: { rows: Row[]; third: (r: Row) => { top: string; sub: string } }) {
   return (
@@ -29,7 +29,7 @@ function RowsTable({ rows, third }: { rows: Row[]; third: (r: Row) => { top: str
               <TableHeaderCell>Grace period</TableHeaderCell>
               <TableHeaderCell>Renewal failed</TableHeaderCell>
               <TableHeaderCell>Unpaid</TableHeaderCell>
-              <TableHeaderCell>Access runs to</TableHeaderCell>
+              <TableHeaderCell>Access ends on its own</TableHeaderCell>
             </TableHeaderRow>
           </TableHeader>
           <TableBody>
@@ -49,30 +49,36 @@ function RowsTable({ rows, third }: { rows: Row[]; third: (r: Row) => { top: str
   )
 }
 
-// The engine calls the merchant's grace period a "rule". The page says grace period everywhere, so its sentences are reworded here, the way headline() rewords an issue title.
-const grace = (t: string) => t
+// The engine calls the merchant's grace period a "rule" and an unpaid renewal a "leak". The page says it in the merchant's words, so its sentences are reworded here,
+// the way headline() rewords an issue title.
+const plain = (t: string) => t
   .replace(/your (\d+) hour rule/gi, (_, h: string) => `your ${h} hour grace period`)
   .replace(/when your rule ran out\. That is the rule working\./, 'when their grace period ended. That is your grace period working.')
   .replace('Those rows are not leaks.', 'Those customers are not a problem.')
+  .replace('It reads the payments it has been given.', 'Blindspot sees only the attempts made so far.')
 
-// J6. UPI renewals that failed on the customer's side while access stayed on past the merchant's own rule. A report: nothing here changes anything.
+// J6, "Unpaid renewals". UPI renewals that failed on the customer's side while access stayed on past the merchant's own rule. A report: nothing here changes anything.
+// It is its own page, not a payment issue (Batch 1.5 T6): a payment issue is an event (something broke, it has a cause and a fix, then it closes) and the customer
+// lost out. This is a balance that grows every day: the payment failed as it should, the customer kept access, so the merchant is the one losing money, and what to
+// do about it (end access, or send a payment link) is the merchant's business call, which Blindspot never makes.
 export default function Leakage() {
   const { data, error } = useGet<Schemas['LeakageReport']>('/api/leakage')
   if (!data && !error) return <PageSkeleton />
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <PageHeader guide="access" title="Unpaid access" description="Customers whose UPI AutoPay renewal failed but who still have access after your own grace period ran out. A list for you to act on. Blindspot changes nothing here." />
-      {error && <Text color="feedback.text.negative.intense">Could not load unpaid access: {error}. Reload the page, and if it keeps failing check that the API is running.</Text>}
+      <PageHeader guide="access" title="Unpaid renewals" description="Not a payment issue: nothing broke. The renewal failed because the customer's account had no money, but they kept access, so you are the one losing money." />
+      {error && <Text color="feedback.text.negative.intense">Could not load unpaid renewals: {error}. Reload the page, and if it keeps failing check that the API is running.</Text>}
       {data && (
         <>
-          <Alert isFullWidth isDismissible={false} color="information" title="Blindspot never takes access away" description="To act, end access in your own system, or send the customer your own payment link." />
           <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5">
-            <Stat label="Past their grace period" value={String(data.customers)} hint={`still have access, as of ${when(data.as_of)}`} icon={UnlockIcon} tone={data.customers ? 'notice' : 'positive'} />
-            <Stat label="Renewals unpaid" value={rupees(data.owed_paise)} hint="the failed renewals, added up" icon={AlertTriangleIcon} tone={data.customers ? 'notice' : 'positive'} />
-            <Stat label="Longest past it" value={data.customers ? span(data.longest_over_hours) : 'None'} hint={`your grace period is ${data.grace_hours} hours`} icon={ClockIcon} />
+            <Stat label="Owed to you" value={rupees(data.owed_paise)} hint={`from ${plural(data.rows.length, 'failed renewal')}, as of ${when(data.as_of)}`} icon={AlertTriangleIcon} tone={data.customers ? 'notice' : 'positive'} />
+            <Stat label="Kept access" value={String(data.customers)} hint={`customers past your ${data.grace_hours} hour grace period`} icon={UnlockIcon} tone={data.customers ? 'notice' : 'positive'} />
+            <Stat label="Longest past it" value={data.customers ? span(data.longest_over_hours) : 'None'} hint={data.customers ? 'and it grows every day' : `your grace period is ${data.grace_hours} hours`} icon={ClockIcon} />
           </Box>
+          <Alert isFullWidth isDismissible={false} color="information" title="Blindspot never takes access away" description="What to do is your call: end access in your own system, or send the customer your own payment link." />
 
-          <Panel title={data.customers ? `${data.customers} customers failed a UPI renewal, are past your ${data.grace_hours} hour grace period and still have access. ${rupees(data.owed_paise)} in renewals is unpaid.` : 'Nobody is past their grace period with access still on.'} pad={false}>
+          <Panel title={data.customers ? `${plural(data.customers, 'customer')} past your grace period` : 'Nobody is past their grace period'}
+            subtitle={data.customers ? 'Longest past it first. Access ends on its own at the end of the period they did not pay for, unless you end it sooner.' : 'Every failed renewal was paid again or had access ended in time.'} pad={false}>
             {data.rows.length > 0 && <RowsTable rows={data.rows} third={(r) => ({ top: `Ended ${when(r.rule_ends_at)}`, sub: `${span(r.hours_over_rule)} ago` })} />}
           </Panel>
 
@@ -82,21 +88,21 @@ export default function Leakage() {
             </Panel>
           )}
 
-          <Panel title="How I checked" subtitle="Each step keeps only the customers who still fit">
+          <Panel title="How Blindspot checked" subtitle="Each step keeps only the customers who still fit">
             <Box display="flex" flexDirection="column" gap="spacing.3">
               {data.funnel.map((s) => (
-                <Box key={s.label} display="flex" justifyContent="space-between" gap="spacing.4"><Text>{grace(s.label)}</Text><Text weight="semibold">{String(s.count)}</Text></Box>
+                <Box key={s.label} display="flex" justifyContent="space-between" gap="spacing.4"><Text>{plain(s.label)}</Text><Text weight="semibold">{String(s.count)}</Text></Box>
               ))}
             </Box>
             {data.left_out.length > 0 && (
               <Box display="flex" flexDirection="column" gap="spacing.2" paddingTop="spacing.4" borderTopWidth="thin" borderTopColor="surface.border.gray.subtle">
                 <Text size="small" weight="semibold" color="surface.text.gray.subtle">Left out, and why</Text>
-                {data.left_out.map((l) => <Box key={l.label} display="flex" gap="spacing.3" alignItems="flex-start"><CheckCircleIcon size="small" color="surface.icon.gray.muted" /><Text size="small">{grace(l.label)}</Text></Box>)}
+                {data.left_out.map((l) => <Box key={l.label} display="flex" gap="spacing.3" alignItems="flex-start"><CheckCircleIcon size="small" color="surface.icon.gray.muted" /><Text size="small">{plain(l.label)}</Text></Box>)}
               </Box>
             )}
             <Box display="flex" flexDirection="column" gap="spacing.2" paddingTop="spacing.4" borderTopWidth="thin" borderTopColor="surface.border.gray.subtle">
-              <Text size="small" weight="semibold" color="surface.text.gray.subtle">What I cannot see</Text>
-              {data.cannot_see.map((c) => <Text key={c} size="small" color="surface.text.gray.muted">{grace(c)}</Text>)}
+              <Text size="small" weight="semibold" color="surface.text.gray.subtle">What Blindspot cannot see</Text>
+              {data.cannot_see.map((c) => <Text key={c} size="small" color="surface.text.gray.muted">{plain(c)}</Text>)}
             </Box>
           </Panel>
         </>

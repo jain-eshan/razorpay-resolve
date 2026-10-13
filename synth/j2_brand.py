@@ -1,25 +1,23 @@
-"""J2 world (PRD v3, journey J2): a big brand's Android app 8.2 shows "Payment failed" after a successful UPI payment.
+"""J2 world (PRD v3, journey J2): a big brand's Android app 8.2 shows "Payment failed" after a successful UPI payment. Payment issue FK-1 of the brand account
+(`synth/brand_world.py` builds the account around it and writes the files).
 
-Stands alone: it reads nothing from `synth/config.yaml` and writes only `web/public/brand/j2.json`, so no frozen contract moves. Fixed seed, so the file is the same on every run
+Stands alone: it reads nothing from `synth/config.yaml`, so no frozen contract moves. Fixed seed, so the file is the same on every run
 (a test checks the committed file against a fresh run). Every number the demo screens show comes from this file; none is typed into a screen.
 
-The story, in IST on 2 Oct 2026: app 8.2 ships at 7:40 pm and its server stops calling "verify payment" for UPI at 7:41. Razorpay captures every payment normally. Errors reach
+The story, in IST on 1 Oct 2026 (the evening before the demo's "today", 2 Oct 10:40, so it is inside every date range): app 8.2 ships at 7:40 pm and its server stops calling "verify payment" for UPI at 7:41. Razorpay captures every payment normally. Errors reach
 Sentry from 7:44 and the alert fires at 7:52. Blindspot posts the RCA at 7:58, a Razorpay support engineer signs it off at 7:59, the brand rolls back at 8:01.
 1,240 customers paid by UPI from app 8.2 between 7:40 and 7:56 pm and saw "Payment failed". 410 of them paid a second time (by 7:58 pm, when the RCA is posted, so the numbers it states are final) and got an order; 830 left with no order.
 
-Run: `uv run python -m synth.j2_brand` (writes the file). The brand's name is not here: the screens carry it (web/src/lib/brand.ts).
+Run: `uv run python -m synth.brand_world` (writes the files). The brand's name is not here: the screens carry it (web/src/lib/account.ts).
 """
 from __future__ import annotations
 
-import json
 import random
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
 SEED = 20261012
-OUT = Path(__file__).resolve().parent.parent / "web" / "public" / "brand" / "j2.json"
 IST = timezone(timedelta(hours=5, minutes=30))
-DAY = datetime(2026, 10, 2, tzinfo=IST)
+DAY = datetime(2026, 10, 1, tzinfo=IST)
 
 APP_VERSION = "8.2"
 AFFECTED, PAID_TWICE = 1240, 410
@@ -133,7 +131,7 @@ def generate(seed: int = SEED) -> dict:
         "app_version": APP_VERSION,
         "previous_version": VERSIONS[0][0],
         "platform": "Android",
-        "day": "2026-10-02",
+        "day": DAY.date().isoformat(),
         "timeline": t,
         "baseline_minutes": BASELINE_MINUTES,
         "counts": {"affected": n, "paid_twice": len(dup), "no_order": len(gone), "second_payments": len(dup), "sentry_events": sum(per_min), "baseline_payments": len(base)},
@@ -146,14 +144,3 @@ def generate(seed: int = SEED) -> dict:
         "customers": customers,
     }
 
-
-def write(path: Path = OUT) -> dict:
-    data = generate()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, separators=(",", ":")) + "\n")
-    return data
-
-
-if __name__ == "__main__":
-    d = write()
-    print(f"j2: {d['counts']['affected']} customers, {d['counts']['paid_twice']} paid twice, {d['counts']['no_order']} left with no order -> {OUT.relative_to(OUT.parents[3])}")

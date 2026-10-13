@@ -1,0 +1,88 @@
+{
+ "groups": [
+  {
+   "id": "alerts",
+   "title": "Alert tool",
+   "items": [
+    {
+     "id": "sentry",
+     "name": "Sentry",
+     "kind": "alert",
+     "status": "connected",
+     "sends": "Sends: Alerts from your Sentry rules; the payment filter keeps the payment ones",
+     "count": "3 alerts since 24 Sep",
+     "last": "Last alert 1 Oct, 7:52 pm",
+     "off": "Disconnected. Alerts from Sentry are refused until you connect it again."
+    },
+    {
+     "id": "datadog",
+     "name": "Datadog",
+     "kind": "alert",
+     "status": "connected",
+     "sends": "Sends: Alerts from your Datadog monitors; the payment filter keeps the payment ones",
+     "count": "3 alerts since 24 Sep",
+     "last": "Last alert 1 Oct, 7:55 pm",
+     "off": "Disconnected. Alerts from Datadog are refused until you connect it again."
+    },
+    {
+     "id": "pagerduty",
+     "name": "PagerDuty",
+     "kind": "alert",
+     "status": "connected",
+     "sends": "Sends: Incidents on the services your payment filter lists",
+     "count": "2 alerts since 24 Sep",
+     "last": "Last alert 30 Sep, 11:02 am",
+     "off": "Disconnected. Alerts from PagerDuty are refused until you connect it again."
+    }
+   ]
+  },
+  {
+   "id": "razorpay",
+   "title": "Razorpay's own monitor",
+   "items": [
+    {
+     "id": "razorpay",
+     "name": "Razorpay webhooks",
+     "kind": "razorpay",
+     "status": "on",
+     "sends": "Sends: webhook deliveries to your servers that are late or failing",
+     "count": "1 alert since 24 Sep",
+     "last": "Last alert 28 Sep, 1:24 pm",
+     "off": "Switched off. Razorpay will not tell you when it delivers your webhooks late."
+    }
+   ]
+  },
+  {
+   "id": "answers",
+   "title": "Where answers go",
+   "items": [
+    {
+     "id": "slack",
+     "name": "Slack",
+     "kind": "slack",
+     "status": "connected",
+     "sends": "Root causes, approval requests and closing notes, in #razorpay-payments only",
+     "count": "3 root causes posted since 24 Sep",
+     "last": "Last root cause 1 Oct, 7:58 pm",
+     "off": "Disconnected. Root causes and approval requests show only on this dashboard."
+    }
+   ]
+  },
+  {
+   "id": "later",
+   "title": "Helpdesk",
+   "items": [
+    {
+     "id": "freshdesk",
+     "name": "Freshdesk",
+     "kind": "helpdesk",
+     "status": "later",
+     "sends": "Customer tickets about payments, so a complaint can start a payment issue too",
+     "count": "",
+     "last": "",
+     "off": ""
+    }
+   ]
+  }
+ ]
+}

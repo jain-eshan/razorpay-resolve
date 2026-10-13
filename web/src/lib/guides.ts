@@ -215,7 +215,7 @@ export const GUIDES: Guide[] = [
   },
   {
     id: 'access',
-    title: 'Unpaid access',
+    title: 'Unpaid renewals',
     why: 'What the list gives you',
     how: 'How to use the list',
     to: '/access',
@@ -223,18 +223,18 @@ export const GUIDES: Guide[] = [
     tagline: 'Customers who stopped paying but kept access',
     summary: 'Renewals that failed on the customer’s side, still on after your grace period.',
     description:
-      'When a UPI AutoPay renewal fails because the customer’s account had no money, your app should end access once your grace period runs out. Sometimes it does not. Blindspot lists those customers and the amount unpaid. It never takes access away itself.',
+      'When a UPI AutoPay renewal fails because the customer’s account had no money, your app should end access once your grace period runs out. Sometimes it does not, and the amount you are owed grows every day. This is not a payment issue: nothing broke, and you are the one losing money. Blindspot lists those customers and the amount. It never takes access away itself.',
     benefits: [
-      { art: 'door', title: 'Only past your own rule', text: 'A customer joins the list only after your grace period has run out. The ones still inside it are shown separately.' },
+      { art: 'door', title: 'Only past your grace period', text: 'A customer joins the list only after your grace period has run out. The ones still inside it are shown separately.' },
       { art: 'proof', title: 'Only their side', text: 'Renewals that failed on the bank’s or Razorpay’s side are left out: the customer owes nothing for those.' },
       { art: 'lock', title: 'Nothing is changed', text: 'It is a list for you to act on. Blindspot never ends anyone’s access.' },
     ],
     steps: [
-      { art: 'door', title: 'Open the list', text: 'Each row shows the customer, the failed renewal, how long past your rule they are and when their access runs out.' },
+      { art: 'door', title: 'Open the list', text: 'Each row shows the customer, the failed renewal, how long past your grace period they are and when access ends on its own if you do nothing.' },
       { art: 'search', title: 'Check the ones left out', text: 'The page says who was left out and why, so you can trust what is on it.' },
       { art: 'approve', title: 'Act in your own system', text: 'End access there, or send the customer your own payment link.' },
     ],
-    links: [{ label: 'Open Unpaid access', to: '/access' }, { label: 'How accurate it is', to: '/how' }],
+    links: [{ label: 'Open Unpaid renewals', to: '/access' }, { label: 'How accurate it is', to: '/how' }],
     note: DEMO,
   },
   {

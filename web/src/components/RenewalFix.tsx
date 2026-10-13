@@ -106,7 +106,7 @@ export function RenewalFix({ inc, members, onChanged }: { inc: Schemas['Incident
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="That did not go through" description={error} />}
 
       <Turn n={1} analyzing={busy === 'plan' || busy === 'undo' || busy === `${grant?.id}:${grant?.next_stage}`} you={grant && grant.status !== 'drafted' ? (grant.status === 'reverted' ? 'Undo the extension' : 'Looks right, continue') : undefined}
-        title="Keep access on for 3 days" badge={grant && grant.status !== 'reverted' ? [grant.status === 'done' ? 'Done' : grant.status === 'failed' ? 'Stopped' : grant.status === 'drafted' ? 'Waiting for you' : `${done} of ${total}`, grant.status === 'done' ? 'positive' : grant.status === 'failed' ? 'negative' : 'notice'] : undefined}>
+        title="Keep customers' access on for 3 more days" badge={grant && grant.status !== 'reverted' ? [grant.status === 'done' ? 'Done' : grant.status === 'failed' ? 'Stopped' : grant.status === 'drafted' ? 'Waiting for you' : `${done} of ${total}`, grant.status === 'done' ? 'positive' : grant.status === 'failed' ? 'negative' : 'notice'] : undefined}>
         {!grant || grant.status === 'reverted' ? (
           <Box display="flex" flexDirection="column" gap="spacing.3" alignItems="flex-start">
             <Text size="small">{grant?.status === 'reverted' ? 'Undone. Every record is back to how it was. Plan again whenever you are ready.' : 'Lists whose access would be kept on for 3 days from today. It never takes access away, and customers who already paid again are left alone. Changes nothing yet.'}</Text>
@@ -138,7 +138,7 @@ export function RenewalFix({ inc, members, onChanged }: { inc: Schemas['Incident
       </Turn>
 
       {done > 0 && (
-        <Turn n={2} analyzing={busy === 'msgplan'} you="Tell the customers" title="Tell the customers" badge={msg ? [msg.status === 'done' ? 'Sent' : msg.status === 'drafted' ? 'Draft' : 'In progress', msg.status === 'done' ? 'positive' : 'neutral'] : undefined}>
+        <Turn n={2} analyzing={busy === 'msgplan'} you="Tell the customers" title="Tell customers it was not their card" badge={msg ? [msg.status === 'done' ? 'Sent' : msg.status === 'drafted' ? 'Draft' : 'In progress', msg.status === 'done' ? 'positive' : 'neutral'] : undefined}>
           {!msg ? (
             <Box display="flex" flexDirection="column" gap="spacing.3" alignItems="flex-start">
               <Text size="small">One message to each customer whose access is now confirmed, saying the renewal failed because of a payment network issue and not their card.</Text>
@@ -207,7 +207,7 @@ export function RenewalFix({ inc, members, onChanged }: { inc: Schemas['Incident
       </Turn>
 
       {messagesSent && (
-        <Turn n={nLinks} analyzing={busy === 'linkplan'} you={rec && rec.status !== 'drafted' ? 'Send the renewal links' : undefined} title="Send the renewal links, in stages"
+        <Turn n={nLinks} analyzing={busy === 'linkplan'} you={rec && rec.status !== 'drafted' ? 'Send the renewal links' : undefined} title="Send customers a link to renew"
           badge={rec ? [rec.status === 'done' ? 'Sent' : rec.status === 'drafted' ? 'Draft' : rec.status === 'failed' ? 'Stopped' : `${linkSent} of ${linkPlanned - linkHeld}`, rec.status === 'done' ? 'positive' : rec.status === 'failed' ? 'negative' : 'neutral'] : undefined}>
           {!rec ? (
             <Box display="flex" flexDirection="column" gap="spacing.3" alignItems="flex-start">
@@ -239,7 +239,7 @@ export function RenewalFix({ inc, members, onChanged }: { inc: Schemas['Incident
       )}
 
       {linkSent > 0 && (
-        <Turn n={nLinks + 1} you="Show me what the customers did" title="What the customers did" badge={['Simulated customers', 'neutral']}>
+        <Turn n={nLinks + 1} you="Show me who renewed" title="Who renewed after the link" badge={['Simulated customers', 'neutral']}>
           <Box display="flex" flexDirection="column" gap="spacing.3">
             <Text weight="semibold">{lc.sent_paid ?? 0} of {linkSent} customers with a link have renewed, {rupees(lc.recovered_paise ?? 0)} collected.</Text>
             <Text size="small">Held back on purpose: {lc.held_back_paid ?? 0} of {lc.held_back ?? 0} renewed on their own. {(lc.held_back ?? 0) < 20 ? 'Too few customers to say what the link adds.' : ''}</Text>
