@@ -75,10 +75,12 @@ export function StoryTiles({ steps }: { steps: StoryStep[] }) {
                 })()}
                 <Box display="flex" flexDirection="column" gap="spacing.1" minWidth="spacing.0">
                   <Text size="small" weight="semibold" color={current ? 'surface.text.primary.normal' : 'surface.text.gray.muted'}>{current ? `${s.title} · now` : s.title}</Text>
-                  <Box minHeight={{ base: 'spacing.0', xl: '40px' }}><Text weight="semibold">{s.value}</Text></Box>
-                  {/* Where five tiles sit across (xl), two lines are always kept for the value and the note, so the strip is one height whatever the numbers and words turn out to be as the fix
-                      moves on. Below that the tiles are wide enough for one line each and stack tight, with the fifth across both columns on a tablet, so there is no empty band. */}
-                  <Box minHeight={{ base: 'spacing.0', xl: '36px' }}><Text size="small" color="surface.text.gray.muted">{s.note}</Text></Box>
+                  <Box minHeight={{ base: 'spacing.0', m: i === 4 ? 'spacing.0' : '40px', xl: '40px' }}><Text weight="semibold">{s.value}</Text></Box>
+                  {/* Where tiles sit side by side (two across from m, five from xl), two lines are always kept for the value and the note, so the strip is one height whatever the numbers
+                      and words turn out to be as the fix moves on. A tile about 200px wide (two across, beside the side menu) is only just wide enough for one line, and a line that wraps on
+                      one machine's font and not another's made the strip 20px taller on the last approval. On a phone the tiles stack at full width, so one line each and no empty band, and
+                      the fifth tile spans both columns on a tablet, so it needs no spare line either. */}
+                  <Box minHeight={{ base: 'spacing.0', m: i === 4 ? 'spacing.0' : '36px', xl: '36px' }}><Text size="small" color="surface.text.gray.muted">{s.note}</Text></Box>
                 </Box>
               </Box>
             )
