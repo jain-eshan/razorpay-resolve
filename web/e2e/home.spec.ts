@@ -236,14 +236,17 @@ test('Continue setup resumes at the next step, not step 1', async ({ page }) => 
 test('Ray chat: the toolbar stays in view while a long thread scrolls, and nothing is drawn over the toolbar or the input', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 700 })
   await page.goto('/ray')
-  const ask = async (q: string, answers: RegExp, count: number) => {
+  // Wait for the answer, not for the words of the question (the chips use them too): one more matching heading than before. The count is not fixed, because an earlier answer can already list an issue worded the same ("85 customers paid and did not get access" is in the issues list, "81 ..." in the scan answer).
+  const ask = async (q: string, answers: RegExp) => {
+    const heading = page.getByRole('heading', { name: answers })
+    const before = await heading.count()
     await page.getByRole('textbox', { name: 'Ask Ray' }).fill(q)
     await page.getByRole('textbox', { name: 'Ask Ray' }).press('Enter')
-    await expect(page.getByRole('heading', { name: answers })).toHaveCount(count, { timeout: 10_000 })  // wait for the answer, not for the words of the question (the chips use them too)
+    await expect(heading).toHaveCount(before + 1, { timeout: 10_000 })
   }
-  await ask('What is broken right now?', /payment issues?, ₹[\d,]+ involved/, 1)
-  await ask('Who paid and did not get access?', /customers paid and did not get access/, 1)
-  await ask('What is broken right now?', /payment issues?, ₹[\d,]+ involved/, 2)
+  await ask('What is broken right now?', /payment issues?, ₹[\d,]+ involved/)
+  await ask('Who paid and did not get access?', /customers paid and did not get access/)
+  await ask('What is broken right now?', /payment issues?, ₹[\d,]+ involved/)
   const scroller = page.getByTestId('scroller')
   // Scroll the thread in steps. At every step, whatever sits under the middle of a button in the thread that overlaps the toolbar or the dock must be that bar, not the button.
   const covered = new Set<string>()
