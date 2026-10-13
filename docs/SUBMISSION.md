@@ -274,10 +274,10 @@ Updated 11 Oct for the renamed pages (web/DESIGN.md section 22).
 
 | Number | Where it comes from |
 |---|---|
-| 164 commits on main | `git rev-list --count origin/main` at ebad89f, 13 Oct |
-| 46 merged pull requests | `gh pr list --state merged --limit 200` at ebad89f, 13 Oct |
+| 170 commits on main | `git rev-list --count origin/main` at a0bc548, 13 Oct |
+| 48 merged pull requests | `gh pr list --state merged --limit 200` at a0bc548, 13 Oct |
 | About 32,500 lines of Python and TypeScript | `git ls-files '*.py' '*.ts' '*.tsx'` (snapshot data left out), summed with `wc -l`: 32,538 |
-| 627 backend tests, 260 browser tests | `uv run pytest -q` (627 passed) and `npx playwright test --list` (260). CI on main at ebad89f passed 259 of the 260; the one that timed out (INC-2 walkthrough, 60 s budget on a slow runner) passes locally in 17 s and is fixed in PR #53. All 13 Oct. Before 12 Oct there were 93 browser tests: PRD v3 section 11 |
+| 627 backend tests, 260 browser tests | `uv run pytest -q` (627 passed) and `npx playwright test --list` (260). CI on main at ebad89f passed 259 of the 260; the one that timed out (INC-2 walkthrough, 60 s budget on a slow runner) passes locally in 17 s and was fixed in PR #53 (merged). A full local run of all 260 passed after the rename (PR #54). All 13 Oct. Before 12 Oct there were 93 browser tests: PRD v3 section 11 |
 | 147 scored checks pass | R, as above |
 | 41 made-up complaints, 85%, 78% | R, and `docs/BUILD_LOG.md` as above |
 | 26 sessions (10 Oct) | The previous version of the log. Not recounted |

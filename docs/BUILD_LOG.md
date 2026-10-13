@@ -1583,3 +1583,7 @@ Not in this repo, so for Eshan: the video title card and captions, the PDF, scre
 What broke: the blanket rename also changed the API title, and `test_openapi_matches_frozen_contract` caught it. Put back.
 
 Design review: no layout changed; "Resolve" and "Razorpay Resolve" are shorter than the old names. Checked by the layout and stability tests; see the verification line below.
+
+## 13 Oct 2026, merged and closed out (integrator, docs only)
+
+PR #53 (the INC-2 test timeout, issue #52) and PR #54 (the rename to Razorpay Resolve, the README and the docs refresh) are merged to `main`; issue #52 is closed. The GitHub repository description now reads "Razorpay Resolve: ..." (it still said Blindspot after the first docs pass). Counts refreshed to 170 commits and 48 merged pull requests. The live address `razorpay-blindspot.vercel.app` and the repo name are unchanged on purpose. Left open: PR #46 (stale, superseded by #47), the third-party transcripts file and the missing license before the repo goes public, and the PRD v3 Claude Doc, which Eshan renames.

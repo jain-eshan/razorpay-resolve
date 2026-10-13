@@ -75,7 +75,7 @@ The one place the repo measures why a model is needed is the "Why an AI agent" s
 | Backend tests (`make test`) | 627 collected |
 | Browser tests (Playwright, `make e2e`) | 260 test cases, at phone, tablet and desktop widths |
 | Lint and type check (`make lint`, `tsc`) | pass, with one unused-variable warning in a test file |
-| History on `main` | 164 commits, 46 merged pull requests, about 32,500 lines of Python and TypeScript (tests included) |
+| History on `main` | 170 commits, 48 merged pull requests, about 32,500 lines of Python and TypeScript (tests included) |
 
 CI runs the whole suite on every pull request. Screens were reviewed against Razorpay's own design rules (`web/DESIGN.md`) by an independent reviewer agent before merge. The review notes, including what was not checked (dark mode, screen readers), are in `docs/BUILD_LOG.md`.
 
