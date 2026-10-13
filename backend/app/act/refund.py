@@ -1,4 +1,4 @@
-"""Refunds for duplicate charges (F-39, FR-AC-7), against Razorpay's Refunds API, mocked. The only code in Blindspot that returns money.
+"""Refunds for duplicate charges (F-39, FR-AC-7), against Razorpay's Refunds API, mocked. The only code in Resolve that returns money.
 
 Rules held here, each with a test:
 - A refund goes to the original payment method. The `refunds` table has no destination column and this file takes none.
@@ -34,7 +34,7 @@ def refund_id(payment_id: str) -> str:
 
 
 def spent_today(db: sqlite3.Connection) -> int:
-    """Paise Blindspot refunded on the current day of the demo clock."""
+    """Paise Resolve refunded on the current day of the demo clock."""
     day = clock.now().date().isoformat()
     return db.execute("SELECT COALESCE(SUM(amount_paise), 0) FROM refunds WHERE source = 'make_good' AND substr(created_at, 1, 10) = ?", (day,)).fetchone()[0]
 

@@ -279,7 +279,7 @@ def test_no_access_grant_is_offered_for_a_double_charge(fresh):
 
 
 def test_nothing_but_the_refund_engine_writes_a_refund():
-    """Same idea as the one send path: a refund Blindspot makes comes from act/refund.py and nowhere else."""
+    """Same idea as the one send path: a refund Resolve makes comes from act/refund.py and nowhere else."""
     for p in (ROOT / "backend" / "app").rglob("*.py"):
         if p.name != "refund.py":
             assert "INSERT INTO refunds" not in p.read_text(), p

@@ -1,5 +1,7 @@
 # Blindspot v3: build roadmap
 
+> **Naming.** The product is called Razorpay Resolve (Resolve inside the dashboard). It was developed under the working name Blindspot, and this file keeps that name in its dated history.
+
 Written 12 Oct 2026. The product is defined in the PRD v3 doc (Claude Docs: https://claude.ai/code/artifact/31e2f39b-bdfc-43ff-a448-4e41d74e7432). This file is the build order. The PRD decides what; this file decides in which order and how it is checked. Where they disagree on what, the PRD wins; flag the conflict to Eshan.
 
 How to use it: take the next unticked task in your batch, top to bottom. Each task names its files, its owner stream (BUILD_PLAN section 3) and when it is done. Tick it in the same PR that does it.
@@ -23,7 +25,7 @@ How to use it: take the next unticked task in your batch, top to bottom. Each ta
 | Task | Who | State | What it needs |
 |---|---|---|---|
 | CI green on `main` | Claude, Eshan merges | `main` has been red since 12 Oct (issue #45). Fix is PR #47. | Merge #47 once its CI is green, before any deploy. Check `gh issue list --label ci-failure --state open` is empty. |
-| S3 note, S4 AI build log | Eshan | Drafts are complete. The big-brand lines are filled from `web/public/brand/j2.json`. The note is 546 words by the count in `docs/SUBMISSION.md` (limit 550). | Put both in your own voice. Check the three lines under "Wording to check". Recount after editing. Fill `[TO CONFIRM: the session count]` in the AI build log. |
+| S3 note, S4 AI build log | Eshan | Drafts are complete. The big-brand lines are filled from `web/public/brand/j2.json`. The note is 547 words by the count in `docs/SUBMISSION.md` (limit 550). | Put both in your own voice. Check the three lines under "Wording to check". Recount after editing. Fill `[TO CONFIRM: the session count]` in the AI build log. |
 | S5 video, 90 seconds | Eshan, with Claude drafting | **No v3 script is written.** `docs/SUBMISSION.md` section 2 is the v2 script and says so. | A script in the PRD section 8 order (J1, J2, the dashboard), numbers read from the pages, caption "Synthetic merchant. Simulated Razorpay data." Record from the hosted demo. |
 | S6 final QA | Claude | Not started. | Every route at 375, 768 and 1440px, a full test run, the hosted demo showing batch 1.3 and the CI fix, a smoke test of https://razorpay-blindspot.vercel.app in a clean browser. |
 | S7 submit | Eshan | Not started. | The four deliverables: note, video, prototype link and README, AI build log. |

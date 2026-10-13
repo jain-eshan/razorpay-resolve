@@ -1,6 +1,6 @@
 # AI build log
 
-Blindspot, Razorpay x ISB AI PM Build Challenge, Track 2. Draft written for Eshan Jain to review and put in his own voice before submitting. The full day-by-day record is `docs/BUILD_LOG.md`.
+Resolve, Razorpay x ISB AI PM Build Challenge, Track 2. Draft written for Eshan Jain to review and put in his own voice before submitting. The full day-by-day record is `docs/BUILD_LOG.md`.
 
 ## In one paragraph
 

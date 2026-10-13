@@ -1,5 +1,7 @@
 # Build log
 
+> **Naming.** The product is called Razorpay Resolve (Resolve inside the dashboard). It was developed under the working name Blindspot, and this file keeps that name in its dated history.
+
 One entry per stream per day: goal, key prompts, what was rejected and why, bugs found by tests or eval, metrics, time spent, decisions.
 
 ## 6 Oct 2026, R0 (integrator)
@@ -1561,3 +1563,23 @@ Left as it is: PR #46 (open, superseded by #47), the PRD v3 decision boxes (the 
 Open for Eshan before going public: `docs/RAZORPAY_TRANSCRIPTS.md` says it is third-party material for private research and must not be published, and `docs/INTERVIEWS.md` repeats that. There is also no LICENSE file.
 
 Design review: not applicable, no file under `web/src` changed.
+
+## 13 Oct 2026, rename to Razorpay Resolve (integrator, branding only)
+
+Goal: Eshan named the product Razorpay Resolve ("Resolve" inside the dashboard) and asked for it everywhere the name shows. Decisions with Eshan: name everywhere in this change, the wording audit of "resolved" vs "approved" vs "refund initiated" vs "access verified" later, and no change to the live address or the repo name, so no submitted link breaks.
+
+What changed:
+- Every visible "Blindspot" is now "Resolve" in 85 files: web app, browser tests, backend messages and errors, the data generators (`synth/`), the integration prompt, the docs a visitor reads. "Razorpay Blindspot" (the Slack poster and the alert rule on the brand account) is "Razorpay Resolve". The prompt's placeholders `BLINDSPOT_API` and `blindspot_test` became `RESOLVE_API` and `resolve_test`, because a merchant sees them.
+- `web/src/lib/brand.ts`: the name, full name, tagline and description in one file, used by the product tab, the side-menu heading and the account picker badge. Page title is "Resolve | Razorpay", with a description and link-preview text in `web/index.html` (no preview image yet).
+- The product tab badge and the account picker badge say DEMO, not BETA, so nothing suggests a launched Razorpay product.
+- Landing page: "Two merchant journeys, one recovery workflow" replaces "Two kinds of merchant, one Blindspot".
+- `make snapshot` and `python -m synth.brand_world` were rerun, so the recorded demo and the brand account's files carry the new name. A search of `web/public` finds no "blindspot".
+- The note is 547 words by the file's own count (limit 550).
+
+Kept on purpose (internal names, renaming needs a migration or a contract change): database values such as `with_blindspot` and `to_app = "blindspot"`, the Supabase tables `blindspot_webhook_*`, browser storage keys `blindspot.*`, the picture and guide ids `blindspot`, the package names, the API title in `contracts/openapi.json` ("Blindspot API", frozen, shown only on a developer `/docs` page), and `contracts/schema.sql`'s header comment. The history docs (BUILD_LOG, HANDOFF, PRD, SPEC, BUILD_PLAN, V1_SPEC, ROADMAP_V3, BUSINESS_CASE, INTERVIEWS) keep the old name in their dated text, each with a note on its first line. `docs/PRD_V3.md` was renamed in this repo copy; its source is the Claude Doc, which Eshan has to rename there.
+
+Not in this repo, so for Eshan: the video title card and captions, the PDF, screenshots, the submission form text, and a link-preview image.
+
+What broke: the blanket rename also changed the API title, and `test_openapi_matches_frozen_contract` caught it. Put back.
+
+Design review: no layout changed; "Resolve" and "Razorpay Resolve" are shorter than the old names. Checked by the layout and stability tests; see the verification line below.

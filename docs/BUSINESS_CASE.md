@@ -1,5 +1,7 @@
 # Business case and pricing (frozen 10 Oct 2026)
 
+> **Naming.** The product is called Razorpay Resolve (Resolve inside the dashboard). It was developed under the working name Blindspot, and this file keeps that name in its dated history.
+
 What it would cost Razorpay to run Blindspot in production, what to charge, what merchants pay and get, and what has to be true for it to work. Every number here comes from `docs/business_model.py` (run `uv run python docs/business_model.py`). If a number in this file and the script disagree, the script wins and this file is wrong.
 
 **Status.** The base case in section 2 is frozen. It is deliberately not stretched: it assumes better pickup than Agent Studio saw in its gated beta, and nothing more. Change it only through the change log in section 11.

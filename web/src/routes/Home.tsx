@@ -28,9 +28,9 @@ const EXPLORE_LINE: Record<string, string> = {
   access: 'Money owed by customers who kept access',
   integration: 'Connect your webhook and check it works',
   channels: 'Choose where customers can reach you',
-  autonomy: 'Decide how much Blindspot does on its own',
-  learning: 'Tell Blindspot which alerts were false',
-  how: 'See how often Blindspot gets it right',
+  autonomy: 'Decide how much Resolve does on its own',
+  learning: 'Tell Resolve which alerts were false',
+  how: 'See how often Resolve gets it right',
   scan: 'Who paid and got nothing in the last 30 days',
 }
 const EXPLORE = ['incidents', 'conversations', 'access', 'integration', 'channels', 'autonomy', 'learning', 'how', 'scan']
@@ -47,7 +47,7 @@ const EXPLORE_BRAND: { title: string; to: string; icon: IconComponent; line: str
 // Orange when the fix is yours, neutral when it is someone else's (the same as the Payment issues page).
 const OWNER_TONE = { merchant_code: 'notice', merchant_config: 'notice', razorpay: 'neutral', bank: 'neutral', customer: 'neutral', unknown: 'neutral' } as const
 
-// The Blindspot overview, laid out like the dashboard's own home and in the order a merchant asks: Ray one tap away; the setup card, only until setup is done
+// The Resolve overview, laid out like the dashboard's own home and in the order a merchant asks: Ray one tap away; the setup card, only until setup is done
 // (it is the one thing to do first); what is wrong and how bad (four cards); what to act on (the open payment issues, biggest first) beside the trend (the chart);
 // then the pages and what Ray sends. Every figure is added up in the browser from the issue summaries the API returns.
 export default function Home() {
@@ -110,7 +110,7 @@ export default function Home() {
       </Modal>
 
       <Box display="flex" flexDirection="column" gap="spacing.6" testID="ray-home">
-        <PageHeader title="Overview" description={<>Blindspot finds everyone a payment problem hit, says whose side it is, and wins them back. <Link href="/how-it-works" onClick={(e) => { e.preventDefault(); nav('/how-it-works') }}>How Blindspot works</Link></>}
+        <PageHeader title="Overview" description={<>Resolve finds everyone a payment problem hit, says whose side it is, and wins them back. <Link href="/how-it-works" onClick={(e) => { e.preventDefault(); nav('/how-it-works') }}>How Resolve works</Link></>}
           actions={
             <Box display="flex" flexWrap="wrap" alignItems="center" gap="spacing.4">
               {!brand && <Button variant="tertiary" size="medium" onClick={() => setWelcome(true)}>Take a tour</Button>}
@@ -160,7 +160,7 @@ export default function Home() {
           <Panel title="Open payment issues, by money at stake" pad={false} fill>
             {open.length === 0 ? (
               <Box flexGrow="1" minHeight={{ base: '300px', l: 'spacing.0' }} display="flex" alignItems="center" justifyContent="center" padding="spacing.5">
-                <EmptyState size="small" asset={<CheckCircleIcon size="2xlarge" color="feedback.icon.positive.intense" />} title="No open payment issues" description={`None started ${rangeLabel.toLowerCase()}. Blindspot checks every 15 minutes.`} />
+                <EmptyState size="small" asset={<CheckCircleIcon size="2xlarge" color="feedback.icon.positive.intense" />} title="No open payment issues" description={`None started ${rangeLabel.toLowerCase()}. Resolve checks every 15 minutes.`} />
               </Box>
             ) : (
               <Box testID="home-issues" flexGrow="1" minHeight="spacing.0" overflow="auto">
@@ -197,7 +197,7 @@ export default function Home() {
       </Box>
 
       <Box display="flex" flexDirection="column" gap="spacing.5">
-        <Heading as="h2" size="large">Explore Blindspot</Heading>
+        <Heading as="h2" size="large">Explore Resolve</Heading>
         {/* Nine cards in the side menu's order, each opening its page (its guide is one click away there, under "How it works").
             Three across from l, so the nine fill three rows; two across at m, where the first takes a whole row so none is left alone.
             Every row is as tall as the tallest, so a line that wraps on one machine's font does not make one card taller than the rest. */}

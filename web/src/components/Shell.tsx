@@ -7,15 +7,16 @@ import {
   type IconComponent,
 } from '@razorpay/blade/components'
 import { ACCOUNTS, signIn, useAccount, type AccountId } from '../lib/account'
+import { NAME } from '../lib/brand'
 
 // The shell copies the live Razorpay dashboard (web/DESIGN.md section 14). Everything Razorpay already ships is shown but inert: greyed, not clickable.
-// Blindspot is one more product tab and two more nav sections. To add a screen, add an item to BLINDSPOT or PROOF below.
+// Resolve is one more product tab and two more nav sections. To add a screen, add an item to RESOLVE or PROOF below.
 // Names follow Razorpay's own (researched 11 Oct 2026, web/DESIGN.md section 22): short nouns a merchant would use, no "incident", "scan" or "log".
 // `also` lists other paths that light the same item: Integration covers its two steps, Build with AI and the go-live check.
-// `only`: the item is in one account's menu. A shopping app has no subscription renewals and does not hear from customers through Blindspot (its own alert tools are its door),
+// `only`: the item is in one account's menu. A shopping app has no subscription renewals and does not hear from customers through Resolve (its own alert tools are its door),
 // so the brand account's menu leaves those pages out. Pages of the brand account join its menu in the change that builds them.
 type Item = { title: string; to: string; icon: IconComponent; also?: string[]; only?: AccountId }
-const BLINDSPOT: Item[] = [
+const RESOLVE: Item[] = [
   { title: 'Overview', to: '/', icon: RayIcon, also: ['/ray', '/how-it-works'] },
   { title: 'Payment issues', to: '/incidents', icon: ActivityIcon, also: ['/scan', '/demo/incident'] },
   { title: 'Alerts', to: '/alerts', icon: BellIcon, only: 'flipkart' },
@@ -51,10 +52,10 @@ const HideCollapsedExtras = styled.div`
   .show-when-collapsed { display: none; }
 `
 
-// Production's product tabs. Blindspot is the only live one.
+// Production's product tabs. Resolve is the only live one.
 const TABS: ComponentProps<typeof TabNav>['items'] = [
   { title: 'Payments', icon: CreditCardIcon, as: InertItem },
-  { title: 'Blindspot', icon: ActivityIcon, href: '/', as: Link, isActive: true, titleSuffix: <Badge size="small" color="positive">BETA</Badge> },
+  { title: NAME, icon: ActivityIcon, href: '/', as: Link, isActive: true, titleSuffix: <Badge size="small" color="positive">DEMO</Badge> },
   { title: 'Banking+', icon: WalletIcon, as: InertItem },
   { title: 'Payroll', icon: UsersIcon, as: InertItem },
   { title: 'More', trailing: <ChevronDownIcon size="small" color="surface.icon.staticWhite.subtle" />, as: InertItem },
@@ -105,7 +106,7 @@ export function Shell({ children }: { children: ReactNode }) {
       {/* A section shows only when this account has items in it, so no heading stands empty. Blade's body takes sections only, hence one list of them. */}
       <SideNavBody>{[
         <SideNavSection key="core">{CORE.map(([t, i]) => inert(t, i))}</SideNavSection>,
-        ...([['BLINDSPOT', BLINDSPOT], ['CONTROL', PROOF]] as const).filter(([, items]) => items.some(mine)).map(([title, items]) => <SideNavSection key={title} title={title}>{items.filter(mine).map(link)}</SideNavSection>),
+        ...([[NAME.toUpperCase(), RESOLVE], ['CONTROL', PROOF]] as const).filter(([, items]) => items.some(mine)).map(([title, items]) => <SideNavSection key={title} title={title}>{items.filter(mine).map(link)}</SideNavSection>),
         <SideNavSection key="products" title="PAYMENT PRODUCTS" maxVisibleItems={3}>{PAYMENT_PRODUCTS.map((t) => inert(t, PRODUCT_ICONS[t] ?? LinkIcon))}</SideNavSection>,
       ]}</SideNavBody>
       <SideNavFooter>

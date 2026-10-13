@@ -7,7 +7,7 @@ A single issue is thin for a demo, and two of the first three are closed. These 
   FK-6  2 Oct, open   (this morning, before the demo's "now" of 10:40 am) The card pay screen opens blank on iOS app 8.3, so about 960 customers left before paying (before payment, so the count is an estimate; the brand's code; likely).
   FK-7  30 Sep, open  640 coupon orders were charged the full price (the brand's code; exact).
 
-Blindspot does not look inside a payment (a payment that fails at the bank or the UPI app is Razorpay's Success Rate page), so none of these is "a payment failed at the bank".
+Resolve does not look inside a payment (a payment that fails at the bank or the UPI app is Razorpay's Success Rate page), so none of these is "a payment failed at the bank".
 Stands alone like `brand_world.py`: fixed seeds, nothing here reads `synth/config.yaml`, and the brand's name is not in the data (the screens carry it, web/src/lib/account.ts).
 Every sentence that carries a figure is built here from the figures. Nothing is sent, refunded or cancelled in the demo: the approvals are the tab's only.
 """
@@ -109,7 +109,7 @@ def customer(w: World, at: datetime, group: str, what: str, note: str, *, prefix
 
 def slack(rca_at: datetime, signed_at: datetime, title: str, lines: list[str], extra: list[dict] | None = None) -> dict:
     return {"channel": "razorpay-payments", "messages": [
-        {"who": "Razorpay Blindspot", "at": iso(rca_at), "rca": {"title": title, "lines": lines, "signed_off": f"Signed off by Razorpay support at {clock(signed_at)}"}},
+        {"who": "Razorpay Resolve", "at": iso(rca_at), "rca": {"title": title, "lines": lines, "signed_off": f"Signed off by Razorpay support at {clock(signed_at)}"}},
         *(extra or []),
     ]}
 
@@ -134,7 +134,7 @@ def fk4() -> dict:
         "headline": f"{n} customers were debited by HDFC Bank and their orders are on hold",
         "cause": "HDFC Bank has not confirmed these payments to Razorpay",
         "onset_at": iso(onset), "resolved_at": None,
-        "heard": {"via": "Blindspot", "value": "Found in your payments", "note": f"{clock(alert)}, before any alert of yours", "at": iso(alert)},
+        "heard": {"via": "Resolve", "value": "Found in your payments", "note": f"{clock(alert)}, before any alert of yours", "at": iso(alert)},
         "affected": n, "complained": 38,
         "answer": {"title": "HDFC Bank has not confirmed these payments",
                    "text": f"Since {clock(onset)}, payments from HDFC Bank accounts have stayed pending. The money left the customer's account, but the bank's confirmation never reached Razorpay, "
@@ -148,7 +148,7 @@ def fk4() -> dict:
             {"name": "Razorpay", "items": [{"at": iso(onset), "label": "payments pending", "tone": "notice", "open": True}]},
             {"name": "HDFC Bank", "items": [{"at": iso(onset), "label": "no confirmations", "tone": "negative", "open": True}]},
             {"name": "Other banks", "items": [{"at": iso(onset - timedelta(minutes=10)), "to": iso(onset + timedelta(minutes=30)), "label": "confirmed normally", "tone": "positive"}]},
-            {"name": "Blindspot", "items": [{"at": iso(alert), "label": "found in payments", "tone": "information"}]},
+            {"name": "Resolve", "items": [{"at": iso(alert), "label": "found in payments", "tone": "information"}]},
         ]},
         "lift": [lift("status", "pending", 1.0, 0.03), lift("bank", "HDFC Bank", 1.0, 0.24), lift("method", "upi", 1.0, normal(METHODS, "upi")), *look_alikes(cust, "region", REGIONS)],
         "compared": "Compared with your payments in the same hours the day before",
@@ -299,7 +299,7 @@ def fk7() -> dict:
         "headline": f"{n} customers were charged the full price after using a coupon",
         "cause": "Your app sends the full price to Razorpay after a coupon is applied",
         "onset_at": iso(onset), "resolved_at": None,
-        "heard": {"via": "Blindspot", "value": "Found in your payments", "note": f"{clock(alert)}, before any customer wrote", "at": iso(alert)},
+        "heard": {"via": "Resolve", "value": "Found in your payments", "note": f"{clock(alert)}, before any customer wrote", "at": iso(alert)},
         "affected": n, "complained": 96,
         "answer": {"title": "Coupon orders are paid at the full price",
                    "text": f"Since the coupon campaign opened at {clock(onset)}, the order shows the discounted total but the customer's payment is the full price. Razorpay captured exactly what your app asked for."},
@@ -309,7 +309,7 @@ def fk7() -> dict:
             {"name": "Your campaign", "items": [{"at": iso(onset), "label": "coupons live", "tone": "neutral"}]},
             {"name": "Your app", "items": [{"at": iso(onset), "label": "full price sent", "tone": "negative", "open": True}]},
             {"name": "Razorpay", "items": [{"at": iso(onset), "label": "captured as asked", "tone": "positive", "open": True}]},
-            {"name": "Blindspot", "items": [{"at": iso(alert), "label": "found in payments", "tone": "information"}]},
+            {"name": "Resolve", "items": [{"at": iso(alert), "label": "found in payments", "tone": "information"}]},
         ]},
         "lift": [lift("coupon", "used", 1.0, 0.18), lift("order_payment_gap", "payment larger than order", 1.0, 0.0), *look_alikes(cust, "platform", PLATFORMS), *look_alikes(cust, "method", METHODS)],
         "compared": "Compared with your payments in the same hours the day before",

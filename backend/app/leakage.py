@@ -11,7 +11,7 @@ from .widen.silent import mask
 
 CANNOT_SEE = [
     "Whether you extended access on purpose, for example a goodwill month or an annual deal. Those rows are not leaks.",
-    "Whether you have already told the customer. Blindspot reads payments and your access records, not your email.",
+    "Whether you have already told the customer. Resolve reads payments and your access records, not your email.",
     "Whether another renewal attempt is still due. It reads the payments it has been given.",
 ]
 

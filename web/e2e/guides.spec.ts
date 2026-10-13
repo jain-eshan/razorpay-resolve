@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test'
 
-// A person who has never heard of Blindspot meets the welcome pop-up on the overview: three slides (what it catches, whose side, you approve), then setup.
+// A person who has never heard of Resolve meets the welcome pop-up on the overview: three slides (what it catches, whose side, you approve), then setup.
 // Automated browsers skip the pop-up so it does not cover every other test; `?welcome` asks for it (lib/setup.ts).
 test('the welcome pop-up walks through three slides into setup, and Take a tour opens it again', async ({ page }) => {
   await page.goto('/?welcome')
-  const tour = page.getByRole('dialog', { name: 'Welcome to Blindspot' })
+  const tour = page.getByRole('dialog', { name: 'Welcome to Resolve' })
   // A merchant reads each slide once, cold: no sentence leans on "it" to point back at something (Eshan, 13 Oct: "what is 'it'?").
   const noIt = async () => expect(await tour.getByTestId('welcome-text').innerText()).not.toMatch(/\bit\b/i)
   await expect(tour.getByRole('heading', { name: 'Find every customer a payment problem hit' })).toBeVisible()
@@ -37,9 +37,9 @@ test('the welcome pop-up walks through three slides into setup, and Take a tour 
 test('the overview guide walks through three slides and lands on setup', async ({ page }) => {
   await page.goto('/guides/blindspot')
   await page.getByRole('button', { name: 'Read more' }).click()
-  await expect(page.getByRole('heading', { name: 'What makes Blindspot great?' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'What makes Resolve great?' })).toBeVisible()
   await page.getByRole('button', { name: 'See how to use it' }).click()
-  await expect(page.getByRole('heading', { name: 'How to use Blindspot' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'How to use Resolve' })).toBeVisible()
   for (const step of ['Answer three setup questions', 'Open a payment issue', 'Approve the fix']) await expect(page.getByTestId('guide-steps').getByText(step)).toBeVisible()
   await page.getByRole('button', { name: 'Get started' }).click()
   await expect(page).toHaveURL(/\/setup$/)

@@ -1,9 +1,9 @@
-"""Recovery for Zone 1 incidents (SPEC 10.1): who lost a sale, whether Blindspot may message them now, and what happened after.
+"""Recovery for Zone 1 incidents (SPEC 10.1): who lost a sale, whether Resolve may message them now, and what happened after.
 
 A customer who could not pay is a member of the incident (incident_members, with the customer's id where a payment id would be: there
 is no payment). Whether they can be messaged is worked out fresh each time, because it depends on the clock: WhatsApp allows a free-form
 service message only inside 24 hours of the customer's last message. Instagram has no adapter yet. A customer who never wrote has not
-given permission, so Blindspot stays silent.
+given permission, so Resolve stays silent.
 
 Offers live in `recovery_offers`; the id is `ro:<incident>:<customer>` so the customer can be read back. Holdout offers record who was
 deliberately not messaged, to measure what the link adds. The behaviour that decides whether a simulated customer pays after a link is

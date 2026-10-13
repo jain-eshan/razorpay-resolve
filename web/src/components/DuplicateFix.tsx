@@ -15,7 +15,7 @@ type AppHealth = { app_mode: string; healthy_hours: number; signal_healthy: bool
 
 const SEND: Record<string, string> = { dry_run: 'Looks right, continue', first_5: 'Send the first 5', rest: 'Send the rest' }
 
-// INC-2. Two things get fixed and neither is Blindspot's to do alone: the merchant's developer ships an app release that cannot double submit, and the founder
+// INC-2. Two things get fixed and neither is Resolve's to do alone: the merchant's developer ships an app release that cannot double submit, and the founder
 // refunds each second charge to the original payment method. A refund is approved one customer at a time, at every approval level, and cannot be undone.
 export function DuplicateFix({ inc, onChanged }: { inc: Schemas['IncidentDetail']; onChanged: () => void }) {
   const nav = useNavigate()

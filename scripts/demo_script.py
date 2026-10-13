@@ -391,7 +391,7 @@ def record(world_path: Path) -> dict:
     scenario("unrelated", "A message that is not about a payment", "whatsapp_payments", "+919800012347", ["what time does the live class start tomorrow?"])
     scenario("help", "Help button on a receipt", "help_button", "+919800012399", ["access nahi mila"], approve=True, ctx={"payment_id": victims[1]})
     chat["help"]["payment_id"] = victims[1]
-    # Instagram: the Meta inbox passes the thread to Blindspot, and takes it back
+    # Instagram: the Meta inbox passes the thread to Resolve, and takes it back
     v1 = ref_victims[1]
     scenario("ig_payment", "Instagram: a customer with a payment problem", "ig_dm", "igsid_demo_a", ["paisa kat gaya 299 ka, Premium Monthly nahi mila", f"UPI ref {v1}"], approve=True)
     scenario("ig_not_payment", "Instagram: a message that is not about a payment", "ig_dm", "igsid_demo_b", ["kal ki class ka link bhejo"])

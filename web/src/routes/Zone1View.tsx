@@ -64,12 +64,12 @@ export default function Zone1View({ id }: { id: string }) {
   const steps = [
     ...(v.linked_event_id ? [{ at: sig.event_at ?? v.onset_at, title: 'The change went live', text: String(s.change), tone: 'neutral' as const }] : []),
     { at: v.onset_at, title: sig.kind === 'probe' ? 'Your pay page started failing' : 'Orders started going unpaid', text: sig.kind === 'probe' ? `Status ${s.status}` : `${s.zero_attempts} orders so far`, tone: 'negative' as const },
-    ...(inc.would_have_alerted_at ? [{ at: inc.would_have_alerted_at, title: 'Blindspot would have alerted', text: 'Enough evidence from independent places', tone: 'information' as const }] : []),
+    ...(inc.would_have_alerted_at ? [{ at: inc.would_have_alerted_at, title: 'Resolve would have alerted', text: 'Enough evidence from independent places', tone: 'information' as const }] : []),
     ...(firstWrote ? [{ at: firstWrote, title: 'The first customer wrote in', tone: 'notice' as const, text: undefined }] : []),
     ...(v.resolved_at ? [{ at: v.resolved_at, title: sig.kind === 'probe' ? 'Your pay page answered again' : 'Orders got payment attempts again', tone: 'positive' as const, text: undefined }] : []),
   ].sort((a, b) => a.at.localeCompare(b.at))
 
-  const early = inc.would_have_alerted_at ? (sig.kind === 'probe' ? ` With Blindspot on, you would have known ${when(inc.would_have_alerted_at)}, minutes after the change and before any customer wrote. This needs the pay-page check switched on.` : ` With Blindspot on, you would have known ${when(inc.would_have_alerted_at)}, from the orders and the first complaints.`) : ''
+  const early = inc.would_have_alerted_at ? (sig.kind === 'probe' ? ` With Resolve on, you would have known ${when(inc.would_have_alerted_at)}, minutes after the change and before any customer wrote. This needs the pay-page check switched on.` : ` With Resolve on, you would have known ${when(inc.would_have_alerted_at)}, from the orders and the first complaints.`) : ''
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
       <Crumbs items={[{ label: 'Payment issues', to: '/incidents' }, { label: inc.id, to: `/incidents/${inc.id}` }]} />
@@ -95,7 +95,7 @@ export default function Zone1View({ id }: { id: string }) {
 
       <StoryStrip inc={inc} members={members} />
 
-      <Alert isFullWidth color="information" isDismissible={false} title="Razorpay could not see this" description={`Customers never reached a payment, so Razorpay has no record of it. Blindspot worked it out from your orders, your pay page and what customers wrote.${early}`} />
+      <Alert isFullWidth color="information" isDismissible={false} title="Razorpay could not see this" description={`Customers never reached a payment, so Razorpay has no record of it. Resolve worked it out from your orders, your pay page and what customers wrote.${early}`} />
 
       <IncidentStats inc={inc} />
 
@@ -122,7 +122,7 @@ export default function Zone1View({ id }: { id: string }) {
           </Panel>
 
           <EvidenceLane inc={inc} pack={pack} />
-          <JustYou inc={inc} lines={['These customers never reached a payment, so there are no payments to compare. Blindspot compared your orders and pay-page checks with what is normal for the same hours instead (the chart above).']} />
+          <JustYou inc={inc} lines={['These customers never reached a payment, so there are no payments to compare. Resolve compared your orders and pay-page checks with what is normal for the same hours instead (the chart above).']} />
           <RootCauseActions inc={inc} pack={pack} fix={fix} closed={inc.status === 'closed'} />
 
           <Panel title="Customers who could not pay" pad={false} trailing={<Text size="small" color="surface.text.gray.muted">{rows.length} customers wrote in or had an order nobody could pay for</Text>}>

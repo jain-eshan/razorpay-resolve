@@ -1,5 +1,7 @@
 # Blindspot v2: Product Requirements Document
 
+> **Naming.** The product is called Razorpay Resolve (Resolve inside the dashboard). It was developed under the working name Blindspot, and this file keeps that name in its dated history.
+
 | | |
 |---|---|
 | Product (working name) | Blindspot. The name is a placeholder and lives in one constant (`PRODUCT_NAME`). |

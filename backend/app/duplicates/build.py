@@ -4,7 +4,7 @@ Nothing here moves money. The refunds are separate actions the founder approves 
 
 A member is the second charge of a pair, the one that is owed back. The look-alikes (two seats for two people, a second attempt that failed
 and is reversed by the bank, a charge the merchant already refunded) are saved as left-out members with the reason, so the list shows
-what Blindspot looked at and chose not to touch."""
+what Resolve looked at and chose not to touch."""
 import json
 import sqlite3
 from datetime import datetime
@@ -18,7 +18,7 @@ INCIDENT_ID = "INC-2"
 CAUSE_CODE = "DOUBLE_SUBMIT_AFTER_APP_RELEASE"
 LABEL = {"two_seat": "two seats for two people", "second_failed": "a failed second attempt the bank reverses", "refunded": "already refunded"}
 LEFT_OUT = {"two_seat": "Two seats for two people. Both were fulfilled", "second_failed": "The second attempt failed. The bank reverses it by itself", "refunded": "Already refunded"}
-CANNOT_SEE = ["Whether the customer meant to buy twice. Two orders for the same person and plan seconds apart are almost always a double tap, but Blindspot cannot ask the app",
+CANNOT_SEE = ["Whether the customer meant to buy twice. Two orders for the same person and plan seconds apart are almost always a double tap, but Resolve cannot ask the app",
               "Whether the bank has already reversed a failed second attempt", "Whether the customer saw an error and tapped again, which a fixed app would also stop"]
 
 

@@ -260,17 +260,17 @@ test('a customer who cannot open the page is told it is the merchant side, in th
 })
 
 // ---------- Handovers: Instagram control passing, and public posts that move to a private message ----------
-test('Instagram: the inbox passes a payment thread to Blindspot, keeps what is not a payment, and takes back what needs a person', async ({ page }) => {
+test('Instagram: the inbox passes a payment thread to Resolve, keeps what is not a payment, and takes back what needs a person', async ({ page }) => {
   await page.goto('/ig-demo')
   const chat = page.getByTestId('customer-chat')
   const founder = page.getByTestId('thread-view')
   await chat.getByRole('button', { name: /paisa kat gaya 299 ka, Premium Monthly/ }).click()
-  await expect(page.getByText('Blindspot has control')).toBeVisible()
-  await expect(founder.getByText(/The Meta inbox passed this conversation to Blindspot/)).toBeVisible()
+  await expect(page.getByText('Resolve has control')).toBeVisible()
+  await expect(founder.getByText(/The Meta inbox passed this conversation to Resolve/)).toBeVisible()
   await expect(chat.getByText(/Main ek AI hoon/)).toBeVisible()
   await chat.getByRole('button', { name: /^UPI ref \d{12}$/ }).click()
   await expect(founder.getByText('Waiting for the fix')).toBeVisible()
-  await expect(page.getByText('Blindspot has control')).toBeVisible() // it keeps control while a fix is awaited
+  await expect(page.getByText('Resolve has control')).toBeVisible() // it keeps control while a fix is awaited
 
   await chat.getByRole('button', { name: /kal ki class ka link bhejo/ }).click()
   await expect(page.getByText('Stayed with the Meta inbox')).toBeVisible()
@@ -284,7 +284,7 @@ test('Instagram: the inbox passes a payment thread to Blindspot, keeps what is n
 test('public post: one generic reply held for the founder, and the customer carries on privately', async ({ page }) => {
   await page.goto('/public-demo')
   const founder = page.getByTestId('thread-view').first()
-  await page.getByTestId('public-posts').getByRole('button', { name: 'Show this post to Blindspot' }).first().click()
+  await page.getByTestId('public-posts').getByRole('button', { name: 'Show this post to Resolve' }).first().click()
   await expect(founder.getByText('Held for you')).toBeVisible()
   await expect(founder.getByText(/Please message us privately|Kripya humein private message/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'The customer writes privately' })).toHaveCount(0) // not until the reply is posted
@@ -298,7 +298,7 @@ test('public post: one generic reply held for the founder, and the customer carr
 test('public post: a real post from the research is watched and never answered, and a threat goes to a person', async ({ page }) => {
   await page.goto('/public-demo')
   const founder = page.getByTestId('thread-view').first()
-  const shows = page.getByTestId('public-posts').getByRole('button', { name: 'Show this post to Blindspot' })
+  const shows = page.getByTestId('public-posts').getByRole('button', { name: 'Show this post to Resolve' })
   await shows.nth(9).click()
   await expect(founder.getByText(/only watches it and never replies/)).toBeVisible()
   await expect(founder.getByText('Held for you')).toHaveCount(0)

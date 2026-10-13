@@ -1,8 +1,8 @@
 """Handover and public-post scripts (R5, SPEC 3.2 and 13.5). Written to data/handover_scripts.json with no answers in it. What should happen to each
 one is in truth.db (truth_threads), which only eval/ opens.
 
-Messaging: seven customers write to the merchant on Instagram or Messenger. Whether the Meta inbox should pass the thread to Blindspot, and whether
-Blindspot should give it back, depends on what they say.
+Messaging: seven customers write to the merchant on Instagram or Messenger. Whether the Meta inbox should pass the thread to Resolve, and whether
+Resolve should give it back, depends on what they say.
 Public posts: twelve. Six carry a payment reference, three do not (one is a threat), and three are real anchor posts from the research, labelled
 real_public_post. Only the synthetic ones may be answered, and then only with one generic public line."""
 import json

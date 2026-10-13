@@ -1,8 +1,10 @@
-# Blindspot
+# Razorpay Resolve
+
+*From payment issue to customer resolution.*
 
 **When a payment breaks around the payment gateway, find every customer it hit, say whose side the fault is on, and fix it with the merchant's approval.**
 
-Blindspot is a working prototype built for the Razorpay x ISB AI PM Build Challenge, Track 2 ("Recover and Grow with AI"). It is a product idea shown as a working demo, built by a product manager (Eshan Jain) with AI coding tools. It is not affiliated with Razorpay. "Blindspot" is a working name.
+Razorpay Resolve (just "Resolve" inside the dashboard) is a working prototype built for the Razorpay x ISB AI PM Build Challenge, Track 2 ("Recover and Grow with AI"). It is a product idea shown as a working demo, built by a product manager (Eshan Jain) with AI coding tools. It is a demo, not a launched Razorpay product, and it is not affiliated with Razorpay. Resolve is the product and Ray remains the chat voice: Resolve investigates payment issues, and Ray brings you the findings and actions. It was developed under the working name **Blindspot**, which is why the live address, the repository name and some internal names (database tables, storage keys) still say `blindspot` or `razorsense`; they were kept so that no submitted link breaks.
 
 > **Status: closed, 13 October 2026.** The build is finished and frozen. No further product changes are planned. This repository is kept as the record of what was built, how it was checked, and why. Everything in it runs on made-up data.
 
@@ -10,15 +12,15 @@ Blindspot is a working prototype built for the Razorpay x ISB AI PM Build Challe
 
 ## The problem
 
-A payment can break before, during or after the gateway. Most customers who fail once leave without complaining, so a founder learns about it days later, if at all. Razorpay's own tools cover the payment while it is in flight. Blindspot covers what happens around it: orders created with no payment attempt, customers who paid and got nothing, double charges, failed renewals, and webhooks that stopped arriving.
+A payment can break before, during or after the gateway. Most customers who fail once leave without complaining, so a founder learns about it days later, if at all. Razorpay's own tools cover the payment while it is in flight. Resolve covers what happens around it: orders created with no payment attempt, customers who paid and got nothing, double charges, failed renewals, and webhooks that stopped arriving.
 
 For one incident the product does five things: hear it, find everyone it hit (including customers who never wrote in), say whose side the fault is on and show the proof, fix it with approval, and win the customers back. The number it cares about is recovered revenue, not payment success rate, because routing owns success rate.
 
 ## Two ways in, two demo accounts
 
-Blindspot is one dashboard, set up two ways. Open `/signin` (or the landing page `/how-it-works`) and pick an account. You can switch from the avatar at any time.
+Resolve is one dashboard, set up two ways. Open `/signin` (or the landing page `/how-it-works`) and pick an account. You can switch from the avatar at any time.
 
-| Account | Who it is | How Blindspot hears about a problem | Where the answer lands |
+| Account | Who it is | How Resolve hears about a problem | Where the answer lands |
 |---|---|---|---|
 | **Kaksha** (made up) | A small online business | A customer's complaint on WhatsApp, Instagram, email or a help button | Ray, the assistant, on the founder's WhatsApp |
 | **Flipkart** (a big brand, name used as text only) | A large shopping app | The brand's own alert tools (Sentry, Datadog, PagerDuty) | The brand's Slack channel, with approvals in the thread |
@@ -33,8 +35,8 @@ Every screen says the data is made up. There are no logos, no password field, an
 |---|---|---|
 | `INC-1` | A deploy broke the webhook. 85 customers paid and got no access; 17 complained and 68 never did. | Merchant's code |
 | `INC-2` | 15 customers were charged twice after an Android release. Refunds go one customer at a time, to the original method, under a daily limit, with no undo. | Merchant's code |
-| `INC-3` | Card renewals failed inside Razorpay's gateway while UPI AutoPay was fine. Blindspot says it is Razorpay's, how sure it is and what it cannot see, keeps access on for 3 days, and drafts an evidence pack that goes (simulated) only on approval. | Razorpay |
-| `INC-4` | The pay page returned 404 after a release, so no payment existed for Razorpay to see. Blindspot infers it from orders, a pay-page check and complaints, and says it is inferred. | Merchant's code |
+| `INC-3` | Card renewals failed inside Razorpay's gateway while UPI AutoPay was fine. Resolve says it is Razorpay's, how sure it is and what it cannot see, keeps access on for 3 days, and drafts an evidence pack that goes (simulated) only on approval. | Razorpay |
+| `INC-4` | The pay page returned 404 after a release, so no payment existed for Razorpay to see. Resolve infers it from orders, a pay-page check and complaints, and says it is inferred. | Merchant's code |
 | `INC-5` | Checkout would not open after the Razorpay key changed. | Merchant's setup |
 
 Around the issues: a dashboard (date range, four cards, a chart, open issues ranked by money at stake, an Ask Ray bar), Unpaid renewals (customers whose UPI renewal failed on their side and who still have access past the merchant's own rule), Alert tuning (what the product changed about its own alerts this week and why), a pre-release check, a "build with AI" prompt for wiring the webhook, and demos of a customer talking to the agent on WhatsApp, email, a help button, Instagram and public posts.
@@ -148,7 +150,7 @@ These are choices for a made-up-data prototype. None would be acceptable in prod
 - **Retention keeps** the redacted complaint text, each message body, and a short hash of the customer's handle. Transcripts and real identifiers are removed.
 - **The model is not here.** Messages the rules cannot read (Devanagari, heavy slang, an unlisted server error) are treated as "not a payment" or handed to the founder. That gap is the production model's job and is not measured.
 - **The big brand's alert door is simulated.** Taking alerts straight from Sentry, Datadog or PagerDuty was the next build and was not made. Its Integration page shows a placeholder address on a made-up host.
-- **Customer names are masked**, and Blindspot proposes some Razorpay capabilities that do not exist today. They are listed in `backend/app/config.py` (`PROPOSED`) and in PRD section 15.
+- **Customer names are masked**, and Resolve proposes some Razorpay capabilities that do not exist today. They are listed in `backend/app/config.py` (`PROPOSED`) and in PRD section 15.
 
 ## Credits
 

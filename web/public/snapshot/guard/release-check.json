@@ -50,7 +50,7 @@
     }
   ],
   "failed": 2,
-  "ci_call": "curl -fsS \"$BLINDSPOT_API/api/guard/release-check\" | jq -e '.safe_to_release'",
+  "ci_call": "curl -fsS \"$RESOLVE_API/api/guard/release-check\" | jq -e '.safe_to_release'",
   "cannot_see": [
     "Your code. I only see how your endpoint and your pay page answer.",
     "Every event type. The test is one payment.captured event with a marker id, so a handler that breaks on refunds or subscriptions would pass.",

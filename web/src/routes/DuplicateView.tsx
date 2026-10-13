@@ -54,11 +54,11 @@ export default function DuplicateView({ id }: { id: string }) {
   const steps = [
     ...(sig.release_at ? [{ at: sig.release_at, title: `${sig.app_version} released`, text: 'The Pay button could be tapped twice', tone: 'neutral' as const }] : []),
     { at: sig.first_at, title: 'First customer charged twice', text: `Two orders for the same plan, seconds apart`, tone: 'negative' as const },
-    { at: sig.alert_at, title: 'Blindspot would have alerted', text: atAlert ? `After ${atAlert} double charges from ${sig.app_version}` : undefined, tone: 'information' as const },
+    { at: sig.alert_at, title: 'Resolve would have alerted', text: atAlert ? `After ${atAlert} double charges from ${sig.app_version}` : undefined, tone: 'information' as const },
   ].sort((a, b) => a.at.localeCompare(b.at))
   const done = inc.status === 'closed'
 
-  const early = inc.would_have_alerted_at ? ` With Blindspot on, you would have known ${when(inc.would_have_alerted_at)}${atAlert ? `, after ${atAlert} customers were charged twice` : ''}.` : ''
+  const early = inc.would_have_alerted_at ? ` With Resolve on, you would have known ${when(inc.would_have_alerted_at)}${atAlert ? `, after ${atAlert} customers were charged twice` : ''}.` : ''
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
       <Crumbs items={[{ label: 'Payment issues', to: '/incidents' }, { label: inc.id, to: `/incidents/${inc.id}` }]} />
@@ -85,7 +85,7 @@ export default function DuplicateView({ id }: { id: string }) {
       <StoryStrip inc={inc} members={members} />
 
       <Alert isFullWidth color="information" isDismissible={false} title="Your webhook was fine. The second charge is the problem"
-        description={`Both charges reached your server and both orders got access. The Pay button in ${sig.app_version} lets a second tap place a second order, so the customer pays twice for one plan. Blindspot can refund the second charge to the original payment method, one customer at a time, once you approve each.${early}`} />
+        description={`Both charges reached your server and both orders got access. The Pay button in ${sig.app_version} lets a second tap place a second order, so the customer pays twice for one plan. Resolve can refund the second charge to the original payment method, one customer at a time, once you approve each.${early}`} />
 
       <IncidentStats inc={inc} />
 

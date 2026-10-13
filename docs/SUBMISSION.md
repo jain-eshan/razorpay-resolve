@@ -13,7 +13,7 @@ Rerun `make eval && make snapshot` before recording, and change this file if a n
 ## 1. One-page note
 
 <!-- NOTE START -->
-**Blindspot: when a payment breaks around the gateway, find everyone it hit, say whose side it is, and fix it.**
+**Razorpay Resolve: when a payment breaks around the gateway, find everyone it hit, say whose side it is, and fix it.**
 
 **Problem.** A payment can break before, during or after the gateway, and most customers who fail once leave without complaining. Founders find out late: "the only reason we even notice is because someone opens a support ticket days later" ([r/startups](https://www.reddit.com/r/startups/comments/1qryyp4)). Big brands know in minutes, then wait hours for the gateway's root cause in a shared Slack channel. That loop is from my previous company; I have not checked it with Razorpay or a second brand.
 
@@ -34,7 +34,7 @@ Rerun `make eval && make snapshot` before recording, and change this file if a n
 
 <!-- NOTE END -->
 
-Word count: `sed -n '/^<!-- NOTE START -->/,/^<!-- NOTE END -->/p' docs/SUBMISSION.md | wc -w`. It counts the two marker lines and five bullet dashes, about 13 words above the real text. With the big-brand line in it reads 546, so the text is about 533. To make room for that line, three things were cut: the per-kind breakdown of the messy-complaint result (it is in appendix 1a, item 2), "pay-again links" from the list of what was left out, and "a six-month pilot has stop gates" (it is in appendix 1a, item 9). Keep the finished note at or under 550 and recount after your edit.
+Word count: `sed -n '/^<!-- NOTE START -->/,/^<!-- NOTE END -->/p' docs/SUBMISSION.md | wc -w`. It counts the two marker lines and five bullet dashes, about 13 words above the real text. With the big-brand line in it reads 547, so the text is about 533. To make room for that line, three things were cut: the per-kind breakdown of the messy-complaint result (it is in appendix 1a, item 2), "pay-again links" from the list of what was left out, and "a six-month pilot has stop gates" (it is in appendix 1a, item 9). Keep the finished note at or under 550 and recount after your edit.
 
 **Wording to check in your own voice.**
 - "I have not checked it with Razorpay or a second brand": PRD section 14 lists validating the Slack loop as not done. If you have spoken to someone since, change it.
@@ -69,7 +69,7 @@ Three real misses: "paisa kat gya hai UPI se lekin order confirm nahi aaya" (rul
 
 Limits, stated plainly. The set is small. The build sessions wrote and labelled it, so it is not real customer text. The first draft had 40 messages and scored 78%. Two messages that two people could read two ways were removed, not relabelled, and three typo messages with none of the rules' keywords were added because the first set under-counted typos. No model has been run on the set, so how much better a model does is not measured. A model-against-rules report is a Phase 2 task (ROADMAP_V3 P2-B4). In the prototype the triage is the rules, and the hosted demo replays their recorded answers.
 
-**3. Action.** Replay failed webhooks, grant access through the merchant's own access call, refund a duplicate payment to the original method, send a renewal link. Staged: dry run, first 5, then the rest. A merchant-side fault gets a developer page with the failing call, sample IDs and a suggested fix, because Blindspot does not edit a merchant's code. Founder effort is estimated at 4.0 minutes for a typical incident and 10.5 for the longest (INC-2, where each refund is approved one at a time on purpose). The 30 seconds per approval is an assumption, not a timing.
+**3. Action.** Replay failed webhooks, grant access through the merchant's own access call, refund a duplicate payment to the original method, send a renewal link. Staged: dry run, first 5, then the rest. A merchant-side fault gets a developer page with the failing call, sample IDs and a suggested fix, because Resolve does not edit a merchant's code. Founder effort is estimated at 4.0 minutes for a typical incident and 10.5 for the longest (INC-2, where each refund is approved one at a time on purpose). The 30 seconds per approval is an assumption, not a timing.
 
 **4. What the merchant controls.** Three autonomy levels: Review first (the default), Approve once, Full automation. Staged runs, with undo for access grants. Never available at any level: revoking a customer's access, refunding to a different method, changing Razorpay settings, writing to the merchant's database. Refunds go one customer at a time, capped at ₹5,000 a day, and a person approves each one even on Full automation (0 refunds made by the autonomy setting in the eval). Public replies are held for the founder (0 sent without approval). Customer messages respect each channel's consent and window (0 links sent outside them).
 
@@ -103,9 +103,9 @@ Record the hosted demo (the guided one). Keep a small caption on screen for the 
 | 0:00 to 0:10 | The three-zone graphic from PRD 3.2, middle row greyed | "Razorpay sees the payment while it happens. It cannot see what comes before, or what the merchant's system does after." |
 | 0:10 to 0:35 | RAY alert on the home page, then the incident page for INC-1 | "Tuesday 29 September, a deploy breaks the webhook. At 3:15 the alert fires, with one customer affected. Without it, the founder finds out days later. By then 85 customers have paid and have no access. 17 complained. 68 never said a word. That is ₹56,319." |
 | 0:35 to 0:55 | WhatsApp thread at `/chat-demo` beside the incident it joined | "A customer writes in Hinglish. The assistant says it is an AI, asks for the UPI reference, finds the payment, and joins the complaint to the incident. The founder approves the reply. Nobody asks for a card number or an OTP." |
-| 0:55 to 1:15 | INC-4 page: the "Inferred" label, the orders chart, the evidence list | "Here Razorpay saw nothing, because no payment existed. The pay page returned a 404. Blindspot saw the page check fail and 12 customers write in, flagged it five minutes after the page broke, and says plainly that this is inferred. It moves no money." |
+| 0:55 to 1:15 | INC-4 page: the "Inferred" label, the orders chart, the evidence list | "Here Razorpay saw nothing, because no payment existed. The pay page returned a 404. Resolve saw the page check fail and 12 customers write in, flagged it five minutes after the page broke, and says plainly that this is inferred. It moves no money." |
 | 1:15 to 1:25 | Fix stepper: first 5, the rest, verify, the one RazorSense moment, then Accuracy (`/how`) | "One approval fixes 81 customers in stages. After 24 healthy hours: 81 of 81 confirmed active, ₹56,319 restored. Every number here is on the How we know page, checked against hidden ground truth." |
-| 1:25 to 1:30 | Title card | "Razorpay owns the payment. Blindspot owns the before and the after." |
+| 1:25 to 1:30 | Title card | "Razorpay owns the payment. Resolve owns the before and the after." |
 
 Do not say in the video: that a model reads the messages; that the replies take seconds (only the engine's own time is measured, under a millisecond, and a model call would add a few seconds); anything about RAY's behaviour; the Meta message prices.
 
@@ -189,7 +189,7 @@ An independent reviewer walked the script above, click by click, on the local bu
 
 **Wording that does not match the screen**
 - **0:10 to 0:35.** The ₹56,319 is the 81 customers still locked out, not the 85 affected. Say "85 affected, 81 still locked out, ₹56,319 at risk".
-- **0:55 to 1:15 (INC-4).** The voice-over says Blindspot "saw the page check fail and 12 customers write in, flagged it five minutes after the page broke". The page says you would have known at 20:15, before any customer wrote (the first wrote at 20:25). Better: "Blindspot saw the page check fail five minutes after the page broke, before anyone wrote in. Twelve customers later did."
+- **0:55 to 1:15 (INC-4).** The voice-over says Resolve "saw the page check fail and 12 customers write in, flagged it five minutes after the page broke". The page says you would have known at 20:15, before any customer wrote (the first wrote at 20:25). Better: "Resolve saw the page check fail five minutes after the page broke, before anyone wrote in. Twelve customers later did."
 - **1:15 to 1:25.** "Every number here is on the Accuracy page" is not true for 85, 17, 68, ₹56,319 or 12. The page now shows the measured ones (4.0 silent per complaint, 55 minutes to alert, 5 minutes for the pay page, 100 percent identified in 3 questions, 147 of 147 checks). Say "The measured numbers are on the Accuracy page." (The page was called How we know until 11 Oct.)
 - **0:35 to 0:55.** "Beside the incident it joined" is a small `INC-1` chip on the thread, not a link and not a split screen.
 

@@ -29,7 +29,7 @@ const two = (top: string, bottom: string) => (
 )
 
 // INC-3: card renewals that failed inside Razorpay's gateway. The cause is Razorpay's, seen by elimination, so the screen says what points there,
-// what Blindspot cannot see, and offers the two things the merchant can do: keep customers' access on, and hand Razorpay the evidence.
+// what Resolve cannot see, and offers the two things the merchant can do: keep customers' access on, and hand Razorpay the evidence.
 // How much a signal weighs, in words: the engine scores each one 1 to 3.
 const strength = (w: number) => (w >= 3 ? 'Strong' : w === 2 ? 'Medium' : 'Supporting')
 
@@ -52,11 +52,11 @@ export default function RenewalView({ id }: { id: string }) {
 
   const steps = [
     { at: v.onset_at, title: 'Card renewals started failing', text: `${s.code}, no fault of the customer's card`, tone: 'negative' as const },
-    { at: sig.alert_at, title: 'Blindspot would have alerted', text: atAlert ? `After ${atAlert} failed renewals in a row` : undefined, tone: 'information' as const },
+    { at: sig.alert_at, title: 'Resolve would have alerted', text: atAlert ? `After ${atAlert} failed renewals in a row` : undefined, tone: 'information' as const },
     ...(v.resolved_at ? [{ at: v.resolved_at, title: 'Card renewals went through again', tone: 'positive' as const, text: undefined }] : []),
   ].sort((a, b) => a.at.localeCompare(b.at))
 
-  const early = inc.would_have_alerted_at ? ` With Blindspot on, you would have known ${when(inc.would_have_alerted_at)}${atAlert ? `, after ${atAlert} failed card renewals in a row` : ''}.` : ''
+  const early = inc.would_have_alerted_at ? ` With Resolve on, you would have known ${when(inc.would_have_alerted_at)}${atAlert ? `, after ${atAlert} failed card renewals in a row` : ''}.` : ''
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
       <Crumbs items={[{ label: 'Payment issues', to: '/incidents' }, { label: inc.id, to: `/incidents/${inc.id}` }]} />
@@ -83,7 +83,7 @@ export default function RenewalView({ id }: { id: string }) {
       <StoryStrip inc={inc} members={members} />
 
       <Alert isFullWidth color="information" isDismissible={false} title="This one is on Razorpay's side"
-        description={`Your card renewals failed inside Razorpay's gateway. Nothing changed on your side and your webhook was healthy. Blindspot cannot see inside Razorpay, so it shows what points there and what it cannot see, and says how sure it is.${early}`} />
+        description={`Your card renewals failed inside Razorpay's gateway. Nothing changed on your side and your webhook was healthy. Resolve cannot see inside Razorpay, so it shows what points there and what it cannot see, and says how sure it is.${early}`} />
 
       <IncidentStats inc={inc} />
 

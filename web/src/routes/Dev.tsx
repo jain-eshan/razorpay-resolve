@@ -54,7 +54,7 @@ export default function Dev() {
 
       <Panel title="What to change">
         <Text>{pack.suggested_fix}</Text>
-        <Text size="small" color="surface.text.gray.muted">This is a suggestion. Blindspot never changes your code and never turns off signature checking.</Text>
+        <Text size="small" color="surface.text.gray.muted">This is a suggestion. Resolve never changes your code and never turns off signature checking.</Text>
       </Panel>
 
       <Panel title="Affected payments">

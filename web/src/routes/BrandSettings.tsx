@@ -47,11 +47,11 @@ function Sections({ path, title, description, testID }: { path: string; title: s
 // Integration for the brand (`/connect`): the alert door (PRD F4) and the shared Slack channel (F12, F13).
 export function BrandIntegration() {
   return <Sections path="/api/brand/integration" title="Integration" testID="brand-integration"
-    description="How your alert tools reach Blindspot, and how its answers reach your team in Slack." />
+    description="How your alert tools reach Resolve, and how its answers reach your team in Slack." />
 }
 
 // Settings for the brand (`/settings`): what waits for approval, who approves, the limits, and when Razorpay support signs off (PRD F9, F13, F17).
 export default function BrandSettings() {
   return <Sections path="/api/brand/settings" title="Settings" testID="brand-settings"
-    description="What waits for approval, who approves, and the limits Blindspot never goes past." />
+    description="What waits for approval, who approves, and the limits Resolve never goes past." />
 }

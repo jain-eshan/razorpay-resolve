@@ -10,7 +10,7 @@ import { prefersReducedMotion } from '../razorsense'
 const QUESTIONS: [string, IconComponent][] = [['Who paid and did not get access?', UnlockIcon], ['What is broken right now?', AlertTriangleIcon], ['Which customers wrote in?', UsersIcon]]
 
 // Ray's chat page. The thread, the answer cards and the pinned input follow Razorpay's own Ray page (UI Reference, the Agentic Connected Banking recording).
-// The side menu stays, unlike on Razorpay's page: this is one page of Blindspot, reached from the Overview, and the side menu is the way to every other page. So the
+// The side menu stays, unlike on Razorpay's page: this is one page of Resolve, reached from the Overview, and the side menu is the way to every other page. So the
 // journey is: the Overview asks, this page answers, "Overview" (and the menu) goes back, "History" lists the earlier chats, "New chat" starts a fresh one.
 // `/ray` is a new chat (Ray's greeting, as on Razorpay's Ray home); `/ray/:id` is a saved chat.
 export default function RayChat() {

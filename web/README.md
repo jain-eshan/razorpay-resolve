@@ -1,6 +1,6 @@
-# Blindspot web app
+# Resolve web app
 
-The dashboard for Blindspot: a React and Vite app built on Razorpay's open-source [Blade](https://github.com/razorpay/blade) design system, shaped as an addition to the live Razorpay dashboard. The product itself is described in the [root README](../README.md).
+The dashboard for Razorpay Resolve (developed as Blindspot): a React and Vite app built on Razorpay's open-source [Blade](https://github.com/razorpay/blade) design system, shaped as an addition to the live Razorpay dashboard. The product itself is described in the [root README](../README.md).
 
 It has two modes. Without `VITE_MODE=live` it plays a guided demo from the recorded snapshot in `public/snapshot/` (and the big-brand account from `public/brand/`), so it needs no server. With `VITE_MODE=live` it talks to the engine on port 8000.
 

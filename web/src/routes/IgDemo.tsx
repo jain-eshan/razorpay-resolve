@@ -12,10 +12,10 @@ import { PageHeader } from '../components/PageHeader'
 function control(t?: Schemas['ThreadDetail']): [string, 'positive' | 'neutral' | 'notice'] {
   const last = [...(t?.messages ?? [])].reverse().find((m) => m.sender_role === 'system' && ['pass', 'release', 'stayed'].includes(String(m.policy.kind)))
   const k = String(last?.policy.kind ?? '')
-  return k === 'pass' ? ['Blindspot has control', 'positive'] : k === 'release' ? ['Back with the Meta inbox', 'notice'] : k === 'stayed' ? ['Stayed with the Meta inbox', 'neutral'] : ['The Meta inbox has it', 'neutral']
+  return k === 'pass' ? ['Resolve has control', 'positive'] : k === 'release' ? ['Back with the Meta inbox', 'notice'] : k === 'stayed' ? ['Stayed with the Meta inbox', 'neutral'] : ['The Meta inbox has it', 'neutral']
 }
 
-// S-16: Instagram, the way Meta's handover protocol works. The merchant's Meta inbox keeps everything that is not about a payment, passes the rest to Blindspot, and takes the thread back when it is over or a person is needed.
+// S-16: Instagram, the way Meta's handover protocol works. The merchant's Meta inbox keeps everything that is not about a payment, passes the rest to Resolve, and takes the thread back when it is over or a person is needed.
 export default function IgDemo() {
   const [tid, setTid] = useState<string>()
   const [v, setV] = useState(0)
@@ -24,9 +24,9 @@ export default function IgDemo() {
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7">
       <Crumbs items={[{ label: 'Customer complaints', to: '/threads' }, { label: 'Try it: Instagram', to: '/ig-demo' }]} />
-      <PageHeader title="Instagram: control passes and returns" description="The merchant's Meta inbox stays in charge of every Instagram conversation. When a message is about a payment it passes the thread to Blindspot, and it takes the thread back when the conversation is over or a person is needed. A message that is not about a payment never leaves the inbox, and Blindspot says nothing and keeps nothing." />
+      <PageHeader title="Instagram: control passes and returns" description="The merchant's Meta inbox stays in charge of every Instagram conversation. When a message is about a payment it passes the thread to Resolve, and it takes the thread back when the conversation is over or a person is needed. A message that is not about a payment never leaves the inbox, and Resolve says nothing and keeps nothing." />
       <Alert isFullWidth color="information" isDismissible={false} title="Meta's window rules apply"
-        description="Blindspot can reply for 24 hours after the customer's last message. After that only a person can reply, with Meta's Human Agent tag, for up to 7 days. Blindspot never uses that tag." />
+        description="Resolve can reply for 24 hours after the customer's last message. After that only a person can reply, with Meta's Human Agent tag, for up to 7 days. Resolve never uses that tag." />
       {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Demo" description={`${demoNote} Pick a message below. Your view on the right is the same screen the live version uses.`} />}
       <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(320px, 400px) minmax(0, 1fr)' }} gap="spacing.7" alignItems="start">
         <CustomerChat channel="ig_dm" who="igsid_demo_a" title="kaksha on Instagram" onThread={setTid} placeholder="Send the merchant a direct message." />

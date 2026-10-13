@@ -14,7 +14,7 @@ import { HERO, type ArtId } from '../lib/art'
 import { useWidth } from '../lib/useWidth'
 import { prefersReducedMotion } from '../razorsense'
 
-// "How Blindspot works" (v3 batch 1.5, T3): Blindspot's landing page inside the dashboard, the one page that explains the whole product (docs/PRD_V3.md sections 1 to 4
+// "How Resolve works" (v3 batch 1.5, T3): Resolve's landing page inside the dashboard, the one page that explains the whole product (docs/PRD_V3.md sections 1 to 4
 // and 11). In order: the pitch with a way into each demo account; the two journeys as each merchant lives them; the engine (ways in, five steps, where the answer lands);
 // why it needs an AI agent, with the evidence from the eval report; and what is built today against the production design. The only figures on it are in "Why an AI
 // agent", read from the report; nothing is typed. The same page for both accounts.
@@ -28,7 +28,7 @@ const JOURNEYS: { id: AccountId; art: ArtId; who: string; steps: string[]; note:
     id: 'kaksha', art: 'chat',
     who: 'Kaksha sells test series. A release breaks its webhook, so students pay and get no access.',
     steps: [
-      'A student writes on WhatsApp: paid, no access. Blindspot finds the payment.',
+      'A student writes on WhatsApp: paid, no access. Resolve finds the payment.',
       'It finds every student the break hit, including those who never wrote in.',
       'It shows the proof: Kaksha’s own release broke the webhook.',
       'Kaksha approves access for a test run, then a small batch, then everyone.',
@@ -41,7 +41,7 @@ const JOURNEYS: { id: AccountId; art: ArtId; who: string; steps: string[]; note:
     who: 'Flipkart ships an app release that says “Payment failed” after a UPI payment went through.',
     steps: [
       'Flipkart’s alert tool, such as Sentry, tells Razorpay when errors climb.',
-      'Blindspot matches it to payments: everyone told “failed” after paying.',
+      'Resolve matches it to payments: everyone told “failed” after paying.',
       'The failures share one app version, so the cause is Flipkart’s release.',
       'Refunds for anyone who paid twice wait for Flipkart’s approval in Slack.',
       'Once their orders are confirmed, customers who paid are told so.',
@@ -131,10 +131,10 @@ function Hero() {
           <Box display="flex" flexDirection="column" alignItems="flex-start" gap="spacing.5">
             <Box display="flex" alignItems="center" gap="spacing.3">
               <Box width="24px" height="2px" backgroundColor="feedback.background.positive.intense" />
-              <Text weight="semibold">How Blindspot works</Text>
+              <Text weight="semibold">How Resolve works</Text>
             </Box>
             <Heading as="h1" size="2xlarge">Find everyone a broken payment hit, and <Accent>win them back</Accent></Heading>
-            <Text size="large" color="surface.text.gray.subtle">Blindspot is Razorpay’s support engineer for every merchant. It hears about a payment problem from your customers or your own alerts, shows whose side it is with proof, and fixes it with your approval.</Text>
+            <Text size="large" color="surface.text.gray.subtle">Resolve is Razorpay’s support engineer for every merchant. It hears about a payment problem from your customers or your own alerts, shows whose side it is with proof, and fixes it with your approval.</Text>
             <Box display="flex" flexWrap="wrap" gap="spacing.4">
               <Button variant="primary" size="large" icon={ArrowRightIcon} iconPosition="right" onClick={() => open('kaksha')}>{`See it as ${ACCOUNTS.kaksha.name}`}</Button>
               <Button variant="secondary" size="large" onClick={() => open('flipkart')}>{`See it as ${ACCOUNTS.flipkart.name}`}</Button>
@@ -330,17 +330,17 @@ export default function HowItWorks() {
   return (
     <Box display="flex" flexDirection="column" gap="spacing.9">
       <Box display="flex" flexDirection="column" gap="spacing.4">
-        <Crumbs items={[{ label: 'Overview', to: '/' }, { label: 'How Blindspot works', to: '/how-it-works' }]} />
+        <Crumbs items={[{ label: 'Overview', to: '/' }, { label: 'How Resolve works', to: '/how-it-works' }]} />
         <Rise><Hero /></Rise>
       </Box>
 
       <Rise order={1}>
-        <Section id="journeys" title={`${cap(words(JOURNEYS.length))} kinds of merchant, one Blindspot`} line={`A problem reaches each one differently. After that, the same ${words(STEP_NAMES.length)} steps.`}>
+        <Section id="journeys" title={`${cap(words(JOURNEYS.length))} merchant journeys, one recovery workflow`} line={`A problem reaches each one differently. After that, the same ${words(STEP_NAMES.length)} steps.`}>
           <Journeys />
         </Section>
       </Rise>
 
-      <Section id="inside" title="Inside Blindspot" line={`${cap(words(DOORS))} doors and Razorpay’s own payment records in, ${words(STEP_NAMES.length)} steps, ${words(OUTPUTS.length)} places the answer lands.`}>
+      <Section id="inside" title="Inside Resolve" line={`${cap(words(DOORS))} doors and Razorpay’s own payment records in, ${words(STEP_NAMES.length)} steps, ${words(OUTPUTS.length)} places the answer lands.`}>
         <Engine />
       </Section>
 

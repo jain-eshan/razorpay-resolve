@@ -21,8 +21,8 @@ const DOT: Record<Tone, string> = { negative: 'feedback.background.negative.inte
 const LIVE = { negative: 'negative', notice: 'notice', positive: 'positive', information: 'information', neutral: 'notice' } as const
 
 // Whose row it is, as a small grey icon before its name, so a row is recognised before it is read: you (a change on your side), your server, your app or checkout, your pay page,
-// Razorpay, an alert tool (Sentry and the like), Blindspot. Matched on the row's name, because the brand account's rows come from its own data.
-const ICONS: [RegExp, IconComponent][] = [[/razorpay/i, RazorpayIcon], [/blindspot/i, EyeIcon], [/server/i, ServerIcon], [/checkout/i, ShoppingCartIcon], [/pay page/i, GlobeIcon],
+// Razorpay, an alert tool (Sentry and the like), Resolve. Matched on the row's name, because the brand account's rows come from its own data.
+const ICONS: [RegExp, IconComponent][] = [[/razorpay/i, RazorpayIcon], [/resolve/i, EyeIcon], [/server/i, ServerIcon], [/checkout/i, ShoppingCartIcon], [/pay page/i, GlobeIcon],
   [/\bapp\b/i, SmartphoneIcon], [/your side/i, UserIcon], [/sentry|datadog|pagerduty|alert/i, BellIcon]]
 const iconFor = (name: string) => ICONS.find(([re]) => re.test(name))?.[1] ?? ActivityIcon
 
@@ -43,14 +43,14 @@ function roundTicks(a: number, b: number, max: number) {
 const day = (iso: string) => when(iso).split(',')[0]  // "Tue 29 Sep"
 
 // The rows of the lane for each kind of issue, from what the engine saved: when your change went live, when the failures ran, what Razorpay recorded in the same hours,
-// and when Blindspot would have alerted. A row is left out when it would say nothing true (Razorpay's payments were not fine in a gateway issue; nothing changed on
+// and when Resolve would have alerted. A row is left out when it would say nothing true (Razorpay's payments were not fine in a gateway issue; nothing changed on
 // your side in one that is Razorpay's).
 function rowsFor(inc: Inc, pack?: Schemas['EvidencePack']): Row[] {
   const v = inc.verdict, sig = v.signature as Record<string, unknown>
   const str = (k: string) => (typeof sig[k] === 'string' ? (sig[k] as string) : undefined)
   const end = v.resolved_at ?? pack?.last_failure_at ?? undefined
   const change = pack?.linked_change?.split(':')[0]
-  const alert = inc.would_have_alerted_at ? [{ at: inc.would_have_alerted_at, label: 'Blindspot would have alerted', tone: 'information' as const }] : []
+  const alert = inc.would_have_alerted_at ? [{ at: inc.would_have_alerted_at, label: 'Resolve would have alerted', tone: 'information' as const }] : []
   const rows: Row[] = []
   switch (inc.mismatch_type) {
     case 'A':
@@ -72,7 +72,7 @@ function rowsFor(inc: Inc, pack?: Schemas['EvidencePack']): Row[] {
       rows.push({ name: 'Your side', items: [{ at: v.onset_at, label: 'Change went live', tone: 'neutral' }] })  // the change itself is in the root cause card; a long one would not fit here
       rows.push({ name: 'Your pay page', items: [{ at: v.onset_at, to: str('end') ?? undefined, open: !str('end'), label: str('end') ? 'failing' : 'failing, still open', tone: 'negative' }] })
   }
-  if (alert.length) rows.push({ name: 'Blindspot', items: alert })
+  if (alert.length) rows.push({ name: 'Resolve', items: alert })
   return rows
 }
 

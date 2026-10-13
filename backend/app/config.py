@@ -3,7 +3,7 @@ mock unless the capability is documented and wired. Override with an env var set
 import os
 from datetime import datetime
 
-PRODUCT_NAME = "Blindspot"  # working name; change here only
+PRODUCT_NAME = "Resolve"  # working name; change here only
 SEED = 20261006
 BS_NOW = datetime.fromisoformat(os.environ.get("BS_NOW", "2026-10-02T10:40:00+05:30"))
 

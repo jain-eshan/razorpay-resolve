@@ -5,7 +5,7 @@ sorted by what is on the two orders:
 - duplicate: both orders are for the same person and the same plan, and the second payment was captured. The second charge is owed back.
 - two seat: the orders are for two different people (a second seat for a friend). Both were fulfilled, nothing is owed.
 - second failed: the second attempt failed after the bank debited it. The bank puts the money back by itself, so it is not a capture.
-- refunded: the second charge was already refunded by the merchant. (A refund Blindspot made keeps the pair a duplicate, so a rerun cannot lose the incident.)
+- refunded: the second charge was already refunded by the merchant. (A refund Resolve made keeps the pair a duplicate, so a rerun cannot lose the incident.)
 
 Only duplicates count towards an incident. An incident needs at least 3 of them from one app version, and none of that version's
 duplicates before its release: one stray double tap on a slow phone is not an incident, and a pattern that starts at a release is the merchant's code.
@@ -68,7 +68,7 @@ def candidates(db: sqlite3.Connection) -> list[Pair]:
     out = []
     for r in rows:
         rf = db.execute("SELECT source FROM refunds WHERE payment_id = ? LIMIT 1", (r["b"],)).fetchone()
-        refunded = (rf is not None and rf["source"] != "make_good") or (rf is None and r["b_status"] == "refunded")  # a refund Blindspot made stays part of the incident
+        refunded = (rf is not None and rf["source"] != "make_good") or (rf is None and r["b_status"] == "refunded")  # a refund Resolve made stays part of the incident
         if r["b_status"] == "failed":
             if r["b_reason"] != "debit_reversal_pending":  # an ordinary failed retry moves no money, so there is nothing to sort
                 continue

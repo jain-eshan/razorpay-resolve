@@ -17,7 +17,7 @@ const LEVELS: [string, string, string, IconComponent][] = [
 ]
 const STEPS = SETUP_STEP_NAMES
 // A line under the choices on the first two steps: what stays true whatever you pick.
-const NOTE = ['Blindspot reads only messages about a payment, says it is an AI in every reply, and never asks a customer for a password, card details or an OTP.', 'Whatever you pick, switching a customer’s access off is never available.', '']
+const NOTE = ['Resolve reads only messages about a payment, says it is an AI in every reply, and never asks a customer for a password, card details or an OTP.', 'Whatever you pick, switching a customer’s access off is never available.', '']
 const STEP_HELP = SETUP_STEP_HELP
 
 // A card you can pick, with an icon, a title, one line and a tick. Used for channels (pick any) and autonomy levels (pick one).
@@ -41,7 +41,7 @@ function Choice({ icon: Icon, title, text, selected, onPick, badge }: { icon: Ic
 }
 
 // First run, in the layout of Razorpay's merchant onboarding (stepper on the left, one question per screen, one blue Continue). It asks for no credentials.
-// Choices are not saved: Blindspot's settings are read-only in this prototype. Only how far you got is remembered, in the browser.
+// Choices are not saved: Resolve's settings are read-only in this prototype. Only how far you got is remembered, in the browser.
 export default function Setup() {
   const nav = useNavigate()
   // `?step=` opens a step you have already reached (the tiles on the Overview link to it); otherwise setup resumes at the next step.
@@ -80,9 +80,9 @@ export default function Setup() {
     ) : <Text key="s" color="surface.text.gray.muted">Checking Razorpay's records against your access records</Text>,
   ]
   const copy = [
-    ['Where can customers reach you?', 'Blindspot only listens where you connect it. Pick any you want. You can change this any time in Connectors.'],
+    ['Where can customers reach you?', 'Resolve only listens where you connect it. Pick any you want. You can change this any time in Connectors.'],
     ['How much should it do on its own?', 'Start with Review first. You can change it later in Settings.'],
-    ['See what is already broken', "Blindspot compares the last 30 days of Razorpay's records with yours. It only looks."],
+    ['See what is already broken', "Resolve compares the last 30 days of Razorpay's records with yours. It only looks."],
   ]
 
   return (
@@ -91,7 +91,7 @@ export default function Setup() {
         <Card height="100%">
           <CardBody>
             <Box display="flex" flexDirection="column" gap="spacing.6" height="100%">
-              <Box display="flex" flexDirection="column"><Text color="surface.text.gray.muted">Setup:</Text><Heading as="h2" size="medium">Blindspot</Heading></Box>
+              <Box display="flex" flexDirection="column"><Text color="surface.text.gray.muted">Setup:</Text><Heading as="h2" size="medium">Resolve</Heading></Box>
               <StepGroup size="large">
                 {STEPS.map((t, i) => <StepItem key={t} title={t} description={STEP_HELP[i]} stepProgress={i < step ? 'full' : 'none'} marker={<StepItemIndicator color={i < step ? 'positive' : i === step ? 'primary' : 'neutral'} />} />)}
               </StepGroup>
@@ -116,7 +116,7 @@ export default function Setup() {
             {NOTE[step] && <Alert isFullWidth isDismissible={false} color="information" description={NOTE[step]} />}
             <Box display="flex" flexDirection="column" gap="spacing.4" marginTop="auto">
               <Button variant="primary" size="large" isFullWidth onClick={next} isDisabled={step === 2 && !scan}>{step === 2 ? 'See what I found' : 'Continue'}</Button>
-              <Text size="small" color="surface.text.gray.muted">{step < 2 ? 'Your choices are not saved in this demo. ' : ''}Blindspot never asks for passwords, card details or OTPs.</Text>
+              <Text size="small" color="surface.text.gray.muted">{step < 2 ? 'Your choices are not saved in this demo. ' : ''}Resolve never asks for passwords, card details or OTPs.</Text>
             </Box>
           </Box>
         </CardBody>

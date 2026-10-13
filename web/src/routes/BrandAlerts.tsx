@@ -8,9 +8,9 @@ import { Stat } from '../components/Stat'
 import { useGet, type Schemas } from '../lib/api'
 import { when } from '../lib/format'
 
-// One alert as `synth/brand_world.py` writes it (web/public/brand/alerts.json): what the brand's tool sent, and what Blindspot did with it, in the file's words.
+// One alert as `synth/brand_world.py` writes it (web/public/brand/alerts.json): what the brand's tool sent, and what Resolve did with it, in the file's words.
 export type BrandAlert = { id: string; tool: string; title: string; service: string; at: string; events: number; status: 'matched' | 'dropped' | 'no_impact'; issue: string | null; why: string }
-// What Blindspot did. Orange when customers were hit (it became a payment issue), grey when the filter left it out, green when it was checked and payments were fine.
+// What Resolve did. Orange when customers were hit (it became a payment issue), grey when the filter left it out, green when it was checked and payments were fine.
 const DID = { matched: ['Matched to payments', 'notice'], dropped: ['Left out by your filter', 'neutral'], no_impact: ['Checked, no impact', 'positive'] } as const
 
 // The issue an alert became, as a link that wraps (Blade's Link does not), as on the Payment issues page.
@@ -33,13 +33,13 @@ export default function BrandAlerts() {
   const matchedIssues = new Set((data ?? []).filter((a) => a.issue).map((a) => a.issue)).size
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6" testID="brand-alerts">
-      <PageHeader title="Alerts" description="What your alert tools and Razorpay's own monitor sent, and what Blindspot did with each. An alert alone is never acted on: it is checked against your payments first." />
+      <PageHeader title="Alerts" description="What your alert tools and Razorpay's own monitor sent, and what Resolve did with each. An alert alone is never acted on: it is checked against your payments first." />
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="Could not load alerts" description={`${error}. Reload the page to try again.`} />}
       {data?.length === 0 && (
         <Card>
           <CardBody>
             <EmptyState size="large" asset={<Box width="120px"><GuideArt art="alert" height="80px" /></Box>} title="No alerts yet"
-              description="When Sentry, Datadog or PagerDuty send an alert about a payment service, it shows here with what Blindspot did with it.">
+              description="When Sentry, Datadog or PagerDuty send an alert about a payment service, it shows here with what Resolve did with it.">
               <Button variant="primary" size="medium" icon={ArrowRightIcon} iconPosition="right" onClick={() => nav('/connect')}>See the alert door</Button>
             </EmptyState>
           </CardBody>
@@ -61,7 +61,7 @@ export default function BrandAlerts() {
                     <TableHeaderRow>
                       <TableHeaderCell>Alert</TableHeaderCell>
                       <TableHeaderCell>Received</TableHeaderCell>
-                      <TableHeaderCell>What Blindspot did</TableHeaderCell>
+                      <TableHeaderCell>What Resolve did</TableHeaderCell>
                       <TableHeaderCell>Payment issue</TableHeaderCell>
                     </TableHeaderRow>
                   </TableHeader>

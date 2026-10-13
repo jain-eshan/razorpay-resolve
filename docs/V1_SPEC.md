@@ -1,5 +1,7 @@
 # Blind Spot ("Make Good"): Full Build Spec
 
+> **Naming.** The product is called Razorpay Resolve (Resolve inside the dashboard). It was developed under the working name Blindspot, and this file keeps that name in its dated history.
+
 **Project:** Razorpay x ISB AI PM Build Challenge, Track 2 "Recover and Grow with AI"
 **Owner and builder:** Eshan Jain
 **Spec date:** Mon 5 Oct 2026

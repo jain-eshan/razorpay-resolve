@@ -144,7 +144,7 @@ const restored = (d: Demo) => new Set((st.g === 'first_5' || st.g === 'rest' ? d
 async function members(d: Demo) {
   const base = await stat<Schemas['Member'][]>('incidents/INC-1/members')
   const r = restored(d)
-  return base.map((m) => (r.has(m.payment_id) ? { ...m, tier: 'excluded' as const, exclusion_reason: 'restored by Blindspot', merchant_state: 'active' } : m))
+  return base.map((m) => (r.has(m.payment_id) ? { ...m, tier: 'excluded' as const, exclusion_reason: 'restored by Resolve', merchant_state: 'active' } : m))
 }
 
 async function incident(d: Demo) {
@@ -445,7 +445,7 @@ export async function demoSend(method: string, path: string, body: Record<string
     return fr.data
   }
   if (path === '/api/escalations') {
-    if (body.incident_id !== 'INC-3') throw new Error("Blindspot has not put this on Razorpay's side, so there is nothing to send them. Send the evidence pack to your own developer.")
+    if (body.incident_id !== 'INC-3') throw new Error("Resolve has not put this on Razorpay's side, so there is nothing to send them. Send the evidence pack to your own developer.")
     if (c3.esc === 'none') {
       c3.esc = 'drafted'
       add(d.renewal.escalation.drafted.audit)

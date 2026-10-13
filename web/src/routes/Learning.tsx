@@ -14,7 +14,7 @@ const ARM_TITLE = { off: 'No tuning', baseline: 'Weekly baseline only', loop: 'W
 const show = (key: string, v: unknown) => (key === 'message_variant' ? LANG[String(v)] ?? String(v) : `1 in ${Math.round(1 / Number(v)).toLocaleString('en-IN')}`)
 const num = (n: number) => (Math.round(n * 10) / 10).toString()
 
-// S-18. What Blindspot changed about itself this week, what is in force, and a simulated six weeks showing whether the idea works.
+// S-18. What Resolve changed about itself this week, what is in force, and a simulated six weeks showing whether the idea works.
 export default function Learning() {
   const [version, setVersion] = useState(0)
   const [busy, setBusy] = useState<string>()
@@ -52,14 +52,14 @@ export default function Learning() {
 
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6">
-      <PageHeader guide="learning" title="Alert tuning" description="Tell Blindspot when an alert was wrong. Once a week it moves one alert setting by one step, inside fixed limits, and says why. Every change is in the audit trail."
+      <PageHeader guide="learning" title="Alert tuning" description="Tell Resolve when an alert was wrong. Once a week it moves one alert setting by one step, inside fixed limits, and says why. Every change is in the audit trail."
         actions={<Button isLoading={busy === 'review'} isDisabled={!!busy} onClick={review}>Review this week now</Button>} />
       {(error || weekly.error) && <Text color="feedback.text.negative.intense">Could not do that: {error ?? weekly.error}</Text>}
 
       <Panel title={changes ? `${changes} ${changes === 1 ? 'change' : 'changes'} this week` : 'No changes this week'} subtitle="Worked out from the feedback you gave in the last 7 days">
         {weekly.data ? weekly.data.lines.map((l) => <Text key={l}>{l}</Text>) : <Skeleton height="20px" width="min(420px, 80%)" borderRadius="medium" />}
         <Box display="flex" flexDirection="column" gap="spacing.3" paddingTop="spacing.4" borderTopWidth="thin" borderTopColor="surface.border.gray.subtle">
-          <Text size="small" color="surface.text.gray.muted">Did Blindspot miss something? Tell it what happened.</Text>
+          <Text size="small" color="surface.text.gray.muted">Did Resolve miss something? Tell it what happened.</Text>
           <Box display="flex" gap="spacing.3" flexWrap="wrap">
             {MISSED.map(([m, t]) => <Button key={m} variant="secondary" isLoading={busy === m} isDisabled={!!busy} onClick={() => missed(m)}>{t}</Button>)}
           </Box>
@@ -67,7 +67,7 @@ export default function Learning() {
         </Box>
       </Panel>
 
-      <Panel title="In force now" subtitle="Strictness is how unusual something must be before Blindspot alerts you. It starts at 1 in 100 and never goes past 1 in 1,000." pad={false}>
+      <Panel title="In force now" subtitle="Strictness is how unusual something must be before Resolve alerts you. It starts at 1 in 100 and never goes past 1 in 1,000." pad={false}>
         <Table data={{ nodes: Object.values(current).map(withId) }} gridTemplateColumns="minmax(220px, 2fr) minmax(120px, 1fr) minmax(80px, 0.6fr) minmax(260px, 3fr)" isHeaderSticky={false}>
           {(items) => (
             <>

@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRightIcon, Avatar, Badge, Box, Button, Card, CardBody, CheckIcon, Heading, Text } from '@razorpay/blade/components'
 import { GuideArt } from '../components/GuideArt'
+import { NAME } from '../lib/brand'
 import { ACCOUNTS, accountId, signIn, signedIn, type AccountId } from '../lib/account'
 import type { ArtId } from '../lib/art'
 
 // What each account shows, in three lines a judge can hold in their head before they pick. Words only: the figures are on the pages behind.
 const SEE: Record<AccountId, { art: ArtId; lines: string[] }> = {
   kaksha: { art: 'chat', lines: ['Your customers write on WhatsApp, Instagram and email', 'Ray tells you on WhatsApp what broke', 'Each fix waits for your approval'] },
-  flipkart: { art: 'alert', lines: ['Your own alert tools tell Blindspot', 'The root cause lands in your Slack channel', 'Refunds and messages wait for your approval'] },
+  flipkart: { art: 'alert', lines: ['Your own alert tools tell Resolve', 'The root cause lands in your Slack channel', 'Refunds and messages wait for your approval'] },
 }
 
 // The way in (v3, two accounts): one Razorpay dashboard, two demo merchants. Not a login: there is no password field and nothing to type, so it cannot be taken for a real
@@ -24,7 +25,7 @@ export default function SignIn() {
       <main>
         <Box testID="page" maxWidth="960px" marginX="auto" padding={{ base: 'spacing.5', m: 'spacing.9' }} display="flex" flexDirection="column" gap="spacing.7">
           <Box display="flex" flexDirection="column" gap="spacing.3" alignItems={{ base: 'flex-start', m: 'center' }} textAlign={{ base: 'left', m: 'center' }}>
-            <Badge color="positive" size="medium">Blindspot · Beta</Badge>
+            <Badge color="positive" size="medium">{NAME} · Demo</Badge>
             <Heading as="h1" size="xlarge">Choose a demo account</Heading>
             <Text color="surface.text.gray.muted">The same dashboard, set up for a small business or for a big brand. You can switch from your avatar at any time.</Text>
           </Box>

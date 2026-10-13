@@ -40,7 +40,7 @@ test('H2 the date range changes the cards, chart and list together, and survives
   await pick(page, /This month/, 'Today')  // nothing started on 2 Oct: every part says so
   await expect(card(page, 'Open payment issues')).toHaveText('0')
   await expect(page.getByText('No open payment issues', { exact: true })).toBeVisible()
-  await expect(page.getByText('None started today. Blindspot checks every 15 minutes.')).toHaveCount(1)  // the list's empty state; the chart keeps showing a week, a day is not a chart
+  await expect(page.getByText('None started today. Resolve checks every 15 minutes.')).toHaveCount(1)  // the list's empty state; the chart keeps showing a week, a day is not a chart
   await expect(page.getByTestId('issues-chart').getByRole('heading', { name: '₹85,359' })).toBeVisible()
 })
 
@@ -120,8 +120,8 @@ test('H8 Reset setup asks once, then setup is back to 0 of 3 and the welcome tou
   await expect(page.getByText('2/3 COMPLETED')).toBeVisible()
   await page.getByRole('button', { name: 'Reset setup' }).click()
   await confirm.getByRole('button', { name: 'Reset setup' }).click()
-  await expect(page.getByRole('dialog', { name: 'Welcome to Blindspot' })).toBeVisible()
-  await page.getByRole('dialog', { name: 'Welcome to Blindspot' }).getByRole('button', { name: 'Look around first' }).click()
+  await expect(page.getByRole('dialog', { name: 'Welcome to Resolve' })).toBeVisible()
+  await page.getByRole('dialog', { name: 'Welcome to Resolve' }).getByRole('button', { name: 'Look around first' }).click()
   await expect(page.getByText('0/3 COMPLETED')).toBeVisible()
   expect(await page.evaluate(() => localStorage.getItem('blindspot.setup'))).toBeNull()
 })
@@ -141,7 +141,7 @@ test('H1 and H6 no tinted panel; the tour and reset links sit in the header; a q
 test('Overview order: Ask Ray, then setup, then the four cards, then the issues, then the pages', async ({ page }) => {
   await page.goto('/')
   const top = async (loc: ReturnType<Page['getByTestId']>) => (await loc.boundingBox())!.y
-  const order = [await top(page.getByRole('textbox', { name: 'Ask Ray' })), await top(page.getByTestId('setup-card')), await top(page.getByTestId('home-cards')), await top(page.getByTestId('home-issues')), await top(page.getByRole('heading', { name: 'Explore Blindspot' }))]
+  const order = [await top(page.getByRole('textbox', { name: 'Ask Ray' })), await top(page.getByTestId('setup-card')), await top(page.getByTestId('home-cards')), await top(page.getByTestId('home-issues')), await top(page.getByRole('heading', { name: 'Explore Resolve' }))]
   expect(order, 'each block starts below the one before it').toEqual([...order].sort((a, b) => a - b))
 })
 

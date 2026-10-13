@@ -53,7 +53,7 @@ export function JustYou({ inc, lines, compared }: { inc: Pick<Schemas['IncidentD
       {/* Said once per page, here on every issue page: one label and the caveats as a short list, not the label repeated before each caveat. */}
       {inc.verdict.what_we_cannot_see.length > 0 && (
         <Box display="flex" flexDirection="column" gap="spacing.2" paddingTop="spacing.4" borderTopWidth="thin" borderTopColor="surface.border.gray.subtle" testID="cannot-see">
-          <Text size="small" weight="semibold" color="surface.text.gray.subtle">What Blindspot cannot see</Text>
+          <Text size="small" weight="semibold" color="surface.text.gray.subtle">What Resolve cannot see</Text>
           <List size="small">{inc.verdict.what_we_cannot_see.map((s) => <ListItem key={s}>{s}</ListItem>)}</List>
         </Box>
       )}

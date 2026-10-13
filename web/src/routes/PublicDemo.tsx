@@ -10,7 +10,7 @@ import { PageHeader } from '../components/PageHeader'
 type Post = { id: string; kind: string; label: string; handle: string; text: string; url: string | null; follow_up: { channel: string; who: string; text: string } | null }
 const KIND: Record<string, string> = { public_with_reference: 'Names a payment', public_without_reference: 'No payment named', public_threat: 'A threat', real_public_post: 'Real post' }
 
-// A public post that mentions the merchant. Blindspot never discusses a payment in public: at most one generic line with a private link, held for the founder. If the customer then writes privately, the conversation carries on there.
+// A public post that mentions the merchant. Resolve never discusses a payment in public: at most one generic line with a private link, held for the founder. If the customer then writes privately, the conversation carries on there.
 export default function PublicDemo() {
   const [posts, setPosts] = useState<Post[]>([])
   const [sel, setSel] = useState<Post>()
@@ -48,7 +48,7 @@ export default function PublicDemo() {
   return (
     <Box display="flex" flexDirection="column" gap="spacing.7">
       <Crumbs items={[{ label: 'Customer complaints', to: '/threads' }, { label: 'Try it: A public post', to: '/public-demo' }]} />
-      <PageHeader title="A public post" description="When someone posts about a payment problem in public, Blindspot does not discuss it there. It drafts one generic reply with a private link, with no amount, name or status in it, and holds it for the founder. Nothing in the post is looked up, and the handle is never tied to a payment until the customer writes privately." />
+      <PageHeader title="A public post" description="When someone posts about a payment problem in public, Resolve does not discuss it there. It drafts one generic reply with a private link, with no amount, name or status in it, and holds it for the founder. Nothing in the post is looked up, and the handle is never tied to a payment until the customer writes privately." />
       {!isLive && <Alert isFullWidth color="information" isDismissible={false} title="Demo" description={`${demoNote} Pick a post. Real posts from the research are watched and never answered.`} />}
       {error && <Alert isFullWidth color="negative" isDismissible={false} title="Not done" description={error} />}
       <Box display="grid" gridTemplateColumns={{ base: '1fr', l: 'minmax(320px, 440px) minmax(0, 1fr)' }} gap="spacing.7" alignItems="start">
@@ -63,7 +63,7 @@ export default function PublicDemo() {
                 </Box>
                 <Text>{p.text}</Text>
                 {p.url && <Link href={p.url} target="_blank" size="small">Source</Link>}
-                <Box><Button size="small" variant={sel?.id === p.id ? 'primary' : 'secondary'} onClick={() => show(p)}>Show this post to Blindspot</Button></Box>
+                <Box><Button size="small" variant={sel?.id === p.id ? 'primary' : 'secondary'} onClick={() => show(p)}>Show this post to Resolve</Button></Box>
               </Box>
             </CardBody></Card>
           ))}

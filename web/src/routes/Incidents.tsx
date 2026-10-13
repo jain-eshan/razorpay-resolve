@@ -10,10 +10,10 @@ import { PageSkeleton } from '../components/PageSkeleton'
 // Orange when the fix is yours, neutral when it is someone else's. Razorpay's own fault is not red: red reads as danger, and nothing here is worse because of whose it is.
 const OWNER_TONE = { merchant_code: 'notice', merchant_config: 'notice', razorpay: 'neutral', bank: 'neutral', customer: 'neutral', unknown: 'neutral' } as const
 const STATUS_TONE = { open: 'notice', fixing: 'information', verifying: 'information', closed: 'positive' } as const
-// Why a zone can be empty, so a 0 reads as covered, not as missing data. From the Incidents guide: Blindspot covers before and after the payment.
+// Why a zone can be empty, so a 0 reads as covered, not as missing data. From the Incidents guide: Resolve covers before and after the payment.
 const EMPTY: Record<string, string> = {
   before: 'Nothing found. Your pay page and checkout opened normally.',
-  during: "Razorpay's Success Rate page already covers payments that fail at the bank or the UPI app, so Blindspot leaves them out.",
+  during: "Razorpay's Success Rate page already covers payments that fail at the bank or the UPI app, so Resolve leaves them out.",
   after: 'Nothing found. Every customer who paid got what they paid for.',
 }
 // "Could have known" on the same day as the start needs only the time.
@@ -24,7 +24,7 @@ function Title({ id, title }: { id: string; title: string }) {
 }
 const knownAt = (start: string, known: string) => {
   const [d1] = when(start).split(', '), [d2, t2] = when(known).split(', ')
-  return d1 === d2 ? `Blindspot alert at ${t2}` : `Blindspot alert ${when(known)}`
+  return d1 === d2 ? `Resolve alert at ${t2}` : `Resolve alert ${when(known)}`
 }
 
 export default function Incidents() {
@@ -34,7 +34,7 @@ export default function Incidents() {
     <Box display="flex" flexDirection="column" gap="spacing.6">
       <PageHeader title="Payment issues" description="Problems that stopped customers paying or getting what they paid for, biggest first. Each one shows who was hit, the amount involved and whose side the cause is on." guide="incidents" />
       {error && <Text color="feedback.text.negative.intense">Could not load payment issues: {error}. Reload the page to try again.</Text>}
-      {data?.length === 0 && <Text>No payment issues. Blindspot checks every 15 minutes.</Text>}
+      {data?.length === 0 && <Text>No payment issues. Resolve checks every 15 minutes.</Text>}
       {data && data.length > 0 && (() => {
         // Added up from the incidents below. Inferred incidents carry an estimate, so the hint says how much of the total is one.
         const open = data.filter((i) => i.status !== 'closed')
@@ -51,7 +51,7 @@ export default function Incidents() {
       {(['before', 'during', 'after'] as const).map((zone) => {
         const items = (data ?? []).filter((i) => i.zone === zone).sort((a, b) => b.at_risk_paise - a.at_risk_paise)
         return (
-          // Blindspot never looks inside the payment, so that stage is one line under the list, not an empty card.
+          // Resolve never looks inside the payment, so that stage is one line under the list, not an empty card.
           zone === 'during' ? null :
           <Panel key={zone} title={ZONE[zone]} subtitle={ZONE_LINE[zone]} pad={false} trailing={<Badge color="neutral" size="medium">{`${items.length} found`}</Badge>}>
             {items.length === 0 ? <Box padding="spacing.5"><Text size="small" color="surface.text.gray.muted">{EMPTY[zone]}</Text></Box> : (<>

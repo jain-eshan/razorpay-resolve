@@ -4,7 +4,7 @@ Two steps, so nothing leaves without a person: `create` drafts the pack and keep
 is the founder's approval. Sending is the mock: the prototype records "Sent to Razorpay (mock)" with a reference and talks to no one.
 
 The pack is for Razorpay's support desk. It holds payment ids, counts, error codes, the hours and what was ruled out. It never holds a
-customer's name, email, phone or a message they wrote: Razorpay can look the payments up itself. Only incidents that Blindspot has
+customer's name, email, phone or a message they wrote: Razorpay can look the payments up itself. Only incidents that Resolve has
 put on Razorpay's side can be escalated; one that is the merchant's goes to the merchant's developer instead."""
 import json
 import sqlite3
@@ -70,7 +70,7 @@ def create(db: sqlite3.Connection, incident_id: str, target: str = "razorpay", a
         if target != "razorpay":
             raise ActError(422, "Only escalation to Razorpay is available here. Your developer gets the evidence pack from the incident page.")
         if inc["owner"] != "razorpay" or inc["mismatch_type"] != "G":
-            raise ActError(409, "Blindspot has not put this on Razorpay's side, so there is nothing to send them. Send the evidence pack to your own developer.")
+            raise ActError(409, "Resolve has not put this on Razorpay's side, so there is nothing to send them. Send the evidence pack to your own developer.")
         eid = f"esc_{incident_id.removeprefix('INC-')}_{target}"
         if db.execute("SELECT 1 FROM escalations WHERE id = ?", (eid,)).fetchone():
             return _model(_row(db, eid))

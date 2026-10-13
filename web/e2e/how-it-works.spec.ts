@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 
-// "How Blindspot works", Blindspot's landing page (v3 batch 1.5, T3): the hero with a way into each account, the two journeys, the engine, "Why an AI agent" (moved here
+// "How Resolve works", Resolve's landing page (v3 batch 1.5, T3): the hero with a way into each account, the two journeys, the engine, "Why an AI agent" (moved here
 // from Accuracy) and "Today and in production". Each check asserts that it found the thing before it measures it, so a selector that matches nothing fails.
 const settle = (page: Page) => page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))))
 const box = async (l: Locator) => (await l.boundingBox())!
@@ -16,7 +16,7 @@ test.use({ reducedMotion: 'reduce' })
 
 test('Overview links to the landing page: the pitch, one blue button, and the two journeys with the five steps', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('link', { name: 'How Blindspot works' }).click()
+  await page.getByRole('link', { name: 'How Resolve works' }).click()
   await expect(page).toHaveURL(/\/how-it-works$/)
   await expect(page.getByRole('heading', { level: 1, name: /Find everyone a broken payment hit, and win them back/ })).toBeVisible()
   await expect(page.getByTestId('hero').getByRole('img')).toHaveAttribute('alt', /payment path/)
@@ -27,7 +27,7 @@ test('Overview links to the landing page: the pitch, one blue button, and the tw
     await expect(steps).toHaveCount(5)
     for (const [i, name] of STEPS.entries()) await expect(steps.nth(i)).toContainText(name)
   }
-  await expect(page.getByText(/^two kinds of merchant, one Blindspot$/i)).toBeVisible()
+  await expect(page.getByText(/^two merchant journeys, one recovery workflow$/i)).toBeVisible()
   await expect(page.getByText('A problem reaches each one differently. After that, the same five steps.')).toBeVisible()
 })
 
@@ -150,7 +150,7 @@ test('Accuracy no longer carries the rules card, and its one line leads with the
   await page.goto('/how')
   await expect(page.getByTestId('rules-moved')).toContainText(`Today’s rules misread ${wrong} of ${total} messy complaints.`)
   await expect(page.getByTestId('rules-fail')).toHaveCount(0)
-  await page.getByTestId('rules-moved').getByRole('link', { name: 'Why Blindspot needs an AI agent' }).click()
+  await page.getByTestId('rules-moved').getByRole('link', { name: 'Why Resolve needs an AI agent' }).click()
   await expect(page).toHaveURL(/\/how-it-works#why-ai$/)
   await expect(page.getByTestId('rules-fail')).toBeInViewport()
 })
@@ -220,7 +220,7 @@ for (const width of [1440, 375]) {
   test(`the nine Explore cards stay one height at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 })
     await page.goto('/')
-    const cards = page.getByRole('heading', { name: 'Explore Blindspot' }).locator('xpath=following-sibling::*[1]').locator('[data-blade-component="card"]')
+    const cards = page.getByRole('heading', { name: 'Explore Resolve' }).locator('xpath=following-sibling::*[1]').locator('[data-blade-component="card"]')
     await expect(cards).toHaveCount(9)
     await settle(page)
     const heights = await Promise.all([...Array(9).keys()].map(async (i) => Math.round((await box(cards.nth(i))).height)))
@@ -232,10 +232,10 @@ test('the Overview says the pitch with the link to this page beside it, and the 
   for (const width of [1440, 1280, 1024, 768, 375]) {
     await page.setViewportSize({ width, height: 900 })
     await page.goto('/')
-    await expect(page.getByText('Blindspot finds everyone a payment problem hit, says whose side it is, and wins them back.')).toBeVisible()
+    await expect(page.getByText('Resolve finds everyone a payment problem hit, says whose side it is, and wins them back.')).toBeVisible()
     await settle(page)
     const pageBox = await box(page.getByTestId('page'))
-    const link = await box(page.getByRole('link', { name: 'How Blindspot works' }))
+    const link = await box(page.getByRole('link', { name: 'How Resolve works' }))
     expect(link.x, `link at ${width}px`).toBeGreaterThanOrEqual(pageBox.x)
     expect(link.x + link.width, `link at ${width}px`).toBeLessThanOrEqual(pageBox.x + pageBox.width + 1)
     // The link sits with the pitch, inside the header, above the Ray field and the cards.
