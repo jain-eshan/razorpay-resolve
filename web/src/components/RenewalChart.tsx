@@ -1,5 +1,5 @@
 import { Box, ChartBar, ChartBarWrapper, ChartCartesianGrid, ChartReferenceLine, ChartTooltip, ChartXAxis, ChartYAxis, Text } from '@razorpay/blade/components'
-import { bucketAt, droppedMarks, thinLabels, yTop, hourLabel } from '../lib/format'
+import { chartMarks, markerText, yTop, hourLabel } from '../lib/format'
 import { ChartKey } from './ChartKey'
 import { useNarrow } from '../lib/useNarrow'
 
@@ -14,7 +14,7 @@ export function RenewalChart({ hours, marks, edges = [] }: { hours: RenewalHour[
   const upiOk = hours.reduce((n, h) => n + h.upi_ok, 0)
   const upiFailed = hours.reduce((n, h) => n + h.upi_failed, 0)
   const data = hours.map((h) => ({ hour: hourLabel(h.at), ok: h.card_ok, failed: h.card_failed }))
-  const lines = thinLabels(edges.map((m) => ({ x: bucketAt(hours.map((h) => h.at), m.at, hourLabel), label: m.label })).filter((m): m is { x: string; label: string } => !!m.x), data.map((d) => d.hour))
+  const lines = chartMarks(hours.map((h) => h.at), edges, hourLabel)
   return (
     <Box display="flex" flexDirection="column" gap="spacing.4">
       <Box height="280px" testID="renewal-chart">
@@ -25,14 +25,14 @@ export function RenewalChart({ hours, marks, edges = [] }: { hours: RenewalHour[
           <ChartTooltip />
           <ChartBar dataKey="ok" name="Card renewals that went through" color="data.background.categorical.green.intense" stackId="cards" />
           <ChartBar dataKey="failed" name="Card renewals that failed" color="data.background.categorical.red.intense" stackId="cards" />
-          {lines.map((m) => <ChartReferenceLine key={m.x} x={m.x} label={m.label} />)}
+          {lines.drawn.map((m) => <ChartReferenceLine key={m.x} x={m.x} label={m.label} />)}
         </ChartBarWrapper>
       </Box>
-      <ChartKey items={[{ name: 'Went through', color: 'green' }, { name: 'Failed', color: 'red' }]} notes={droppedMarks(lines)} />
+      <ChartKey items={[{ name: 'Went through', color: 'green' }, { name: 'Failed', color: 'red' }]} notes={lines.dropped} />
       <Box display="flex" flexDirection="column" gap="spacing.2">
         <Text size="small" color="surface.text.gray.muted">{`Card renewals by hour. UPI AutoPay in the same hours: ${upiOk} renewals went through and ${upiFailed} failed.`}</Text>
         {marked.map((h) => (
-          <Text key={h.at} size="small">{hourLabel(h.at)} · {marks[h.at].join(' · ')}</Text>
+          <Text key={h.at} size="small">{hourLabel(h.at)} · {markerText(marks[h.at])}</Text>
         ))}
       </Box>
     </Box>

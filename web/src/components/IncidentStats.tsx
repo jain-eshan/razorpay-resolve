@@ -10,7 +10,7 @@ export function IncidentStats({ inc }: { inc: Pick<Schemas['IncidentDetail'], 'a
   const share = inc.affected > 0 ? `${Math.round((inc.silent / inc.affected) * 100)}% of the customers hit` : 'no customers hit yet'
   return (
     <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(3, minmax(0, 1fr))' }} gap="spacing.5" testID="incident-stats">
-      <Stat label="Customers hit" value={String(inc.affected)} hint={inc.status === 'closed' ? 'all put right' : `${inc.tier_counts.exact ?? 0} still to put right`} icon={AlertTriangleIcon} tone="notice" />
+      <Stat label="Customers hit" value={String(inc.affected)} hint={inc.status === 'closed' ? 'issue closed' :`${inc.tier_counts.exact ?? 0} still to put right`} icon={AlertTriangleIcon} tone="notice" />
       <Stat label="Money stuck" value={rupees(inc.at_risk_paise)} hint={AMOUNT_NOTE[inc.mismatch_type] ?? 'still to recover'} icon={RupeesIcon} />
       <Stat label="Never wrote in" value={String(inc.silent)} hint={share} icon={BellOffIcon} />
     </Box>

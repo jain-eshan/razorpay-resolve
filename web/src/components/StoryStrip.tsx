@@ -12,20 +12,39 @@ const reached = (actions: Inc['actions']) => ({
   paid: actions.reduce((n, a) => n + (a.action_type === 'recovery_link' ? a.item_counts.sent_paid ?? 0 : 0), 0),
 })
 
+// Put right by Blindspot, read from the actions you approved, never from customers who sorted it out without it (PRD v3: no recovery is claimed for a customer who came back
+// on their own). Access given back (grant) and second charges refunded count once confirmed (`verified`); a pay-again link counts only once the customer paid through it.
+// The actions of one issue all work on the same customers (on a renewal issue the link goes to customers whose access was already kept on), so the largest count is the
+// number of customers, never the sum.
+const putRight = (actions: Inc['actions']) => Math.max(0, ...actions.map((a) =>
+  a.action_type === 'grant' || a.action_type === 'refund' ? a.item_counts.verified ?? 0 : a.action_type === 'recovery_link' ? a.item_counts.sent_paid ?? 0 : 0))
+
+// Customers who needed nothing from Blindspot, from the engine's own reason for leaving them out: they paid again on their own, or you had already given access or refunded
+// them yourself. Said beside the count, never in it.
+const onTheirOwn = (members: Schemas['Member'][]) => {
+  const paid = members.filter((m) => /^Paid since\b/.test(m.exclusion_reason ?? '')).length
+  const you = members.filter((m) => m.exclusion_reason === 'already active (manual grant)' || m.exclusion_reason === 'refunded').length
+  return [paid ? `${paid} paid on their own` : '', you ? `${you} fixed by you` : ''].filter(Boolean).join(', ')
+}
+
 // The five steps every payment issue goes through, with the issue's own numbers (PRD v3, section 1): hear, find everyone, say whose side, fix, win customers back.
 // Where the issue is in them is read from its data: a step is done once its numbers are in, and the first one that is not is the one it is on now.
-export function StoryStrip({ inc }: { inc: Inc }) {
+// `members` (the customers found) says who needed nothing from Blindspot; until it loads the note shows the status only.
+export function StoryStrip({ inc, members = [] }: { inc: Inc; members?: Schemas['Member'][] }) {
   const { told, paid } = reached(inc.actions)
   const closed = inc.status === 'closed'
-  // Put right = everyone in the count who no longer needs anything from you: already active, refunded, handled by hand, or fixed here. It is read from the same group
-  // counts as "still to put right" in the numbers below, so the two never disagree (the engine's own `fixed` is a fixed field and does not move as the fix goes on).
+  // The Fix step is done when nothing is left waiting for your approval (the same group counts as "still to put right" in the numbers below), or the issue is closed.
+  // Its number is only what Blindspot's own actions put right, so it never claims a customer who paid again by themselves.
   const waiting = (inc.tier_counts.exact ?? 0) + (inc.tier_counts.likely ?? 0) + (inc.tier_counts.check ?? 0)
-  const fixed = Math.max(0, inc.affected - waiting)
+  // The note says who sorted it out on their own when anyone did, and the status otherwise. Both did not fit two lines in a tile five across, and the status is
+  // already on the page twice (the tile's "now" marker and the badge at the top).
+  const others = onTheirOwn(members)
+  const status = closed ? 'closed' : waiting === 0 ? 'all approved' : inc.status === 'open' ? 'needs your approval' : 'in progress'
   const steps = [
     { title: 'Hear', done: true, value: inc.complained > 0 ? `${inc.complained} wrote in` : 'No complaints yet', note: inc.complained > 0 ? 'seen in your data too' : 'found in your data' },
     { title: 'Find everyone', done: true, value: `${inc.affected} customers hit`, note: inc.silent > 0 ? 'not only those who wrote in' : 'every one wrote in' },
     { title: 'Whose side', done: inc.owner !== 'unknown', value: OWNER[inc.owner], note: `${sentence(inc.verdict.confidence)} confidence` },
-    { title: 'Fix', done: closed || (inc.affected > 0 && waiting === 0), value: `${fixed} of ${inc.affected} put right`, note: closed ? 'closed' : inc.status === 'open' ? 'needs your approval' : 'in progress' },
+    { title: 'Fix', done: closed || (inc.affected > 0 && waiting === 0), value: `${putRight(inc.actions)} of ${inc.affected} put right`, note: others || status },
     { title: 'Win back', done: closed && told > 0, value: told > 0 ? `${told} told` : 'No one told yet', note: paid > 0 ? `${paid} paid again` : 'needs your approval' },
   ]
   return <StoryTiles steps={steps} />
