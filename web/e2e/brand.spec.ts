@@ -75,7 +75,7 @@ test('the brand Overview adds up its own issues', async ({ page }) => {
   await expect(card('Open payment issues')).toHaveText(String(open.length))
   await expect(card('Customers hit')).toHaveText(n(list.reduce((s, i) => s + i.affected, 0)))
   await expect(card('Money stuck')).toHaveText(rupees(open.reduce((s, i) => s + i.at_risk_paise, 0)))
-  await expect(card('No longer waiting')).toHaveText(n(list.reduce((s, i) => s + i.fixed, 0)))
+  await expect(card('Customers put right')).toHaveText(n(list.reduce((s, i) => s + i.fixed, 0)))
   await expect(page.getByText('Answers reach your team in Slack')).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'Ask Ray' })).toHaveCount(0)
 })
