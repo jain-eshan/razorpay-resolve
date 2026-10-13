@@ -8,6 +8,7 @@ import { PageSkeleton } from '../components/PageSkeleton'
 import { Panel } from '../components/Panel'
 import { SetupCard } from '../components/SetupCard'
 import { Stat } from '../components/Stat'
+import { UnpaidRenewalsRow } from '../components/UnpaidRenewalsRow'
 import { RayHistory } from '../components/RayHistory'
 import { WelcomeTour } from '../components/WelcomeTour'
 import { useAccount } from '../lib/account'
@@ -23,7 +24,7 @@ import Ray from './Ray'
 const EXPLORE_LINE: Record<string, string> = {
   incidents: 'Every customer a problem hit, and what it cost',
   conversations: 'What customers wrote, and the replies sent',
-  access: 'Customers still in after a failed renewal',
+  access: 'Money owed by customers who kept access',
   integration: 'Connect your webhook and check it works',
   channels: 'Choose where customers can reach you',
   autonomy: 'Decide how much Blindspot does on its own',
@@ -125,6 +126,8 @@ export default function Home() {
           <Stat label="Money stuck" value={rupees(open.reduce((a, i) => a + i.at_risk_paise, 0))} hint="on open issues" icon={RupeesIcon} />
           <Stat label="Customers made whole" value={issues.reduce((a, i) => a + i.fixed, 0).toLocaleString('en-IN')} hint={hit ? `of ${hit.toLocaleString('en-IN')} hit` : `none hit ${rangeLabel.toLowerCase()}`} icon={CheckCircleIcon} tone="positive" />
         </Box>
+        {/* Kaksha's unpaid renewals: a balance it is owed, not a payment issue, so a row of its own under the four cards (DESIGN.md section 16). Not tied to the range. */}
+        {!brand && <UnpaidRenewalsRow />}
 
         {/* What needs attention comes first and the trend sits beside it, half and half. One column below the large breakpoint. */}
         <Box display="grid" gridTemplateColumns={{ base: 'minmax(0, 1fr)', l: 'repeat(2, minmax(0, 1fr))' }} gap="spacing.5" alignItems="stretch" testID="home-grid">

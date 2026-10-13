@@ -19,7 +19,7 @@ const BLINDSPOT: Item[] = [
   { title: 'Overview', to: '/', icon: RayIcon, also: ['/ray', '/how-it-works'] },
   { title: 'Payment issues', to: '/incidents', icon: ActivityIcon, also: ['/scan', '/demo/incident'] },
   { title: 'Customer complaints', to: '/threads', icon: UsersIcon, also: ['/cases', '/chat-demo', '/help-demo', '/email-demo', '/ig-demo', '/public-demo'], only: 'kaksha' },
-  { title: 'Unpaid access', to: '/access', icon: UnlockIcon, only: 'kaksha' },
+  { title: 'Unpaid renewals', to: '/access', icon: UnlockIcon, only: 'kaksha' },
   { title: 'Integration', to: '/connect', icon: CodeSnippetIcon, also: ['/release-check'], only: 'kaksha' },
 ]
 const PROOF: Item[] = [
