@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
 
-// The issue page (v3 batch 1.2): the story strip, the three numbers, "Is it just you?", root cause and actions, the charts, and "where rules fail" on Accuracy.
+// The issue page (v3 batch 1.2): the story strip, the three numbers, "Is it just you?", root cause and actions, the charts. "Where rules fail" moved to How Blindspot works (e2e/how-it-works.spec.ts).
 // Each figure is checked against the same files the page reads, so a number typed into a screen would fail here.
 const file = <T,>(p: string): T => JSON.parse(readFileSync(`public/snapshot/${p}.json`, 'utf8'))
 type Inc = { id: string; affected: number; complained: number; silent: number; fixed: number; at_risk_paise: number; status: string; mismatch_type: string; lift: unknown[]; title: string; tier_counts: { exact: number } }
@@ -287,29 +287,6 @@ test(`${inc.id}: the lane and its axis fit inside the card at every width: nothi
   }
 })
 }
-
-test('Accuracy: "where rules fail" shows the report\'s figures with their counts, the kind of each miss, and says what it is not', async ({ page }) => {
-  const report = file<{ metrics: { name: string; value: number | null; target: string }[] }>('eval/report')
-  const m = (n: string) => report.metrics.find((x) => x.name === n)!
-  await page.goto('/how')
-  const card = page.getByTestId('rules-fail')
-  await expect(card.getByRole('heading', { name: 'Where rules fail' })).toBeVisible()
-  await expect(card.getByText(new RegExp(`They read ${Math.round(m('messy_main_claim_found').value! * 100)}% right as the main issue`))).toBeVisible()
-  for (const [name, label] of [['messy_main_claim_found_typo', 'Typos and short forms'], ['messy_main_claim_found_clean', 'Plain messages, one issue, the usual words'], ['messy_both_issues_found', 'Both issues, when a message has two'], ['messy_amount_found', 'The amount the customer wrote']]) {
-    const row = card.getByTestId(`rules-row-${name}`)
-    await expect(row).toContainText(`${label}${Math.round(m(name).value! * 100)}%`)
-    await expect(row, 'every row says how many messages it is out of').toContainText(/of \d+ (two-in-one )?messages/)
-  }
-  await expect(card.getByTestId('rules-row-messy_both_issues_found')).toContainText('The rules return one reading')
-  for (const i of [1, 2, 3]) {
-    const [said] = m(`messy_miss_${i}`).target.split(' | ')
-    await expect(card.getByText(said.replaceAll('"', '').replace(/\.\.\.$/, '').slice(0, 40), { exact: false }).first()).toBeVisible()
-  }
-  await expect(card.getByText('Hinglish', { exact: true }).or(card.getByText('Typos', { exact: true }))).not.toHaveCount(0)  // each miss says what kind it is
-  await expect(card.getByText(/made up/).first()).toBeVisible()
-  await expect(card.getByText(/No model has been run on them yet/)).toBeVisible()  // it says what it does not show
-  await expect(card.getByText(/messy_complaints\.json/)).toHaveCount(0)  // no file path in a merchant's page
-})
 
 // Accuracy read as a wall of bold (Eshan, 13 Oct). Only the figures are bold: a stat's label is regular, and so is a check's name in the full table.
 test('Accuracy: stat labels are regular weight and only the figures are bold', async ({ page }) => {
