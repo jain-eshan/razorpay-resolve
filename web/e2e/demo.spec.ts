@@ -407,6 +407,8 @@ test('INC-3: the extension can be undone before the customers are told, and plan
 
 // ---------- INC-2: customers charged twice. On the merchant's side (the app), the second charge is refunded one customer at a time, and a refund cannot be undone ----------
 test('INC-2 plays end to end with no server: why, who was left out, refunds one by one, the bank, customers told, the fix, closed', async ({ page }) => {
+  // The longest walkthrough here (15 refunds, one click each). On a slow CI runner (issue #52: the whole run took 21 minutes, not 14) it used all of the default 60 s and timed out on a click that had already found its target.
+  test.setTimeout(150_000)
   await page.goto('/')
   await page.getByTestId('ray-whatsapp').getByText('Charged twice', { exact: true }).click({ force: true })  // the home shows one clip at a time; pick this problem first
   await expect(page.getByText(/Customers are being charged twice/)).toBeVisible()
