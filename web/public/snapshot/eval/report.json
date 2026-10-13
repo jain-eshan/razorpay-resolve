@@ -160,7 +160,7 @@
     },
     {
       "name": "median_seconds_to_first_reply_engine_only",
-      "value": 0.0004,
+      "value": 0.0005,
       "target": "< 60 (PRD section 13), over 38 payment threads. Engine time only: no network and no model. A model call adds about 3 to 4 seconds (INTERVIEWS S4)",
       "status": "pass"
     },

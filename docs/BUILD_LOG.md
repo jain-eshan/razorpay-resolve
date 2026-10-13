@@ -1593,3 +1593,17 @@ PR #53 (the INC-2 test timeout, issue #52) and PR #54 (the rename to Razorpay Re
 Eshan found the box on Setup step 3 unclear. It was one run-on sentence from `scan_day0` ("I found 81 customers in the last 30 days who paid and have no access. Before the payment, 2 more times customers could not pay, about 25 lost orders. ..."): first person with no speaker, mixed units, and "2 more times" meant 2 separate problems. Now the backend writes one short line per problem, newline separated (`ScanResult.headline` is still one string, so no contract change), each starting with its number: "81 customers paid but never got access.", "About 25 customers could not pay at all, because your pay page or checkout failed (2 separate problems).", "15 customers were charged twice after an app release.", "27 card renewals failed inside Razorpay's gateway, not on your side." Setup shows them as a short list under "What Resolve found in the last 30 days", then "Resolve only looked. Nothing has been changed." The button says "Open the full report". The first-check report page joins the lines back into a sentence. Tests that asserted the old sentence were updated (two in `smoke.spec.ts`, two backend). Looked at 1440 and 375px. Other copy findings from the same read-through are listed in the pull request, not fixed here.
 
 Design review: self-checked at 1440 and 375px; no independent review run.
+
+## 13 Oct 2026, copy pass from the first-check review (streams A and D)
+
+Eshan asked for the other copy and UX problems found while fixing the first-check box. Six fixes, copy only, no layout or contract change:
+- One sentence form for "paid, did not get access": "paid and did not get access" (was also "paid and have no access" and "paid but never got access"). Short chart and tag labels such as "Paid, no access" are unchanged.
+- The page-level button "How it works" is now "About this page", so it no longer shares a name with the landing page "How Resolve works".
+- Issue pages label the engine's cause line "Technical cause:", since a plain explanation follows it.
+- "Too close to mark on the chart: ..." is "Also happened, but too close to mark: ...". The brand account's "Exact confidence" is "Highest confidence".
+- Brand actions say "Send your order team the list of N paid orders" (generator wording, data regenerated).
+- Payment issues says "Money stuck" for the total (Overview already did). Setup step 1 is "Where customers reach you", matching its page title; its subtitle is "Pick the places you want to hear from".
+Not done on purpose: "put right" (34 uses, understood as is) and the "resolved" wording audit, which Eshan deferred.
+Tests: two specs expected the old sentences or "Exact confidence" and were updated; the first-check report now repeats the phrase four times, so its test takes the first match. 260 browser tests (CI mode) and 627 backend tests pass; looked at the issue page at 1440 and 375px.
+
+Design review: self-checked at 1440 and 375px; no independent review run.

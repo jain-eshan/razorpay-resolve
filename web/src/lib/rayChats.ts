@@ -6,7 +6,7 @@ export type Chat = { id: string; at: string; turns: { q: string; kind: Kind }[] 
 const KEY = 'blindspot.rayChats'
 const MAX = 30
 
-// Ray's chat here is not a model. A question about customers who paid and have no access gets the scan answer, a question about a pipe or a screen goes to that screen,
+// Ray's chat here is not a model. A question about customers who paid and did not get access gets the scan answer, a question about a pipe or a screen goes to that screen,
 // a question about what is broken gets the payment issues answer. Anything else is said not to be understood, with the questions Ray can answer: it never makes
 // up an answer. Every figure in an answer is read from the data.
 const SCAN = /scan|stuck|no access|paid/i

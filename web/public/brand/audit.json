@@ -83,7 +83,7 @@
   {
    "at": "2026-10-01T19:58:00+05:30",
    "kind": "approval",
-   "summary": "Approval asked in #razorpay-payments: Send your order team 830 paid orders",
+   "summary": "Approval asked in #razorpay-payments: Send your order team the list of 830 paid orders",
    "actor": "Resolve",
    "ref": "FK-1",
    "id": "EV-42"
@@ -139,7 +139,7 @@
   {
    "at": "2026-10-01T18:29:00+05:30",
    "kind": "approval",
-   "summary": "Approval asked in #razorpay-payments: Send your order team 318 duplicate orders",
+   "summary": "Approval asked in #razorpay-payments: Send your order team the list of 318 duplicate orders",
    "actor": "Resolve",
    "ref": "FK-5",
    "id": "EV-35"
@@ -426,7 +426,7 @@
   {
    "issue": "FK-1",
    "action": "orders",
-   "summary": "Approved: Send your order team 830 paid orders. In this demo nothing was refunded or sent."
+   "summary": "Approved: Send your order team the list of 830 paid orders. In this demo nothing was refunded or sent."
   },
   {
    "issue": "FK-1",
@@ -451,7 +451,7 @@
   {
    "issue": "FK-5",
    "action": "orders",
-   "summary": "Approved: Send your order team 318 duplicate orders. In this demo nothing was refunded or sent."
+   "summary": "Approved: Send your order team the list of 318 duplicate orders. In this demo nothing was refunded or sent."
   },
   {
    "issue": "FK-5",

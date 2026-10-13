@@ -118,7 +118,7 @@ function Report({ data }: { data: Scan }) {
   const fine = data.leaked_customers === 0
   return (
     <Box display="flex" flexDirection="column" gap="spacing.6" testID="scan-report">
-      <Hero eyebrow="First check · last 30 days" title={fine ? <>Nobody paid and <Accent>missed out</Accent></> : <>{people} customers paid and <Accent>have no access</Accent></>}>
+      <Hero eyebrow="First check · last 30 days" title={fine ? <>Nobody paid and <Accent>missed out</Accent></> : <>{people} customers paid and <Accent>did not get access</Accent></>}>
         <Box display="flex" flexWrap="wrap" alignItems="center" gap={{ base: 'spacing.6', m: 'spacing.9' }}>
           <Figure label="Paid by them, no access given" value={rupees(data.leaked_paise)} />
           <Figure label="Payment issues found in total" value={String(data.incidents.length)} />

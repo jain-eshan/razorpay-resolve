@@ -45,7 +45,7 @@ test('phone: a closed menu leaves the page readable to assistive technology', as
   await expect(page.locator('#root')).not.toHaveAttribute('aria-hidden', 'true')
   await expect(page.locator('#root')).not.toHaveAttribute('data-floating-ui-inert')
   await expect(page.getByRole('button', { name: 'Open menu' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'How it works' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'About this page' })).toBeVisible()
 })
 
 test('phone: widening the window past the phone layout closes the open menu', async ({ page }) => {
@@ -79,7 +79,7 @@ test('phone: the open menu is reachable, traps focus and hides the page, closing
   await page.keyboard.press('Escape')
   await expect(menu).toHaveCount(0)
   await expect(page.locator('#root')).not.toHaveAttribute('aria-hidden', 'true')
-  await expect(page.getByRole('button', { name: 'How it works' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'About this page' })).toBeVisible()
 })
 
 // Blade's mobile SideNav once kept a drawer mounted while closed, which set aria-hidden on the whole page. Loaded straight at phone width, role queries found nothing.

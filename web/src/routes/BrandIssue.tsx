@@ -82,7 +82,7 @@ export default function BrandIssue({ id }: { id: string }) {
   const steps: StoryStep[] = [
     { title: 'Hear', done: true, value: d.heard.value, note: d.heard.note },
     { title: 'Find everyone', done: true, value: `${about}${n(d.affected)} customers hit`, note: d.groups.map((g) => `${about.toLowerCase()}${n(g.count)} ${g.label.toLowerCase()}`).join(', ') },
-    { title: 'Whose side', done: true, value: OWNER[d.owner], note: `${sentence(d.confidence)} confidence` },
+    { title: 'Whose side', done: true, value: OWNER[d.owner], note: `${d.confidence === 'exact' ? 'Highest' : sentence(d.confidence)} confidence` },
     { title: 'Fix', done: fixed === d.affected, value: fixed === d.affected ? `All ${n(d.affected)} put right` : `${n(fixed)} of ${n(d.affected)} put right`, note: closed ? 'closed' : approved.length ? 'in progress' : 'needs your approval' },
     { title: 'Win back', done: told > 0, value: told > 0 ? `${n(told)} told` : 'No one told yet', note: told > 0 ? 'in your name' : 'needs your approval' },
   ]
@@ -112,7 +112,7 @@ export default function BrandIssue({ id }: { id: string }) {
               <Box display="flex" gap="spacing.3" alignItems="center" flexWrap="wrap">
                 <Badge color={OWNER_TONE[d.owner]} size="medium">{OWNER[d.owner]}</Badge>
                 <Badge color={closed ? 'positive' : 'notice'} size="medium">{closed ? 'Closed' : 'Open'}</Badge>
-                <Text size="small" color="surface.text.gray.muted">{`${sentence(d.confidence)} confidence · started ${clock(d.onset_at)} · ${d.id}`}</Text>
+                <Text size="small" color="surface.text.gray.muted">{`${d.confidence === 'exact' ? 'Highest' : sentence(d.confidence)} confidence · started ${clock(d.onset_at)} · ${d.id}`}</Text>
               </Box>
             </Box>
           </Box>
@@ -157,7 +157,7 @@ export default function BrandIssue({ id }: { id: string }) {
           <Field label="Whose side">
             <Box display="flex" alignItems="center" gap="spacing.3" flexWrap="wrap">
               <Badge size="medium" color={OWNER_TONE[d.owner]}>{OWNER[d.owner]}</Badge>
-              <Text size="small" color="surface.text.gray.muted">{`${sentence(d.confidence)} confidence, ${d.root.signals.length} signals agree`}</Text>
+              <Text size="small" color="surface.text.gray.muted">{`${d.confidence === 'exact' ? 'Highest' : sentence(d.confidence)} confidence, ${d.root.signals.length} signals agree`}</Text>
             </Box>
             <Box display="flex" flexDirection="column" paddingTop="spacing.2">
               {d.root.signals.map((s) => <Text key={s} size="small" color="surface.text.gray.muted">{s}</Text>)}

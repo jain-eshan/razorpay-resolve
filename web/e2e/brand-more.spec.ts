@@ -37,7 +37,7 @@ for (const d of issues) {
     const stats = page.getByTestId('brand-stats')
     await expect(stats).toContainText(n(d.affected))
     for (const g of d.groups) { await expect(stats).toContainText(n(g.count)); await expect(stats).toContainText(g.hint) }
-    await expect(page.getByTestId('page')).toContainText(`${d.confidence[0].toUpperCase()}${d.confidence.slice(1)} confidence`)
+    await expect(page.getByTestId('page')).toContainText((d.confidence === 'exact' ? 'Highest confidence' : `${d.confidence[0].toUpperCase()}${d.confidence.slice(1)} confidence`))
     if (d.inferred) await expect(stats).toContainText(`About ${n(d.affected)}`)  // a count worked out from carts says so
     else await expect(stats).not.toContainText('About')
     await expect(page.getByTestId('where-it-showed-up')).toBeVisible()  // the Slack thread

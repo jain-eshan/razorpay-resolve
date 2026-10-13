@@ -174,7 +174,7 @@ for (const [id, tid, unit] of CHARTS) {
       })
       expect(axes.empty, `a line with an empty label pill at ${width}px`).toBe(0)
       // A mark with no room is not drawn; the key says what it was and when (INC-1's fix is too near the right edge).
-      if (id === 'INC-1') await expect(page.getByTestId('chart-legend')).toContainText('Too close to mark on the chart: Webhooks fixed (Thu 01 Oct, 11:34)')
+      if (id === 'INC-1') await expect(page.getByTestId('chart-legend')).toContainText('Also happened, but too close to mark: Webhooks fixed (Thu 01 Oct, 11:34)')
       expect(axes.marks.map((mk) => mk.t), `the start is marked by name at ${width}px`).toContain(START[id])
       for (const mk of axes.marks) expect(mk.r, `the label "${mk.t}" inside the chart at ${width}px`).toBeLessThanOrEqual(mk.box)
       expect(axes.y.length, `value ticks found at ${width}px`).toBeGreaterThanOrEqual(3)  // so these checks cannot pass by finding nothing

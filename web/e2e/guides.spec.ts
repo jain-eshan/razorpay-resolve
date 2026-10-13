@@ -45,10 +45,10 @@ test('the overview guide walks through three slides and lands on setup', async (
   await expect(page).toHaveURL(/\/setup$/)
 })
 
-test('the pages that explain themselves have a How it works button that opens their guide', async ({ page }) => {
+test('the pages that explain themselves have an About this page button that opens their guide', async ({ page }) => {
   for (const [route, guide] of [['/settings', 'autonomy'], ['/learning', 'learning'], ['/how', 'how'], ['/access', 'access'], ['/connect', 'integration'], ['/release-check', 'integration']]) {
     await page.goto(route)
-    await page.getByRole('button', { name: 'How it works' }).click()
+    await page.getByRole('button', { name: 'About this page' }).click()
     await expect(page).toHaveURL(new RegExp(`/guides/${guide}$`))
   }
 })

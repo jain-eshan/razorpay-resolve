@@ -60,7 +60,7 @@ export function useGuideStats(id: string): Stat[] | undefined {
   }
   if (id === 'scan' && scan.data) {
     return [
-      { value: num(scan.data.leaked_customers), label: 'customers paid and have no access' },
+      { value: num(scan.data.leaked_customers), label: 'customers paid and did not get access' },
       { value: rupees(scan.data.leaked_paise), label: 'paid by those customers' },
     ]
   }

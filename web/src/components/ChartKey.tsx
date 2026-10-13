@@ -23,7 +23,7 @@ export function ChartKey({ items, testID, notes = [] }: { items: { name: string;
           </Box>
         ))}
       </Box>
-      {notes.length > 0 && <Text size="small" color="surface.text.gray.muted" textAlign="center">{`Too close to mark on the chart: ${notes.join(' · ')}`}</Text>}
+      {notes.length > 0 && <Text size="small" color="surface.text.gray.muted" textAlign="center">{`Also happened, but too close to mark: ${notes.join(' · ')}`}</Text>}
     </Box>
   )
 }
